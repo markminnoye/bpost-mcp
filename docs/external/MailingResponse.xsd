@@ -1,0 +1,773 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by Jan Wilmaers (Belgian Post Group) -->
+<!-- edited with XMLSpy v2008 rel. 2 (http://www.altova.com) by mazuki (darksiderg) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<xs:element name="MailingResponse">
+		<xs:annotation>
+			<xs:documentation>Root tag for mailing response files</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Context" type="ContextType">
+					<xs:annotation>
+						<xs:documentation>Tag provided for technical communication.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="Header">
+					<xs:annotation>
+						<xs:documentation>Tag that contains global information</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="customerId" type="xs:positiveInteger" use="required"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Replies" type="RepliesType_FileLevel" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Global errors that were detected in the request file (not specifically linked to an action)</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="MailingCreate" type="MailingListType_MC">
+						<xs:annotation>
+							<xs:documentation>This tag contains the response of the mailing create</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MailingCheck" type="MailingListType_MH">
+						<xs:annotation>
+							<xs:documentation>This tag contains the response of the mailing check</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MailingDelete" type="MailingListType">
+						<xs:annotation>
+							<xs:documentation>This tag contains the response of the mailing delete</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MailingReuse" type="MailingListType">
+						<xs:annotation>
+							<xs:documentation>This tag contains the response of the mailing reuse</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:choice>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<!--
+	 Request meta data types 
+	-->
+	<xs:complexType name="ContextType">
+		<xs:attribute name="requestName" type="xs:string" use="required" fixed="MailingResponse">
+			<xs:annotation>
+				<xs:documentation>A constant identifying the request.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="dataset" type="xs:string" use="required" fixed="M037_MID">
+			<xs:annotation>
+				<xs:documentation>Required by the File Handling System.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="sender" type="xs:string" use="required" fixed="MID">
+			<xs:annotation>
+				<xs:documentation>Required by the File Handling System.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="receiver" type="xs:positiveInteger" use="required">
+			<xs:annotation>
+				<xs:documentation>Customer identifier. Must match the CCCCCCCC part in the file name.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="version" type="xs:string" use="required" fixed="0100">
+			<xs:annotation>
+				<xs:documentation>The file version. Must match the file version in the file name.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="HeaderType">
+		<xs:sequence>
+			<xs:element name="CustomerRefs" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CustomerRef" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Customer reference belonging to a file, this will be stored but ignored by De Post - La Poste</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="key" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="value" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Files" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="RequestProps">
+							<xs:annotation>
+								<xs:documentation>Request file properties</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="fileName" type="StringType100" use="required">
+									<xs:annotation>
+										<xs:documentation>The name of the request file.</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="customerFileRef" type="StringType10" use="required">
+									<xs:annotation>
+										<xs:documentation>A customer reference related to this file. Needs to match the NNNNNNNNNN field from the file name.</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="customerId" type="xs:positiveInteger" use="required">
+			<xs:annotation>
+				<xs:documentation>Customer identifier. Must match the CCCCCCCC part in the file name.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="MailingListType">
+		<xs:annotation>
+			<xs:documentation>Type for MailingCreate and MailingCheck actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Status" type="StatusType"/>
+			<xs:element name="CustomerRefs" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CustomerRef" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Customer reference belonging to a file, this will be stored but ignored by De Post - La Poste</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="key" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="value" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Replies" type="RepliesType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the response within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="mailingRef" type="StringType20" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="MailingListType_MH">
+		<xs:annotation>
+			<xs:documentation>Type for MailingCreate and MailingCheck actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Status" type="StatusType"/>
+			<xs:element name="DistributionInformation" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Item" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Large format information for a given item</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="seq" type="SeqType" use="required">
+									<xs:annotation>
+										<xs:documentation>Original seq of the item in the request file</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="distributionOffice" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>The distribution office for the item</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="routeName" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>The name of the route</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="routeSeq" type="xs:nonNegativeInteger" use="required">
+									<xs:annotation>
+										<xs:documentation>The sequence of the item on the route</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CustomerRefs" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CustomerRef" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Customer reference belonging to a file, this will be stored but ignored by De Post - La Poste</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="key" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="value" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Replies" type="RepliesType_MH" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the response within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="mailingRef" type="StringType20" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="LocationsType">
+		<xs:sequence>
+			<xs:element name="Location" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attribute name="tagName" type="xs:string" use="required">
+						<xs:annotation>
+							<xs:documentation>Name of the tag to which to navigate to locate the error</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="attributeName" type="xs:string" use="optional">
+						<xs:annotation>
+							<xs:documentation>Name of the attribute that identifies the unique key for the tag that is defined in the tagName attribute</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="attributeValue" type="xs:string" use="optional">
+						<xs:annotation>
+							<xs:documentation>Value of the attribute identified by the attributeName attribute</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="StatusType">
+		<xs:attribute name="code" type="StringType10" use="required">
+			<xs:annotation>
+				<xs:documentation>Status code</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="RepliesType">
+		<xs:sequence>
+			<xs:element name="Reply" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="XPath" type="xs:string"/>
+						<xs:element name="Locations" type="LocationsType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Location list identifying the place within the request where the error was found</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Messages">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Message" maxOccurs="unbounded">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Description" type="xs:string" minOccurs="0"/>
+												<xs:element name="MessageContents" minOccurs="0">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element name="MessageContent" maxOccurs="unbounded">
+																<xs:complexType>
+																	<xs:attributeGroup ref="KeyValueAttGroup"/>
+																</xs:complexType>
+															</xs:element>
+														</xs:sequence>
+													</xs:complexType>
+												</xs:element>
+												<xs:element name="Item" minOccurs="0">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element name="Comps" type="CompsType"/>
+														</xs:sequence>
+														<xs:attribute name="seq" type="SeqType" use="required">
+															<xs:annotation>
+																<xs:documentation>A sequence number identifying the item within the request.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="lang" type="LanguageType" use="optional">
+															<xs:annotation>
+																<xs:documentation>A 2 characters constant indicating the language of the item</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="midNum" type="MidNumberType" use="optional">
+															<xs:annotation>
+																<xs:documentation>The MAIL ID number.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="psCode" type="StringType20" use="optional">
+															<xs:annotation>
+																<xs:documentation>The pre-sorting code.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="priority" type="PriorityType" use="required"/>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+											<xs:attribute name="code" type="xs:string" use="required"/>
+											<xs:attribute name="severity" type="SeverityType" use="required"/>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="seq" type="SeqType" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="RepliesType_FileLevel">
+		<xs:sequence>
+			<xs:element name="Reply" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="XPath" type="xs:string"/>
+						<xs:element name="Locations" type="LocationsType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Location list identifying the place within the request where the error was found</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Messages">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Message" maxOccurs="unbounded">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Description" type="xs:string" minOccurs="0"/>
+												<xs:element name="MessageContents" minOccurs="0">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element name="MessageContent" maxOccurs="unbounded">
+																<xs:complexType>
+																	<xs:attributeGroup ref="KeyValueAttGroup"/>
+																</xs:complexType>
+															</xs:element>
+														</xs:sequence>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+											<xs:attribute name="code" type="xs:string" use="required"/>
+											<xs:attribute name="severity" type="SeverityType" use="required"/>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="seq" type="SeqType" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!--
+	Common attributes
+	-->
+	<xs:attributeGroup name="KeyValueAttGroup">
+		<xs:attribute name="key" type="xs:string" use="required"/>
+		<xs:attribute name="value" type="xs:string" use="required"/>
+	</xs:attributeGroup>
+	<!--
+	Simple data types 
+	-->
+	<xs:simpleType name="BooleanType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Y"/>
+			<xs:enumeration value="N"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="LanguageType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="fr"/>
+			<xs:enumeration value="nl"/>
+			<xs:enumeration value="de"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SeverityType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="INFO"/>
+			<xs:enumeration value="WARN"/>
+			<xs:enumeration value="ERROR"/>
+			<xs:enumeration value="FATAL"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SeqType">
+		<xs:restriction base="xs:positiveInteger"/>
+	</xs:simpleType>
+	<xs:simpleType name="StringType10">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="10"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType20">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType70">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="70"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType100">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="100"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType250">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="250"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="MidNumberType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[0-9]{14,18}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PriorityType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="NP"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="InputAddressType">
+		<xs:annotation>
+			<xs:documentation>Mailing list items</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Comps" type="CompsType">
+				<xs:unique name="uniqueComponentsInputItem">
+					<xs:selector xpath="Comp"/>
+					<xs:field xpath="@code"/>
+				</xs:unique>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="seq" type="xs:positiveInteger" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="SuggestionsType">
+		<xs:annotation>
+			<xs:documentation>Mailing list items</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Suggestion" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Comps" type="CompsType">
+							<xs:unique name="uniqueComponentsInSuggestions">
+								<xs:selector xpath="Comp"/>
+								<xs:field xpath="@code"/>
+							</xs:unique>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="seq" type="xs:positiveInteger" use="required"/>
+					<xs:attribute name="score" type="xs:positiveInteger" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="RepliesType_MH">
+		<xs:sequence>
+			<xs:element name="Reply" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="XPath" type="xs:string"/>
+						<xs:element name="Locations" type="LocationsType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Location list identifying the place within the request where the error was found</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Messages">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Message" maxOccurs="unbounded">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Description" type="xs:string" minOccurs="0"/>
+												<xs:element name="MessageContents" minOccurs="0">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element name="MessageContent" maxOccurs="unbounded">
+																<xs:complexType>
+																	<xs:attributeGroup ref="KeyValueAttGroup"/>
+																</xs:complexType>
+															</xs:element>
+														</xs:sequence>
+													</xs:complexType>
+												</xs:element>
+												<xs:element name="Alternatives" minOccurs="0">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element name="Alternative" maxOccurs="unbounded">
+																<xs:complexType>
+																	<xs:sequence>
+																		<xs:element name="Comps" type="CompsType"/>
+																	</xs:sequence>
+																	<xs:attribute name="seq" type="SeqType" use="required"/>
+																</xs:complexType>
+															</xs:element>
+														</xs:sequence>
+													</xs:complexType>
+												</xs:element>
+												<xs:element name="Item" minOccurs="0">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element name="Comps" type="CompsType"/>
+														</xs:sequence>
+														<xs:attribute name="seq" type="SeqType" use="required">
+															<xs:annotation>
+																<xs:documentation>A sequence number identifying the item within the request.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="lang" type="LanguageType" use="optional">
+															<xs:annotation>
+																<xs:documentation>A 2 characters constant indicating the language of the item</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="midNum" type="MidNumberType" use="optional">
+															<xs:annotation>
+																<xs:documentation>The MAIL ID number.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="psCode" type="StringType20" use="optional">
+															<xs:annotation>
+																<xs:documentation>The pre-sorting code.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="priority" type="PriorityType" use="required"/>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+											<xs:attribute name="code" type="xs:string" use="required"/>
+											<xs:attribute name="severity" type="SeverityType" use="required"/>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="RequestItem" type="InputAddressType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The original address</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Suggestions" type="SuggestionsType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>List of suggestions for the given address</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Problems" type="ProblemsType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>List of problems for the given address</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="seq" type="SeqType" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="RepliesType_MC">
+		<xs:sequence>
+			<xs:element name="Reply" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="XPath" type="xs:string"/>
+						<xs:element name="Locations" type="LocationsType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Location list identifying the place within the request where the error was found</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="Messages">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Message" maxOccurs="unbounded">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Description" type="xs:string" minOccurs="0"/>
+												<xs:element name="MessageContents" minOccurs="0">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element name="MessageContent" maxOccurs="unbounded">
+																<xs:complexType>
+																	<xs:attributeGroup ref="KeyValueAttGroup"/>
+																</xs:complexType>
+															</xs:element>
+														</xs:sequence>
+													</xs:complexType>
+												</xs:element>
+												<xs:element name="Item" minOccurs="0">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element name="Comps" type="CompsType"/>
+														</xs:sequence>
+														<xs:attribute name="seq" type="SeqType" use="required">
+															<xs:annotation>
+																<xs:documentation>A sequence number identifying the item within the request.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="lang" type="LanguageType" use="optional">
+															<xs:annotation>
+																<xs:documentation>A 2 characters constant indicating the language of the item</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="midNum" type="MidNumberType" use="optional">
+															<xs:annotation>
+																<xs:documentation>The MAIL ID number.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="psCode" type="StringType20" use="optional">
+															<xs:annotation>
+																<xs:documentation>The pre-sorting code.</xs:documentation>
+															</xs:annotation>
+														</xs:attribute>
+														<xs:attribute name="priority" type="PriorityType" use="required"/>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+											<xs:attribute name="code" type="xs:string" use="required"/>
+											<xs:attribute name="severity" type="SeverityType" use="required"/>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="RequestItem" type="InputAddressType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>The original address</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="seq" type="SeqType" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MailingListType_MC">
+		<xs:annotation>
+			<xs:documentation>Type for MailingCreate and MailingCheck actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Status" type="StatusType"/>
+			<xs:element name="DistributionInformation" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Item" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Large format information for a given item</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="seq" type="SeqType" use="required">
+									<xs:annotation>
+										<xs:documentation>Original seq of the item in the request file</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="distributionOffice" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>The distribution office for the item</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="routeName" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>The name of the route</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="routeSeq" type="xs:nonNegativeInteger" use="required">
+									<xs:annotation>
+										<xs:documentation>The sequence of the item on the route</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="prtOrder" type="xs:positiveInteger" use="required"/>
+								<xs:attribute name="orgInfo" type="xs:string" use="optional"/>
+								<xs:attribute name="icti" type="xs:string" use="optional"/>
+								<xs:attribute name="isec" type="xs:string" use="optional"/>
+								<xs:attribute name="ioff" type="xs:string" use="optional"/>
+								<xs:attribute name="irnd" type="xs:string" use="optional"/>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CustomerRefs" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="CustomerRef" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Customer reference belonging to a file, this will be stored but ignored by De Post - La Poste</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="key" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="value" type="StringType250" use="required">
+									<xs:annotation>
+										<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Replies" type="RepliesType_MC" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the response within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="mailingRef" type="StringType20" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="ProblemsType">
+		<xs:sequence>
+			<xs:element name="Problem" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attributeGroup ref="ValueDescriptionAttGroup"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:attributeGroup name="ValueDescriptionAttGroup">
+		<xs:attribute name="value" type="xs:string" use="required"/>
+		<xs:attribute name="description" type="xs:string" use="required"/>
+	</xs:attributeGroup>
+	<xs:complexType name="CompsType">
+		<xs:sequence>
+			<xs:element name="Comp" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attribute name="code" type="xs:NMTOKEN" use="required"/>
+					<xs:attribute name="value" type="StringType70" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>
