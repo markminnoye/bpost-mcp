@@ -5,7 +5,7 @@
 
 ### 📚 Documentation & Skills
 
-This project uses the [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-epostmasspost-skills) (linked as a git submodule).
+This project uses the [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-e-masspost-skills) (linked as a git submodule).
 The documentation serves two roles:
 1. **MCP service construction** — agents use it to build Zod schemas, client code, and validation logic.
 2. **Distributable AI Skills** — the documentation is packaged as versioned .zip skills for Claude/Gemini, allowing customers to use the same logic in their own workflows.
@@ -16,7 +16,8 @@ Before implementing or architecting, agents MUST read:
 - 1. **Project Design:** `@docs/internal/project-design.md` for architectural decisions, constraints, and data flow.
 - 2. **Vercel MCP Docs:** [Deploy MCP Servers to Vercel](https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel)
 - 3. **Vercel Next.js Template:** [MCP with Next.js](https://vercel.com/templates/next.js/model-context-protocol-mcp-with-next-js)
-- 4. **BPost Technical Guide (Skills):** Start at `@docs/internal/epost-masspost/skills/epost-masspost-protocol/index.md` — this is the agent-optimized entry point for the protocol. Read the index first, then drill into specific files:
+- 4. **Official MCP Examples:** [Claude AI MCP Servers](https://github.com/anthropics/claude-ai-mcp) — reference for tool definitions.
+- 5. **BPost Technical Guide (Skills):** Start at `@docs/internal/e-masspost/skills/e-masspost-protocol/index.md` — this is the agent-optimized entry point for the protocol. Read the index first, then drill into specific files:
   - `schemas/` — Field specs, types, lengths, rules for building Zod schemas
   - `flows/` — Business logic, sequence diagrams, master/slave relationships
   - `transport/` — HTTP/FTP protocol details for client code
@@ -30,6 +31,8 @@ Before implementing or architecting, agents MUST read:
 ### 🧠 Continuous Learning
 
 When an agent discovers new insights, patterns, or corrections about the BPost API, file structures, or validation rules that are **not yet documented**, it should request to amend this file or the relevant markdown file in the skills submodule. Examples: undocumented error codes, edge cases in field validation, corrections to the guide, or reusable patterns discovered during implementation.
+
+- **Documentation Audit (2026-03-28):** A systematic audit (BUG-001) identified several casing and naming inconsistencies between the e-MassPost Markdown files and the source XSDs. Key fixes included lowercase attribute names for `<Context>` tags and mapping `fieldToPrint1-3` to `distributionOffice/routeName/routeSeq` in responses. Always prioritize `.xsd` files in `resources/` as the absolute source of truth.
 
 ### ✅ Definition of Done (DoD)
 
