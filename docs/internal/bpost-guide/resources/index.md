@@ -6,7 +6,7 @@ All resource files are located in `docs/internal/bpost-guide/resources/`.
 
 ## XML Schema Definitions (XSD)
 
-These are the formal XML schemas for validating bpost request/response files. They are also embedded inline in the corresponding schema docs for agent convenience.
+These are the formal XML schemas for validating bpost request/response files. Use these when you need formal XML validation or precise type constraints. For field descriptions, Zod schemas, and chatbot help, use the corresponding `schemas/*.md` docs instead.
 
 | File | Description | Referenced in |
 |------|-------------|---------------|
