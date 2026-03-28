@@ -31,6 +31,8 @@ Files include a `mode` field: **P** (Production), **T** (Test), **C** (Certifica
 
 ## Navigation — Find the Right File for Your Task
 
+> **Two flows:** For field specs, Zod schemas, and chatbot help — use the `schemas/` files below. For formal XML validation — go to [`resources/index.md`](resources/index.md).
+
 ### Building Zod Schemas / Validating File Structure
 | File | Description |
 |---|---|
