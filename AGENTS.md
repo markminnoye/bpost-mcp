@@ -3,11 +3,12 @@
 **Purpose:** An MCP wrapper for BPost's mail sorting/delivery batch announcement service.
 **Integration Target:** Langflow (Orchestration & Workflow delivery).
 
-### 📚 Documentation Purpose (Dual Use)
+### 📚 Documentation & Skills
 
-The `docs/internal/bpost-guide/` documentation serves two roles:
-1. **MCP service construction** — agents use it to build Zod schemas, HTTP/FTP client code, error handling, and barcode logic.
-2. **Help chatbot knowledge base** — agents use it to assist end users (e.g. "how do I submit a deposit?", "what does error MID-3010 mean?"). The docs are written to be self-contained and readable by both humans and AI agents.
+This project uses the [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-epostmasspost-skills) (linked as a git submodule).
+The documentation serves two roles:
+1. **MCP service construction** — agents use it to build Zod schemas, client code, and validation logic.
+2. **Distributable AI Skills** — the documentation is packaged as versioned .zip skills for Claude/Gemini, allowing customers to use the same logic in their own workflows.
 
 ### 🎯 Context Routing
 
@@ -15,7 +16,7 @@ Before implementing or architecting, agents MUST read:
 - 1. **Project Design:** `@docs/internal/project-design.md` for architectural decisions, constraints, and data flow.
 - 2. **Vercel MCP Docs:** [Deploy MCP Servers to Vercel](https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel)
 - 3. **Vercel Next.js Template:** [MCP with Next.js](https://vercel.com/templates/next.js/model-context-protocol-mcp-with-next-js)
-- 4. **BPost Technical Guide:** Start at `@docs/internal/bpost-guide/index.md` — this is the agent-optimized entry point to the full BPost Data Exchange Technical Guide (203 pages). Read the index first, then drill into only the specific file(s) needed for your task:
+- 4. **BPost Technical Guide (Skills):** Start at `@docs/internal/epost-masspost/skills/epost-masspost-protocol/index.md` — this is the agent-optimized entry point for the protocol. Read the index first, then drill into specific files:
   - `schemas/` — Field specs, types, lengths, rules for building Zod schemas
   - `flows/` — Business logic, sequence diagrams, master/slave relationships
   - `transport/` — HTTP/FTP protocol details for client code
@@ -28,7 +29,7 @@ Before implementing or architecting, agents MUST read:
 
 ### 🧠 Continuous Learning
 
-When an agent discovers new insights, patterns, or corrections about the BPost API, file structures, or validation rules that are **not yet documented**, it should request to amend this file or the relevant markdown file in `@docs/internal/bpost-guide/`. Examples: undocumented error codes, edge cases in field validation, corrections to the guide, or reusable patterns discovered during implementation.
+When an agent discovers new insights, patterns, or corrections about the BPost API, file structures, or validation rules that are **not yet documented**, it should request to amend this file or the relevant markdown file in the skills submodule. Examples: undocumented error codes, edge cases in field validation, corrections to the guide, or reusable patterns discovered during implementation.
 
 ### ✅ Definition of Done (DoD)
 
