@@ -113,4 +113,4 @@ bpost provides official XSD schemas for validating XML request and response file
 | [MailingResponse.xsd](../resources/MailingResponse.xsd) | Mailing response files (`<MailingResponse>` root) |
 | [RequestAck.xsd](../resources/RequestAck.xsd) | Acknowledgement files (`<RequestAck>` root, shared by Deposit and Mailing) |
 
-The XSD content is also embedded inline in each corresponding schema doc — see `schemas/` for full documentation.
+For field descriptions, Zod schemas, and chatbot help, see the corresponding `schemas/` docs. The schema docs link back to these XSD files for formal validation use.
