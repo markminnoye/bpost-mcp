@@ -3,6 +3,12 @@
 **Purpose:** An MCP wrapper for BPost's mail sorting/delivery batch announcement service.
 **Integration Target:** Langflow (Orchestration & Workflow delivery).
 
+### 📚 Documentation Purpose (Dual Use)
+
+The `docs/internal/bpost-guide/` documentation serves two roles:
+1. **MCP service construction** — agents use it to build Zod schemas, HTTP/FTP client code, error handling, and barcode logic.
+2. **Help chatbot knowledge base** — agents use it to assist end users (e.g. "how do I submit a deposit?", "what does error MID-3010 mean?"). The docs are written to be self-contained and readable by both humans and AI agents.
+
 ### 🎯 Context Routing
 
 Before implementing or architecting, agents MUST read:
