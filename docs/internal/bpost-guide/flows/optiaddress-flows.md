@@ -39,11 +39,6 @@ flowchart TD
     CS[Customer System] -->|"Mailing Data Flow"| MID[MAIL ID System]
 ```
 
-```
-(Mailing Data Flow only -- no Deposit Data Flow needed)
-Customer System --> MAIL ID System
-```
-
 ### Sequence Diagram: Mailing Check
 
 > **Source:** PDF page 65 — Figure 27: Mailing Check
@@ -55,12 +50,6 @@ sequenceDiagram
     C->>B: 1. MailingCheck (Mailing Request File)
     B-->>C: 2. Acknowledgement
     B-->>C: 3. Mailing Response (Feedback)
-```
-
-```
-1. Customer --> bpost: MailingCheck (Mailing Request File with addresses)
-2. bpost --> Customer: Acknowledgement
-3. bpost --> Customer: Mailing Response (feedback with validation results)
 ```
 
 The flow follows the standard Request/Acknowledgement/Response pattern (see [request-ack-response.md](request-ack-response.md)):

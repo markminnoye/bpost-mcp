@@ -34,12 +34,6 @@ sequenceDiagram
     Note over B,C: Processing result + content feedback (e.g. price quote)
 ```
 
-```
-1. Customer --> bpost: Request File (upload to /requests/ directory)
-2. bpost --> Customer: Acknowledgement File (available in /responses/ directory)
-3. bpost --> Customer: Response File (available in /responses/ directory)
-```
-
 **Step 1 -- Request File:** The customer uploads a structured file to bpost's system. This is the only step initiated by the customer.
 
 **Step 2 -- Acknowledgement File:** bpost immediately confirms receipt of the file. The acknowledgement only reports that the file was received -- it does NOT validate syntax or content correctness.

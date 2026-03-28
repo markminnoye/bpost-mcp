@@ -49,15 +49,6 @@ sequenceDiagram
     B-->>C: 6. Deposit Response (authorization)
 ```
 
-```
-1. Customer --> bpost: DepositCreate (autoValidate=N)
-2. bpost --> Customer: Acknowledgement
-3. bpost --> Customer: Deposit Response (price quote)
-4. Customer --> bpost: DepositValidate
-5. bpost --> Customer: Acknowledgement
-6. bpost --> Customer: Deposit Response (authorization)
-```
-
 The customer sends two separate Deposit Request Files: one with a DepositCreate action, and a second with a DepositValidate action.
 
 ### Scenario 2: Deposit (Auto Validate = Y)
@@ -73,12 +64,6 @@ sequenceDiagram
     C->>B: 1. DepositCreate (autoValidate=Y)
     B-->>C: 2. Acknowledgement
     B-->>C: 3. Deposit Response (price + authorization)
-```
-
-```
-1. Customer --> bpost: DepositCreate (autoValidate=Y)
-2. bpost --> Customer: Acknowledgement
-3. bpost --> Customer: Deposit Response (price + authorization)
 ```
 
 The customer only needs to send one file. The response includes both the price and the authorization.
@@ -104,18 +89,6 @@ sequenceDiagram
     B-->>C: 9. Deposit Response (authorization)
 ```
 
-```
-1. Customer --> bpost: DepositCreate (autoValidate=N)
-2. bpost --> Customer: Acknowledgement
-3. bpost --> Customer: Deposit Response (price quote)
-4. Customer --> bpost: DepositUpdate
-5. bpost --> Customer: Acknowledgement
-6. bpost --> Customer: Deposit Response (updated price quote)
-7. Customer --> bpost: DepositValidate
-8. bpost --> Customer: Acknowledgement
-9. bpost --> Customer: Deposit Response (authorization)
-```
-
 The customer sends three Deposit Request Files: one with DepositCreate, one with DepositUpdate, and one with DepositValidate.
 
 ### Scenario 4: Deposit Delete
@@ -134,15 +107,6 @@ sequenceDiagram
     C->>B: 4. DepositDelete
     B-->>C: 5. Acknowledgement
     B-->>C: 6. Deposit Response (delete confirmation)
-```
-
-```
-1. Customer --> bpost: DepositCreate (autoValidate=N)
-2. bpost --> Customer: Acknowledgement
-3. bpost --> Customer: Deposit Response (price quote)
-4. Customer --> bpost: DepositDelete
-5. bpost --> Customer: Acknowledgement
-6. bpost --> Customer: Deposit Response (delete confirmation)
 ```
 
 The customer sends two Deposit Request Files: one with DepositCreate and one with DepositDelete.
@@ -178,22 +142,6 @@ sequenceDiagram
     B-->>C: 13. Deposit Response (authorization)
 ```
 
-```
-1.  Customer --> bpost: DepositCreate (autoValidate=N)
-2.  bpost --> Customer: Acknowledgement
-3.  bpost --> Customer: Deposit Response (no price -- not enough addresses yet)
-4.  Customer --> bpost: MailingCreate M1
-5.  bpost --> Customer: Acknowledgement
-6.  bpost --> Customer: Mailing Response (feedback on addresses)
-7.  Customer --> bpost: MailingCreate M2
-8.  bpost --> Customer: Acknowledgement
-9.  bpost --> Customer: Mailing Response (feedback on addresses)
-10. bpost --> Customer: Deposit Response (price -- total addresses now match announced pieces)
-11. Customer --> bpost: DepositValidate
-12. bpost --> Customer: Acknowledgement
-13. bpost --> Customer: Deposit Response (authorization)
-```
-
 **Key behavior:** The Deposit Response with price (step 10) is only sent once the total number of addresses in all linked mailing files meets or exceeds the number of announced mail pieces in the deposit. Before that, no price can be calculated.
 
 ### Scenario 6: Deposit Delete with Multiple Mailing Files
@@ -221,24 +169,6 @@ sequenceDiagram
     B-->>C: 13. Deposit Response (delete confirmation)
     B-->>C: 14. Mailing Response (M1 deleted — cascade)
     B-->>C: 15. Mailing Response (M2 deleted — cascade)
-```
-
-```
-1.  Customer --> bpost: DepositCreate (autoValidate=N)
-2.  bpost --> Customer: Acknowledgement
-3.  bpost --> Customer: Deposit Response (no price)
-4.  Customer --> bpost: MailingCreate
-5.  bpost --> Customer: Acknowledgement
-6.  bpost --> Customer: Mailing Response (feedback)
-7.  Customer --> bpost: MailingCreate
-8.  bpost --> Customer: Acknowledgement
-9.  bpost --> Customer: Mailing Response (feedback)
-10. bpost --> Customer: Deposit Response (price)
-11. Customer --> bpost: DepositDelete
-12. bpost --> Customer: Acknowledgement
-13. bpost --> Customer: Deposit Response (delete confirmation)
-14. bpost --> Customer: Mailing Response (delete confirmation for mailing 1)
-15. bpost --> Customer: Mailing Response (delete confirmation for mailing 2)
 ```
 
 **Key behavior:** Deleting the master (deposit) automatically deletes all its children (mailing files). bpost generates additional Mailing Response files confirming the deletion of each linked mailing.
@@ -272,26 +202,6 @@ sequenceDiagram
     B-->>C: 17. Deposit Response (authorization)
 ```
 
-```
-1.  Customer --> bpost: DepositCreate D1 (announce=100,000)
-2.  bpost --> Customer: Deposit Response (no price)
-3.  Customer --> bpost: MailingCreate M1 (depositRef=D1, 50,000 addresses)
-4.  bpost --> Customer: Mailing Response (feedback) -- no price yet (50,000 < 100,000)
-5.  Customer --> bpost: MailingCreate M2 (depositRef=D1, 70,000 addresses)
-6.  bpost --> Customer: Mailing Response (feedback)
-7.  bpost --> Customer: Deposit Response (price -- 50,000+70,000 >= 100,000)
-8.  Customer --> bpost: MailingDelete M2
-9.  bpost --> Customer: Mailing Response (M2 deleted)
-10. bpost --> Customer: Deposit Response (no price -- 50,000 < 100,000 again)
-11. Customer --> bpost: MailingCreate M3 (depositRef=D1, 20,000 addresses)
-12. bpost --> Customer: Mailing Response (feedback) -- still no price (50,000+20,000 < 100,000)
-13. Customer --> bpost: MailingCreate M4 (depositRef=D1, 30,000 addresses)
-14. bpost --> Customer: Mailing Response (feedback)
-15. bpost --> Customer: Deposit Response (price -- 50,000+20,000+30,000 >= 100,000)
-16. Customer --> bpost: DepositValidate D1
-17. bpost --> Customer: Deposit Response (authorization)
-```
-
 **Key behavior:** Every time an action impacts the total address count relative to the announced mail pieces, bpost recalculates and sends (or withdraws) the price. A previously communicated price becomes invalid when the address total drops below the announced count.
 
 ---
@@ -300,24 +210,7 @@ sequenceDiagram
 
 When the Mailing Request file is master (one mailing, multiple deposits), the flow reverses. The mailing is created first, then deposits reference it.
 
-```
-1.  Customer --> bpost: MailingCreate
-2.  bpost --> Customer: Acknowledgement
-3.  bpost --> Customer: Mailing Response
-4.  Customer --> bpost: DepositCreate (autoValidate=N)
-5.  bpost --> Customer: Acknowledgement
-6.  bpost --> Customer: Deposit Response (price)
-7.  Customer --> bpost: DepositCreate (autoValidate=N)
-8.  bpost --> Customer: Acknowledgement
-9.  bpost --> Customer: Deposit Response (price)
-10. Customer --> bpost: DepositDelete
-11. bpost --> Customer: Acknowledgement
-12. bpost --> Customer: Deposit Response (delete confirmation)
-13. Customer --> bpost: MailingDelete
-14. bpost --> Customer: Acknowledgement
-15. bpost --> Customer: Mailing Response (delete confirmation)
-16. bpost --> Customer: Deposit Response (delete confirmation for remaining deposit)
-```
+> See [mail-id-flows.md — Figure 26: Mailing file Delete](mail-id-flows.md#scenario-mailing-file-delete-figure-26) for the full sequence diagram of this scenario.
 
 **Key behavior:** Deleting the master (mailing) cascades to its children (deposits). The customer can also delete individual deposits without affecting the mailing.
 

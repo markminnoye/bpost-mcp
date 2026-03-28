@@ -19,18 +19,11 @@ flowchart LR
     SC["SORTING CENTER"]
     ENV["Mail Piece\n(barcode +\nsequence ref)"]
 
-    CS -- "(1) Deposit Data Flow" --> MID
-    MID -- "(1) Mailing Data Flow" --> CS
+    CS <-- "(1) Deposit Data Flow" --> MID
+    MID <-- "(1) Mailing Data Flow" --> CS
     CS -- "(2) Print sequence ref\ne.g. Ca-M2-W2/7500-Reg002/1" --> ENV
     ENV -- "(3) Mailing Flow" --> SC
-    MID --> SC
-```
-
-```
-(1) Deposit Data Flow: Customer System --> MAIL ID System
-(2) Customer prints barcodes AND sequence references on mail pieces
-    (sequence reference format: e.g., Ca-M2-W2/7500-Reg002/1)
-(3) Mailing Flow: Physical mail pieces --> Sorting Center
+    MID <--> SC
 ```
 
 The system works identically to Mail ID: the deposit data flow and mailing data flow both go to the MAIL ID system, and the physical mail goes to the sorting center. The addition is the sequence reference that gets printed on each mail piece.
@@ -54,19 +47,20 @@ Key differences from Mail ID:
 The sorting information is based on MAIL ID technology. However, the uploaded MAIL ID file (Request file) contains tags (Format and FileInfo) with other data than for classic Mail ID.
 
 The Response file contains, for each mail piece, information about:
+
 - Distribution order
 - Ease of printing and conditioning of the mailing
 
 Each mail piece record in the XML Response file includes:
 
-| Field | Description | Print on envelope? |
-|-------|-------------|--------------------|
-| `prtOrder` | The order for presetting (based on sortingMode) | No |
-| `seq` | The mail piece order in the Request file | No |
-| `fieldToPrint1` | Pre-sorting info field 1 (8 digits) | Yes |
-| `fieldToPrint2` | Pre-sorting info field 2 (12 digits) | Yes |
-| `fieldToPrint3` | Pre-sorting info field 3 | Yes |
-| `orgInfo` | Original info (not always present) | No |
+| Field           | Description                                     | Print on envelope? |
+| --------------- | ----------------------------------------------- | ------------------ |
+| `prtOrder`      | The order for presetting (based on sortingMode) | No                 |
+| `seq`           | The mail piece order in the Request file        | No                 |
+| `fieldToPrint1` | Pre-sorting info field 1 (8 digits)             | Yes                |
+| `fieldToPrint2` | Pre-sorting info field 2 (12 digits)            | Yes                |
+| `fieldToPrint3` | Pre-sorting info field 3                        | Yes                |
+| `orgInfo`       | Original info (not always present)              | No                 |
 
 The four "last" fields are conditioning information indicating whether a particular mail piece is the first and/or last one for a sorting center ("ctr"), a machine ("mach"), a wave ("wav") or a distribution office ("uff"). Possible values: "Begin", "End", and "Begin_End" (when the mail piece is the only one for that sorting level). These should **not** be printed on the mail pieces.
 
@@ -84,18 +78,21 @@ Position 28-30:  3 space characters (reserved for future use)
 ```
 
 **Examples:**
+
 - `Ga-M3-W5/9000-Res-147/490`
 - `La-M5-W1/0299-No-Rte/99999`
 
 ### Printing Guidelines
 
 When printing the sequence reference on the envelope:
+
 - Must be placed at the **right side and above** the address
 - Must be printed in **bold and/or underlined**
 - Minimum font size must be identical to the address font size
 - A blank line must separate the sequence reference from the address
 
 **Example placement on envelope:**
+
 ```
                               Cb-M2-W2/7500-Reg-002/1
 
@@ -107,6 +104,7 @@ When printing the sequence reference on the envelope:
 ## Flow Diagrams
 
 The sequence diagrams for R&S deposits are the same as for Mail ID. Refer to [deposit-flows.md](deposit-flows.md) for:
+
 - Deposit-only scenarios (auto validate Y/N, update, delete)
 - Deposit master scenarios (multiple mailing files, delete with multiple mailings)
 - Mailing master scenarios

@@ -30,12 +30,6 @@ flowchart TD
     MID -.->|"barcode lookup at sorting"| SC
 ```
 
-```
-(1) Deposit Data Flow: Customer System --> MAIL ID System
-(2) Customer prints barcodes on mail pieces
-(3) Mailing Flow: Physical mail pieces --> Sorting Center
-```
-
 The sorting center uses the MAIL ID barcode to look up address data from step 1, enabling automated sorting.
 
 ## Data Exchange Options
@@ -141,19 +135,6 @@ sequenceDiagram
     B-->>C: 10. Deposit Response (Auth)
 ```
 
-```
-1.  Customer --> bpost: DepositCreate (autoValidate=N)
-2.  bpost --> Customer: Acknowledgement
-3.  bpost --> Customer: Deposit Response (no price -- no mailing files yet)
-4.  Customer --> bpost: MailingCreate (with depositRef linking to the deposit)
-5.  bpost --> Customer: Acknowledgement
-6.  bpost --> Customer: Mailing Response (feedback on addresses)
-7.  bpost --> Customer: Deposit Response (price -- addresses now available)
-8.  Customer --> bpost: DepositValidate
-9.  bpost --> Customer: Acknowledgement
-10. bpost --> Customer: Deposit Response (authorization)
-```
-
 ### Technical Linking Details (Deposit Master)
 
 - **Step 1:** When the customer creates the deposit:
@@ -198,18 +179,6 @@ sequenceDiagram
     C->>B: 7. Deposit Validate
     B-->>C: 8. Acknowledgement
     B-->>C: 9. Deposit Response (Auth)
-```
-
-```
-1. Customer --> bpost: MailingCreate (with mailingRef)
-2. bpost --> Customer: Acknowledgement
-3. bpost --> Customer: Mailing Response (feedback on addresses)
-4. Customer --> bpost: DepositCreate (autoValidate=N, with mailingRef linking to the mailing)
-5. bpost --> Customer: Acknowledgement
-6. bpost --> Customer: Deposit Response (price)
-7. Customer --> bpost: DepositValidate
-8. bpost --> Customer: Acknowledgement
-9. bpost --> Customer: Deposit Response (authorization)
 ```
 
 ### Technical Linking Details (Mailing Master)
