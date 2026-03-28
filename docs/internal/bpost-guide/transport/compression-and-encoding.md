@@ -98,3 +98,19 @@ To convert XML structure to TXT format:
 
 - For transport protocols, see [http-protocol.md](./http-protocol.md) and [ftp-protocol.md](./ftp-protocol.md)
 - For character restrictions in files, see [../reference/character-restrictions.md](../reference/character-restrictions.md)
+
+---
+
+## XSD Schemas
+
+bpost provides official XSD schemas for validating XML request and response files before submission. All schemas are in `docs/internal/bpost-guide/resources/`.
+
+| Schema | Validates |
+|--------|-----------|
+| [DepositRequest.xsd](../resources/DepositRequest.xsd) | Deposit request files (`<DepositRequest>` root) |
+| [DepositResponse.xsd](../resources/DepositResponse.xsd) | Deposit response files (`<DepositResponse>` root) |
+| [MailingRequest.xsd](../resources/MailingRequest.xsd) | Mailing request files (`<MailingRequest>` root) |
+| [MailingResponse.xsd](../resources/MailingResponse.xsd) | Mailing response files (`<MailingResponse>` root) |
+| [RequestAck.xsd](../resources/RequestAck.xsd) | Acknowledgement files (`<RequestAck>` root, shared by Deposit and Mailing) |
+
+The XSD content is also embedded inline in each corresponding schema doc — see `schemas/` for full documentation.
