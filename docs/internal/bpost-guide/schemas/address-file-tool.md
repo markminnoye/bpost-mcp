@@ -275,3 +275,15 @@ The error codes are documented in the **Status Code** document, available in the
 
 **9. Where can I get more help?**
 Contact Customer Operations: service.centre@bpost.be or 02 201 11 11.
+
+---
+
+## Downloads
+
+These files are available in `docs/internal/bpost-guide/resources/`. Download from the **Support** tab in the Address File Tool on e-MassPost, or use these local copies.
+
+| File | Description |
+|------|-------------|
+| [template.xls](../resources/template.xls) | Blank XLS template for Address File Tool uploads (Excel 97-2003, .xls format) |
+| [template.csv](../resources/template.csv) | Blank CSV template for Address File Tool uploads |
+| [Excel_voorbeeld.xls](../resources/Excel_voorbeeld.xls) | Example filled Address File Tool file (voorbeeld = example in Dutch) |
