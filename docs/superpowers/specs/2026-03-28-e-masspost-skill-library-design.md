@@ -8,7 +8,7 @@
 
 ## Understanding Summary
 
-- **What:** A standalone GitHub repository (`bpost-epostmasspost-skills`) that packages BPost e-MassPost documentation as distributable AI agent skills.
+- **What:** A standalone GitHub repository (`bpost-e-masspost-skills`) that packages BPost e-MassPost documentation as distributable AI agent skills.
 - **Why:** Allow BPost customers and AI orchestration workflows (Langflow, etc.) to understand and eventually automate the Mail ID protocol — starting with pure knowledge, evolving into active tools.
 - **Who:** Primary consumers are AI orchestration workflows (Langflow) and end users via chatbot. Secondary: developers building agents.
 - **Phase A (now):** Pure knowledge skills. No code execution. Distributable as versioned ZIP files.
@@ -32,7 +32,7 @@
 
 | # | Decision | Alternatives Considered | Why Chosen |
 |---|---|---|---|
-| 1 | Rename `bpost-guide` → `epost-masspost` | `mail-id-data-exchange`, `bpost-mail-id` | Matches customer-facing portal name (e-MassPost) |
+| 1 | Rename `bpost-guide` → `e-masspost` | `mail-id-data-exchange`, `bpost-mail-id` | Matches customer-facing portal name (e-MassPost) |
 | 2 | Phase A = pure knowledge (no tools) | Knowledge + lookup tools | Fastest to ship, easiest to share, zero infrastructure |
 | 3 | Separate GitHub repo for the skill library | Mono-repo with packaged releases | Clean separation, publicly shareable without exposing MCP code |
 | 4 | `SKILL.md` format (agentskills.io) | Plain markdown, custom format | Open standard referenced by Anthropic; cross-platform potential |
@@ -49,14 +49,14 @@
 
 ### Repository
 
-**Name:** `bpost-epostmasspost-skills`  
+**Name:** `bpost-e-masspost-skills`  
 **Visibility:** Public (shareable with customers)  
-**URL:** `https://github.com/{owner}/bpost-epostmasspost-skills`
+**URL:** `https://github.com/{owner}/bpost-e-masspost-skills`
 
 ### Structure
 
 ```
-bpost-epostmasspost-skills/
+bpost-e-masspost-skills/
 ├── README.md                           ← repo overview + skill catalogue + install guide
 ├── LICENSE
 │
@@ -71,7 +71,7 @@ bpost-epostmasspost-skills/
 │       └── RequestAck.xsd
 │
 ├── skills/
-│   ├── epost-masspost-protocol/        ← SKILL 1: core Mail ID protocol
+│   ├── e-masspost-protocol/        ← SKILL 1: core Mail ID protocol
 │   │   ├── SKILL.md
 │   │   ├── index.md                    ← agent navigation (start here)
 │   │   ├── schemas/
@@ -81,7 +81,7 @@ bpost-epostmasspost-skills/
 │   │   ├── reference/
 │   │   └── transport/
 │   │
-│   ├── epost-masspost-tips/            ← SKILL 2: do's & don'ts (future)
+│   ├── e-masspost-tips/            ← SKILL 2: do's & don'ts (future)
 │   │   ├── SKILL.md
 │   │   └── index.md + content...
 │   │
@@ -134,8 +134,8 @@ license: See LICENSE
 
 | When the question is about... | Read first |
 |---|---|
-| Protocol, files, error codes, barcodes, transport | `epost-masspost-protocol/index.md` |
-| Best practices, do's & don'ts, common mistakes | `epost-masspost-tips/index.md` |
+| Protocol, files, error codes, barcodes, transport | `e-masspost-protocol/index.md` |
+| Best practices, do's & don'ts, common mistakes | `e-masspost-tips/index.md` |
 | Automating the e-MassPost web portal | `epost-browser-automation/index.md` |
 
 Always start with the relevant index — it routes precisely to the right file.
@@ -171,17 +171,17 @@ jobs:
 
       - name: Build bundle ZIP
         run: |
-          mkdir -p bundle-tmp/epost-masspost-bundle
-          cp skills/epost-masspost-protocol/* bundle-tmp/epost-masspost-bundle/epost-masspost-protocol/ -r
-          cp skills/epost-masspost-tips/* bundle-tmp/epost-masspost-bundle/epost-masspost-tips/ -r
-          cp skills/epost-browser-automation/* bundle-tmp/epost-masspost-bundle/epost-browser-automation/ -r
+          mkdir -p bundle-tmp/e-masspost-bundle
+          cp skills/e-masspost-protocol/* bundle-tmp/e-masspost-bundle/e-masspost-protocol/ -r
+          cp skills/e-masspost-tips/* bundle-tmp/e-masspost-bundle/e-masspost-tips/ -r
+          cp skills/epost-browser-automation/* bundle-tmp/e-masspost-bundle/epost-browser-automation/ -r
           # Remove individual SKILL.md files; bundle has its own
-          rm -f bundle-tmp/epost-masspost-bundle/*/SKILL.md
+          rm -f bundle-tmp/e-masspost-bundle/*/SKILL.md
           # Add bundle dispatcher SKILL.md (from .github/bundle-skill.md)
-          cp .github/bundle-skill.md bundle-tmp/epost-masspost-bundle/SKILL.md
+          cp .github/bundle-skill.md bundle-tmp/e-masspost-bundle/SKILL.md
           cd bundle-tmp
-          zip -r "../dist/epost-masspost-bundle-claude-${{ github.ref_name }}.zip" \
-            epost-masspost-bundle/ --exclude "*.git*"
+          zip -r "../dist/e-masspost-bundle-claude-${{ github.ref_name }}.zip" \
+            e-masspost-bundle/ --exclude "*.git*"
 
       - name: Attach to GitHub Release
         uses: softprops/action-gh-release@v1
@@ -192,10 +192,10 @@ jobs:
 
 **Release artifacts per tag:**
 ```
-epost-masspost-protocol-claude-v1.0.0.zip
-epost-masspost-tips-claude-v1.0.0.zip
+e-masspost-protocol-claude-v1.0.0.zip
+e-masspost-tips-claude-v1.0.0.zip
 epost-browser-automation-claude-v1.0.0.zip
-epost-masspost-bundle-claude-v1.0.0.zip
+e-masspost-bundle-claude-v1.0.0.zip
 ```
 
 ### Customer Install (Claude.ai)
@@ -210,17 +210,17 @@ epost-masspost-bundle-claude-v1.0.0.zip
 
 ```bash
 # Run once in bpost-mcp:
-git submodule add https://github.com/{owner}/bpost-epostmasspost-skills \
-  docs/internal/epost-masspost
+git submodule add https://github.com/{owner}/bpost-e-masspost-skills \
+  docs/internal/e-masspost
 
 # Update AGENTS.md pointer from:
 #   @docs/internal/bpost-guide/index.md
 # to:
-#   @docs/internal/epost-masspost/skills/epost-masspost-protocol/index.md
+#   @docs/internal/e-masspost/skills/e-masspost-protocol/index.md
 ```
 
 When BPost updates their spec:
-1. Update docs in `skills/epost-masspost-protocol/` in the skill repo
+1. Update docs in `skills/e-masspost-protocol/` in the skill repo
 2. Tag a new release (`v1.1.0`) — GitHub Action builds and publishes ZIPs automatically
 3. In `bpost-mcp`: `git submodule update --remote` → commit the ref bump
 

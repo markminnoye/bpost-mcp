@@ -17,7 +17,8 @@
 2. **Project Design:** `@docs/internal/project-design.md` for architectural decisions, constraints, and data flow.
 3. **Vercel MCP Docs:** [Deploy MCP Servers to Vercel](https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel)
 4. **Vercel Next.js Template:** [MCP with Next.js](https://vercel.com/templates/next.js/model-context-protocol-mcp-with-next-js)
-5. **External Specs:** Read PDF specs inside `docs/external/` to understand BPost constraints before writing validation.
+5. **Official MCP Examples:** [Claude AI MCP Servers](https://github.com/anthropics/claude-ai-mcp) — reference for tool definitions.
+6. **External Specs:** Read PDF specs inside `docs/external/` to understand BPost constraints before writing validation.
 10. **Integration Strategy:** **Langflow** is identified as a primary candidate for an orchestration endpoint. The MCP should be designed to be easily consumed by Langflow's tool-calling components (clear parameter descriptions, standard JSON outputs).
 
 ## 4. Final Folder Structure (Vercel/TypeScript)

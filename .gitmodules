@@ -1,3 +1,3 @@
-[submodule "docs/internal/epost-masspost"]
-	path = docs/internal/epost-masspost
-	url = https://github.com/markminnoye/bpost-epostmasspost-skills.git
+[submodule "docs/internal/e-masspost"]
+	path = docs/internal/e-masspost
+	url = https://github.com/markminnoye/bpost-e-masspost-skills.git
