@@ -35,3 +35,52 @@ FileReceived|fileName|timeStamp
 ---
 
 See [mailing-acknowledgement.md](mailing-acknowledgement.md) for the identical structure used for Mailing Request acknowledgements.
+
+---
+
+## XML Schema (XSD)
+
+The `RequestAck.xsd` schema is shared by both Deposit and Mailing acknowledgement files.
+
+Download: [RequestAck.xsd](../resources/RequestAck.xsd)
+
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- edited with XML Spy v4.4 U (http://www.xmlspy.com) by DoMyMove (Domymove S.A.) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="RequestAck">
+		<xs:annotation>
+			<xs:documentation>Root tag for request acknowledgement</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="FileReceived">
+					<xs:annotation>
+						<xs:documentation>Tag that contains the information about the received file</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="fileName" use="required">
+							<xs:annotation>
+								<xs:documentation>Name of the received file</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="50"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="timeStamp">
+							<xs:annotation>
+								<xs:documentation>The time when the file is received by De Post - La Poste</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:dateTime"/>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
+```

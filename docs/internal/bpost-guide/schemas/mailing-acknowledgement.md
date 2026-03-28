@@ -41,3 +41,11 @@ With the Address File Tool, there is no Acknowledgement file. It is the presence
 ---
 
 See [deposit-acknowledgement.md](deposit-acknowledgement.md) for the identical structure used for Deposit Request acknowledgements.
+
+---
+
+## XML Schema (XSD)
+
+The `RequestAck.xsd` schema is shared by both Deposit and Mailing acknowledgement files. The full XSD is embedded in [deposit-acknowledgement.md](deposit-acknowledgement.md).
+
+Download: [RequestAck.xsd](../resources/RequestAck.xsd)
