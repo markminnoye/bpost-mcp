@@ -82,6 +82,11 @@ Files include a `mode` field: **P** (Production), **T** (Test), **C** (Certifica
 | [reference/processing-times.md](reference/processing-times.md) | Expected processing times by volume (1k–600k addresses) |
 | [reference/onboarding.md](reference/onboarding.md) | Getting started, certification process, contact info |
 
+### Downloadable Resources
+| File | Description |
+|---|---|
+| [resources/index.md](resources/index.md) | All downloadable files: XSD schemas, AFT templates, status code spreadsheet |
+
 ## Source Document
 
 These files were extracted from: `docs/external/Mail-ID Data_Exchange_Technical_Guide.pdf` (203 pages, January 2023, updated October 2024). Page images available at `docs/external/pdf-pages/page-NNN.jpg`.
