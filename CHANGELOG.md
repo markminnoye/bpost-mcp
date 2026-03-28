@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-03-28
+
+### Fixed
+- **Submodule Upgrade (v1.0.4)**: Finalized documentation audit (casing fixes) and localized the README to English. Improved build-time version automation for skills.
+
 ## [1.0.3] - 2026-03-28
 
 ### Changed
