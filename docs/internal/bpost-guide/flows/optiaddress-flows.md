@@ -32,12 +32,30 @@ OptiAddress provides:
 
 ## Flow (Figure 14 + Figure 27)
 
+> **Source:** PDF page 52 — Figure 14: OptiAddress Flows Schema
+
+```mermaid
+flowchart TD
+    CS[Customer System] -->|"Mailing Data Flow"| MID[MAIL ID System]
+```
+
 ```
 (Mailing Data Flow only -- no Deposit Data Flow needed)
 Customer System --> MAIL ID System
 ```
 
 ### Sequence Diagram: Mailing Check
+
+> **Source:** PDF page 65 — Figure 27: Mailing Check
+
+```mermaid
+sequenceDiagram
+    participant C as Customer
+    participant B as bpost
+    C->>B: 1. MailingCheck (Mailing Request File)
+    B-->>C: 2. Acknowledgement
+    B-->>C: 3. Mailing Response (Feedback)
+```
 
 ```
 1. Customer --> bpost: MailingCheck (Mailing Request File with addresses)

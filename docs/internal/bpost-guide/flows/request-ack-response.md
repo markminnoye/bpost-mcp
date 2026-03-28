@@ -4,9 +4,35 @@
 
 ## Overview
 
+> **Source:** PDF page 009 — Figure 2: Steps of the overall process
+
+```mermaid
+flowchart LR
+    A[Get Access] --> B[Implement Tech Guide]
+    B --> C[Manage Account]
+    C --> D[Telecom & Security Test]
+    D --> E[File Syntax Test]
+    E --> F[Certification]
+    F --> G[Production]
+```
+
 All data exchanges between customer and bpost follow the same three-step pattern. The customer always initiates communication -- bpost never pushes unsolicited files.
 
 ### Flow (Figure 3)
+
+> **Source:** PDF page 018 — Figure 3: Generic File Flow (Request, Acknowledgement, Response)
+
+```mermaid
+sequenceDiagram
+    participant C as Customer System
+    participant B as bpost
+
+    C->>B: Request File (upload to /requests/)
+    B-->>C: Acknowledgement File (available in /responses/)
+    Note over B,C: bpost confirms receipt — no syntax/content validation yet
+    B-->>C: Response File (available in /responses/)
+    Note over B,C: Processing result + content feedback (e.g. price quote)
+```
 
 ```
 1. Customer --> bpost: Request File (upload to /requests/ directory)
