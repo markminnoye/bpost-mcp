@@ -14,9 +14,9 @@ The problem: AI agents (like Claude) work in JSON and don't know anything about 
 
 ```mermaid
 flowchart LR
-    A["AI Agent\n(Claude, Langflow…)"]
-    B["bpost-mcp\n(this project)"]
-    C["BPost API\ne-MassPost"]
+    A["AI Agent<br/>(Claude, Langflow…)"]
+    B["bpost-mcp<br/>(this project)"]
+    C["BPost API<br/>e-MassPost"]
 
     A -- "JSON (MCP)" --> B
     B -- "XML (HTTP Basic Auth)" --> C
@@ -60,9 +60,9 @@ The project is split into three independent layers, each with a clear job:
 
 ```mermaid
 flowchart TD
-    L1["Layer 1 — MCP Entry Point\nsrc/app/api/mcp/route.ts\n─────────────────────────────\n• Receives JSON-RPC from agent\n• Registers tools with input schemas\n• Orchestrates: validate → serialize → call → return"]
-    L2["Layer 2 — Schemas\nsrc/schemas/\n─────────────────────────────\n• common.ts — BooleanType, Context variants\n• deposit-request.ts — DepositRequest rules\n• mailing-request.ts — MailingRequest rules\n\nDerived from BPost XSD files.\nBad data fails here, before touching BPost."]
-    L3["Layer 3 — Client\nsrc/client/\n─────────────────────────────\n• bpost.ts — HTTP: serialize XML, POST, parse\n• errors.ts — MPW/MID codes → BpostError\n\nSupported by: src/lib/xml.ts\n(fast-xml-parser: JSON ↔ XML)"]
+    L1["<b>Layer 1 — MCP Entry Point</b><br/>src/app/api/mcp/route.ts<br/>─────────────────────────────<br/>• Receives JSON-RPC from agent<br/>• Registers tools with input schemas<br/>• Orchestrates: validate → serialize → call → return"]
+    L2["<b>Layer 2 — Schemas</b><br/>src/schemas/<br/>─────────────────────────────<br/>• common.ts — BooleanType, Context variants<br/>• deposit-request.ts — DepositRequest rules<br/>• mailing-request.ts — MailingRequest rules<br/><br/>Derived from BPost XSD files.<br/>Bad data fails here, before touching BPost."]
+    L3["<b>Layer 3 — Client</b><br/>src/client/<br/>─────────────────────────────<br/>• bpost.ts — HTTP: serialize XML, POST, parse<br/>• errors.ts — MPW/MID codes → BpostError<br/><br/>Supported by: src/lib/xml.ts<br/>(fast-xml-parser: JSON ↔ XML)"]
 
     L1 -- "calls" --> L2
     L2 -- "validated data passes through" --> L3
@@ -121,11 +121,11 @@ The schemas are the heart of the project. They do three things at once:
 
 ```mermaid
 flowchart LR
-    XSD["BPost XSD files\n(official spec)"]
-    Zod["Zod schemas\nsrc/schemas/"]
-    Val["Runtime validation\nrejects bad agent input\nwith field-level errors"]
-    TS["TypeScript types\nz.infer&lt;typeof Schema&gt;\nauto-generated"]
-    MCP["MCP inputSchema\nagent sees the\naccepted shape"]
+    XSD["BPost XSD files<br/>(official spec)"]
+    Zod["Zod schemas<br/>src/schemas/"]
+    Val["Runtime validation<br/>rejects bad agent input<br/>with field-level errors"]
+    TS["TypeScript types<br/>z.infer&lt;typeof Schema&gt;<br/>auto-generated"]
+    MCP["MCP inputSchema<br/>agent sees the<br/>accepted shape"]
 
     XSD -- "hand-translated into" --> Zod
     Zod --> Val
@@ -157,15 +157,15 @@ Errors are classified at the source and tagged with `isRetryable`:
 flowchart TD
     E["Error occurs"]
 
-    E --> P{"Code matches\nMPW-xxxx or MID-xxxx?"}
+    E --> P{"Code matches<br/>MPW-xxxx or MID-xxxx?"}
 
-    P -- "yes" --> NR["isRetryable: false\nProtocol error — fix the payload"]
-    P -- "no" --> R["isRetryable: true\nTransient — safe to retry"]
+    P -- "yes" --> NR["isRetryable: false<br/>Protocol error — fix the payload"]
+    P -- "no" --> R["isRetryable: true<br/>Transient — safe to retry"]
 
-    NR --> MPW["MPW-xxxx\nBPost validation\n(bad data)"]
-    NR --> MID["MID-xxxx\nMail-ID issue\n(bad data)"]
-    R --> NET["NETWORK_TIMEOUT\nNetwork / connectivity"]
-    R --> HTTP["HTTP_400, HTTP_500…\nUnexpected HTTP failure"]
+    NR --> MPW["MPW-xxxx<br/>BPost validation<br/>(bad data)"]
+    NR --> MID["MID-xxxx<br/>Mail-ID issue<br/>(bad data)"]
+    R --> NET["NETWORK_TIMEOUT<br/>Network / connectivity"]
+    R --> HTTP["HTTP_400, HTTP_500…<br/>Unexpected HTTP failure"]
 ```
 
 The agent receives a structured error object:
