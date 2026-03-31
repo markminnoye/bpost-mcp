@@ -1,8 +1,8 @@
 // src/app/api/mcp/route.ts
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
-import { z } from 'zod'
 import { DepositRequestSchema } from '@/schemas/deposit-request'
+import { MailingRequestSchema } from '@/schemas/mailing-request'
 import { buildXml } from '@/lib/xml'
 import { createBpostClient } from '@/client/bpost'
 import { BpostError } from '@/client/errors'
@@ -46,12 +46,23 @@ function createServer(): McpServer {
       description:
         'Announce a mailing batch to BPost e-MassPost. Accepts a MailingRequest payload and ' +
         'returns the BPost response or a structured error with the MPW/MID code.',
-      inputSchema: z.object({}).passthrough(), // replace with MailingRequestSchema in Task 9
+      inputSchema: MailingRequestSchema,
     },
-    async (_input) => {
-      return {
-        content: [{ type: 'text', text: 'MailingRequest not yet implemented — see Task 9' }],
-        isError: true,
+    async (input) => {
+      const client = createBpostClient()
+      const xml = buildXml({ MailingRequest: input })
+
+      try {
+        const result = await client.sendMailingRequest(xml)
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] }
+      } catch (err) {
+        if (err instanceof BpostError) {
+          return {
+            content: [{ type: 'text', text: JSON.stringify(err.toMcpError(), null, 2) }],
+            isError: true,
+          }
+        }
+        throw err
       }
     },
   )

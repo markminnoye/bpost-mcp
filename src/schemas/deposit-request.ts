@@ -1,6 +1,6 @@
 // src/schemas/deposit-request.ts
 import { z } from 'zod'
-import { ContextSchema } from './common'
+import { DepositContextSchema } from './common'
 
 const RequestPropsSchema = z.object({
   filename: z.string().optional(),
@@ -27,7 +27,7 @@ const DepositDeleteSchema = z.object({}).passthrough()
 const DepositValidateSchema = z.object({}).passthrough()
 
 export const DepositRequestSchema = z.object({
-  Context: ContextSchema,
+  Context: DepositContextSchema,
   Header: HeaderSchema,
   DepositCreate: z.array(DepositCreateSchema).optional(),
   DepositUpdate: z.array(DepositUpdateSchema).optional(),
