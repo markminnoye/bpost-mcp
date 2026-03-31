@@ -60,12 +60,20 @@ The project is split into three independent layers, each with a clear job:
 
 ```mermaid
 flowchart TD
-    L1["<b>Layer 1 — MCP Entry Point</b><br/>src/app/api/mcp/route.ts<br/>─────────────────────────────<br/>• Receives JSON-RPC from agent<br/>• Registers tools with input schemas<br/>• Orchestrates: validate → serialize → call → return"]
-    L2["<b>Layer 2 — Schemas</b><br/>src/schemas/<br/>─────────────────────────────<br/>• common.ts — BooleanType, Context variants<br/>• deposit-request.ts — DepositRequest rules<br/>• mailing-request.ts — MailingRequest rules<br/><br/>Derived from BPost XSD files.<br/>Bad data fails here, before touching BPost."]
-    L3["<b>Layer 3 — Client</b><br/>src/client/<br/>─────────────────────────────<br/>• bpost.ts — HTTP: serialize XML, POST, parse<br/>• errors.ts — MPW/MID codes → BpostError<br/><br/>Supported by: src/lib/xml.ts<br/>(fast-xml-parser: JSON ↔ XML)"]
+    subgraph L1["Layer 1 — MCP Entry Point"]
+        R["route.ts<br/>Receives JSON-RPC from the agent<br/>Registers tools with their input schemas<br/>Orchestrates: validate → serialize → call → return"]
+    end
 
-    L1 -- "calls" --> L2
-    L2 -- "validated data passes through" --> L3
+    subgraph L2["Layer 2 — Schemas"]
+        S["common.ts — shared types: BooleanType, Context<br/>deposit-request.ts — DepositRequest validation<br/>mailing-request.ts — MailingRequest validation<br/><br/>Derived from BPost XSD files.<br/>Bad data is rejected here, before reaching BPost."]
+    end
+
+    subgraph L3["Layer 3 — Client"]
+        C["bpost.ts — HTTP client: serialize XML, POST, parse response<br/>errors.ts — MPW/MID codes mapped to BpostError<br/><br/>Utility: lib/xml.ts — fast-xml-parser JSON to XML and back"]
+    end
+
+    L1 -- "validated input flows down" --> L2
+    L2 -- "typed data passed to" --> L3
 ```
 
 ---
