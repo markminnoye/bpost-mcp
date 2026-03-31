@@ -43,3 +43,10 @@
 2. **Validation (`src/schemas`):** Validated against a strict schema (e.g., Zod) to prevent malformed requests reaching BPost. Returns exact field-level errors to the agent on failure so it can auto-correct.
 3. **Execution (`src/client`):** Authenticates and dispatches payload to BPost API.
 4. **Response:** Catch BPost-specific errors (400/500s) gracefully, parse the specific error message, and return it cleanly to the invoking agent rather than crashing the MCP server.
+
+## Decision: XML Parsing Library
+
+**Library:** `fast-xml-parser` v4+
+**Reason:** Pure TypeScript, no native deps, supports attribute parsing (`ignoreAttributes: false`),
+handles ISO-8859-1 encoding used by BPost XSDs, and produces predictable JS objects.
+**Used in:** `src/lib/xml.ts` (singleton builder + parser configured for BPost format)
