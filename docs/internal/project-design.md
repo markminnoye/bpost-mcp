@@ -46,7 +46,7 @@
 
 ## Decision: XML Parsing Library
 
-**Library:** `fast-xml-parser` v4+
+**Library:** `fast-xml-parser` v5 (installed: ^5.5.9)
 **Reason:** Pure TypeScript, no native deps, supports attribute parsing (`ignoreAttributes: false`),
 handles ISO-8859-1 encoding used by BPost XSDs, and produces predictable JS objects.
 **Used in:** `src/lib/xml.ts` (singleton builder + parser configured for BPost format)
