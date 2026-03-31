@@ -18,12 +18,12 @@
 | 2 — Bootstrap project | ✅ Complete | Next.js 16, Vitest 4, all deps installed |
 | 3 — Shared Zod types | ✅ Complete | `src/schemas/common.ts`, 5 tests passing |
 | 4 — XML utility | ✅ Complete | `src/lib/xml.ts`, parseTagValue fix applied |
-| 5 — DepositRequest schema | 🔲 Pending | |
-| 6 — BPost error types | 🔲 Pending | |
-| 7 — BPost HTTP client | 🔲 Pending | |
-| 8 — MCP route + tools | 🔲 Pending | |
-| 9 — MailingRequest schema | 🔲 Pending | **⚠️ See note below before starting** |
-| 10 — Smoke test | 🔲 Pending | |
+| 5 — DepositRequest schema | ✅ Complete | `src/schemas/deposit-request.ts`, 2 tests |
+| 6 — BPost error types | ✅ Complete | `src/client/errors.ts`, 3 tests |
+| 7 — BPost HTTP client | ✅ Complete | `src/client/bpost.ts`, 3 tests |
+| 8 — MCP route + tools | ✅ Complete | `src/app/api/mcp/route.ts`, 1 test, WebStandardStreamableHTTPServerTransport |
+| 9 — MailingRequest schema | ✅ Complete | Split ContextSchema, MailingRequest.xsd action names (Check/Reuse not Update/Validate) |
+| 10 — Smoke test | ✅ Complete | 17 tests pass, tsc clean, curl test passed |
 
 **⚠️ Pre-Task 9 required fix:** `ContextSchema` in `src/schemas/common.ts` uses DepositRequest literals (`dataset: 'M004_MPA'`, `receiver: 'EMP'`, `version: '0100'`). MailingRequest uses different values (`dataset: 'M037_MID'`, `receiver: 'MID'`, `version: '0200'`). Before Task 9, split into `DepositContextSchema` and `MailingContextSchema` (or a discriminated union), and update Task 5 imports accordingly. Source: `DepositRequest.xsd` vs `MailingRequest.xsd` in `resources/`.
 
