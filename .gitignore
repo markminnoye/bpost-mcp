@@ -2,4 +2,5 @@
 .skills/
 node_modules/
 .env*.local
-.agent/
+.agent/*
+!.agent/skills/
