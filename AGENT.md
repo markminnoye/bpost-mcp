@@ -45,7 +45,7 @@ When an agent discovers new insights, patterns, or corrections about the BPost A
 
 - **Phase 1 Skill Stack Design:** `@docs/superpowers/specs/2026-03-31-phase1-skill-stack-design.md`
   Defines the 6 skills from antigravity-awesome-skills to install before implementation begins.
-  See Section 6 for installation instructions. Status: **DRAFT — skills not yet installed.**
+  See Section 6 for installation instructions. Status: **Complete — Phase 1 implemented.**
 
 ### 🤝 Cross-Agent Collaboration (Antigravity & Claude)
 
