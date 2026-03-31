@@ -4,7 +4,8 @@ const PARSER_OPTIONS = {
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
   allowBooleanAttributes: true,
-  parseAttributeValue: false, // keep strings as-is per BPost spec
+  parseAttributeValue: false, // keep attribute strings as-is per BPost spec
+  parseTagValue: false,       // keep tag text content as strings (prevents numeric coercion)
 }
 
 const BUILDER_OPTIONS = {
