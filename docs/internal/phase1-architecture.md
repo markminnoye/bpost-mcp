@@ -12,12 +12,16 @@ The problem: AI agents (like Claude) work in JSON and don't know anything about 
 
 **What we built** is a bridge — an **MCP server** that sits between an AI agent and BPost:
 
-```
-┌─────────────┐        JSON        ┌──────────────────┐        XML         ┌─────────────┐
-│  AI Agent   │ ─────────────────► │  bpost-mcp       │ ─────────────────► │  BPost API  │
-│ (Claude,    │                    │  (this project)  │                    │ e-MassPost  │
-│  Langflow…) │ ◄───────────────── │                  │ ◄───────────────── │             │
-└─────────────┘        JSON        └──────────────────┘        XML         └─────────────┘
+```mermaid
+flowchart LR
+    A["AI Agent\n(Claude, Langflow…)"]
+    B["bpost-mcp\n(this project)"]
+    C["BPost API\ne-MassPost"]
+
+    A -- "JSON (MCP)" --> B
+    B -- "XML (HTTP Basic Auth)" --> C
+    C -- "XML response" --> B
+    B -- "JSON result" --> A
 ```
 
 The agent sends structured JSON. The MCP server validates it, converts it to XML, calls BPost, and hands the result back as JSON. The agent never touches XML.
@@ -54,36 +58,14 @@ The MCP server responds with a structured result (or error).
 
 The project is split into three independent layers, each with a clear job:
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  Layer 1: MCP Entry Point                                               │
-│  src/app/api/mcp/route.ts                                               │
-│                                                                         │
-│  • Receives JSON-RPC requests from the AI agent                         │
-│  • Registers the two tools with their input schemas                     │
-│  • Orchestrates: validate → serialize → call client → return result     │
-└─────────────────────────┬───────────────────────────────────────────────┘
-                          │ calls
-┌─────────────────────────▼───────────────────────────────────────────────┐
-│  Layer 2: Schemas  (src/schemas/)                                       │
-│                                                                         │
-│  • common.ts          — shared types (BooleanType, Context variants)    │
-│  • deposit-request.ts — DepositRequest shape + validation rules         │
-│  • mailing-request.ts — MailingRequest shape + validation rules         │
-│                                                                         │
-│  Derived from BPost's official XSD files.                               │
-│  If the agent sends bad data, it fails here — before touching BPost.    │
-└─────────────────────────┬───────────────────────────────────────────────┘
-                          │ validated data passes through
-┌─────────────────────────▼───────────────────────────────────────────────┐
-│  Layer 3: Client  (src/client/)                                         │
-│                                                                         │
-│  • bpost.ts   — HTTP client: serializes to XML, calls BPost, parses     │
-│  • errors.ts  — Error taxonomy: MPW/MID codes → structured BpostError   │
-│                                                                         │
-│  Supported by:                                                          │
-│  • src/lib/xml.ts — fast-xml-parser singleton (JSON ↔ XML)              │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    L1["Layer 1 — MCP Entry Point\nsrc/app/api/mcp/route.ts\n─────────────────────────────\n• Receives JSON-RPC from agent\n• Registers tools with input schemas\n• Orchestrates: validate → serialize → call → return"]
+    L2["Layer 2 — Schemas\nsrc/schemas/\n─────────────────────────────\n• common.ts — BooleanType, Context variants\n• deposit-request.ts — DepositRequest rules\n• mailing-request.ts — MailingRequest rules\n\nDerived from BPost XSD files.\nBad data fails here, before touching BPost."]
+    L3["Layer 3 — Client\nsrc/client/\n─────────────────────────────\n• bpost.ts — HTTP: serialize XML, POST, parse\n• errors.ts — MPW/MID codes → BpostError\n\nSupported by: src/lib/xml.ts\n(fast-xml-parser: JSON ↔ XML)"]
+
+    L1 -- "calls" --> L2
+    L2 -- "validated data passes through" --> L3
 ```
 
 ---
@@ -92,43 +74,39 @@ The project is split into three independent layers, each with a clear job:
 
 Here is what happens when the AI agent calls `bpost_announce_deposit`:
 
-```
-Agent
-  │
-  │  POST /api/mcp
-  │  { "method": "tools/call", "name": "bpost_announce_deposit", ... }
-  ▼
-route.ts (MCP handler)
-  │
-  │  1. MCP SDK receives request, identifies the tool
-  │  2. Input is validated against DepositRequestSchema (Zod)
-  │     → If invalid: returns validation error to agent immediately
-  │     → If valid: continues
-  │
-  │  3. Calls createBpostClient() → reads BPOST_USERNAME + BPOST_PASSWORD from env
-  │  4. Calls buildXml({ DepositRequest: input })
-  │     → Converts validated JSON to BPost XML format
-  ▼
-BpostClient.sendDepositRequest(xmlPayload)
-  │
-  │  5. POST https://www.bpost.be/emasspost
-  │     Headers:
-  │       Content-Type: application/xml; charset=ISO-8859-1
-  │       Authorization: Basic <base64(username:password)>
-  │     Body: <?xml version="1.0" encoding="ISO-8859-1"?>
-  │           <DepositRequest>...</DepositRequest>
-  │
-  │  [network error?] → throw BpostError(NETWORK_TIMEOUT, isRetryable: true)
-  │  [HTTP 4xx/5xx?]  → parse XML error body, extract MPW-xxxx code
-  │                     throw BpostError(MPW-4010, isRetryable: false)
-  │  [HTTP 200]       → parse XML response into JS object
-  ▼
-route.ts (back in the tool handler)
-  │
-  │  6. BpostError caught → return { content: [...], isError: true }
-  │     Success → return { content: [{ type: 'text', text: JSON.stringify(result) }] }
-  ▼
-Agent receives JSON result
+```mermaid
+sequenceDiagram
+    participant Agent as AI Agent
+    participant Route as route.ts (MCP handler)
+    participant Zod as DepositRequestSchema (Zod)
+    participant Client as BpostClient
+    participant BPost as BPost API
+
+    Agent->>Route: POST /api/mcp<br/>tools/call: bpost_announce_deposit { ... }
+
+    Route->>Zod: validate input
+    alt invalid payload
+        Zod-->>Agent: validation error (field-level detail)
+    end
+
+    Route->>Client: createBpostClient()<br/>(reads env: BPOST_USERNAME, BPOST_PASSWORD)
+    Route->>Client: sendDepositRequest(buildXml(input))
+
+    Client->>BPost: POST https://www.bpost.be/emasspost<br/>Content-Type: application/xml; charset=ISO-8859-1<br/>Authorization: Basic …<br/>Body: &lt;DepositRequest&gt;…&lt;/DepositRequest&gt;
+
+    alt Network failure
+        BPost--xClient: fetch error
+        Client-->>Route: BpostError(NETWORK_TIMEOUT, retryable: true)
+        Route-->>Agent: { isError: true, code: "NETWORK_TIMEOUT", retryable: true }
+    else HTTP 4xx / 5xx
+        BPost-->>Client: &lt;Error code="MPW-4010"&gt;Invalid sender&lt;/Error&gt;
+        Client-->>Route: BpostError(MPW-4010, retryable: false)
+        Route-->>Agent: { isError: true, code: "MPW-4010", retryable: false }
+    else HTTP 200
+        BPost-->>Client: &lt;DepositResponse&gt;…&lt;/DepositResponse&gt;
+        Client-->>Route: parsed JS object
+        Route-->>Agent: { content: [{ type: "text", text: "{ … }" }] }
+    end
 ```
 
 ---
@@ -141,16 +119,18 @@ The schemas are the heart of the project. They do three things at once:
 2. **Validate** incoming data from the agent (reject bad payloads before calling BPost)
 3. **Generate TypeScript types** automatically — no manual type definitions
 
-```
-BPost XSD files (official spec)
-        │
-        │  hand-translated into
-        ▼
-Zod schemas (src/schemas/)
-        │
-        ├── runtime validation   →  rejects bad agent input with clear field-level errors
-        ├── TypeScript types     →  z.infer<typeof DepositRequestSchema> = DepositRequest
-        └── MCP inputSchema      →  the agent sees the tool's accepted shape
+```mermaid
+flowchart LR
+    XSD["BPost XSD files\n(official spec)"]
+    Zod["Zod schemas\nsrc/schemas/"]
+    Val["Runtime validation\nrejects bad agent input\nwith field-level errors"]
+    TS["TypeScript types\nz.infer&lt;typeof Schema&gt;\nauto-generated"]
+    MCP["MCP inputSchema\nagent sees the\naccepted shape"]
+
+    XSD -- "hand-translated into" --> Zod
+    Zod --> Val
+    Zod --> TS
+    Zod --> MCP
 ```
 
 ### Context: The Routing Header
@@ -173,13 +153,19 @@ Because the two request types have different fixed values, we have two separate 
 
 Errors are classified at the source and tagged with `isRetryable`:
 
-```
-Error source          Code format        isRetryable    Meaning
-─────────────────────────────────────────────────────────────────────────
-BPost validation      MPW-4010           false          Bad data — fix the payload
-BPost data error      MID-xxxx           false          Mail-ID issue — fix the data
-Network/timeout       NETWORK_TIMEOUT    true           Transient — safe to retry
-HTTP failure (other)  HTTP_400, etc.     false          Unexpected — investigate
+```mermaid
+flowchart TD
+    E["Error occurs"]
+
+    E --> P{"Code matches\nMPW-xxxx or MID-xxxx?"}
+
+    P -- "yes" --> NR["isRetryable: false\nProtocol error — fix the payload"]
+    P -- "no" --> R["isRetryable: true\nTransient — safe to retry"]
+
+    NR --> MPW["MPW-xxxx\nBPost validation\n(bad data)"]
+    NR --> MID["MID-xxxx\nMail-ID issue\n(bad data)"]
+    R --> NET["NETWORK_TIMEOUT\nNetwork / connectivity"]
+    R --> HTTP["HTTP_400, HTTP_500…\nUnexpected HTTP failure"]
 ```
 
 The agent receives a structured error object:
