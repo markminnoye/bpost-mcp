@@ -120,7 +120,10 @@ export default async function DashboardPage({ searchParams }: Props) {
     }}>
       <h1 style={{ color: '#ff0000', textTransform: 'uppercase', letterSpacing: '0.1rem' }}>BPost MCP — Settings</h1>
       <p style={{ color: '#888' }}>Logged in as <span style={{ color: '#fff' }}>{session.user.email}</span></p>
-      <form action={signOut as any}>
+      <form action={async () => {
+        'use server'
+        await signOut()
+      }}>
         <button type="submit" style={{ 
           backgroundColor: '#333', 
           color: '#fff', 
