@@ -51,6 +51,7 @@ export const users = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
+  tenantId: uuid('tenant_id').references(() => tenants.id),
 })
 
 export const accounts = pgTable('account', {

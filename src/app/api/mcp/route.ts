@@ -73,7 +73,7 @@ function createServer(credentials: BpostCredentials): McpServer {
         'returns the BPost response or a structured error with the MPW/MID code.',
       inputSchema: MailingRequestSchema,
     },
-    async (input: any) => {
+    async (input) => {
       const client = createBpostClient(credentials)
 
       // Auto-populate Context and Header boilerplate

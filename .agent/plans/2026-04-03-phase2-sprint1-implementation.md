@@ -10,6 +10,12 @@
 
 **Reference:** Architecture decisions in [.agent/plans/2026-04-03-phase2-architecture.md](.agent/plans/2026-04-03-phase2-architecture.md)
 
+> **Approved deviations (implemented by second agent, reviewed 2026-04-04):**
+> - `bpost_credentials` table has two extra columns: `customerNumber` (NOT NULL) and `accountId` (NOT NULL) — real BPost fields needed for `Context.sender` / `Header.customerId/accountId` auto-injection in the MCP route.
+> - `users` table has an extra `tenantId` FK column — used by Auth.js `createUser` event to link a Google login to a tenant automatically.
+> - `auth.ts` has a `createUser` event + `signIn` callback that auto-creates a tenant on first Google login.
+> - MCP route auto-injects `Context.sender`, `Header.customerId`, `Header.accountId`, `Header.mode` from tenant credentials — removes boilerplate from the agent caller.
+
 ---
 
 ## File Map
