@@ -2,7 +2,6 @@
 .skills/
 node_modules/
 .env*.local
-.agent/
 tmp/
 
 # Next.js build output

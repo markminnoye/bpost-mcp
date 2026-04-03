@@ -1,6 +1,6 @@
 // tests/client/bpost.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { BpostClient } from '@/client/bpost'
+import { BpostClient, createBpostClient } from '@/client/bpost'
 import { BpostError } from '@/client/errors'
 
 // Mock global fetch
@@ -52,5 +52,19 @@ describe('BpostClient', () => {
     const err = await client.sendDepositRequest(validDepositXml).catch(e => e)
     expect(err).toBeInstanceOf(BpostError)
     expect(err.isRetryable).toBe(true)
+  })
+})
+
+describe('createBpostClient', () => {
+  it('creates a BpostClient from explicit credentials', () => {
+    const client = createBpostClient({ username: 'user', password: 'pass' })
+    expect(client).toBeInstanceOf(BpostClient)
+  })
+
+  it('does not read from process.env', () => {
+    // Should not throw even when env vars are absent
+    delete process.env.BPOST_USERNAME
+    delete process.env.BPOST_PASSWORD
+    expect(() => createBpostClient({ username: 'u', password: 'p' })).not.toThrow()
   })
 })

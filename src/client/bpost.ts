@@ -60,12 +60,7 @@ export class BpostClient {
   }
 }
 
-/** Factory: builds BpostClient from environment variables */
-export function createBpostClient(): BpostClient {
-  const username = process.env.BPOST_USERNAME
-  const password = process.env.BPOST_PASSWORD
-  if (!username || !password) {
-    throw new Error('BPOST_USERNAME and BPOST_PASSWORD must be set in environment')
-  }
-  return new BpostClient({ username, password })
+/** Factory: builds BpostClient from explicit credentials */
+export function createBpostClient(credentials: { username: string; password: string }): BpostClient {
+  return new BpostClient(credentials)
 }

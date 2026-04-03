@@ -41,17 +41,22 @@ When an agent discovers new insights, patterns, or corrections about the BPost A
 2. **Type Check:** Run `npx tsc --noEmit` if working in `/src`.
 3. **No Regressions:** Do not uncomment existing tests or skip suites.
 
+### 📋 Plan Management
+
+**All plans live in `.agent/plans/`.** This is the single source of truth.
+
+- **Index:** `.agent/plans/INDEX.md` — overview of all plans with status (✅ / 🔄 / ⏳ / ⬜)
+- **Before any multi-step task:** create a plan file `YYYY-MM-DD-short-name.md` and add it to the index
+- **Reference docs** (vision, architecture overviews, decision logs) stay in `docs/internal/` — not in `.agent/plans/`
+- **On session handoff:** add a `## Status: Paused` section to the active plan with current state and next actions
+
 ### 🚧 Active Work
 
-- **Phase 1 Skill Stack Design:** `@docs/superpowers/specs/2026-03-31-phase1-skill-stack-design.md`
-  Status: **Complete.**
+See `.agent/plans/INDEX.md` for the full plan overview. Current state:
 
-- **Phase 1 — Afwerken:** Alle action sub-schemas zijn volledig uitgewerkt vanuit de XSD bronnen. Response schemas toegevoegd.
-  Status: **Complete.**
-
-- **Phase 2 Design:** `@docs/internal/phase2-design.md`
-  Brainstorm afgerond. Open vragen (credential storage, auth, self-learning storage, deployment) worden besproken met de architect vóór implementatie start.
-  Status: **Wacht op architect review.**
+- **Phase 1** — ✅ Complete. All schemas, BpostClient, XML layer, MCP route done.
+- **Phase 2 Architecture** — 🔄 Active. See `.agent/plans/2026-04-03-phase2-architecture.md`.
+  Sprint 1 implementation planning is the next step.
 
 ### 🛠️ Available Agent Skills
 
@@ -82,7 +87,8 @@ The following skills are available in `.agent/skills/`. Invoke the relevant skil
 To ensure consistency when switching between Antigravity (IDE) and Claude (CLI):
 
 1. **Shared Capabilities:** All agents MUST reference `.agent/skills/` for domain-specific logic and `.agent/workflows/` for standard operating procedures (e.g., `/finalize-and-push`).
-2. **Implementation Plans:** Before starting any multi-step task, agents MUST create or update a structured plan in `.agent/plans/task-name.md`.
-    - Use checkboxes to track progress.
-    - If tasking is interrupted, provide a "Status: Paused" section at the top for the next agent.
-3. **Session Handoff:** When finished with a turn, update the active plan in `.agent/plans/` so the next agent (regardless of which one it is) has immediate context on the "Current State" and "Next Actions."
+2. **Implementation Plans:** Before starting any multi-step task, agents MUST create or update a plan in `.agent/plans/YYYY-MM-DD-short-name.md` and register it in `.agent/plans/INDEX.md`.
+    - Use checkboxes (`- [ ]` / `- [x]`) to track task-level progress.
+    - If tasking is interrupted, add a `## Status: Paused` section at the top with current state and next actions.
+    - Mark the plan ✅ Complete in INDEX.md when done — never delete superseded plans.
+3. **Session Handoff:** When finished with a turn, update the active plan so the next agent has immediate context on "Current State" and "Next Actions."
