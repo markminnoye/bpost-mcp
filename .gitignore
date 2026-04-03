@@ -2,8 +2,8 @@
 .skills/
 node_modules/
 .env*.local
-.agent/*
-!.agent/skills/
+.agent/
+tmp/
 
 # Next.js build output
 .next/

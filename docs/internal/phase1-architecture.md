@@ -65,15 +65,15 @@ flowchart TD
     end
 
     subgraph L2["Layer 2 — Schemas"]
-        S["common.ts — shared types: BooleanType, Context<br/>deposit-request.ts — DepositRequest validation<br/>mailing-request.ts — MailingRequest validation<br/><br/>Derived from BPost XSD files.<br/>Bad data is rejected here, before reaching BPost."]
+        S["common.ts — shared types: BooleanType, Context<br/>deposit-request.ts — DepositRequest validation<br/>mailing-request.ts — MailingRequest validation<br/>Derived from BPost XSD files — bad data rejected here"]
     end
 
     subgraph L3["Layer 3 — Client"]
-        C["bpost.ts — HTTP client: serialize XML, POST, parse response<br/>errors.ts — MPW/MID codes mapped to BpostError<br/><br/>Utility: lib/xml.ts — fast-xml-parser JSON to XML and back"]
+        C["bpost.ts — HTTP client: serialize XML, POST, parse response<br/>errors.ts — MPW/MID codes mapped to BpostError<br/>lib/xml.ts — fast-xml-parser JSON to XML and back"]
     end
 
-    L1 -- "validated input flows down" --> L2
-    L2 -- "typed data passed to" --> L3
+    R -- "validated input flows down" --> S
+    S -- "typed data passed to" --> C
 ```
 
 ---

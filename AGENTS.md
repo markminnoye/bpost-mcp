@@ -44,8 +44,41 @@ When an agent discovers new insights, patterns, or corrections about the BPost A
 ### 🚧 Active Work
 
 - **Phase 1 Skill Stack Design:** `@docs/superpowers/specs/2026-03-31-phase1-skill-stack-design.md`
-  Defines the 6 skills from antigravity-awesome-skills to install before implementation begins.
-  See Section 6 for installation instructions. Status: **Complete — Phase 1 implemented.**
+  Status: **Complete.**
+
+- **Phase 1 — Afwerken (prioriteit):** De action sub-schemas zijn stubs (`.passthrough()`). Dit moet eerst worden afgewerkt vóór Fase 2 start.
+  - Schemas uitwerken: `DepositCreate`, `DepositUpdate`, `DepositDelete`, `DepositValidate`, `MailingCreate`, `MailingCheck`, `MailingDelete`, `MailingReuse`
+  - Response schemas toevoegen: `src/schemas/deposit-response.ts`, `src/schemas/mailing-response.ts`
+  - XSD source of truth: `docs/internal/e-masspost/skills/e-masspost-protocol/resources/`
+  - Skills te gebruiken: `zod-validation-expert`, `tdd-workflow`
+
+- **Phase 2 Design:** `@docs/internal/phase2-design.md`
+  Brainstorm afgerond. Open vragen (credential storage, auth, self-learning storage, deployment) worden besproken met de architect vóór implementatie start.
+  Status: **Wacht op architect review.**
+
+### 🛠️ Available Agent Skills
+
+The following skills are available in `.agent/skills/`. Invoke the relevant skill **before** starting any matching task — do not skip this even for simple tasks.
+
+| Skill | When to use |
+|---|---|
+| `mcp-builder` | Building or extending MCP tools and server structure |
+| `zod-validation-expert` | Writing or debugging Zod schemas |
+| `typescript-pro` | Advanced TypeScript types, generics, strict patterns |
+| `tdd-workflow` | Any feature or bugfix — RED-GREEN-REFACTOR cycle |
+| `systematic-debugging` | Any bug, test failure, or unexpected behavior |
+| `brainstorming` | Before designing features, APIs, or architecture |
+| `architecture` | Architecture decisions, trade-off evaluation, ADRs |
+| `architecture-patterns` | Clean/Hexagonal architecture, DDD patterns |
+| `api-design-principles` | REST API design, endpoint naming, request/response shapes |
+| `error-handling-patterns` | Resilient error handling and failure strategies |
+| `code-reviewer` | After completing a feature or PR |
+| `code-simplifier` | Refactoring for clarity and maintainability |
+| `lint-and-validate` | After every code change — run validation before finishing |
+| `concise-planning` | Multi-step tasks — generate an actionable checklist first |
+| `kaizen` | Process improvements, standardization, quality reviews |
+| `mermaid-expert` | Creating diagrams (flowcharts, sequences, ERDs) |
+| `codex-review` | Code review with CHANGELOG generation |
 
 ### 🤝 Cross-Agent Collaboration (Antigravity & Claude)
 
