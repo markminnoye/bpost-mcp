@@ -8,6 +8,8 @@ import { createBpostClient } from '@/client/bpost'
 import { BpostError } from '@/client/errors'
 import { resolveTenant } from '@/lib/tenant/resolve'
 
+export const dynamic = 'force-dynamic'
+
 interface BpostCredentials {
   username: string
   password: string
