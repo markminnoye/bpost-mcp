@@ -1,4 +1,3 @@
-// src/lib/crypto.ts
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto'
 
 const ALGORITHM = 'aes-256-gcm'

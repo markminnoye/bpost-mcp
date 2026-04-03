@@ -35,11 +35,7 @@ export async function resolveTenant(bearerToken: string): Promise<TenantContext 
   if (rows.length === 0) return null
 
   const row = rows[0]
-  const password = decrypt(
-    row.passwordEncrypted,
-    row.passwordIv,
-    process.env.ENCRYPTION_KEY!,
-  )
+  const password = decrypt(row.passwordEncrypted, row.passwordIv, process.env.ENCRYPTION_KEY!)
 
   // Non-critical: update last_used_at in the background
   db.update(apiTokens)

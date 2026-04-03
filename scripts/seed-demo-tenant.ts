@@ -1,7 +1,7 @@
 // scripts/seed-demo-tenant.ts
 import { randomBytes } from 'crypto'
 import { db } from '../src/lib/db/client'
-import { tenants, bpostCredentials, apiTokens } from '../src/lib/db/schema'
+import { tenants, bpostCredentials, apiTokens, users } from '../src/lib/db/schema'
 import { encrypt, hashToken } from '../src/lib/crypto'
 
 async function seed() {
@@ -23,15 +23,32 @@ async function seed() {
     .values({ name: 'Internal Demo (Customer #0)' })
     .returning()
 
-  const { ciphertext, iv } = encrypt(password, encKey)
+  const { ciphertext: encrypted, iv } = encrypt(password, encKey)
   await db.insert(bpostCredentials).values({
     tenantId: tenant.id,
     username,
-    passwordEncrypted: ciphertext,
+    passwordEncrypted: encrypted,
     passwordIv: iv,
     customerNumber,
     accountId,
   })
+
+  // Create a test user for dashboard access if email is provided
+  const testEmail = process.env.SEED_USER_EMAIL || 'test@example.com'
+  console.log(`Creating test user: ${testEmail}`)
+  
+  await db
+    .insert(users)
+    .values({
+      name: 'Demo Admin',
+      email: testEmail,
+      tenantId: tenant.id,
+    })
+    .onConflictDoUpdate({
+      target: users.email,
+      set: { tenantId: tenant.id },
+    })
+    .returning()
 
   const rawToken = `bpost_${randomBytes(32).toString('hex')}`
   const tokenHash = hashToken(rawToken)
