@@ -11,6 +11,8 @@ import { resolveTenant } from '@/lib/tenant/resolve'
 interface BpostCredentials {
   username: string
   password: string
+  customerNumber: string
+  accountId: string
 }
 
 function createServer(credentials: BpostCredentials): McpServer {
@@ -29,7 +31,23 @@ function createServer(credentials: BpostCredentials): McpServer {
     },
     async (input) => {
       const client = createBpostClient(credentials)
-      const xml = buildXml({ DepositRequest: input })
+      
+      // Auto-populate Context and Header boilerplate
+      const payload = {
+        ...input,
+        Context: {
+          ...input.Context,
+          sender: Number(credentials.customerNumber),
+        },
+        Header: {
+          ...input.Header,
+          customerId: Number(credentials.customerNumber),
+          accountId: Number(credentials.accountId),
+          mode: input.Header?.mode ?? 'T', // Default to Test mode if not specified
+        }
+      }
+
+      const xml = buildXml({ DepositRequest: payload })
       try {
         const result = await client.sendDepositRequest(xml)
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] }
@@ -53,9 +71,25 @@ function createServer(credentials: BpostCredentials): McpServer {
         'returns the BPost response or a structured error with the MPW/MID code.',
       inputSchema: MailingRequestSchema,
     },
-    async (input) => {
+    async (input: any) => {
       const client = createBpostClient(credentials)
-      const xml = buildXml({ MailingRequest: input })
+
+      // Auto-populate Context and Header boilerplate
+      const payload = {
+        ...input,
+        Context: {
+          ...input.Context,
+          sender: Number(credentials.customerNumber),
+        },
+        Header: {
+          ...input.Header,
+          customerId: Number(credentials.customerNumber),
+          accountId: Number(credentials.accountId),
+          mode: input.Header?.mode ?? 'T',
+        }
+      }
+
+      const xml = buildXml({ MailingRequest: payload })
       try {
         const result = await client.sendMailingRequest(xml)
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] }
@@ -99,7 +133,12 @@ export async function POST(req: Request): Promise<Response> {
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   })
-  const server = createServer({ username: tenant.bpostUsername, password: tenant.bpostPassword })
+  const server = createServer({ 
+    username: tenant.bpostUsername, 
+    password: tenant.bpostPassword,
+    customerNumber: tenant.customerNumber,
+    accountId: tenant.accountId
+  })
   await server.connect(transport)
   return transport.handleRequest(req)
 }

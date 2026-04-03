@@ -8,6 +8,8 @@ export interface TenantContext {
   tenantId: string
   bpostUsername: string
   bpostPassword: string
+  customerNumber: string
+  accountId: string
   prsNumber?: string
 }
 
@@ -21,6 +23,8 @@ export async function resolveTenant(bearerToken: string): Promise<TenantContext 
       username: bpostCredentials.username,
       passwordEncrypted: bpostCredentials.passwordEncrypted,
       passwordIv: bpostCredentials.passwordIv,
+      customerNumber: bpostCredentials.customerNumber,
+      accountId: bpostCredentials.accountId,
       prsNumber: bpostCredentials.prsNumber,
     })
     .from(apiTokens)
@@ -48,6 +52,8 @@ export async function resolveTenant(bearerToken: string): Promise<TenantContext 
     tenantId: row.tenantId,
     bpostUsername: row.username,
     bpostPassword: password,
+    customerNumber: row.customerNumber,
+    accountId: row.accountId,
     prsNumber: row.prsNumber ?? undefined,
   }
 }

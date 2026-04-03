@@ -14,6 +14,8 @@ export const bpostCredentials = pgTable('bpost_credentials', {
   username: text('username').notNull(),
   passwordEncrypted: text('password_encrypted').notNull(),
   passwordIv: text('password_iv').notNull(),
+  customerNumber: text('customer_number').notNull(),
+  accountId: text('account_id').notNull(),
   prsNumber: text('prs_number'),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })

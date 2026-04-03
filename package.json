@@ -9,9 +9,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push",
+    "db:push": "drizzle-kit push --config=drizzle.config.ts",
     "db:studio": "drizzle-kit studio",
-    "seed": "tsx scripts/seed-demo-tenant.ts"
+    "seed": "tsx --env-file=.env.local scripts/seed-demo-tenant.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",

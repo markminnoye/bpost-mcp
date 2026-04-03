@@ -50,3 +50,23 @@
 **Reason:** Pure TypeScript, no native deps, supports attribute parsing (`ignoreAttributes: false`),
 handles ISO-8859-1 encoding used by BPost XSDs, and produces predictable JS objects.
 **Used in:** `src/lib/xml.ts` (singleton builder + parser configured for BPost format)
+ 
+## 6. Credential Security & Multi-tenancy (Phase 2)
+
+### Architecture
+- **Bearer Token Auth:** Every MCP request must include an `Authorization: Bearer <token>` header.
+- **Tenant Isolation:** Tokens are hashed (SHA-256) and matched in the `api_tokens` table. This resolves to a `tenant_id`, which is then used to retrieve BPost credentials for that specific customer.
+- **Credential Encryption (ADR-004):** BPost passwords are never stored in plaintext. They are encrypted using **AES-256-GCM** with a unique IV (Initialization Vector) per record. The `ENCRYPTION_KEY` is stored in the environment variables.
+
+### Database Schema
+- **`tenants`**: Customer accounts.
+- **`bpost_credentials`**: Encrypted BPost login, PRS-ID (`customer_number`), and PBC-ID (`account_id`).
+- **`api_tokens`**: Revokable bearer tokens linked to tenants.
+- **`audit_log`**: Track every MCP tool invocation, duration, and success/failure status for billing/transparency.
+
+### Environment Management (`.env.local`)
+- **`BPOST_DB_DATABASE_URL`**: Neon Postgres connection string.
+- **`ENCRYPTION_KEY`**: 32-byte base64 secret for GCM.
+- **`AUTH_SECRET`**: Random secret for Auth.js dashboard sessions.
+- **`AUTH_GOOGLE_ID/SECRET`**: Google OAuth client for the settings dashboard.
+- **`SEED_BPOST_...`**: Variables used to bootstrap the internal demo tenant account.
