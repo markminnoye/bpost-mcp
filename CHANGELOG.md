@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-03
+
+### Changed
+- **Phase 1 Complete**: All action sub-schemas (`DepositCreate`, `DepositUpdate`, `DepositDelete`, `DepositValidate`, `MailingCreate`, `MailingCheck`, `MailingDelete`, `MailingReuse`) fully implemented from XSD sources. Response schemas (`deposit-response.ts`, `mailing-response.ts`) added.
+- **AGENTS.md**: Updated active work section to reflect Phase 1 completion; removed in-progress implementation notes.
+- **next-env.d.ts**: Updated route types import path to `.next/dev/types/routes.d.ts` (Next.js tooling update, auto-generated).
+- **Claude settings**: Accumulated session permissions in `.claude/settings.local.json` for local tooling operations.
+
+---
+
 ## [1.1.0] - 2026-03-29
 
 ### Changed

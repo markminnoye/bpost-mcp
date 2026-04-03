@@ -1,11 +1,34 @@
 {
+  "permissions": {
+    "allow": [
+      "Skill(commit-commands:commit)",
+      "Bash(SKILLS_SRC=\"/Users/markminnoye/Library/Mobile Documents/com~apple~CloudDocs/AI_tools/skills/antigravity-awesome-skills/skills\")",
+      "Bash(SKILLS_DST=\"/Users/markminnoye/git/bpost-mcp/.agent/skills\")",
+      "Bash(__NEW_LINE_f8df0949239f0de5__ for:*)",
+      "Bash(do)",
+      "Bash(cp -r \"$SKILLS_SRC/$skill\" \"$SKILLS_DST/\")",
+      "Bash(git -C /Users/markminnoye/git/bpost-mcp show 53b9f8b --stat)",
+      "Bash(git check-ignore:*)",
+      "Bash(npx create-next-app@latest . --typescript --app --no-src-dir --no-tailwind --no-eslint --import-alias \"@/*\")",
+      "Bash(npx create-next-app@latest --help)",
+      "Bash(mkdir -p /tmp/nextjs-scaffold)",
+      "Read(//tmp/**)",
+      "Bash(npx create-next-app@latest . --typescript --app --src-dir --no-tailwind --no-eslint --import-alias \"@/*\" --yes --disable-git)",
+      "Read(//private/tmp/nextjs-scaffold/**)",
+      "Read(//private/tmp/nextjs-scaffold/src/**)",
+      "Bash(cp /tmp/nextjs-scaffold/package.json /Users/markminnoye/git/bpost-mcp/package.json)",
+      "Bash(cp /tmp/nextjs-scaffold/tsconfig.json /Users/markminnoye/git/bpost-mcp/tsconfig.json)",
+      "Bash(cp /tmp/nextjs-scaffold/next.config.ts /Users/markminnoye/git/bpost-mcp/next.config.ts)",
+      "Bash(cp /tmp/nextjs-scaffold/next-env.d.ts /Users/markminnoye/git/bpost-mcp/next-env.d.ts)",
+      "Bash(npm test:*)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node:*)",
+      "Bash(npx vitest:*)",
+      "Read(//Users/markminnoye/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/hooks/**)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "vercel"
-  ],
-  "permissions": {
-    "allow": [
-      "Skill(commit-commands:commit)"
-    ]
-  }
+  ]
 }

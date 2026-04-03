@@ -46,11 +46,8 @@ When an agent discovers new insights, patterns, or corrections about the BPost A
 - **Phase 1 Skill Stack Design:** `@docs/superpowers/specs/2026-03-31-phase1-skill-stack-design.md`
   Status: **Complete.**
 
-- **Phase 1 — Afwerken (prioriteit):** De action sub-schemas zijn stubs (`.passthrough()`). Dit moet eerst worden afgewerkt vóór Fase 2 start.
-  - Schemas uitwerken: `DepositCreate`, `DepositUpdate`, `DepositDelete`, `DepositValidate`, `MailingCreate`, `MailingCheck`, `MailingDelete`, `MailingReuse`
-  - Response schemas toevoegen: `src/schemas/deposit-response.ts`, `src/schemas/mailing-response.ts`
-  - XSD source of truth: `docs/internal/e-masspost/skills/e-masspost-protocol/resources/`
-  - Skills te gebruiken: `zod-validation-expert`, `tdd-workflow`
+- **Phase 1 — Afwerken:** Alle action sub-schemas zijn volledig uitgewerkt vanuit de XSD bronnen. Response schemas toegevoegd.
+  Status: **Complete.**
 
 - **Phase 2 Design:** `@docs/internal/phase2-design.md`
   Brainstorm afgerond. Open vragen (credential storage, auth, self-learning storage, deployment) worden besproken met de architect vóór implementatie start.
