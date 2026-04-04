@@ -1,6 +1,7 @@
 // src/app/dashboard/page.tsx
 import { redirect } from 'next/navigation'
-import { auth, signOut } from '@/lib/auth'
+import { auth } from '@/lib/auth'
+import { handleSignOut } from './actions'
 import { db } from '@/lib/db/client'
 import { tenants, bpostCredentials, apiTokens } from '@/lib/db/schema'
 import { encrypt, hashToken } from '@/lib/crypto'
@@ -56,6 +57,11 @@ export default async function DashboardPage({ searchParams }: Props) {
     const session = await auth()
     const actionTenantId = (session?.user as any)?.tenantId
     if (!actionTenantId) throw new Error('Unauthorized')
+
+    const numericOnly = /^\d{1,8}$/
+    if (!numericOnly.test(customerNumber)) throw new Error('Customer Number must be 1–8 digits')
+    if (!numericOnly.test(accountId)) throw new Error('Account ID must be 1–8 digits')
+    if (prsNumber && !numericOnly.test(prsNumber)) throw new Error('PRS Number must be 1–8 digits')
 
     const { ciphertext, iv } = encrypt(password, encKey)
 
@@ -120,10 +126,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     }}>
       <h1 style={{ color: '#ff0000', textTransform: 'uppercase', letterSpacing: '0.1rem' }}>BPost MCP — Settings</h1>
       <p style={{ color: '#888' }}>Logged in as <span style={{ color: '#fff' }}>{session.user.email}</span></p>
-      <form action={async () => {
-        'use server'
-        await signOut()
-      }}>
+      <form action={handleSignOut}>
         <button type="submit" style={{ 
           backgroundColor: '#333', 
           color: '#fff', 
@@ -186,28 +189,37 @@ export default async function DashboardPage({ searchParams }: Props) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <label style={{ color: '#888', fontSize: '0.8rem' }}>
               Customer Number<br />
-              <input 
-                name="customerNumber" 
-                defaultValue={existingCreds?.customerNumber ?? ''} 
-                required 
+              <input
+                name="customerNumber"
+                defaultValue={existingCreds?.customerNumber ?? ''}
+                required
+                pattern="\d{1,8}"
+                maxLength={8}
+                title="1–8 digits, numbers only"
                 style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
               />
             </label>
             <label style={{ color: '#888', fontSize: '0.8rem' }}>
               Account ID<br />
-              <input 
-                name="accountId" 
-                defaultValue={existingCreds?.accountId ?? ''} 
-                required 
+              <input
+                name="accountId"
+                defaultValue={existingCreds?.accountId ?? ''}
+                required
+                pattern="\d{1,8}"
+                maxLength={8}
+                title="1–8 digits, numbers only"
                 style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
               />
             </label>
           </div>
           <label style={{ color: '#888', fontSize: '0.8rem' }}>
             PRS Number (optional)<br />
-            <input 
-              name="prsNumber" 
-              defaultValue={existingCreds?.prsNumber ?? ''} 
+            <input
+              name="prsNumber"
+              defaultValue={existingCreds?.prsNumber ?? ''}
+              pattern="\d{1,8}"
+              maxLength={8}
+              title="1–8 digits, numbers only"
               style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
             />
           </label>
