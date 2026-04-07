@@ -63,7 +63,7 @@ const MidNumberSchema = z.string().regex(/^[0-9]{14,18}$/)
 /** XSD GenMidType: N | 7 | 9 | 11 */
 const GenMidTypeSchema = z.enum(['N', '7', '9', '11'])
 
-const ItemSchema = z.object({
+export const ItemSchema = z.object({
   seq: z.number().int().positive(),
   lang: z.enum(['fr', 'nl', 'de']).optional(),
   midNum: MidNumberSchema.optional(),
@@ -172,3 +172,4 @@ export type MailingCreate = z.infer<typeof MailingCreateSchema>
 export type MailingCheck = z.infer<typeof MailingCheckSchema>
 export type MailingDelete = z.infer<typeof MailingDeleteSchema>
 export type MailingReuse = z.infer<typeof MailingReuseSchema>
+export type Item = z.infer<typeof ItemSchema>

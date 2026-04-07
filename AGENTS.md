@@ -41,6 +41,27 @@ When an agent discovers new insights, patterns, or corrections about the BPost A
 2. **Type Check:** Run `npx tsc --noEmit` if working in `/src`.
 3. **No Regressions:** Do not uncomment existing tests or skip suites.
 
+### 🚀 Deployment
+
+Use the `vercel-plugin:deploy` skill before any deploy. The standard workflow:
+
+**Preflight (always run first):**
+1. `vercel --version` — confirm CLI is available
+2. Check `.vercel/project.json` exists — if missing, run `vercel link`
+3. `git status --porcelain` — warn if uncommitted changes; they won't be included
+
+**Commands:**
+- Preview: `vercel` (safe, no user impact)
+- Production: `vercel --prod` ⚠️ — requires explicit confirmation, affects live users
+
+**Post-deploy verification:**
+```bash
+vercel inspect <deployment-url>   # state, framework, function count
+vercel logs <deployment-url> --level error --since 1h  # scan for early errors
+```
+
+**Production deploy is only valid from `main` branch.** Do not run `vercel --prod` from `develop` or feature branches without explicit user approval.
+
 ### 📋 Plan Management
 
 **All plans live in `.agent/plans/`.** This is the single source of truth.
@@ -55,8 +76,8 @@ When an agent discovers new insights, patterns, or corrections about the BPost A
 See `.agent/plans/INDEX.md` for the full plan overview. Current state:
 
 - **Phase 1** — ✅ Complete. All schemas, BpostClient, XML layer, MCP route done.
-- **Phase 2 Architecture** — 🔄 Active. See `.agent/plans/2026-04-03-phase2-architecture.md`.
-  Sprint 1 implementation planning is the next step.
+- **Phase 2 Sprint 1** — ✅ Complete. Credential layer, encryption, Auth.js, and Dashboard live.
+- **Phase 2 Sprint 2** — ⏳ Pending. Self-learning and fix-scripts planning is the next step.
 
 ### 🛠️ Available Agent Skills
 
