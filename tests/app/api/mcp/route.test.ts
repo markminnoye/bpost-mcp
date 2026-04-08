@@ -91,5 +91,15 @@ describe('apply_row_fix data pollution', () => {
     // mockState is mutated in-place by the handler, so we can inspect it directly.
     expect(mockState.rows[0].mapped).toEqual(originalMapped)
     expect((mockState.rows[0].mapped as any)?.seq).not.toBe('INVALID')
+
+    // Also verify the persisted state (saveBatchState argument) was not polluted
+    // Wait briefly for async operations to complete
+    await new Promise(resolve => setTimeout(resolve, 100))
+    expect(vi.mocked(saveBatchState).mock.calls.length).toBeGreaterThan(0)
+    const savedArg = vi.mocked(saveBatchState).mock.calls[0][0] as any
+    expect(savedArg.rows[0].mapped).toEqual(originalMapped)
+    expect(savedArg.rows[0].mapped.seq).not.toBe('INVALID')
+    // Verify validationErrors were updated on the failure path
+    expect(savedArg.rows[0].validationErrors.length).toBeGreaterThan(0)
   })
 })
