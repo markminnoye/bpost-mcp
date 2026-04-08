@@ -263,10 +263,10 @@ export default async function DashboardPage({ searchParams }: Props) {
         </h3>
         <ul style={{ listStyle: 'none', padding: '0', fontSize: '0.9rem' }}>
           {tokens.map((t) => (
-            <li key={t.id} style={{ 
-              backgroundColor: '#111', 
-              padding: '0.8rem', 
-              marginBottom: '0.5rem', 
+            <li key={t.id} style={{
+              backgroundColor: '#111',
+              padding: '0.8rem',
+              marginBottom: '0.5rem',
               border: '1px solid #222',
               display: 'flex',
               justifyContent: 'space-between',
@@ -282,6 +282,34 @@ export default async function DashboardPage({ searchParams }: Props) {
             </li>
           ))}
         </ul>
+      </section>
+
+      <hr style={{ border: '0', borderTop: '1px solid #333', margin: '2rem 0' }} />
+
+      <section>
+        <h2 style={{ color: '#ff0000', fontSize: '1.2rem', marginBottom: '1rem' }}>Claude / MCP Clients</h2>
+        <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+          Verbind Claude met je BPost account:
+        </p>
+        <div style={{
+          background: '#111',
+          border: '1px solid #333',
+          borderRadius: '4px',
+          padding: '12px',
+          fontFamily: 'monospace',
+          fontSize: '13px',
+          color: '#00ff00',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}>
+          <code>{`${process.env.NEXT_PUBLIC_BASE_URL || 'https://bpost-mcp.vercel.app'}/api/mcp`}</code>
+        </div>
+        <p style={{ color: '#888', fontSize: '0.8rem' }}>
+          Plak deze URL in Claude Desktop onder Settings &gt; MCP Servers.
+          Claude regelt de login automatisch via Google.
+        </p>
       </section>
     </main>
   )

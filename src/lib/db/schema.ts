@@ -1,4 +1,5 @@
 import { pgTable, uuid, text, timestamp, integer } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 export const tenants = pgTable('tenants', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -82,4 +83,42 @@ export const verificationTokens = pgTable('verificationToken', {
   identifier: text('identifier').notNull(),
   token: text('token').notNull(),
   expires: timestamp('expires', { mode: 'date' }).notNull(),
+})
+
+export const oauthClients = pgTable('oauth_clients', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  clientId: text('client_id').notNull().unique(),
+  clientSecret: text('client_secret'), // SHA-256 hashed, null for public clients
+  clientName: text('client_name'),
+  redirectUris: text('redirect_uris').array().notNull(),
+  grantTypes: text('grant_types').array().notNull().default(sql`ARRAY['authorization_code','refresh_token']`),
+  responseTypes: text('response_types').array().notNull().default(sql`ARRAY['code']`),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const oauthAuthorizationCodes = pgTable('oauth_authorization_codes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  code: text('code').notNull().unique(), // SHA-256 hashed
+  clientId: text('client_id').notNull(), // DCR client or URL-format, no FK
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  redirectUri: text('redirect_uri').notNull(),
+  scope: text('scope'),
+  codeChallenge: text('code_challenge').notNull(),
+  codeChallengeMethod: text('code_challenge_method').notNull().default('S256'),
+  resource: text('resource'), // RFC 8707
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
+})
+
+export const oauthRefreshTokens = pgTable('oauth_refresh_tokens', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  tokenHash: text('token_hash').notNull().unique(),
+  clientId: text('client_id').notNull(), // DCR client or URL-format, no FK
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  scope: text('scope'),
+  expiresAt: timestamp('expires_at').notNull(),
+  revokedAt: timestamp('revoked_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 })
