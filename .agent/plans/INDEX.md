@@ -35,7 +35,8 @@ All implementation plans, design specs, and architecture decisions live here.
 |---|---|---|
 | [Phase 2 Design Brainstorm](2026-04-01-phase2-design-brainstorm.md) | ⬜ | Initial brainstorm — superseded by architecture plan below |
 | [Phase 2 Architecture](2026-04-03-phase2-architecture.md) | ✅ | Approved architecture |
-| [Phase 2 Sprint 1 — Credential Layer, Auth & Multi-Tenant MCP](2026-04-03-phase2-sprint1-implementation.md) | 🔄 | Active — credential layer, bearer token auth, Google OAuth dashboard, seed script |
+| [Phase 2 Sprint 1 — Credential Layer, Auth & Multi-Tenant MCP](2026-04-03-phase2-sprint1-implementation.md) | ✅ | Complete — credential layer, bearer token auth, Google OAuth dashboard, seed script |
+| [Phase 2 Sprint 2 — Review Fixes](2026-04-04-sprint2-review-fixes.md) | ✅ | All critical and important review findings fixed |
 
 ---
 

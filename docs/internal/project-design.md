@@ -70,3 +70,26 @@ handles ISO-8859-1 encoding used by BPost XSDs, and produces predictable JS obje
 - **`AUTH_SECRET`**: Random secret for Auth.js dashboard sessions.
 - **`AUTH_GOOGLE_ID/SECRET`**: Google OAuth client for the settings dashboard.
 - **`SEED_BPOST_...`**: Variables used to bootstrap the internal demo tenant account.
+
+## 7. Bulk Processing & Semantic Triage (Phase 2 Sprint 2)
+
+### The Desktop-First Handoff Architecture
+Because MCP tools are purely JSON-based and suffer from heavy context-window bloat when passing large binary blobs (like 5000-row Excel files), the BPost MCP platform employs a hybrid **Out-Of-Band Upload** strategy designed specifically for Desktop AI Agents.
+
+#### The 4-Phase Pipeline:
+1. **Upload (Out-of-Band):** The local agent makes a standard `curl -X POST` to the `/api/batches/upload` endpoint, bypassing the LLM text limits. The Vercel server securely ingests the `.csv`/`.xlsx` file and places the raw parsed JSON in **Vercel KV**, tagging it `UNMAPPED`.
+2. **Semantic Header Mapper:** The MCP tool `get_raw_headers` is used by the agent to view the raw array fields. The agent semantically generates a mapping (e.g. `Client Loc 1 -> postalCode`) and executes `apply_mapping_rules`. Vercel runs the heavy Zod validation and marks the KV batch as `MAPPED`.
+3. **Triaging:** The agent loops over `get_batch_errors`, retrieving strict Zod errors row by row. It engages the human user to figure out fuzzy logic (e.g., truncating addresses, extracting floor numbers from strings) and uses `apply_row_fix` to repair rows instantly on KV.
+4. **Submission:** Finally, `submit_ready_batch` packages all non-errored KV rows into official BPost XML and submits them.
+
+### Infrastructure Additions
+- **Vercel KV (Redis):** Provides transient, high-speed storage for batch JSON payloads with automatic 24-hour TTL constraints, ensuring raw client PII does not linger indefinitely in relational storage.
+
+### Known Limitations
+
+#### Batch Row Limit (MVP: 1,000 rows)
+The entire `BatchState` — including both `raw` and `mapped` fields for every row — is serialized into a **single Redis key**. Upstash enforces a hard 1 MB per-key value limit on the free tier and 10–100 MB on paid tiers. At an average of ~800 bytes/row (raw + mapped JSON), a 10,000-row batch would exceed 8 MB and cause silent failures in `saveBatchState`.
+
+**Current constraint:** The `/api/batches/upload` endpoint rejects files with more than **1,000 rows** (HTTP 413).
+
+**Resolution path:** Split `rows` across multiple keys (`batch:{tenantId}:{batchId}:rows:{chunk}`), updating `getBatchState`/`saveBatchState` to reassemble them transparently. Tracked in: [markminnoye/bpost-mcp#4](https://github.com/markminnoye/bpost-mcp/issues/4).
