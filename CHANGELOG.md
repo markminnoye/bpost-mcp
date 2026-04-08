@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-04-07
+
+### Added
+- **OAuth 2.0 MCP Integration**: Claude.ai/Desktop can now authenticate via standard browser-based Google login — no more manual bearer token copy-paste.
+- **OAuth Authorization Server** (custom Next.js implementation):
+  - `GET /oauth/authorize` — PKCE S256, client resolution, Auth.js session check, BPost credential verification, auth code generation
+  - `POST /oauth/token` — `authorization_code` and `refresh_token` grants with rotation
+  - `POST /oauth/register` — Dynamic Client Registration (RFC 7591)
+  - `GET /.well-known/oauth-protected-resource` — RFC 9728 Protected Resource Metadata
+  - `GET /.well-known/oauth-authorization-server` — RFC 8414 Authorization Server Metadata
+- **JWT support**: HS256 access tokens (1h) via `jose`; refresh tokens (90d, stateful in DB)
+- **PKCE S256 enforcement**: Mandatory for all authorization code flows
+- **Client ID Metadata Documents**: Preferred client resolution mechanism per MCP spec
+- **Unified token verification**: OAuth JWT and legacy `bpost_*` M2M tokens both accepted at MCP boundary
+- **3 new DB tables**: `oauth_clients`, `oauth_authorization_codes`, `oauth_refresh_tokens`
+- **Dashboard**: "Claude / MCP Clients" section showing MCP URL for Claude Desktop
+- **Favicons & PWA**: PNG icons (16×16, 32×32, 192×192, 512×512), `apple-touch-icon.png`, `site.webmanifest`; wired into root layout via Next.js metadata API
+
+### Changed
+- **MCP route** (`/api/mcp`): Migrated from raw `@modelcontextprotocol/sdk` to `mcp-handler` + `withMcpAuth`; `requiredScopes: ['mcp:tools']` enforced
+- **`@modelcontextprotocol/sdk`**: Moved to `devDependencies` (type-only import)
+- **Page title**: Updated to "BPost MCP"
+
+### Security
+- Authorization codes SHA-256 hashed and single-use (`used_at` prevents replay)
+- Refresh token rotation — old token revoked before new token issued
+- PKCE mandatory — no authorization code without `code_challenge`
+- All secrets hashed before DB storage; BPost credentials remain AES-256-GCM encrypted
+
+---
+
+## [1.3.0] - 2026-04-05
+
+### Added
+- **Multi-tenant Dashboard** (`/dashboard`): Manage BPost credentials and API tokens per tenant
+- **Credential encryption**: AES-256-GCM for BPost passwords at rest
+- **Auth.js v5 integration**: Google OAuth login for dashboard access
+- **API token management**: Generate/revoke `bpost_*` bearer tokens for M2M clients (Langflow, n8n)
+- **Audit logging**: Credential changes and MCP calls logged to `audit_log` table
+- **KV batch pipeline**: Bulk batch announcement support with Vercel KV
+
+### Fixed
+- `signOut` wrapped in server action to resolve 500 error
+- Credential field validation added to dashboard form
+
+---
+
 ## [1.2.0] - 2026-04-03
 
 ### Changed
