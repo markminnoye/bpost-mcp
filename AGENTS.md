@@ -81,6 +81,7 @@ The following skills are available in `.agent/skills/`. Invoke the relevant skil
 | `kaizen` | Process improvements, standardization, quality reviews |
 | `mermaid-expert` | Creating diagrams (flowcharts, sequences, ERDs) |
 | `codex-review` | Code review with CHANGELOG generation |
+| `NotebookLM-WrapUp` | End-of-session wrap-up — saves memories and pushes summary to NotebookLM Brain |
 
 ### 🤝 Cross-Agent Collaboration (Antigravity & Claude)
 
