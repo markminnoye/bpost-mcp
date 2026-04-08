@@ -20,6 +20,17 @@ import { GET, POST, DELETE } from '@/app/api/mcp/route'
 import { verifyToken } from '@/lib/oauth/verify-token'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 
+/** Parse the first JSON object from an SSE response body (data: <json> lines). */
+async function parseSseBody(res: Response): Promise<Record<string, unknown>> {
+  const text = await res.text()
+  for (const line of text.split('\n')) {
+    if (line.startsWith('data: ')) {
+      try { return JSON.parse(line.slice(6)) } catch { /* skip */ }
+    }
+  }
+  return {}
+}
+
 describe('MCP route auth via withMcpAuth', () => {
   it('exports GET, POST, and DELETE handlers', () => {
     expect(typeof GET).toBe('function')
@@ -101,5 +112,89 @@ describe('apply_row_fix data pollution', () => {
     expect(savedArg.rows[0].mapped.seq).not.toBe('INVALID')
     // Verify validationErrors were updated on the failure path
     expect(savedArg.rows[0].validationErrors.length).toBeGreaterThan(0)
+  })
+})
+
+describe('get_raw_headers', () => {
+  it('does NOT include errorCount when status is UNMAPPED', async () => {
+    const mockState = {
+      batchId: 'b1', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['name'], rows: [{ index: 0, raw: { name: 'x' } }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'get_raw_headers', arguments: { batchId: 'b1' } }
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const result = JSON.parse((body?.result as any)?.content?.[0]?.text ?? '{}')
+    expect(result.errorCount).toBeUndefined()
+    expect(result.totalRows).toBe(1)
+  })
+
+  it('includes errorCount when status is MAPPED', async () => {
+    const mockState = {
+      batchId: 'b2', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: ['name', 'postalCode'],
+      rows: [
+        { index: 0, raw: {}, mapped: {}, validationErrors: [{ message: 'err' }] },
+        { index: 1, raw: {}, mapped: {}, validationErrors: undefined },
+      ],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'get_raw_headers', arguments: { batchId: 'b2' } }
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const result = JSON.parse((body?.result as any)?.content?.[0]?.text ?? '{}')
+    expect(result.errorCount).toBe(1)
+    expect(result.totalRows).toBe(2)
+  })
+})
+
+describe('apply_mapping_rules reset', () => {
+  it('allows re-mapping a MAPPED batch', async () => {
+    const mockState = {
+      batchId: 'b3', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: ['name'],
+      rows: [{ index: 0, raw: { name: 'Test' }, mapped: { psCode: 'OldValue' } }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'apply_mapping_rules', arguments: { batchId: 'b3', mapping: { name: 'psCode' } } }
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    // Should succeed (not return isError) — re-mapping a MAPPED batch is allowed
+    expect((body?.result as any)?.isError).toBeFalsy()
   })
 })

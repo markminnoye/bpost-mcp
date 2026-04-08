@@ -64,7 +64,20 @@ const handler = createMcpHandler(
         const tenantId = tenantOrError
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: `Batch ${input.batchId} not found or expired.` }] }
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ headers: state.headers, status: state.status, totalRows: state.rows.length }, null, 2) }] }
+        const errorCount = state.status !== 'UNMAPPED'
+          ? state.rows.filter(r => r.validationErrors && r.validationErrors.length > 0).length
+          : undefined
+        return {
+          content: [{
+            type: 'text' as const,
+            text: JSON.stringify({
+              headers: state.headers,
+              status: state.status,
+              totalRows: state.rows.length,
+              ...(errorCount !== undefined ? { errorCount } : {}),
+            }, null, 2),
+          }],
+        }
       },
     )
 
@@ -83,7 +96,9 @@ const handler = createMcpHandler(
         const tenantId = tenantOrError
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
-        if (state.status !== 'UNMAPPED') return { isError: true, content: [{ type: 'text' as const, text: 'Batch is already mapped. Use apply_row_fix to patch issues.' }] }
+        if (state.status === 'SUBMITTED') {
+          return { isError: true, content: [{ type: 'text' as const, text: 'Cannot re-map a submitted batch.' }] }
+        }
 
         const unknownCols = Object.keys(input.mapping).filter(col => !state.headers.includes(col))
         if (unknownCols.length > 0) {
