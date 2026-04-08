@@ -1,34 +1,46 @@
 // tests/app/api/mcp/route.test.ts
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('@/lib/tenant/resolve', () => ({
-  resolveTenant: vi.fn(),
+// Mock verifyToken — withMcpAuth calls this to authenticate requests
+vi.mock('@/lib/oauth/verify-token', () => ({
+  verifyToken: vi.fn(),
 }))
 
-import { POST } from '@/app/api/mcp/route'
-import { resolveTenant } from '@/lib/tenant/resolve'
+// Mock getCredentialsByTenantId to avoid DB access
+vi.mock('@/lib/tenant/get-credentials', () => ({
+  getCredentialsByTenantId: vi.fn(),
+}))
 
-describe('POST /api/mcp', () => {
-  it('returns 401 when Authorization header is missing', async () => {
-    const req = new Request('http://localhost/api/mcp', { method: 'POST' })
-    const res = await POST(req)
-    expect(res.status).toBe(401)
+import { GET, POST, DELETE } from '@/app/api/mcp/route'
+import { verifyToken } from '@/lib/oauth/verify-token'
+
+describe('MCP route auth via withMcpAuth', () => {
+  it('exports GET, POST, and DELETE handlers', () => {
+    expect(typeof GET).toBe('function')
+    expect(typeof POST).toBe('function')
+    expect(typeof DELETE).toBe('function')
   })
 
-  it('returns 401 when Authorization header is not Bearer format', async () => {
+  it('returns 401 when no Authorization header is provided', async () => {
+    vi.mocked(verifyToken).mockResolvedValue(undefined)
+
     const req = new Request('http://localhost/api/mcp', {
       method: 'POST',
-      headers: { Authorization: 'Basic dXNlcjpwYXNz' },
+      headers: { 'Content-Type': 'application/json' },
     })
     const res = await POST(req)
     expect(res.status).toBe(401)
   })
 
-  it('returns 401 when token does not resolve to a tenant', async () => {
-    vi.mocked(resolveTenant).mockResolvedValue(null)
+  it('returns 401 when verifyToken returns undefined', async () => {
+    vi.mocked(verifyToken).mockResolvedValue(undefined)
+
     const req = new Request('http://localhost/api/mcp', {
       method: 'POST',
-      headers: { Authorization: 'Bearer bpost_unknown' },
+      headers: {
+        Authorization: 'Bearer invalid_token',
+        'Content-Type': 'application/json',
+      },
     })
     const res = await POST(req)
     expect(res.status).toBe(401)
