@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
-import { resolveTenant } from "@/lib/tenant/resolve"
-import { extractBearerToken } from "@/lib/auth/extract-token"
+import { verifyToken } from "@/lib/oauth/verify-token"
 import { saveBatchState, BatchState, BatchRow } from "@/lib/kv/client"
 import Papa from "papaparse"
 import { randomUUID } from "crypto"
 
 export async function POST(req: NextRequest) {
   try {
-    const token = extractBearerToken(req)
-
+    const authHeader = req.headers.get('authorization')
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
     if (!token) {
       return NextResponse.json({ error: "Missing or invalid Authorization header" }, { status: 401 })
     }
 
-    const tenant = await resolveTenant(token)
-    if (!tenant) {
+    const authInfo = await verifyToken(req, token)
+    if (!authInfo?.extra?.tenantId) {
       return NextResponse.json({ error: "Unauthorized or invalid API token" }, { status: 401 })
     }
-    const tenantId = tenant.tenantId
+    const tenantId = authInfo.extra.tenantId as string
 
     // 2. Parse FormData
     const formData = await req.formData()

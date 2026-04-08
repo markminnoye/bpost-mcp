@@ -1,3 +1,137 @@
+# Merge main→develop: Port Batch Pipeline to mcp-handler
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Merge `main` into `develop` so develop contains all features from both branches — specifically porting the KV batch pipeline tools from `main`'s old `McpServer` pattern into `develop`'s `mcp-handler` + `withMcpAuth` architecture.
+
+**Architecture:** The batch tools (`get_upload_instructions`, `get_raw_headers`, `apply_mapping_rules`, `get_batch_errors`, `apply_row_fix`, `submit_ready_batch`) currently use a closure-based `McpServer` that receives `tenantId` and `credentials` at construction time. In `develop`, tools get tenant context from `extra.authInfo.extra.tenantId` at call time. Each tool needs to be adapted to this pattern. The upload endpoint (`/api/batches/upload`) also needs its auth updated from `extractBearerToken` + `resolveTenant` to the new OAuth-compatible verification.
+
+**Tech Stack:** TypeScript, mcp-handler, Zod, Vercel KV (@upstash/redis), vitest
+
+---
+
+## Context for Implementers
+
+### How develop's mcp-handler pattern works
+
+In `src/app/api/mcp/route.ts` on develop, tools are registered inside a `createMcpHandler` callback:
+
+```typescript
+const handler = createMcpHandler(
+  (server) => {
+    server.registerTool('tool_name', { description, inputSchema }, async (input, extra) => {
+      const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
+      if (!tenantId) {
+        return { content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }], isError: true }
+      }
+      const credentials = await resolveCredentials(tenantId)
+      // ... tool logic
+    })
+  },
+  { serverInfo: { name: 'bpost-emasspost', version: '1.0.0' } },
+  { basePath: '/api' },
+)
+```
+
+Key differences from main's old pattern:
+- `tenantId` comes from `extra.authInfo?.extra?.tenantId` (set by `verifyToken`)
+- `credentials` are resolved per-call via `resolveCredentials(tenantId)`
+- No closure — each tool resolves its own context
+- `extra` second parameter is required in handler signature
+
+### How `verifyToken` works
+
+`verifyToken` in `src/lib/oauth/verify-token.ts` has this signature:
+
+```typescript
+export async function verifyToken(_req: Request, bearerToken?: string): Promise<AuthInfo | undefined>
+```
+
+It takes **two arguments**: the original Request object and the bearer token string. When called directly (outside `withMcpAuth`), you must pass both: `verifyToken(req, token)`.
+
+### Files that exist on main but NOT on develop
+
+| File | Purpose |
+|---|---|
+| `src/lib/kv/client.ts` | Redis client, `BatchState`/`BatchRow` types, `getBatchState`/`saveBatchState` |
+| `src/app/api/batches/upload/route.ts` | CSV upload endpoint (uses old auth: `extractBearerToken` + `resolveTenant`) |
+
+### Files that differ between main and develop
+
+| File | Difference |
+|---|---|
+| `src/app/api/mcp/route.ts` | main: old McpServer + 8 tools. develop: mcp-handler + 2 tools |
+| `src/schemas/mailing-request.ts` | main: `ItemSchema` exported + `Item` type. develop: `ItemSchema` private, no `Item` type |
+
+### Dependencies on main not on develop
+
+`main`'s `package.json` includes `papaparse` and `@upstash/redis` which are not in develop. These will be auto-merged by git, but `npm install` is required after the merge to install them into `node_modules`.
+
+---
+
+## Task 1: Merge main into develop (resolve non-route conflicts)
+
+**Files:**
+- All files differing between main and develop
+
+- [ ] **Step 1: Run `git merge main` on develop branch**
+
+```bash
+git merge main
+```
+
+Expected: conflict in `src/app/api/mcp/route.ts` (and possibly `src/schemas/mailing-request.ts`)
+
+- [ ] **Step 2: Resolve `src/schemas/mailing-request.ts`**
+
+Take main's version for this file — re-export `ItemSchema` and the `Item` type. The batch tools need `ItemSchema` exported.
+
+```bash
+git checkout main -- src/schemas/mailing-request.ts
+git add src/schemas/mailing-request.ts
+```
+
+- [ ] **Step 3: Accept both sides' non-conflicting files**
+
+Files only on main (KV client, upload route) will be auto-added. Files only on develop (OAuth endpoints, etc.) are already there. Just verify with `git status`.
+
+- [ ] **Step 4: Install dependencies**
+
+Main adds `papaparse` and `@upstash/redis` which are not in develop's `node_modules`. Run:
+
+```bash
+npm install
+```
+
+- [ ] **Step 5: Mark merge as "in progress" — do NOT commit yet**
+
+Route.ts will be resolved in Task 2.
+
+---
+
+## Task 2: Port batch tools into mcp-handler route
+
+**Files:**
+- Modify: `src/app/api/mcp/route.ts`
+
+The final `route.ts` must:
+1. Keep develop's `createMcpHandler` + `withMcpAuth` + `verifyToken` wrapper
+2. Add `import { z } from 'zod'` — this is NOT in develop's current imports but is needed for batch tool inputSchemas
+3. Add `import { ItemSchema } from '@/schemas/mailing-request'` to the existing import line
+4. Add `import { getBatchState, saveBatchState } from '@/lib/kv/client'`
+5. Port all 6 batch tools into the `createMcpHandler` callback, each using `(input, extra)` signature
+
+- [ ] **Step 1: Write the complete merged route.ts**
+
+Write the full file. For each of the 6 batch tools, copy the tool body from `main` (`git show main:src/app/api/mcp/route.ts`) and adapt it:
+- Change handler signature from `async ({ field }) => {` to `async (input, extra) => {`
+- Replace closure `tenantId` with: `const tenantId = extra.authInfo?.extra?.tenantId as string | undefined` + null check
+- Replace `{ field }` destructuring with `input.field` access
+- Add `as const` to all `type: 'text'` literals
+
+Here is the complete target file:
+
+```typescript
 // src/app/api/mcp/route.ts
 import { createMcpHandler, withMcpAuth } from 'mcp-handler'
 import { DepositRequestSchema } from '@/schemas/deposit-request'
@@ -332,3 +466,112 @@ const authHandler = withMcpAuth(handler, verifyToken, {
 })
 
 export { authHandler as GET, authHandler as POST, authHandler as DELETE }
+```
+
+- [ ] **Step 2: Stage route.ts and verify no conflict markers remain**
+
+```bash
+grep -c '<<<<<<' src/app/api/mcp/route.ts  # must be 0
+git add src/app/api/mcp/route.ts
+```
+
+---
+
+## Task 3: Update upload route auth to use OAuth verification
+
+**Files:**
+- Modify: `src/app/api/batches/upload/route.ts`
+
+The upload route on main uses `extractBearerToken` + `resolveTenant`. It should use `verifyToken` to stay consistent with the OAuth layer, but since it's a standard Next.js route (not MCP), it can't use `withMcpAuth`. Instead, call `verifyToken` directly.
+
+**Important:** `verifyToken` takes two args: `(req: Request, bearerToken?: string)`. You must pass `req` as the first argument.
+
+- [ ] **Step 1: Update the upload route's auth**
+
+Replace:
+```typescript
+import { resolveTenant } from "@/lib/tenant/resolve"
+import { extractBearerToken } from "@/lib/auth/extract-token"
+```
+
+With:
+```typescript
+import { verifyToken } from "@/lib/oauth/verify-token"
+```
+
+Replace the token extraction + tenant resolution block:
+```typescript
+const token = extractBearerToken(req)
+if (!token) { ... }
+const tenant = await resolveTenant(token)
+if (!tenant) { ... }
+const tenantId = tenant.tenantId
+```
+
+With:
+```typescript
+const authHeader = req.headers.get('authorization')
+const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+if (!token) {
+  return NextResponse.json({ error: 'Missing or invalid Authorization header' }, { status: 401 })
+}
+const authInfo = await verifyToken(req, token)
+if (!authInfo?.extra?.tenantId) {
+  return NextResponse.json({ error: 'Invalid or revoked token' }, { status: 401 })
+}
+const tenantId = authInfo.extra.tenantId as string
+```
+
+Note: `verifyToken(req, token)` — the first arg is the Request object, the second is the bearer token string.
+
+---
+
+## Task 4: TypeScript check and test run
+
+**Files:**
+- All modified files
+
+- [ ] **Step 1: Run TypeScript compiler**
+
+```bash
+npx tsc --noEmit
+```
+
+Expected: clean (0 errors)
+
+- [ ] **Step 2: Run full test suite**
+
+```bash
+npx vitest run
+```
+
+Expected: all existing tests pass. The batch tools don't have dedicated unit tests on main, so no new test failures expected. The existing `tests/app/api/mcp/route.test.ts` covers the auth layer via `withMcpAuth`.
+
+- [ ] **Step 3: Commit the merge**
+
+```bash
+git commit -m "merge(main): port batch pipeline tools to mcp-handler + OAuth auth"
+```
+
+---
+
+## Task 5: Merge develop into main and push
+
+Since `develop` is a permanent integration branch, use a regular merge (not squash) to preserve ancestry. This keeps future merges clean.
+
+- [ ] **Step 1: Switch to main and merge**
+
+```bash
+git checkout main
+git merge develop --no-ff -m "merge: develop into main — OAuth 2.0 + batch pipeline on mcp-handler"
+```
+
+Expected: clean merge (no conflicts — develop now contains everything from main)
+
+- [ ] **Step 2: Push both branches**
+
+```bash
+git push origin main
+git checkout develop
+git push origin develop
+```
