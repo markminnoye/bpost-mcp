@@ -28,6 +28,12 @@ vi.mock('@/lib/tenant/get-credentials', () => ({
   }),
 }))
 
+// Mock KV client to avoid Redis access
+vi.mock('@/lib/kv/client', () => ({
+  getBatchState: vi.fn(),
+  saveBatchState: vi.fn(),
+}))
+
 import { POST } from '@/app/api/mcp/route'
 
 /**
