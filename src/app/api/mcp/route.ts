@@ -9,6 +9,7 @@ import { verifyToken } from '@/lib/oauth/verify-token'
 import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
 import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
+import { requireTenantId } from '@/lib/mcp/require-tenant'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,13 +38,9 @@ const handler = createMcpHandler(
         inputSchema: z.object({}),
       },
       async (_input, extra) => {
-        const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
-        if (!tenantId) {
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
-            isError: true,
-          }
-        }
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bpost.sonicrocket.io'
         const uploadUrl = `${baseUrl}/api/batches/upload`
         return {
@@ -62,16 +59,25 @@ const handler = createMcpHandler(
         inputSchema: z.object({ batchId: z.string() }),
       },
       async (input, extra) => {
-        const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
-        if (!tenantId) {
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
-            isError: true,
-          }
-        }
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: `Batch ${input.batchId} not found or expired.` }] }
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ headers: state.headers, status: state.status, totalRows: state.rows.length }, null, 2) }] }
+        const errorCount = state.status !== 'UNMAPPED'
+          ? state.rows.filter(r => r.validationErrors && r.validationErrors.length > 0).length
+          : undefined
+        return {
+          content: [{
+            type: 'text' as const,
+            text: JSON.stringify({
+              headers: state.headers,
+              status: state.status,
+              totalRows: state.rows.length,
+              ...(errorCount !== undefined ? { errorCount } : {}),
+            }, null, 2),
+          }],
+        }
       },
     )
 
@@ -85,16 +91,14 @@ const handler = createMcpHandler(
         }),
       },
       async (input, extra) => {
-        const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
-        if (!tenantId) {
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
-            isError: true,
-          }
-        }
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
-        if (state.status !== 'UNMAPPED') return { isError: true, content: [{ type: 'text' as const, text: 'Batch is already mapped. Use apply_row_fix to patch issues.' }] }
+        if (state.status === 'SUBMITTED') {
+          return { isError: true, content: [{ type: 'text' as const, text: 'Cannot re-map a submitted batch.' }] }
+        }
 
         const unknownCols = Object.keys(input.mapping).filter(col => !state.headers.includes(col))
         if (unknownCols.length > 0) {
@@ -120,7 +124,11 @@ const handler = createMcpHandler(
           }
         })
         state.status = 'MAPPED'
-        await saveBatchState(state)
+        try {
+          await saveBatchState(state)
+        } catch {
+          return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
+        }
 
         return { content: [{ type: 'text' as const, text: `Successfully mapped ${state.rows.length} rows.` }] }
       },
@@ -133,13 +141,9 @@ const handler = createMcpHandler(
         inputSchema: z.object({ batchId: z.string(), limit: z.number().int().min(1).default(10) }),
       },
       async (input, extra) => {
-        const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
-        if (!tenantId) {
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
-            isError: true,
-          }
-        }
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
 
@@ -160,32 +164,33 @@ const handler = createMcpHandler(
         }),
       },
       async (input, extra) => {
-        const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
-        if (!tenantId) {
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
-            isError: true,
-          }
-        }
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
 
         const row = state.rows.find(r => r.index === input.rowIndex)
         if (!row) return { isError: true, content: [{ type: 'text' as const, text: 'Row not found' }] }
 
-        row.mapped = { ...row.mapped, ...input.correctedData }
-
-        const validationResult = ItemSchema.safeParse(row.mapped)
+        const candidateMapped = { ...row.mapped, ...input.correctedData }
+        const validationResult = ItemSchema.safeParse(candidateMapped)
         if (validationResult.success) {
-          row.mapped = validationResult.data
+          row.mapped = validationResult.data   // only Zod-validated output written to row.mapped
           row.validationErrors = undefined
-          await saveBatchState(state)
-          return { content: [{ type: 'text' as const, text: `Row ${input.rowIndex} patched and validated successfully.` }] }
         } else {
+          // On failure: only update validationErrors — row.mapped stays as it was
           row.validationErrors = validationResult.error.issues
-          await saveBatchState(state)
-          return { content: [{ type: 'text' as const, text: `Row ${input.rowIndex} patched but still has ${validationResult.error.issues.length} validation error(s). Use get_batch_errors to review.` }] }
         }
+        try {
+          await saveBatchState(state)
+        } catch {
+          return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
+        }
+        if (validationResult.success) {
+          return { content: [{ type: 'text' as const, text: `Row ${input.rowIndex} patched and validated successfully.` }] }
+        }
+        return { content: [{ type: 'text' as const, text: `Row ${input.rowIndex} patched but still has ${validationResult.error.issues.length} validation error(s). Use get_batch_errors to review.` }] }
       },
     )
 
@@ -196,13 +201,9 @@ const handler = createMcpHandler(
         inputSchema: z.object({ batchId: z.string() }),
       },
       async (input, extra) => {
-        const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
-        if (!tenantId) {
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
-            isError: true,
-          }
-        }
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
 
@@ -213,7 +214,11 @@ const handler = createMcpHandler(
         if (readyRows.length === 0) return { isError: true, content: [{ type: 'text' as const, text: 'No physically ready rows to submit.' }] }
 
         state.status = 'SUBMITTED'
-        await saveBatchState(state)
+        try {
+          await saveBatchState(state)
+        } catch {
+          return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
+        }
 
         return { content: [{ type: 'text' as const, text: `[STUB] ${readyRows.length} rows are ready for submission. BPost XML dispatch is not yet implemented.` }] }
       },
@@ -230,13 +235,9 @@ const handler = createMcpHandler(
         inputSchema: DepositRequestSchema,
       },
       async (input, extra) => {
-        const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
-        if (!tenantId) {
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
-            isError: true,
-          }
-        }
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
 
         const credentials = await resolveCredentials(tenantId)
         const client = createBpostClient(credentials)
@@ -280,13 +281,9 @@ const handler = createMcpHandler(
         inputSchema: MailingRequestSchema,
       },
       async (input, extra) => {
-        const tenantId = extra.authInfo?.extra?.tenantId as string | undefined
-        if (!tenantId) {
-          return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
-            isError: true,
-          }
-        }
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
 
         const credentials = await resolveCredentials(tenantId)
         const client = createBpostClient(credentials)

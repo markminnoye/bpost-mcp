@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-04-08
+
+### Fixed
+- **Batch pipeline hardening**: `apply_row_fix` no longer persists unvalidated `correctedData` to KV on re-validation failure (data pollution fix)
+- **KV write resilience**: `apply_mapping_rules`, `apply_row_fix`, `submit_ready_batch` now return structured `isError` responses on Redis write failure instead of propagating unhandled exceptions
+- **`get_raw_headers`**: Returns `errorCount` alongside `totalRows` when batch status is `MAPPED` or `SUBMITTED`, saving agents a round-trip
+- **`apply_mapping_rules`**: Now allows re-mapping a `MAPPED` batch; only `SUBMITTED` batches cannot be re-mapped
+- **Upload route**: `catch (error: any)` replaced with `unknown` + type-safe message extraction
+
+### Added
+- **`requireTenantId` helper** (`src/lib/mcp/require-tenant.ts`): Shared guard eliminating 8× duplicated tenantId extraction across MCP tool handlers
+
+---
+
 ## [2.0.0] - 2026-04-07
 
 ### Added

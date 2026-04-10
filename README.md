@@ -1,0 +1,231 @@
+# BPost MCP
+
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that bridges AI agents with BPost's **e-MassPost API** — Belgium's postal service for mass mail sorting and delivery batch announcements.
+
+BPost's API requires XML payloads, strict field validation, and cryptic error codes. BPost MCP translates between JSON-native AI agents and the raw postal protocol, so agents can safely validate and submit mailings without understanding low-level HTTP/XML mechanics.
+
+**Current version:** v2.0.0 — OAuth 2.0 MCP integration (full RFC 8414 / 9728 compliance)
+
+---
+
+## Tools
+
+### Batch Pipeline (recommended for large mailings)
+
+| Tool | Description |
+|------|-------------|
+| `get_upload_instructions` | Returns a `curl` command for out-of-band CSV/Excel upload |
+| `get_raw_headers` | Fetch raw CSV column headers after upload |
+| `apply_mapping_rules` | Map raw columns to BPost schema fields |
+| `get_batch_errors` | Retrieve validation errors row-by-row |
+| `apply_row_fix` | Patch individual rows with corrected values |
+| `submit_ready_batch` | Submit the validated batch to BPost |
+
+### Direct BPost API
+
+| Tool | Description |
+|------|-------------|
+| `bpost_announce_deposit` | Announce a mail deposit (Create / Update / Delete / Validate) |
+| `bpost_announce_mailing` | Announce a mailing batch with structured validation |
+
+All tools require a Bearer token in the `Authorization` header.
+
+---
+
+## Claude Desktop Configuration
+
+Add the following to your Claude Desktop config file.
+
+**Config file locations:**
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "bpost": {
+      "type": "http",
+      "url": "https://bpost-mcp.vercel.app/api/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-token>"
+      }
+    }
+  }
+}
+```
+
+Replace `<your-token>` with either:
+- An **OAuth 2.0 access token** obtained via the [dashboard](https://bpost-mcp.vercel.app/dashboard)
+- A **legacy M2M token** (`bpost_…`) generated in the dashboard for Langflow/n8n integrations
+
+---
+
+## Getting a Token
+
+1. Sign in at [https://bpost-mcp.vercel.app/dashboard](https://bpost-mcp.vercel.app/dashboard) with your Google account.
+2. Navigate to **API Tokens** and generate a new token.
+3. Copy the token — it is shown only once.
+
+For OAuth 2.0 clients (e.g., Claude Desktop with dynamic client registration), the authorization server metadata is available at:
+
+```
+https://bpost-mcp.vercel.app/.well-known/oauth-authorization-server
+```
+
+PKCE (`S256`) is mandatory for all OAuth flows.
+
+---
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js 20+
+- A [Neon](https://neon.tech) Postgres database
+- A [Vercel KV](https://vercel.com/docs/storage/vercel-kv) (Upstash Redis) instance
+- Google OAuth credentials (for dashboard login)
+
+### Install
+
+```bash
+git clone https://github.com/markminnoye/bpost-mcp.git
+cd bpost-mcp
+npm install
+```
+
+### Environment variables
+
+Copy `.env.example` to `.env.local` and fill in the values:
+
+```bash
+cp .env.example .env.local
+```
+
+| Variable | Description |
+|----------|-------------|
+| `BPOST_DB_DATABASE_URL` | Neon Postgres connection string |
+| `ENCRYPTION_KEY` | 32-byte base64 key for AES-256-GCM credential encryption |
+| `AUTH_SECRET` | NextAuth v5 secret (`openssl rand -base64 32`) |
+| `AUTH_GOOGLE_ID` | Google OAuth client ID (dashboard login) |
+| `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
+| `OAUTH_JWT_SECRET` | Secret for signing OAuth 2.0 JWTs |
+| `SEED_BPOST_USERNAME` | BPost client ID (optional, for demo seeding) |
+| `SEED_BPOST_PASSWORD` | BPost password (optional, for demo seeding) |
+| `SEED_BPOST_CUSTOMER_NUMBER` | 8-digit PRS ID (optional) |
+| `SEED_BPOST_ACCOUNT_ID` | 8-digit PBC ID (optional) |
+| `KV_REST_API_URL` | Upstash Redis REST URL (auto-set by Vercel KV) |
+| `KV_REST_TOKEN` | Upstash Redis REST token (auto-set by Vercel KV) |
+| `NEXT_PUBLIC_BASE_URL` | Base URL override (defaults to `https://bpost.sonicrocket.io`) |
+
+Generate the encryption key and auth secret:
+
+```bash
+openssl rand -base64 32   # ENCRYPTION_KEY
+openssl rand -base64 32   # AUTH_SECRET
+openssl rand -base64 32   # OAUTH_JWT_SECRET
+```
+
+### Database setup
+
+```bash
+npm run db:push    # Apply schema migrations
+npm run seed       # Seed a demo tenant (requires SEED_BPOST_* vars)
+```
+
+### Run locally
+
+```bash
+npm run dev        # http://localhost:3000
+```
+
+The local MCP endpoint is at `http://localhost:3000/api/mcp`.
+
+---
+
+## Scripts
+
+```bash
+npm run dev           # Start development server
+npm run build         # Production build
+npm run test          # Run tests (Vitest)
+npm run test:watch    # Watch mode
+npm run db:generate   # Generate Drizzle migrations
+npm run db:push       # Apply migrations
+npm run db:studio     # Open Drizzle Studio (visual DB editor)
+npm run seed          # Seed demo tenant
+npm run lint          # Lint
+npm run lint:fix      # Auto-fix lint errors
+```
+
+---
+
+## Architecture
+
+```
+src/
+├── app/api/mcp/           # MCP endpoint (mcp-handler + withMcpAuth)
+├── app/api/batches/upload # Out-of-band file upload
+├── app/oauth/             # OAuth 2.0 authorization server
+├── app/dashboard/         # Credential & token management UI
+├── app/.well-known/       # RFC 8414 & 9728 metadata
+├── client/                # BPost HTTP client (XML ↔ JSON, error parsing)
+├── schemas/               # Zod validation schemas
+├── lib/
+│   ├── db/                # Drizzle ORM schema & client (Neon Postgres)
+│   ├── kv/                # Redis batch state (24-hour TTL)
+│   ├── oauth/             # JWT, PKCE, client registration
+│   ├── tenant/            # Per-tenant credential resolution
+│   ├── auth/              # Token extraction & verification
+│   └── crypto.ts          # AES-256-GCM encryption
+└── types/                 # NextAuth type extensions
+```
+
+**Key design decisions:**
+
+- **Out-of-band uploads** — CSV/Excel files are uploaded via `curl` to avoid overflowing LLM context windows. Batch state is stored in Redis with a 24-hour TTL.
+- **Credential abstraction** — AI agents never see BPost credentials. Tokens resolve to an encrypted tenant record at request time.
+- **GDPR** — PII lives only in transient Redis (24-hour expiration). The relational DB stores only credential metadata and hashed tokens.
+- **XML compliance** — BPost requires `application/xml; charset=ISO-8859-1`. The client handles encoding, attribute casing, and error-code parsing.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Runtime | Next.js 16 (App Router) on Vercel |
+| Language | TypeScript 5 (strict) |
+| Validation | Zod 4 |
+| Database | Neon Postgres via Drizzle ORM |
+| Cache | Upstash Redis (Vercel KV) |
+| Auth (dashboard) | Auth.js v5 + Google OAuth |
+| Auth (MCP) | OAuth 2.0 + JWT (jose) |
+| XML | fast-xml-parser (ISO-8859-1) |
+| CSV | Papa Parse |
+| Tests | Vitest |
+
+---
+
+## Deployment
+
+This project deploys automatically to Vercel on push to `main`.
+
+For manual deploys:
+
+```bash
+vercel          # Preview deploy
+vercel --prod   # Production deploy (main branch only)
+```
+
+Post-deploy verification:
+
+```bash
+vercel inspect <deployment-url>
+vercel logs <deployment-url> --level error --since 1h
+```
+
+---
+
+## License
+
+Private — all rights reserved.
