@@ -1,4 +1,6 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bpost.sonicrocket.io'
+import { env } from '@/lib/config/env'
+
+const BASE_URL = env.NEXT_PUBLIC_BASE_URL
 const MCP_URL = `${BASE_URL}/api/mcp`
 
 export const metadata = {

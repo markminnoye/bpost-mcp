@@ -10,6 +10,7 @@ import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
 import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
+import { env } from '@/lib/config/env'
 import fs from 'fs/promises'
 import path from 'path'
 import vm from 'vm'
@@ -166,7 +167,7 @@ const handler = createMcpHandler(
         const tenantOrError = requireTenantId(extra)
         if (typeof tenantOrError !== 'string') return tenantOrError
 
-        const githubToken = process.env.GITHUB_TOKEN
+        const githubToken = env.GITHUB_TOKEN
         if (!githubToken) {
           return { isError: true, content: [{ type: 'text' as const, text: 'GITHUB_TOKEN not configured on server. Cannot report issue.' }] }
         }
@@ -215,7 +216,7 @@ const handler = createMcpHandler(
         const tenantOrError = requireTenantId(extra)
         if (typeof tenantOrError !== 'string') return tenantOrError
         const tenantId = tenantOrError
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bpost.sonicrocket.io'
+        const baseUrl = env.NEXT_PUBLIC_BASE_URL
         const uploadUrl = `${baseUrl}/api/batches/upload`
         return {
           content: [{

@@ -32,6 +32,12 @@ Request amendments to this file or the submodule when discovering new BPost API 
 2. `npx tsc --noEmit` (in `/src`)
 3. No regressions in existing test suites.
 
+### Environment & Configuration
+
+- **Zero Hardcoding**: Never hardcode production fallback URLs (like `.vercel.app`) in components or logic.
+- **Centralized Config**: All environment variables must be accessed via `src/lib/config/env.ts`. This file uses Zod to validate the environment on startup.
+- **Fail Fast**: If a critical environment variable is missing or invalid, the application should throw a clear validation error at boot time.
+
 ### Deployment
 
 **Preflight:** `vercel --version` | `vercel link` | `git status`
