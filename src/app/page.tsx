@@ -61,6 +61,7 @@ export default function Home() {
         <a
           href="https://github.com/markminnoye/bpost-e-masspost-skills"
           target="_blank"
+          rel="noopener noreferrer"
           style={{
             padding: '0.75rem 1.5rem',
             backgroundColor: '#f4f4f4',
