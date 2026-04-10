@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-04-10
+
 ### Added
 - **`/install` page**: Public-facing installation guide for connecting Claude Desktop and Claude Code to the BPost MCP service. Covers OAuth 2.0 (recommended) and Bearer Token methods with copy-ready config snippets. No login required.
 - **"How to connect" entry points**: Link added to homepage and to the dashboard "Claude / MCP Clients" section, both pointing to `/install`.
+- **Markdown Token Optimizer skill**: Specialized agent skill for optimizing documentation for token efficiency.
 
 ### Fixed
 - **Dashboard sign-in redirect**: After Google OAuth, users are now correctly returned to `/dashboard` instead of the referring page (`callbackUrl=/dashboard` added to sign-in redirect).
