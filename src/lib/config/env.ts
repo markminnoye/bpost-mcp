@@ -9,8 +9,7 @@ const envSchema = z.object({
   /** The public-facing base URL of the service (e.g. https://bpost.sonicrocket.io) */
   NEXT_PUBLIC_BASE_URL: z
     .string()
-    .url()
-    .default('https://bpost.sonicrocket.io'),
+    .url({ message: 'NEXT_PUBLIC_BASE_URL must be a valid URL. Set it in .env.local for dev or in the Vercel dashboard for deployments.' }),
   
   /** GitHub Token for reporting issues */
   GITHUB_TOKEN: z.string().optional(),

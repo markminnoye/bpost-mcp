@@ -8,5 +8,8 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     passWithNoTests: true,
+    env: {
+      NEXT_PUBLIC_BASE_URL: 'http://localhost:3000',
+    },
   },
 })
