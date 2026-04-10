@@ -5,7 +5,7 @@
 
 ## Summary
 
-Replace the static "ACTIVE" badge on bearer token rows in the dashboard with a trash icon that triggers a modal confirmation before hard-deleting the token.
+Replace the static "ACTIVE" badge on bearer token rows in the dashboard with a trash icon (hard-delete with modal confirmation) and a `lastUsedAt` indicator that gives the user meaningful usage context.
 
 ## Types
 
@@ -22,10 +22,13 @@ Used by both the action and `TokenRow` to avoid string matching for control flow
 ### Normal state
 Each token row displays:
 - Token label (bold)
-- Created date (small, muted) — rendered by displaying the ISO string directly (no re-parsing required for this simple use case)
+- Created date (small, muted) — ISO string displayed directly
+- `lastUsedAt` indicator (small, muted) replacing the ACTIVE/REVOKED span:
+  - `"Never used"` if `lastUsedAt` is null
+  - `"Last used: <ISO string>"` if set
 - Trash icon (`🗑`) on the right, with `title="Revoke token"` tooltip
 
-The "ACTIVE" / "REVOKED" span is removed entirely. Hard-deleted rows are gone from the DB and will not appear in the list.
+Hard-deleted rows are gone from the DB and will not appear in the list. The ACTIVE/REVOKED span is removed — a token's presence in the list means it is active.
 
 ### Modal trigger
 Clicking the trash icon opens a centered modal overlay styled to match the dark terminal aesthetic:
@@ -58,7 +61,7 @@ After `router.push('/dashboard')` the list re-renders without the deleted token.
 
 ### `TokenRow` (`src/app/dashboard/TokenRow.tsx`)
 - `"use client"` component
-- Props: `token: { id: string; label: string; createdAt: string }` — `id` is a UUID string; `createdAt` is an ISO string serialised by the parent (`t.createdAt.toISOString()`) before passing across the RSC boundary
+- Props: `token: { id: string; label: string; createdAt: string; lastUsedAt: string | null }` — all dates are ISO strings serialised by the parent before passing across the RSC boundary
 - State: `isModalOpen: boolean`, `isSubmitting: boolean`, `error: string | null`
 - `isSubmitting` is the single source of truth for the in-flight state — no `useTransition`/`isPending` layer needed; `startTransition` is not used
 - Calls `revokeToken(id)` directly as an async function, sets `isSubmitting` before the call, clears it after
@@ -76,7 +79,7 @@ After `router.push('/dashboard')` the list re-renders without the deleted token.
 - CSRF: covered by Next.js App Router's built-in origin check for server actions (no additional handling needed)
 
 ### `dashboard/page.tsx`
-- Passes `createdAt` as `t.createdAt.toISOString()` when constructing `TokenRow` props
+- Passes `createdAt: t.createdAt.toISOString()` and `lastUsedAt: t.lastUsedAt?.toISOString() ?? null` when constructing `TokenRow` props
 - Replaces the inline `tokens.map(...)` `<li>` block with `<TokenRow token={...} />` instances
 - Removes the `<span>ACTIVE/REVOKED</span>` element
 - Query fetches all rows for the tenant (no filter — hard-deleted rows do not exist). Heading count: `tokens.length`
