@@ -25,6 +25,14 @@ vi.mock('fs/promises', () => ({
   },
 }))
 
+// Mock env configuration (must be before module load)
+vi.mock('@/lib/config/env', () => ({
+  env: {
+    NEXT_PUBLIC_BASE_URL: 'http://localhost:3000',
+    GITHUB_TOKEN: 'test-token',
+  },
+}))
+
 // Mock global fetch for report_issue
 global.fetch = vi.fn()
 
@@ -292,7 +300,6 @@ describe('Self-Learning Tools', () => {
   })
 
   it('report_issue creates a GitHub issue', async () => {
-    process.env.GITHUB_TOKEN = 'test-token'
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
       json: async () => ({ html_url: 'http://github.com/issue/1' })
