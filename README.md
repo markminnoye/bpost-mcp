@@ -82,7 +82,7 @@ PKCE (`S256`) is mandatory for all OAuth flows.
 
 - Node.js 20+
 - A [Neon](https://neon.tech) Postgres database
-- A [Vercel KV](https://vercel.com/docs/storage/vercel-kv) (Upstash Redis) instance
+- A [Vercel Marketplace Redis](https://vercel.com/marketplace) instance (provides `REDIS_URL`)
 - Google OAuth credentials (for dashboard login)
 
 ### Install
@@ -113,8 +113,7 @@ cp .env.example .env.local
 | `SEED_BPOST_PASSWORD` | BPost password (optional, for demo seeding) |
 | `SEED_BPOST_CUSTOMER_NUMBER` | 8-digit PRS ID (optional) |
 | `SEED_BPOST_ACCOUNT_ID` | 8-digit PBC ID (optional) |
-| `KV_REST_API_URL` | Upstash Redis REST URL (auto-set by Vercel KV) |
-| `KV_REST_TOKEN` | Upstash Redis REST token (auto-set by Vercel KV) |
+| `REDIS_URL` | TCP Redis connection string (auto-set by Vercel Marketplace Redis) |
 | `NEXT_PUBLIC_BASE_URL` | Base URL override (defaults to `https://bpost.sonicrocket.io`) |
 
 Generate the encryption key and auth secret:
@@ -197,7 +196,7 @@ src/
 | Language | TypeScript 5 (strict) |
 | Validation | Zod 4 |
 | Database | Neon Postgres via Drizzle ORM |
-| Cache | Upstash Redis (Vercel KV) |
+| Batch state | Redis (`redis` npm client, `REDIS_URL`) |
 | Auth (dashboard) | Auth.js v5 + Google OAuth |
 | Auth (MCP) | OAuth 2.0 + JWT (jose) |
 | XML | fast-xml-parser (ISO-8859-1) |

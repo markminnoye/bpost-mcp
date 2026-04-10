@@ -1,9 +1,38 @@
-import { Redis } from '@upstash/redis'
+import { createClient } from 'redis'
+import { env } from '@/lib/config/env'
 import type { $ZodIssue } from 'zod/v4/core'
 
-// Automatically initializes using UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
-// Alternatively, if you manually connect it to a Vercel project, KV_REST_API_URL works via fromEnv().
-export const redis = Redis.fromEnv()
+type RedisClient = ReturnType<typeof createClient>
+
+/** TCP Redis (Vercel Marketplace "Redis" / redis-fulvous-house sets `REDIS_URL`). */
+let redisClient: RedisClient | undefined
+let connecting: Promise<RedisClient> | undefined
+
+async function getRedis(): Promise<RedisClient> {
+  const url = env.REDIS_URL
+  if (!url) {
+    throw new Error(
+      'REDIS_URL is not set. Link a Redis database in Vercel Storage or set REDIS_URL in .env.local.',
+    )
+  }
+
+  if (redisClient?.isOpen) return redisClient
+  if (connecting) return connecting
+
+  connecting = (async () => {
+    const c = createClient({ url })
+    c.on('error', (err) => console.error('[Redis]', err))
+    await c.connect()
+    redisClient = c
+    return c
+  })()
+
+  try {
+    return await connecting
+  } finally {
+    connecting = undefined
+  }
+}
 
 export type BatchStatus = 'UNMAPPED' | 'MAPPED' | 'SUBMITTED'
 
@@ -24,15 +53,15 @@ export interface BatchState {
 }
 
 // Ensure complete PII protection by enforcing a maximum time-to-live
-const BATCH_TTL_SECONDS = 24 * 60 * 60; // 24 hours
+const BATCH_TTL_SECONDS = 24 * 60 * 60 // 24 hours
 
 /**
  * Saves or updates a transient batch state in Redis with an enforced 24-hour expiration.
  */
 export async function saveBatchState(state: BatchState): Promise<void> {
   const key = `batch:${state.tenantId}:${state.batchId}`
-  // set object directly, @upstash/redis auto-serializes to JSON
-  await redis.set(key, state, { ex: BATCH_TTL_SECONDS })
+  const redis = await getRedis()
+  await redis.set(key, JSON.stringify(state), { EX: BATCH_TTL_SECONDS })
 }
 
 /**
@@ -40,7 +69,10 @@ export async function saveBatchState(state: BatchState): Promise<void> {
  */
 export async function getBatchState(tenantId: string, batchId: string): Promise<BatchState | null> {
   const key = `batch:${tenantId}:${batchId}`
-  return await redis.get<BatchState>(key)
+  const redis = await getRedis()
+  const raw = await redis.get(key)
+  if (raw == null) return null
+  return JSON.parse(raw) as BatchState
 }
 
 /**
@@ -49,5 +81,6 @@ export async function getBatchState(tenantId: string, batchId: string): Promise<
  */
 export async function deleteBatchState(tenantId: string, batchId: string): Promise<void> {
   const key = `batch:${tenantId}:${batchId}`
+  const redis = await getRedis()
   await redis.del(key)
 }

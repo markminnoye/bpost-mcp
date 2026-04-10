@@ -13,12 +13,16 @@ const envSchema = z.object({
   
   /** GitHub Token for reporting issues */
   GITHUB_TOKEN: z.string().optional(),
+
+  /** TCP Redis URL for batch state (Vercel Marketplace Redis sets this automatically). */
+  REDIS_URL: z.string().optional(),
 })
 
 // Use safeParse to provide better error messages if validation fails
 const result = envSchema.safeParse({
   NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+  REDIS_URL: process.env.REDIS_URL,
 })
 
 if (!result.success) {
