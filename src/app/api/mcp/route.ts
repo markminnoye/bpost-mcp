@@ -10,6 +10,9 @@ import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
 import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
+import fs from 'fs/promises'
+import path from 'path'
+import vm from 'vm'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +31,177 @@ async function resolveCredentials(tenantId: string) {
 
 const handler = createMcpHandler(
   (server) => {
+    // ── Self-Learning & Feedback Tools ───────────────────────────────────
+
+    server.registerTool(
+      'add_protocol_rule',
+      {
+        description:
+          'Adds a new declarative protocol rule discovered during interaction with BPost. ' +
+          'Writes to the shared protocol knowledge base in the submodule.',
+        inputSchema: z.object({
+          rule: z.string().describe('The rule description, e.g. "MID-4010 means address line too long"'),
+          context: z.string().describe('The context or error code this rule relates to'),
+        }),
+      },
+      async (input, extra) => {
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+
+        const rulesPath = path.join(process.cwd(), 'docs/internal/e-masspost/learned_rules.md')
+        const timestamp = new Date().toISOString()
+        const entry = `\n### [${timestamp}] Context: ${input.context}\n- ${input.rule}\n`
+
+        try {
+          await fs.appendFile(rulesPath, entry)
+          return { content: [{ type: 'text' as const, text: `Successfully added protocol rule to knowledge base.` }] }
+        } catch (err) {
+          console.error('[MCP] add_protocol_rule failed:', err)
+          return { isError: true, content: [{ type: 'text' as const, text: 'Failed to update learned_rules.md' }] }
+        }
+      },
+    )
+
+    server.registerTool(
+      'create_fix_script',
+      {
+        description:
+          'Saves a reusable procedural fix script (TypeScript/JavaScript) for automated data cleaning. ' +
+          'Scripts can be applied to future batches to prevent recurring errors.',
+        inputSchema: z.object({
+          name: z.string().describe('Unique name for the script, e.g. "clean-street-names"'),
+          code: z.string().describe('The executable JS/TS code snippet'),
+          description: z.string().describe('Description of what the script fixes'),
+        }),
+      },
+      async (input, extra) => {
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+
+        const scriptsDir = path.join(process.cwd(), 'scripts/auto-fixers')
+        const scriptPath = path.join(scriptsDir, `${input.name}.ts`)
+
+        try {
+          await fs.mkdir(scriptsDir, { recursive: true })
+          const content = `/**\n * ${input.description}\n */\n\n${input.code}\n`
+          await fs.writeFile(scriptPath, content)
+          return { content: [{ type: 'text' as const, text: `Successfully saved fix script: ${input.name}` }] }
+        } catch (err) {
+          console.error('[MCP] create_fix_script failed:', err)
+          return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save fix script.' }] }
+        }
+      },
+    )
+
+    server.registerTool(
+      'apply_fix_script',
+      {
+        description:
+          'Applies a previously saved fix script to a specific row in an uploaded batch. ' +
+          'Automatically re-validates the row after the script execution.',
+        inputSchema: z.object({
+          batchId: z.string(),
+          rowIndex: z.number().int().min(0),
+          scriptName: z.string().describe('The name of the script to apply (without extension)'),
+        }),
+      },
+      async (input, extra) => {
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
+
+        const state = await getBatchState(tenantId, input.batchId)
+        if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
+
+        const row = state.rows.find(r => r.index === input.rowIndex)
+        if (!row) return { isError: true, content: [{ type: 'text' as const, text: 'Row not found' }] }
+
+        const scriptPath = path.join(process.cwd(), 'scripts/auto-fixers', `${input.scriptName}.ts`)
+        let scriptContent: string
+        try {
+          scriptContent = await fs.readFile(scriptPath, 'utf8')
+        } catch (err) {
+          return { isError: true, content: [{ type: 'text' as const, text: `Script "${input.scriptName}" not found.` }] }
+        }
+
+        const sandbox = { row: { ...row.mapped }, console: { log: () => { } } }
+        try {
+          // Wrap code in an anonymous function if it doesn't return row
+          const codeToRun = scriptContent.includes('return') ? scriptContent : `(function(row){ ${scriptContent}\n return row; })(row)`
+          const result = vm.runInNewContext(codeToRun, sandbox, { timeout: 1000 })
+          const candidateMapped = typeof result === 'object' ? result : sandbox.row
+
+          const validationResult = ItemSchema.safeParse(candidateMapped)
+          if (validationResult.success) {
+            row.mapped = validationResult.data
+            row.validationErrors = undefined
+          } else {
+            row.validationErrors = validationResult.error.issues
+          }
+
+          await saveBatchState(state)
+          if (validationResult.success) {
+            return { content: [{ type: 'text' as const, text: `Script applied successfully. Row ${input.rowIndex} is now valid.` }] }
+          }
+          return { content: [{ type: 'text' as const, text: `Script applied but row ${input.rowIndex} still has validation errors.` }] }
+        } catch (err) {
+          console.error('[MCP] apply_fix_script failed:', err)
+          return { isError: true, content: [{ type: 'text' as const, text: `Script execution failed: ${err instanceof Error ? err.message : String(err)}` }] }
+        }
+      },
+    )
+
+    server.registerTool(
+      'report_issue',
+      {
+        description:
+          'Autonomously reports a technical contradiction, protocol bug, or server failure to the human development team via GitHub Issues.',
+        inputSchema: z.object({
+          repo: z.enum(['mcp', 'skills']).describe('Which repository to report to: "mcp" for server bugs, "skills" for protocol/docs issues'),
+          title: z.string().describe('Short descriptive title of the issue'),
+          body: z.string().describe('Detailed description, including error codes or contradictions found'),
+        }),
+      },
+      async (input, extra) => {
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+
+        const githubToken = process.env.GITHUB_TOKEN
+        if (!githubToken) {
+          return { isError: true, content: [{ type: 'text' as const, text: 'GITHUB_TOKEN not configured on server. Cannot report issue.' }] }
+        }
+
+        const repoName = input.repo === 'mcp' ? 'bpost-mcp' : 'bpost-epostmasspost-skills'
+        const url = `https://api.github.com/repos/markminnoye/${repoName}/issues`
+
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Authorization': `token ${githubToken}`,
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: `[AGENT] ${input.title}`,
+              body: `${input.body}\n\n---\n*Reported by BPost MCP Agent*`,
+            }),
+          })
+
+          if (!res.ok) {
+            const error = await res.text()
+            throw new Error(`GitHub API error: ${res.status} ${error}`)
+          }
+
+          const issue = await res.json()
+          return { content: [{ type: 'text' as const, text: `Successfully reported issue: ${issue.html_url}` }] }
+        } catch (err) {
+          console.error('[MCP] report_issue failed:', err)
+          return { isError: true, content: [{ type: 'text' as const, text: `Failed to create GitHub issue: ${err instanceof Error ? err.message : String(err)}` }] }
+        }
+      },
+    )
+
     // ── Batch Pipeline Tools ─────────────────────────────────────────────
 
     server.registerTool(
