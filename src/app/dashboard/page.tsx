@@ -303,6 +303,19 @@ export default async function DashboardPage({ searchParams }: Props) {
           Plak deze URL in Claude Desktop onder Settings &gt; MCP Servers.
           Claude regelt de login automatisch via Google.
         </p>
+        <a
+          href="/install"
+          style={{
+            display: 'inline-block',
+            marginTop: '0.75rem',
+            fontSize: '0.85rem',
+            color: '#ff0000',
+            textDecoration: 'none',
+            fontWeight: '600',
+          }}
+        >
+          How to connect →
+        </a>
       </section>
     </main>
   )
