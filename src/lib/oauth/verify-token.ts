@@ -1,8 +1,16 @@
 // Note: AuthInfo is imported directly from the MCP SDK.
 // The ./* wildcard export in the SDK package.json maps this path correctly.
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
+import { getPublicOrigin } from 'mcp-handler';
+import { env } from '@/lib/config/env';
 import { verifyAccessToken } from './jwt';
 import { resolveTenant } from '@/lib/tenant/resolve';
+
+function jwtAllowedIssuerBases(request: Request): string[] {
+  const o = getPublicOrigin(request).replace(/\/$/, '');
+  const e = env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
+  return o === e ? [o] : [...new Set([o, e])];
+}
 
 function isJwt(token: string): boolean {
   return token.split('.').length === 3;
@@ -19,7 +27,7 @@ export async function verifyToken(
   if (!bearerToken) return undefined;
 
   if (isJwt(bearerToken)) {
-    return verifyJwt(bearerToken);
+    return verifyJwt(bearerToken, _req);
   }
 
   if (isBpostToken(bearerToken)) {
@@ -29,9 +37,9 @@ export async function verifyToken(
   return undefined;
 }
 
-async function verifyJwt(token: string): Promise<AuthInfo | undefined> {
+async function verifyJwt(token: string, req: Request): Promise<AuthInfo | undefined> {
   try {
-    const payload = await verifyAccessToken(token);
+    const payload = await verifyAccessToken(token, jwtAllowedIssuerBases(req));
     return {
       token,
       clientId: 'oauth',

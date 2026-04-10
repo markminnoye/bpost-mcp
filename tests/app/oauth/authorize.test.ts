@@ -38,7 +38,7 @@ describe('GET /oauth/authorize', () => {
       source: 'database',
     });
 
-    const url = new URL('http://localhost/oauth/authorize');
+    const url = new URL('http://localhost:3000/oauth/authorize');
     url.searchParams.set('response_type', 'code');
     url.searchParams.set('client_id', 'mcp_test');
     url.searchParams.set('redirect_uri', 'https://example.com/callback');
@@ -81,7 +81,7 @@ describe('GET /oauth/authorize', () => {
       values: vi.fn().mockResolvedValue(undefined),
     });
 
-    const url = new URL('http://localhost/oauth/authorize');
+    const url = new URL('http://localhost:3000/oauth/authorize');
     url.searchParams.set('response_type', 'code');
     url.searchParams.set('client_id', 'mcp_test');
     url.searchParams.set('redirect_uri', 'https://example.com/callback');
@@ -108,7 +108,7 @@ describe('GET /oauth/authorize', () => {
       source: 'database',
     });
 
-    const url = new URL('http://localhost/oauth/authorize');
+    const url = new URL('http://localhost:3000/oauth/authorize');
     url.searchParams.set('response_type', 'code');
     url.searchParams.set('client_id', 'mcp_test');
     url.searchParams.set('redirect_uri', 'https://example.com/callback');
@@ -123,7 +123,7 @@ describe('GET /oauth/authorize', () => {
   it('rejects unknown client_id', async () => {
     mockResolveClient.mockResolvedValue(null);
 
-    const url = new URL('http://localhost/oauth/authorize');
+    const url = new URL('http://localhost:3000/oauth/authorize');
     url.searchParams.set('response_type', 'code');
     url.searchParams.set('client_id', 'unknown');
     url.searchParams.set('redirect_uri', 'https://example.com/callback');

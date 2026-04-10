@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
 /**
- * Resolves the public site URL. Prefer explicit NEXT_PUBLIC_BASE_URL (required for
- * custom domains / stable OAuth metadata). On Vercel, VERCEL_URL is set during
- * build and runtime so `next build` can collect static data without a manual env.
+ * Resolves the public site URL for env-backed helpers (dashboard copy, JWT fallback).
+ * OAuth metadata and token signing use `getPublicOrigin(request)` so the same deployment
+ * works on a custom domain even when this value is still the default deployment hostname.
+ * For consistent install links and docs, set NEXT_PUBLIC_BASE_URL to your canonical URL.
  */
 function resolveNextPublicBaseUrl(): string | undefined {
   const explicit = process.env.NEXT_PUBLIC_BASE_URL?.trim()

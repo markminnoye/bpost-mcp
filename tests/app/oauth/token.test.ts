@@ -74,7 +74,7 @@ describe('POST /oauth/token', () => {
       resource: 'https://bpost-mcp.vercel.app',
     });
 
-    const request = new Request('http://localhost/oauth/token', {
+    const request = new Request('http://localhost:3000/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
@@ -134,7 +134,7 @@ describe('POST /oauth/token', () => {
       client_id: 'mcp_test',
     });
 
-    const request = new Request('http://localhost/oauth/token', {
+    const request = new Request('http://localhost:3000/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
@@ -197,7 +197,7 @@ describe('POST /oauth/token', () => {
       code_verifier: 'test-verifier',
     });
 
-    const request = new Request('http://localhost/oauth/token', {
+    const request = new Request('http://localhost:3000/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
@@ -214,7 +214,7 @@ describe('POST /oauth/token', () => {
       client_id: 'mcp_test',
     });
 
-    const request = new Request('http://localhost/oauth/token', {
+    const request = new Request('http://localhost:3000/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),

@@ -27,7 +27,7 @@ describe('verifyToken', () => {
       jti: 'tok_abc',
     });
 
-    const result = await verifyToken(new Request('http://localhost'), 'eyJ.header.signature');
+    const result = await verifyToken(new Request('http://localhost:3000'), 'eyJ.header.signature');
     expect(result).toBeDefined();
     expect(result!.extra?.tenantId).toBe('tenant_456');
     expect(result!.extra?.userId).toBe('user_123');
@@ -44,7 +44,7 @@ describe('verifyToken', () => {
       accountId: '456',
     });
 
-    const result = await verifyToken(new Request('http://localhost'), 'bpost_abc123def456');
+    const result = await verifyToken(new Request('http://localhost:3000'), 'bpost_abc123def456');
     expect(result).toBeDefined();
     expect(result!.extra?.tenantId).toBe('tenant_789');
   });
@@ -53,7 +53,7 @@ describe('verifyToken', () => {
     const { verifyAccessToken } = await import('@/lib/oauth/jwt');
     (verifyAccessToken as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('invalid'));
 
-    const result = await verifyToken(new Request('http://localhost'), 'eyJ.bad.token');
+    const result = await verifyToken(new Request('http://localhost:3000'), 'eyJ.bad.token');
     expect(result).toBeUndefined();
   });
 
@@ -61,12 +61,12 @@ describe('verifyToken', () => {
     const { resolveTenant } = await import('@/lib/tenant/resolve');
     (resolveTenant as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-    const result = await verifyToken(new Request('http://localhost'), 'bpost_unknown');
+    const result = await verifyToken(new Request('http://localhost:3000'), 'bpost_unknown');
     expect(result).toBeUndefined();
   });
 
   it('returns undefined when no token provided', async () => {
-    const result = await verifyToken(new Request('http://localhost'), undefined);
+    const result = await verifyToken(new Request('http://localhost:3000'), undefined);
     expect(result).toBeUndefined();
   });
 });

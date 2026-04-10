@@ -61,7 +61,7 @@ const listToolsRequest = {
 
 describe('MCP route (Phase 2 — withMcpAuth)', () => {
   it('responds to tools/list with the bpost tool names when a valid token is provided', async () => {
-    const req = new Request('http://localhost/api/mcp', {
+    const req = new Request('http://localhost:3000/api/mcp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

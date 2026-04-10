@@ -41,4 +41,24 @@ describe('JWT helpers', () => {
     vi.stubEnv('OAUTH_JWT_SECRET', 'd3Jvbmctc2VjcmV0LXRoYXQtaXMtMzItYnl0ZXMh');
     await expect(verifyAccessToken(token)).rejects.toThrow();
   });
+
+  it('verifies when issuer matches one of several allowed bases (custom domain + env)', async () => {
+    const payload = { sub: 'user_123', tid: 'tenant_456', scope: 'mcp:tools' };
+    const token = await signAccessToken(payload, { issuerBaseUrl: 'https://custom.example' });
+
+    const verified = await verifyAccessToken(token, [
+      'https://custom.example',
+      'https://deployment.vercel.app',
+    ]);
+    expect(verified.sub).toBe('user_123');
+  });
+
+  it('rejects when issuer is not in allowed list', async () => {
+    const payload = { sub: 'user_123', tid: 'tenant_456', scope: 'mcp:tools' };
+    const token = await signAccessToken(payload, { issuerBaseUrl: 'https://custom.example' });
+
+    await expect(
+      verifyAccessToken(token, ['https://other.only']),
+    ).rejects.toThrow();
+  });
 });

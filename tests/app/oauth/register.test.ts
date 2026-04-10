@@ -20,7 +20,7 @@ describe('POST /oauth/register', () => {
     (db as any).insert = mockInsert;
 
     const { POST } = await import('@/app/oauth/register/route');
-    const request = new Request('http://localhost/oauth/register', {
+    const request = new Request('http://localhost:3000/oauth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -42,7 +42,7 @@ describe('POST /oauth/register', () => {
 
   it('rejects request without redirect_uris', async () => {
     const { POST } = await import('@/app/oauth/register/route');
-    const request = new Request('http://localhost/oauth/register', {
+    const request = new Request('http://localhost:3000/oauth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ client_name: 'No Redirects' }),

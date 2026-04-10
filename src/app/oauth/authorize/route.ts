@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { eq } from 'drizzle-orm';
+import { getPublicOrigin } from 'mcp-handler';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db/client';
 import { bpostCredentials, oauthAuthorizationCodes } from '@/lib/db/schema';
 import { resolveClient } from '@/lib/oauth/client-resolver';
 import { hashToken } from '@/lib/crypto';
-import { env } from '@/lib/config/env';
-import { normalizeOAuthResourceParam } from '@/lib/oauth/resource-url';
+import { normalizeOAuthResourceParamFromBase } from '@/lib/oauth/resource-url';
 
 const SUPPORTED_SCOPES = ['mcp:tools'];
 const CODE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 export async function GET(request: Request) {
+  const publicBase = getPublicOrigin(request);
   const url = new URL(request.url);
   const params = url.searchParams;
 
@@ -101,9 +102,8 @@ export async function GET(request: Request) {
     }).catch(() => {})
     // #endregion
     // No session — redirect to Google login, preserve all params as callbackUrl
-    const baseUrl = env.NEXT_PUBLIC_BASE_URL;
-    const callbackUrl = `${baseUrl}/oauth/authorize?${params.toString()}`;
-    const signInUrl = new URL('/api/auth/signin', baseUrl);
+    const callbackUrl = `${publicBase}/oauth/authorize?${params.toString()}`;
+    const signInUrl = new URL('/api/auth/signin', publicBase);
     signInUrl.searchParams.set('callbackUrl', callbackUrl);
     return NextResponse.redirect(signInUrl.toString(), 302);
   }
@@ -135,8 +135,7 @@ export async function GET(request: Request) {
       body: JSON.stringify(p),
     }).catch(() => {})
     // #endregion
-    const baseUrl = env.NEXT_PUBLIC_BASE_URL;
-    const dashboardUrl = new URL('/dashboard', baseUrl);
+    const dashboardUrl = new URL('/dashboard', publicBase);
     dashboardUrl.searchParams.set('setup', 'credentials');
     dashboardUrl.searchParams.set('returnTo', url.toString());
     return NextResponse.redirect(dashboardUrl.toString(), 302);
@@ -155,7 +154,7 @@ export async function GET(request: Request) {
     scope,
     codeChallenge,
     codeChallengeMethod,
-    resource: resource ? normalizeOAuthResourceParam(resource) : null,
+    resource: resource ? normalizeOAuthResourceParamFromBase(publicBase, resource) : null,
     expiresAt: new Date(Date.now() + CODE_TTL_MS),
   });
 
@@ -164,7 +163,11 @@ export async function GET(request: Request) {
     sessionId: '42a829',
     location: 'oauth/authorize/route.ts',
     message: 'oauth_authorize_code_issued',
-    data: { storedResource: resource || null, clientIdPrefix: clientId.slice(0, 12) },
+    data: {
+      storedResource: resource ? normalizeOAuthResourceParamFromBase(publicBase, resource) : null,
+      publicBase,
+      clientIdPrefix: clientId.slice(0, 12),
+    },
     timestamp: Date.now(),
     hypothesisId: 'H1',
     runId: 'post-fix',

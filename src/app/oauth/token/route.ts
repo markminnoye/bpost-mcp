@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { eq, and, isNull } from 'drizzle-orm';
+import { getPublicOrigin } from 'mcp-handler';
 import { db } from '@/lib/db/client';
 import { oauthAuthorizationCodes, oauthRefreshTokens } from '@/lib/db/schema';
 import { signAccessToken } from '@/lib/oauth/jwt';
 import { verifyPkceS256 } from '@/lib/oauth/pkce';
 import { hashToken } from '@/lib/crypto';
-import { oauthResourcesMatchForToken } from '@/lib/oauth/resource-url';
+import { env } from '@/lib/config/env';
+import { oauthResourcesMatchForTokenFromBase } from '@/lib/oauth/resource-url';
 
 // #region agent log
 function agentDbg(hypothesisId: string, message: string, data: Record<string, unknown>) {
@@ -32,7 +34,7 @@ function errorResponse(error: string, description: string, status = 400) {
   return NextResponse.json({ error, error_description: description }, { status });
 }
 
-async function handleAuthorizationCode(params: URLSearchParams) {
+async function handleAuthorizationCode(params: URLSearchParams, issuerBase: string) {
   const code = params.get('code');
   const redirectUri = params.get('redirect_uri');
   const clientId = params.get('client_id');
@@ -83,7 +85,7 @@ async function handleAuthorizationCode(params: URLSearchParams) {
     // #endregion
     return errorResponse('invalid_grant', 'Redirect URI mismatch');
   }
-  if (authCode.resource && !oauthResourcesMatchForToken(authCode.resource, resource)) {
+  if (authCode.resource && !oauthResourcesMatchForTokenFromBase(issuerBase, authCode.resource, resource)) {
     // #region agent log
     agentDbg('H1', 'oauth_token_resource_mismatch_reject', {
       storedResource: authCode.resource,
@@ -105,11 +107,14 @@ async function handleAuthorizationCode(params: URLSearchParams) {
     .set({ usedAt: new Date() })
     .where(eq(oauthAuthorizationCodes.id, authCode.id));
 
-  const accessToken = await signAccessToken({
-    sub: authCode.userId,
-    tid: authCode.tenantId,
-    scope: authCode.scope ?? 'mcp:tools',
-  });
+  const accessToken = await signAccessToken(
+    {
+      sub: authCode.userId,
+      tid: authCode.tenantId,
+      scope: authCode.scope ?? 'mcp:tools',
+    },
+    { issuerBaseUrl: issuerBase },
+  );
 
   const rawRefreshToken = `ref_${randomBytes(32).toString('hex')}`;
   const refreshHash = hashToken(rawRefreshToken);
@@ -124,7 +129,11 @@ async function handleAuthorizationCode(params: URLSearchParams) {
   });
 
   // #region agent log
-  agentDbg('H5', 'oauth_token_auth_code_success', { clientIdPrefix: clientId.slice(0, 12) })
+  agentDbg('H5', 'oauth_token_auth_code_success', {
+    clientIdPrefix: clientId.slice(0, 12),
+    publicBase: issuerBase,
+    envBase: env.NEXT_PUBLIC_BASE_URL,
+  })
   // #endregion
 
   return NextResponse.json({
@@ -135,7 +144,7 @@ async function handleAuthorizationCode(params: URLSearchParams) {
   });
 }
 
-async function handleRefreshToken(params: URLSearchParams) {
+async function handleRefreshToken(params: URLSearchParams, issuerBase: string) {
   const refreshToken = params.get('refresh_token');
   const clientId = params.get('client_id');
 
@@ -186,11 +195,14 @@ async function handleRefreshToken(params: URLSearchParams) {
     expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
   });
 
-  const accessToken = await signAccessToken({
-    sub: oldToken.userId,
-    tid: oldToken.tenantId,
-    scope: oldToken.scope ?? 'mcp:tools',
-  });
+  const accessToken = await signAccessToken(
+    {
+      sub: oldToken.userId,
+      tid: oldToken.tenantId,
+      scope: oldToken.scope ?? 'mcp:tools',
+    },
+    { issuerBaseUrl: issuerBase },
+  );
 
   return NextResponse.json({
     access_token: accessToken,
@@ -212,16 +224,21 @@ export async function POST(request: Request) {
   }
 
   const grantType = params.get('grant_type');
+  const issuerBase = getPublicOrigin(request);
 
   // #region agent log
-  agentDbg('H0', 'oauth_token_post', { grantType: grantType ?? '(null)' })
+  agentDbg('H0', 'oauth_token_post', {
+    grantType: grantType ?? '(null)',
+    publicBase: issuerBase,
+    envBase: env.NEXT_PUBLIC_BASE_URL,
+  })
   // #endregion
 
   switch (grantType) {
     case 'authorization_code':
-      return handleAuthorizationCode(params);
+      return handleAuthorizationCode(params, issuerBase);
     case 'refresh_token':
-      return handleRefreshToken(params);
+      return handleRefreshToken(params, issuerBase);
     default:
       return errorResponse('unsupported_grant_type', `Grant type '${grantType}' is not supported`);
   }
