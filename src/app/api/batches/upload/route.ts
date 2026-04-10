@@ -95,10 +95,10 @@ export async function POST(req: NextRequest) {
       nextStep: "Use the get_raw_headers MCP tool to retrieve the columns, and apply_mapping_rules to transform the payload to BPost schemas."
     }, { status: 201 })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[UPLOAD_BATCH]", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
+      { error: "Internal Server Error", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
