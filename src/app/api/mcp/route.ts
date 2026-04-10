@@ -70,7 +70,10 @@ const handler = createMcpHandler(
           'Saves a reusable procedural fix script (TypeScript/JavaScript) for automated data cleaning. ' +
           'Scripts can be applied to future batches to prevent recurring errors.',
         inputSchema: z.object({
-          name: z.string().describe('Unique name for the script, e.g. "clean-street-names"'),
+          name: z
+            .string()
+            .regex(/^[a-z0-9-]+$/, 'Script name must be lowercase kebab-case (a-z, 0-9, hyphens only)')
+            .describe('Unique name for the script, e.g. "clean-street-names"'),
           code: z.string().describe('The executable JS/TS code snippet'),
           description: z.string().describe('Description of what the script fixes'),
         }),
@@ -103,7 +106,10 @@ const handler = createMcpHandler(
         inputSchema: z.object({
           batchId: z.string(),
           rowIndex: z.number().int().min(0),
-          scriptName: z.string().describe('The name of the script to apply (without extension)'),
+          scriptName: z
+            .string()
+            .regex(/^[a-z0-9-]+$/, 'Script name must be lowercase kebab-case (a-z, 0-9, hyphens only)')
+            .describe('The name of the script to apply (without extension)'),
         }),
       },
       async (input, extra) => {
@@ -121,14 +127,14 @@ const handler = createMcpHandler(
         let scriptContent: string
         try {
           scriptContent = await fs.readFile(scriptPath, 'utf8')
-        } catch (err) {
+        } catch {
           return { isError: true, content: [{ type: 'text' as const, text: `Script "${input.scriptName}" not found.` }] }
         }
 
         const sandbox = { row: { ...row.mapped }, console: { log: () => { } } }
         try {
-          // Wrap code in an anonymous function if it doesn't return row
-          const codeToRun = scriptContent.includes('return') ? scriptContent : `(function(row){ ${scriptContent}\n return row; })(row)`
+          // Always wrap in IIFE so scripts can mutate row without needing an explicit return
+          const codeToRun = `(function(row){ ${scriptContent}\n return row; })(row)`
           const result = vm.runInNewContext(codeToRun, sandbox, { timeout: 1000 })
           const candidateMapped = typeof result === 'object' ? result : sandbox.row
 
@@ -172,14 +178,14 @@ const handler = createMcpHandler(
           return { isError: true, content: [{ type: 'text' as const, text: 'GITHUB_TOKEN not configured on server. Cannot report issue.' }] }
         }
 
-        const repoName = input.repo === 'mcp' ? 'bpost-mcp' : 'bpost-epostmasspost-skills'
+        const repoName = input.repo === 'mcp' ? 'bpost-mcp' : 'bpost-e-masspost-skills'
         const url = `https://api.github.com/repos/markminnoye/${repoName}/issues`
 
         try {
           const res = await fetch(url, {
             method: 'POST',
             headers: {
-              'Authorization': `token ${githubToken}`,
+              'Authorization': `Bearer ${githubToken}`,
               'Accept': 'application/vnd.github.v3+json',
               'Content-Type': 'application/json',
             },
@@ -215,7 +221,6 @@ const handler = createMcpHandler(
       async (_input, extra) => {
         const tenantOrError = requireTenantId(extra)
         if (typeof tenantOrError !== 'string') return tenantOrError
-        const tenantId = tenantOrError
         const baseUrl = env.NEXT_PUBLIC_BASE_URL
         const uploadUrl = `${baseUrl}/api/batches/upload`
         return {

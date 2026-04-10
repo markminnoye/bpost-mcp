@@ -9,8 +9,8 @@ export type BatchStatus = 'UNMAPPED' | 'MAPPED' | 'SUBMITTED'
 
 export interface BatchRow {
   index: number
-  raw: Record<string, any> // The original data exactly as provided in the CSV
-  mapped?: Record<string, any> // The data transformed into BPost schema shape
+  raw: Record<string, unknown> // The original data exactly as provided in the CSV
+  mapped?: Record<string, unknown> // The data transformed into BPost schema shape
   validationErrors?: $ZodIssue[] // Errors from Zod validation (if any)
 }
 

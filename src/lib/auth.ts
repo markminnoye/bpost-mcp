@@ -50,7 +50,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     session({ session, user }) {
       session.user.id = user.id
-      session.user.tenantId = (user as any).tenantId
+      session.user.tenantId = user.tenantId
       return session
     },
   },

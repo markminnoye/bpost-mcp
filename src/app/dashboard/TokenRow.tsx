@@ -17,13 +17,11 @@ export function TokenRow({ token }: TokenRowProps) {
   const router = useRouter()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const trashRef = useRef<HTMLButtonElement>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   function openModal() {
     setError(null)
-    setIsModalOpen(true)
     dialogRef.current?.showModal()
     // Move focus to Cancel button (safe default for destructive action)
     setTimeout(() => {
@@ -33,7 +31,6 @@ export function TokenRow({ token }: TokenRowProps) {
 
   function closeModal() {
     setError(null)        // spec: error resets on close
-    setIsModalOpen(false)
     dialogRef.current?.close()
     trashRef.current?.focus()
   }

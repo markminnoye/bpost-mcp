@@ -1,6 +1,6 @@
 // src/client/bpost.ts
 import { parseXml } from '@/lib/xml'
-import { parseBpostError, BpostError } from './errors'
+import { parseBpostError } from './errors'
 
 const BPOST_ENDPOINT = 'https://www.bpost.be/emasspost'
 

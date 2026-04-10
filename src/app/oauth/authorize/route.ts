@@ -6,6 +6,7 @@ import { db } from '@/lib/db/client';
 import { bpostCredentials, oauthAuthorizationCodes } from '@/lib/db/schema';
 import { resolveClient } from '@/lib/oauth/client-resolver';
 import { hashToken } from '@/lib/crypto';
+import { env } from '@/lib/config/env';
 
 const SUPPORTED_SCOPES = ['mcp:tools'];
 const CODE_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -82,7 +83,7 @@ export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id || !(session.user as Record<string, unknown>)?.tenantId) {
     // No session — redirect to Google login, preserve all params as callbackUrl
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || url.origin;
+    const baseUrl = env.NEXT_PUBLIC_BASE_URL;
     const callbackUrl = `${baseUrl}/oauth/authorize?${params.toString()}`;
     const signInUrl = new URL('/api/auth/signin', baseUrl);
     signInUrl.searchParams.set('callbackUrl', callbackUrl);
@@ -99,7 +100,7 @@ export async function GET(request: Request) {
     .limit(1);
 
   if (creds.length === 0) {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || url.origin;
+    const baseUrl = env.NEXT_PUBLIC_BASE_URL;
     const dashboardUrl = new URL('/dashboard', baseUrl);
     dashboardUrl.searchParams.set('setup', 'credentials');
     dashboardUrl.searchParams.set('returnTo', url.toString());

@@ -8,6 +8,7 @@ import { tenants, bpostCredentials, apiTokens } from '@/lib/db/schema'
 import { encrypt, hashToken } from '@/lib/crypto'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
+import { env } from '@/lib/config/env'
 
 interface Props {
   searchParams: Promise<{ token?: string }>
@@ -23,7 +24,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   const newlyGeneratedToken = params.token ?? null
 
   // Ensure we are only looking at the tenant associated with the current user
-  const tenantId = (session.user as any).tenantId
+  const tenantId = session.user.tenantId
   if (!tenantId) {
     // This should ideally not happen due to the signIn callback logic,
     // but we'll handle it for safety.
@@ -56,7 +57,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
     // IMPORTANT: Use the session's tenantId directly within the action for security
     const session = await auth()
-    const actionTenantId = (session?.user as any)?.tenantId
+    const actionTenantId = session?.user?.tenantId
     if (!actionTenantId) throw new Error('Unauthorized')
 
     const numericOnly = /^\d{1,8}$/
@@ -104,7 +105,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     const label = (formData.get('label') as string) || 'claude-desktop'
     
     const session = await auth()
-    const actionTenantId = (session?.user as any)?.tenantId
+    const actionTenantId = session?.user?.tenantId
     if (!actionTenantId) redirect('/dashboard')
 
     const rawToken = `bpost_${randomBytes(32).toString('hex')}`
@@ -297,7 +298,7 @@ export default async function DashboardPage({ searchParams }: Props) {
           alignItems: 'center',
           marginBottom: '1rem'
         }}>
-          <code>{`${process.env.NEXT_PUBLIC_BASE_URL || 'https://bpost-mcp.vercel.app'}/api/mcp`}</code>
+          <code>{`${env.NEXT_PUBLIC_BASE_URL}/api/mcp`}</code>
         </div>
         <p style={{ color: '#888', fontSize: '0.8rem' }}>
           Plak deze URL in Claude Desktop onder Settings &gt; MCP Servers.

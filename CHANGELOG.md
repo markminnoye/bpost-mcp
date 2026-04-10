@@ -7,16 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
 ## [2.1.0] - 2026-04-10
 
 ### Added
-- **`/install` page**: Public-facing installation guide for connecting Claude Desktop and Claude Code to the BPost MCP service. Covers OAuth 2.0 (recommended) and Bearer Token methods with copy-ready config snippets. No login required.
-- **"How to connect" entry points**: Link added to homepage and to the dashboard "Claude / MCP Clients" section, both pointing to `/install`.
-- **Markdown Token Optimizer skill**: Specialized agent skill for optimizing documentation for token efficiency.
+- **`/install` page** (`src/app/install/page.tsx`): Public-facing installation guide for connecting Claude Desktop and Claude Code to the BPost MCP service. Covers OAuth 2.0 (recommended) and Bearer Token methods with copy-ready config snippets. No login required. Includes jump-nav, comparison cards with hover effects, and a page-level `metadata` export for SEO.
+- **"How to connect" entry points**: Button added to homepage and link added to the dashboard "Claude / MCP Clients" section, both pointing to `/install`.
+- **Token revocation UI** (`src/app/dashboard/TokenRow.tsx`): Trash icon on each dashboard token row opens a confirmation modal for hard-deleting the token. Replaces the static ACTIVE/REVOKED badge with a `lastUsedAt` indicator.
+- **`revokeToken` server action** (`src/app/dashboard/actions.ts`): Validates UUID input, verifies ownership, hard-deletes the token, and returns a typed `ActionResult` union — no `redirect()` inside the action.
+- **Self-Learning & Feedback MCP tools** (Phase 2 Sprint 3): Three new tools added to the MCP handler:
+  - `add_protocol_rule` — writes discovered BPost protocol rules to the shared knowledge base
+  - `add_fix_script` — persists auto-fixer scripts for reuse across sessions
+  - `escalate_to_human` — surfaces unresolvable issues for human review
+- **Env var centralisation** (`src/lib/config/env.ts`): All environment variables validated at startup via Zod; replaces scattered `process.env` accesses.
+- **`check:hardcoded` script**: `npm run check:hardcoded` fails the build if any hardcoded `vercel.app` URLs are found in `src/`.
+- **`check:all` script**: Runs lint + type-check + tests + hardcoded-URL check in one command.
+- **ESLint setup**: ESLint 10 + `eslint-config-next` installed and wired up (`eslint.config.mjs`). `npm run lint` and `npm run lint:fix` now work correctly under Next.js 16.
 
 ### Fixed
-- **Dashboard sign-in redirect**: After Google OAuth, users are now correctly returned to `/dashboard` instead of the referring page (`callbackUrl=/dashboard` added to sign-in redirect).
-- **Claude Code CLI snippets**: Corrected `claude mcp add` syntax to use `--transport http` instead of unsupported `--url` flag.
+- **Dashboard sign-in redirect**: After Google OAuth, users are now correctly returned to `/dashboard` (`callbackUrl=/dashboard` added to sign-in redirect).
+- **Claude Code CLI snippets**: Corrected `claude mcp add` syntax to include `--transport http`.
+- **Fallback `BASE_URL`**: Install page fallback updated to `bpost.sonicrocket.io`.
+- **External link security**: Added `rel="noopener noreferrer"` to the "Skills Documentation" link on the homepage.
+- **`no-explicit-any` across codebase**: Replaced all 8 `any` casts with proper types (`unknown`, typed session augmentation). Affected: `upload/route.ts`, `dashboard/page.tsx`, `dashboard/actions.ts`, `lib/auth.ts`, `lib/kv/client.ts`.
+- **Unused variables**: Removed unused `isModalOpen` state (`TokenRow.tsx`), unused `BpostError` import (`client/bpost.ts`), unused `NextAuth` import (`next-auth.d.ts`), unused `tenantId` variable in MCP route.
+- **Unused catch bindings**: `catch (error)` / `catch (err)` → `catch` where the error is never used (`oauth/register/route.ts`, `api/mcp/route.ts`).
 
 ---
 

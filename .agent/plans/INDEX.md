@@ -38,6 +38,7 @@ All implementation plans, design specs, and architecture decisions live here.
 | [Phase 2 Sprint 1 — Credential Layer, Auth & Multi-Tenant MCP](2026-04-03-phase2-sprint1-implementation.md) | ✅ | Complete — credential layer, bearer token auth, Google OAuth dashboard, seed script |
 | [Phase 2 Sprint 2 — Review Fixes](2026-04-04-sprint2-review-fixes.md) | ✅ | All critical and important review findings fixed |
 | [Phase 2 Sprint 3 — Self-Learning & Feedback Loop](2026-04-10-phase2-sprint3-self-learning.md) | ✅ | Complete — implementing declarative, procedural, and escalation tools |
+| [v2.1.0 Code Review Bug Fixes](2026-04-10-bugfix-v2.1.0-code-review.md) | ✅ | Fix 7 issues from code review: failing test, hardcoded URLs, slug typo, path traversal, heuristic, env default, minor polish |
 
 ---
 

@@ -1,7 +1,8 @@
 import * as jose from 'jose';
 import { randomUUID } from 'crypto';
+import { env } from '@/lib/config/env';
 
-const ISSUER = process.env.NEXT_PUBLIC_BASE_URL || 'https://bpost-mcp.vercel.app';
+const ISSUER = env.NEXT_PUBLIC_BASE_URL;
 const AUDIENCE = ISSUER;
 const ACCESS_TOKEN_TTL = 3600; // 1 hour
 
