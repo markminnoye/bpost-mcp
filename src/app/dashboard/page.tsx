@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { handleSignOut } from './actions'
+import { TokenRow } from './TokenRow'
 import { db } from '@/lib/db/client'
 import { tenants, bpostCredentials, apiTokens } from '@/lib/db/schema'
 import { encrypt, hashToken } from '@/lib/crypto'
@@ -15,7 +16,7 @@ interface Props {
 export default async function DashboardPage({ searchParams }: Props) {
   const session = await auth()
   if (!session?.user?.id) {
-    redirect('/api/auth/signin')
+    redirect('/api/auth/signin?callbackUrl=/dashboard')
   }
 
   const params = await searchParams
@@ -259,27 +260,19 @@ export default async function DashboardPage({ searchParams }: Props) {
         </form>
 
         <h3 style={{ fontSize: '1rem', color: '#fff', marginBottom: '1rem' }}>
-          Active tokens ({tokens.filter((t) => !t.revokedAt).length})
+          Tokens ({tokens.length})
         </h3>
         <ul style={{ listStyle: 'none', padding: '0', fontSize: '0.9rem' }}>
           {tokens.map((t) => (
-            <li key={t.id} style={{
-              backgroundColor: '#111',
-              padding: '0.8rem',
-              marginBottom: '0.5rem',
-              border: '1px solid #222',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <strong style={{ color: '#fff' }}>{t.label}</strong><br />
-                <span style={{ fontSize: '0.7rem', color: '#666' }}>Created {t.createdAt.toISOString()}</span>
-              </div>
-              <span style={{ color: t.revokedAt ? '#ff0000' : '#00ff00', fontSize: '0.7rem' }}>
-                {t.revokedAt ? 'REVOKED' : 'ACTIVE'}
-              </span>
-            </li>
+            <TokenRow
+              key={t.id}
+              token={{
+                id: t.id,
+                label: t.label,
+                createdAt: t.createdAt.toISOString(),
+                lastUsedAt: t.lastUsedAt?.toISOString() ?? null,
+              }}
+            />
           ))}
         </ul>
       </section>
@@ -310,6 +303,19 @@ export default async function DashboardPage({ searchParams }: Props) {
           Plak deze URL in Claude Desktop onder Settings &gt; MCP Servers.
           Claude regelt de login automatisch via Google.
         </p>
+        <a
+          href="/install"
+          style={{
+            display: 'inline-block',
+            marginTop: '0.75rem',
+            fontSize: '0.85rem',
+            color: '#ff0000',
+            textDecoration: 'none',
+            fontWeight: '600',
+          }}
+        >
+          How to connect →
+        </a>
       </section>
     </main>
   )

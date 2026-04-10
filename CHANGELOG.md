@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **`/install` page**: Public-facing installation guide for connecting Claude Desktop and Claude Code to the BPost MCP service. Covers OAuth 2.0 (recommended) and Bearer Token methods with copy-ready config snippets. No login required.
+- **"How to connect" entry points**: Link added to homepage and to the dashboard "Claude / MCP Clients" section, both pointing to `/install`.
+
+### Fixed
+- **Dashboard sign-in redirect**: After Google OAuth, users are now correctly returned to `/dashboard` instead of the referring page (`callbackUrl=/dashboard` added to sign-in redirect).
+- **Claude Code CLI snippets**: Corrected `claude mcp add` syntax to use `--transport http` instead of unsupported `--url` flag.
+
+---
+
 ## [2.0.1] - 2026-04-08
 
 ### Fixed
@@ -86,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build Automation**: Integrated automated version management for skill bundles.
 - **English Localization**: Fully localized the protocol documentation and build instructions.
 - **Formal Audit Record**: Added systematic audit log and agent feedback loops to `AGENTS.md`.
+- **Documentation Audit (2026-03-28)**: A systematic audit (BUG-001) identified several casing and naming inconsistencies between the e-MassPost Markdown files and the source XSDs. Key fixes included lowercase attribute names for `<Context>` tags and mapping `fieldToPrint1-3` to `distributionOffice/routeName/routeSeq` in responses. Always prioritize `.xsd` files in `resources/` as the absolute source of truth.
 
 ## [1.0.0] - 2026-03-27
 

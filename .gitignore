@@ -1,4 +1,5 @@
 .DS_Store
+.worktrees/
 .skills/
 node_modules/
 .env*.local
@@ -26,3 +27,7 @@ coverage/
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+.firecrawl/cloudflare-oauth-mcp.md
+.firecrawl/vercel-mcp-auth-docs.md
+.firecrawl/vercel-mcp-deploy.md
+.firecrawl/vercel-oauth-mcp.md

@@ -32,8 +32,8 @@ export default function Home() {
         display: 'flex',
         gap: '1rem'
       }}>
-        <a 
-          href="/dashboard" 
+        <a
+          href="/dashboard"
           style={{
             padding: '0.75rem 1.5rem',
             backgroundColor: '#e30613',
@@ -45,9 +45,23 @@ export default function Home() {
         >
           Go to Dashboard
         </a>
-        <a 
-          href="https://github.com/markminnoye/bpost-e-masspost-skills" 
+        <a
+          href="/install"
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#f4f4f4',
+            color: '#171717',
+            borderRadius: '8px',
+            fontWeight: '600',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          How to connect
+        </a>
+        <a
+          href="https://github.com/markminnoye/bpost-e-masspost-skills"
           target="_blank"
+          rel="noopener noreferrer"
           style={{
             padding: '0.75rem 1.5rem',
             backgroundColor: '#f4f4f4',
