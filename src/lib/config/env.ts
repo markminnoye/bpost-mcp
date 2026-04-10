@@ -10,7 +10,8 @@ function resolveNextPublicBaseUrl(): string | undefined {
   if (explicit) return explicit
   const vercel = process.env.VERCEL_URL?.trim()
   if (vercel) return `https://${vercel}`
-  return undefined
+  // Local dev fallback (no Vercel env, no explicit var set)
+  return 'http://localhost:3000'
 }
 
 /**
