@@ -408,7 +408,7 @@ describe('Self-Learning Tools', () => {
     expect((body?.result as any)?.isError).toBeFalsy()
     expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('bpost-mcp/issues'), expect.objectContaining({
       method: 'POST',
-      headers: expect.objectContaining({ 'Authorization': 'token test-token' })
+      headers: expect.objectContaining({ 'Authorization': 'Bearer test-token' })
     }))
   })
 

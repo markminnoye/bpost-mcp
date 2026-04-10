@@ -185,7 +185,7 @@ const handler = createMcpHandler(
           const res = await fetch(url, {
             method: 'POST',
             headers: {
-              'Authorization': `token ${githubToken}`,
+              'Authorization': `Bearer ${githubToken}`,
               'Accept': 'application/vnd.github.v3+json',
               'Content-Type': 'application/json',
             },
