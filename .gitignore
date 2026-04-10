@@ -24,6 +24,9 @@ coverage/
 # editor & ide
 .vscode/
 .idea/
+# Claude Code / Cursor — machine-specific paths and permissions; do not commit
+.claude/
+.cursor/
 .vercel
 *.tsbuildinfo
 next-env.d.ts
