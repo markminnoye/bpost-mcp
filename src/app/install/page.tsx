@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bpost-mcp.vercel.app'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bpost.sonicrocket.io'
 const MCP_URL = `${BASE_URL}/api/mcp`
 
 export const metadata = {
