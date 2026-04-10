@@ -40,6 +40,14 @@ All implementation plans, design specs, and architecture decisions live here.
 
 ---
 
+## Phase 2 — Install Page
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Install Page — /install connection guide](../../docs/superpowers/plans/2026-04-10-install-page.md) | ✅ | Public install guide: OAuth + Bearer Token setup |
+
+---
+
 ## Project Onboarding & Setup
 
 | Plan | Status | Notes |

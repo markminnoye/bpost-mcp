@@ -1,10 +1,39 @@
+# Install Page Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a public `/install` page that guides users through connecting Claude Desktop or Claude Code to the BPost MCP service via OAuth 2.0 or Bearer Token.
+
+**Architecture:** Three isolated file changes — a new static server component at `src/app/install/page.tsx`, plus two one-line additions (homepage button and dashboard link). No auth, no DB, no server actions. All inline styles following existing codebase conventions. MCP URL sourced from `NEXT_PUBLIC_BASE_URL` env var (already used in dashboard).
+
+**Tech Stack:** Next.js 14 App Router, TypeScript, inline styles (codebase convention). No testing beyond lint/type-check — the page is purely static markup with no logic to unit-test; visual verification is the test strategy (consistent with dashboard `TokenRow` approach).
+
+---
+
+## File Map
+
+| File | Action | Responsibility |
+|---|---|---|
+| `src/app/install/page.tsx` | **Create** | Full install guide — sections, code snippets, navigation |
+| `src/app/page.tsx` | **Modify** | Add "How to connect" button next to "Go to Dashboard" |
+| `src/app/dashboard/page.tsx` | **Modify** | Add "How to connect →" link in the "Claude / MCP Clients" section |
+
+---
+
+## Task 1: Create the `/install` page
+
+**File:** `src/app/install/page.tsx`
+
+No tests — this is static markup. Lint + type-check are the verification gates.
+
+> **Copy button:** The spec mentions "Code blocks: … with a small 'Copy' button" but explicitly lists "No copy-to-clipboard JavaScript" under Out of Scope. A non-functional button would be confusing UX, so the Copy button is deferred to v2 in its entirety.
+
+### Step 1.1 — Create the page
+- [ ] Create `src/app/install/page.tsx`:
+
+```tsx
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bpost-mcp.vercel.app'
 const MCP_URL = `${BASE_URL}/api/mcp`
-
-export const metadata = {
-  title: 'Install — BPost MCP',
-  description: 'Connect Claude Desktop or Claude Code to your BPost account via OAuth 2.0 or Bearer Token.',
-}
 
 const styles = {
   page: {
@@ -26,6 +55,17 @@ const styles = {
     fontSize: '1rem',
     color: '#555',
     marginBottom: '2rem',
+  } as const,
+  jumpNav: {
+    display: 'flex',
+    gap: '1.5rem',
+    marginBottom: '2.5rem',
+    fontSize: '0.95rem',
+  } as const,
+  jumpLink: {
+    color: '#e30613',
+    textDecoration: 'none',
+    fontWeight: '600',
   } as const,
   cardsRow: {
     display: 'grid',
@@ -110,7 +150,7 @@ const styles = {
     fontSize: '0.875rem',
     color: '#777',
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column' as const,
     gap: '0.5rem',
   } as const,
   footerLink: {
@@ -139,8 +179,8 @@ export default function InstallPage() {
     2,
   )
 
-  const codeOAuthSnippet = `claude mcp add bpost ${MCP_URL} --transport http`
-  const codeBearerSnippet = `claude mcp add bpost ${MCP_URL} --transport http --header "Authorization: Bearer <your-token>"`
+  const codeOAuthSnippet = `claude mcp add bpost --url ${MCP_URL}`
+  const codeBearerSnippet = `claude mcp add bpost --url ${MCP_URL} --header "Authorization: Bearer <your-token>"`
 
   return (
     <main style={styles.page}>
@@ -150,42 +190,30 @@ export default function InstallPage() {
         Follow the steps below to connect Claude Desktop or Claude Code to your BPost account.
       </p>
 
+      {/* Jump-to navigation */}
+      <nav style={styles.jumpNav}>
+        <a href="#oauth" style={styles.jumpLink}>→ OAuth 2.0 (recommended)</a>
+        <a href="#bearer" style={styles.jumpLink}>→ Bearer Token</a>
+      </nav>
+
       {/* Which method? */}
-      <style>{`
-        .install-card {
-          display: block;
-          text-decoration: none;
-          color: inherit;
-          cursor: pointer;
-          transition: box-shadow 0.15s ease, border-color 0.15s ease;
-        }
-        .install-card:hover {
-          outline: 2px solid #e30613;
-          box-shadow: 0 2px 10px rgba(227,6,19,0.15);
-        }
-      `}</style>
       <section style={styles.section}>
-        <h3 style={styles.heading3}>
+        <h2 style={{ ...styles.heading2, color: '#171717', fontSize: '1.1rem' }}>
           Which method is right for you?
-        </h3>
+        </h2>
         <div style={styles.cardsRow}>
-          <a href="#oauth" className="install-card" style={styles.card}>
-            <div style={styles.cardTitle}>
-              OAuth 2.0{' '}
-              <span style={{ fontSize: '0.7rem', backgroundColor: '#e30613', color: '#fff', borderRadius: '4px', padding: '0.1rem 0.4rem', fontWeight: '600', verticalAlign: 'middle' }}>
-                recommended
-              </span>
-            </div>
+          <div style={{ ...styles.card, borderColor: '#e30613' }}>
+            <div style={styles.cardTitle}>OAuth 2.0</div>
             <p style={styles.cardItem}>Sign in with Google — no token to manage</p>
             <p style={styles.cardItem}>Recommended for personal use</p>
             <p style={styles.cardItem}>Login happens automatically in the browser</p>
-          </a>
-          <a href="#bearer" className="install-card" style={styles.card}>
+          </div>
+          <div style={styles.card}>
             <div style={styles.cardTitle}>Bearer Token</div>
             <p style={styles.cardItem}>Paste a static token into your config</p>
             <p style={styles.cardItem}>Recommended for automation or shared setups</p>
             <p style={styles.cardItem}>Token is generated once in the dashboard</p>
-          </a>
+          </div>
         </div>
       </section>
 
@@ -267,3 +295,92 @@ export default function InstallPage() {
     </main>
   )
 }
+```
+
+### Step 1.2 — Lint and type-check
+- [ ] Run: `npm run lint && npx tsc --noEmit`
+- Expected: no errors
+
+---
+
+## Task 2: Add "How to connect" button on homepage
+
+**File:** `src/app/page.tsx`
+
+### Step 2.1 — Add the button
+- [ ] In `src/app/page.tsx`, add a new `<a>` as the **second** element inside the existing `<div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>` block — after the "Go to Dashboard" anchor and before the "Skills Documentation" anchor:
+
+```tsx
+<a
+  href="/install"
+  style={{
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#f4f4f4',
+    color: '#171717',
+    borderRadius: '8px',
+    fontWeight: '600',
+    transition: 'background-color 0.2s'
+  }}
+>
+  How to connect
+</a>
+```
+
+### Step 2.2 — Lint and type-check
+- [ ] Run: `npm run lint && npx tsc --noEmit`
+- Expected: no errors
+
+---
+
+## Task 3: Add "How to connect →" link in dashboard
+
+**File:** `src/app/dashboard/page.tsx`
+
+The "Claude / MCP Clients" section currently ends with a `<p style={{ color: '#888', fontSize: '0.8rem' }}>` tag. Add the link inside the section, immediately after that `</p>` and before the closing `</section>` tag.
+
+> **Color note:** The dashboard uses `#ff0000` (pure red) throughout its dark theme — this is intentional and distinct from the `#e30613` brand red used on the light install page.
+
+### Step 3.1 — Add the link
+- [ ] In `src/app/dashboard/page.tsx`, in the `<section>` block for "Claude / MCP Clients", add the following immediately after `</p>` and before `</section>`:
+
+```tsx
+<a
+  href="/install"
+  style={{
+    display: 'inline-block',
+    marginTop: '0.75rem',
+    fontSize: '0.85rem',
+    color: '#ff0000',
+    textDecoration: 'none',
+    fontWeight: '600',
+  }}
+>
+  How to connect →
+</a>
+```
+
+### Step 3.2 — Lint and type-check
+- [ ] Run: `npm run lint && npx tsc --noEmit`
+- Expected: no errors
+
+---
+
+## Task 4: Final verification and commit
+
+### Step 4.1 — Run full test suite
+- [ ] Run: `npx vitest run`
+- Expected: all tests pass (no regressions — we only added markup)
+
+### Step 4.2 — Manual browser verification
+- [ ] Run: `npm run dev`
+- [ ] Open `http://localhost:3000` — verify "How to connect" button appears
+- [ ] Click it — verify `/install` loads with light background and red headings
+- [ ] Verify OAuth section (id="oauth") and Bearer section (id="bearer") both render correctly
+- [ ] Verify jump-to links scroll to the correct sections
+- [ ] Verify code snippets contain the correct MCP URL
+- [ ] Verify "← Back to Dashboard" footer link works
+- [ ] Open `http://localhost:3000/dashboard` — verify "How to connect →" link appears in the "Claude / MCP Clients" section
+
+### Step 4.3 — Commit
+- [ ] `git add src/app/install/page.tsx src/app/page.tsx src/app/dashboard/page.tsx`
+- [ ] `git commit -m "feat(install): add /install page — OAuth and Bearer Token connection guide"`
