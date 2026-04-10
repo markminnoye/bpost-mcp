@@ -150,6 +150,63 @@ describe('POST /oauth/token', () => {
     expect(mockUpdate).toHaveBeenCalled();
   });
 
+  it('exchanges code when token request omits resource but auth code used origin (interop)', async () => {
+    const { verifyPkceS256 } = await import('@/lib/oauth/pkce');
+    (verifyPkceS256 as ReturnType<typeof vi.fn>).mockReturnValue(true);
+
+    const { signAccessToken } = await import('@/lib/oauth/jwt');
+    (signAccessToken as ReturnType<typeof vi.fn>).mockResolvedValue('eyJ.mock.jwt');
+
+    const { db } = await import('@/lib/db/client');
+    const mockSelect = vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([{
+            id: 'code-id',
+            code: 'hashed-code',
+            clientId: 'mcp_test',
+            userId: 'user_123',
+            tenantId: 'tenant_456',
+            redirectUri: 'https://example.com/callback',
+            scope: 'mcp:tools',
+            codeChallenge: 'test-challenge',
+            codeChallengeMethod: 'S256',
+            resource: 'http://localhost:3000/api/mcp',
+            expiresAt: new Date(Date.now() + 600000),
+            usedAt: null,
+          }]),
+        }),
+      }),
+    });
+    (db as any).select = mockSelect;
+    (db as any).update = vi.fn().mockReturnValue({
+      set: vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue(undefined),
+      }),
+    });
+    (db as any).insert = vi.fn().mockReturnValue({
+      values: vi.fn().mockResolvedValue(undefined),
+    });
+
+    const { POST } = await import('@/app/oauth/token/route');
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: 'raw-auth-code',
+      redirect_uri: 'https://example.com/callback',
+      client_id: 'mcp_test',
+      code_verifier: 'test-verifier',
+    });
+
+    const request = new Request('http://localhost/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+  });
+
   it('rejects invalid grant_type', async () => {
     const { POST } = await import('@/app/oauth/token/route');
     const body = new URLSearchParams({

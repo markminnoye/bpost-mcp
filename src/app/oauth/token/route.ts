@@ -6,6 +6,27 @@ import { oauthAuthorizationCodes, oauthRefreshTokens } from '@/lib/db/schema';
 import { signAccessToken } from '@/lib/oauth/jwt';
 import { verifyPkceS256 } from '@/lib/oauth/pkce';
 import { hashToken } from '@/lib/crypto';
+import { oauthResourcesMatchForToken } from '@/lib/oauth/resource-url';
+
+// #region agent log
+function agentDbg(hypothesisId: string, message: string, data: Record<string, unknown>) {
+  const payload = {
+    sessionId: '42a829',
+    location: 'oauth/token/route.ts',
+    message,
+    data,
+    timestamp: Date.now(),
+    hypothesisId,
+    runId: 'post-fix',
+  }
+  console.error('[bpost-mcp-debug-42a829]', JSON.stringify(payload))
+  fetch('http://127.0.0.1:7439/ingest/4fd9d91e-c9e2-4977-98c6-a184e4358266', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '42a829' },
+    body: JSON.stringify(payload),
+  }).catch(() => {})
+}
+// #endregion
 
 function errorResponse(error: string, description: string, status = 400) {
   return NextResponse.json({ error, error_description: description }, { status });
@@ -36,6 +57,14 @@ async function handleAuthorizationCode(params: URLSearchParams) {
 
   const authCode = rows[0];
 
+  // #region agent log
+  agentDbg('H1', 'oauth_token_auth_code_loaded', {
+    storedResource: authCode.resource,
+    tokenResourceParam: resource,
+    resourceWillMismatch: Boolean(authCode.resource && authCode.resource !== resource),
+  })
+  // #endregion
+
   if (authCode.usedAt) {
     return errorResponse('invalid_grant', 'Authorization code already used');
   }
@@ -46,13 +75,28 @@ async function handleAuthorizationCode(params: URLSearchParams) {
     return errorResponse('invalid_grant', 'Client ID mismatch');
   }
   if (authCode.redirectUri !== redirectUri) {
+    // #region agent log
+    agentDbg('H2', 'oauth_token_redirect_uri_mismatch', {
+      storedRedirectPrefix: authCode.redirectUri.slice(0, 80),
+      tokenRedirectPrefix: redirectUri.slice(0, 80),
+    })
+    // #endregion
     return errorResponse('invalid_grant', 'Redirect URI mismatch');
   }
-  if (authCode.resource && authCode.resource !== resource) {
+  if (authCode.resource && !oauthResourcesMatchForToken(authCode.resource, resource)) {
+    // #region agent log
+    agentDbg('H1', 'oauth_token_resource_mismatch_reject', {
+      storedResource: authCode.resource,
+      tokenResourceParam: resource,
+    })
+    // #endregion
     return errorResponse('invalid_grant', 'Resource mismatch');
   }
 
   if (!verifyPkceS256(codeVerifier, authCode.codeChallenge)) {
+    // #region agent log
+    agentDbg('H3', 'oauth_token_pkce_failed', {})
+    // #endregion
     return errorResponse('invalid_grant', 'PKCE verification failed');
   }
 
@@ -78,6 +122,10 @@ async function handleAuthorizationCode(params: URLSearchParams) {
     scope: authCode.scope ?? 'mcp:tools',
     expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
   });
+
+  // #region agent log
+  agentDbg('H5', 'oauth_token_auth_code_success', { clientIdPrefix: clientId.slice(0, 12) })
+  // #endregion
 
   return NextResponse.json({
     access_token: accessToken,
@@ -164,6 +212,10 @@ export async function POST(request: Request) {
   }
 
   const grantType = params.get('grant_type');
+
+  // #region agent log
+  agentDbg('H0', 'oauth_token_post', { grantType: grantType ?? '(null)' })
+  // #endregion
 
   switch (grantType) {
     case 'authorization_code':

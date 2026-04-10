@@ -41,7 +41,28 @@ async function verifyJwt(token: string): Promise<AuthInfo | undefined> {
         userId: payload.sub,
       },
     };
-  } catch {
+  } catch (e: unknown) {
+    const joseCode =
+      e && typeof e === 'object' && 'code' in e
+        ? String((e as { code: unknown }).code)
+        : 'unknown'
+    // #region agent log
+    const pl = {
+      sessionId: '42a829',
+      location: 'verify-token.ts',
+      message: 'jwt_verify_failed',
+      data: { joseCode },
+      timestamp: Date.now(),
+      hypothesisId: 'H5',
+      runId: 'post-fix',
+    }
+    console.error('[bpost-mcp-debug-42a829]', JSON.stringify(pl))
+    fetch('http://127.0.0.1:7439/ingest/4fd9d91e-c9e2-4977-98c6-a184e4358266', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '42a829' },
+      body: JSON.stringify(pl),
+    }).catch(() => {})
+    // #endregion
     return undefined;
   }
 }
