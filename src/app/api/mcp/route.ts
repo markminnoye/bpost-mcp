@@ -126,7 +126,8 @@ const handler = createMcpHandler(
         state.status = 'MAPPED'
         try {
           await saveBatchState(state)
-        } catch {
+        } catch (err) {
+          console.error('[MCP] saveBatchState failed:', err)
           return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
         }
 
@@ -184,7 +185,8 @@ const handler = createMcpHandler(
         }
         try {
           await saveBatchState(state)
-        } catch {
+        } catch (err) {
+          console.error('[MCP] saveBatchState failed:', err)
           return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
         }
         if (validationResult.success) {
@@ -216,7 +218,8 @@ const handler = createMcpHandler(
         state.status = 'SUBMITTED'
         try {
           await saveBatchState(state)
-        } catch {
+        } catch (err) {
+          console.error('[MCP] saveBatchState failed:', err)
           return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
         }
 
