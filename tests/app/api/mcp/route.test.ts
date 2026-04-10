@@ -325,4 +325,30 @@ describe('Self-Learning Tools', () => {
       headers: expect.objectContaining({ 'Authorization': 'token test-token' })
     }))
   })
+
+  it('report_issue routes to correct repo for skills', async () => {
+    vi.mocked(global.fetch).mockClear()
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ html_url: 'http://github.com/issue/2' }),
+    } as any)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'report_issue', arguments: { repo: 'skills', title: 'Docs bug', body: 'Detail' } },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+
+    const fetchCall = vi.mocked(global.fetch).mock.calls[0]
+    expect(fetchCall[0]).toContain('bpost-e-masspost-skills')
+  })
 })

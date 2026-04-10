@@ -121,7 +121,7 @@ const handler = createMcpHandler(
         let scriptContent: string
         try {
           scriptContent = await fs.readFile(scriptPath, 'utf8')
-        } catch (err) {
+        } catch {
           return { isError: true, content: [{ type: 'text' as const, text: `Script "${input.scriptName}" not found.` }] }
         }
 
@@ -172,7 +172,7 @@ const handler = createMcpHandler(
           return { isError: true, content: [{ type: 'text' as const, text: 'GITHUB_TOKEN not configured on server. Cannot report issue.' }] }
         }
 
-        const repoName = input.repo === 'mcp' ? 'bpost-mcp' : 'bpost-epostmasspost-skills'
+        const repoName = input.repo === 'mcp' ? 'bpost-mcp' : 'bpost-e-masspost-skills'
         const url = `https://api.github.com/repos/markminnoye/${repoName}/issues`
 
         try {
@@ -215,7 +215,6 @@ const handler = createMcpHandler(
       async (_input, extra) => {
         const tenantOrError = requireTenantId(extra)
         if (typeof tenantOrError !== 'string') return tenantOrError
-        const tenantId = tenantOrError
         const baseUrl = env.NEXT_PUBLIC_BASE_URL
         const uploadUrl = `${baseUrl}/api/batches/upload`
         return {
