@@ -16,6 +16,18 @@ vi.mock('@/lib/kv/client', () => ({
   saveBatchState: vi.fn(),
 }))
 
+vi.mock('fs/promises', () => ({
+  default: {
+    appendFile: vi.fn(),
+    mkdir: vi.fn(),
+    writeFile: vi.fn(),
+    readFile: vi.fn(),
+  },
+}))
+
+// Mock global fetch for report_issue
+global.fetch = vi.fn()
+
 import { GET, POST, DELETE } from '@/app/api/mcp/route'
 import { verifyToken } from '@/lib/oauth/verify-token'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
@@ -196,5 +208,113 @@ describe('apply_mapping_rules reset', () => {
     const body = await parseSseBody(res)
     // Should succeed (not return isError) — re-mapping a MAPPED batch is allowed
     expect((body?.result as any)?.isError).toBeFalsy()
+  })
+})
+
+describe('Self-Learning Tools', () => {
+  it('add_protocol_rule appends to learned_rules.md', async () => {
+    const fs = (await import('fs/promises')).default
+    vi.mocked(fs.appendFile).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'add_protocol_rule', arguments: { rule: 'Test Rule', context: 'Test Context' } }
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    expect(fs.appendFile).toHaveBeenCalledWith(expect.stringContaining('learned_rules.md'), expect.stringContaining('Test Rule'))
+  })
+
+  it('create_fix_script writes to scripts/auto-fixers/', async () => {
+    const fs = (await import('fs/promises')).default
+    vi.mocked(fs.mkdir).mockResolvedValue(undefined)
+    vi.mocked(fs.writeFile).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'create_fix_script', arguments: { name: 'fix-test', code: 'row.x=1', description: 'desc' } }
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    expect(fs.writeFile).toHaveBeenCalledWith(expect.stringContaining('fix-test.ts'), expect.stringContaining('row.x=1'))
+  })
+
+  it('apply_fix_script executes script and updates row', async () => {
+    const fs = (await import('fs/promises')).default
+    vi.mocked(fs.readFile).mockResolvedValue('row.priority = "P";')
+    const mockState = {
+      batchId: 'b_fix', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: ['PriorityCol'],
+      rows: [{
+        index: 0,
+        raw: { PriorityCol: 'NP' },
+        mapped: { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1' }] } },
+        validationErrors: [{ message: 'err' }]
+      }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'apply_fix_script', arguments: { batchId: 'b_fix', rowIndex: 0, scriptName: 'fix-priority' } }
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    
+    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    expect(savedState?.rows[0]?.mapped?.priority).toBe('P')
+  })
+
+  it('report_issue creates a GitHub issue', async () => {
+    process.env.GITHUB_TOKEN = 'test-token'
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ html_url: 'http://github.com/issue/1' })
+    } as any)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'report_issue', arguments: { repo: 'mcp', title: 'Test Bug', body: 'Detail' } }
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('bpost-mcp/issues'), expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ 'Authorization': 'token test-token' })
+    }))
   })
 })
