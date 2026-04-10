@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const fileText = await file.text()
     
     // PapaParse handles CSV string extraction safely
-    const parsed = Papa.parse<Record<string, any>>(fileText, {
+    const parsed = Papa.parse<Record<string, unknown>>(fileText, {
       header: true,
       skipEmptyLines: true, // Prevents trailing empty lines from breaking indexation
       dynamicTyping: false  // We want everything raw as strings to prevent premature casting errors

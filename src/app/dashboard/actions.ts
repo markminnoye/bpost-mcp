@@ -21,7 +21,7 @@ export async function revokeToken(id: string): Promise<ActionResult> {
   }
 
   const session = await auth()
-  const tenantId = (session?.user as any)?.tenantId
+  const tenantId = session?.user?.tenantId
   if (!tenantId) {
     return { ok: false, code: 'AUTH_ERROR', error: 'Session expired. Please sign in again.' }
   }

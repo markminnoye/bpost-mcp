@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       },
       { status: 201 },
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'server_error', error_description: 'Registration failed' },
       { status: 500 },
