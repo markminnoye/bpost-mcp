@@ -25,7 +25,8 @@ vi.mock('fs/promises', () => ({
   },
 }))
 
-// Mock env configuration (must be before module load)
+// Hoisted by Vitest — ensures env is mocked before the route module is evaluated.
+// Provides only the fields accessed by route.ts: NEXT_PUBLIC_BASE_URL, GITHUB_TOKEN
 vi.mock('@/lib/config/env', () => ({
   env: {
     NEXT_PUBLIC_BASE_URL: 'http://localhost:3000',
