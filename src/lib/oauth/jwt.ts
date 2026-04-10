@@ -9,6 +9,7 @@ export type SignAccessTokenOptions = {
   expiresInOverride?: number
 }
 
+/** Reads at call time so Vitest can rotate `OAUTH_JWT_SECRET` mid-test; boot validation is in `env.ts`. */
 function getSecret(): Uint8Array {
   const secret = process.env.OAUTH_JWT_SECRET;
   if (!secret) throw new Error('OAUTH_JWT_SECRET is not set');

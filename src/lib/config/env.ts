@@ -31,6 +31,14 @@ const envSchema = z.object({
 
   /** TCP Redis URL for batch state (Vercel Marketplace Redis sets this automatically). */
   REDIS_URL: z.string().optional(),
+
+  /** HS256 key for OAuth access tokens (must match runtime reads in `jwt.ts` for tests). */
+  OAUTH_JWT_SECRET: z
+    .string()
+    .min(
+      1,
+      'OAUTH_JWT_SECRET is required for OAuth JWT signing. Set it in Vercel (Production) or .env.local. Generate: openssl rand -base64 32',
+    ),
 })
 
 // Use safeParse to provide better error messages if validation fails
@@ -38,6 +46,7 @@ const result = envSchema.safeParse({
   NEXT_PUBLIC_BASE_URL: resolveNextPublicBaseUrl(),
   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   REDIS_URL: process.env.REDIS_URL,
+  OAUTH_JWT_SECRET: process.env.OAUTH_JWT_SECRET,
 })
 
 if (!result.success) {

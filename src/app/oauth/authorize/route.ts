@@ -84,23 +84,6 @@ export async function GET(request: Request) {
   // 6. Check Auth.js session
   const session = await auth();
   if (!session?.user?.id || !(session.user as Record<string, unknown>)?.tenantId) {
-    // #region agent log
-    const p = {
-      sessionId: '42a829',
-      location: 'oauth/authorize/route.ts',
-      message: 'oauth_authorize_redirect_signin',
-      data: { resourceParam: resource, clientIdPrefix: clientId?.slice(0, 12) },
-      timestamp: Date.now(),
-      hypothesisId: 'H4',
-      runId: 'post-fix',
-    }
-    console.error('[bpost-mcp-debug-42a829]', JSON.stringify(p))
-    fetch('http://127.0.0.1:7439/ingest/4fd9d91e-c9e2-4977-98c6-a184e4358266', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '42a829' },
-      body: JSON.stringify(p),
-    }).catch(() => {})
-    // #endregion
     // No session — redirect to Google login, preserve all params as callbackUrl
     const callbackUrl = `${publicBase}/oauth/authorize?${params.toString()}`;
     const signInUrl = new URL('/api/auth/signin', publicBase);
@@ -118,23 +101,6 @@ export async function GET(request: Request) {
     .limit(1);
 
   if (creds.length === 0) {
-    // #region agent log
-    const p = {
-      sessionId: '42a829',
-      location: 'oauth/authorize/route.ts',
-      message: 'oauth_authorize_redirect_dashboard_no_creds',
-      data: { tenantIdPrefix: tenantId.slice(0, 8) },
-      timestamp: Date.now(),
-      hypothesisId: 'H4',
-      runId: 'post-fix',
-    }
-    console.error('[bpost-mcp-debug-42a829]', JSON.stringify(p))
-    fetch('http://127.0.0.1:7439/ingest/4fd9d91e-c9e2-4977-98c6-a184e4358266', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '42a829' },
-      body: JSON.stringify(p),
-    }).catch(() => {})
-    // #endregion
     const dashboardUrl = new URL('/dashboard', publicBase);
     dashboardUrl.searchParams.set('setup', 'credentials');
     dashboardUrl.searchParams.set('returnTo', url.toString());
@@ -157,28 +123,6 @@ export async function GET(request: Request) {
     resource: resource ? normalizeOAuthResourceParamFromBase(publicBase, resource) : null,
     expiresAt: new Date(Date.now() + CODE_TTL_MS),
   });
-
-  // #region agent log
-  const p2 = {
-    sessionId: '42a829',
-    location: 'oauth/authorize/route.ts',
-    message: 'oauth_authorize_code_issued',
-    data: {
-      storedResource: resource ? normalizeOAuthResourceParamFromBase(publicBase, resource) : null,
-      publicBase,
-      clientIdPrefix: clientId.slice(0, 12),
-    },
-    timestamp: Date.now(),
-    hypothesisId: 'H1',
-    runId: 'post-fix',
-  }
-  console.error('[bpost-mcp-debug-42a829]', JSON.stringify(p2))
-  fetch('http://127.0.0.1:7439/ingest/4fd9d91e-c9e2-4977-98c6-a184e4358266', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '42a829' },
-    body: JSON.stringify(p2),
-  }).catch(() => {})
-  // #endregion
 
   // 9. Redirect with code
   const redirectUrl = new URL(redirectUri);
