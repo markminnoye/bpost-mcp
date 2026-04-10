@@ -70,7 +70,10 @@ const handler = createMcpHandler(
           'Saves a reusable procedural fix script (TypeScript/JavaScript) for automated data cleaning. ' +
           'Scripts can be applied to future batches to prevent recurring errors.',
         inputSchema: z.object({
-          name: z.string().describe('Unique name for the script, e.g. "clean-street-names"'),
+          name: z
+            .string()
+            .regex(/^[a-z0-9-]+$/, 'Script name must be lowercase kebab-case (a-z, 0-9, hyphens only)')
+            .describe('Unique name for the script, e.g. "clean-street-names"'),
           code: z.string().describe('The executable JS/TS code snippet'),
           description: z.string().describe('Description of what the script fixes'),
         }),
@@ -103,7 +106,10 @@ const handler = createMcpHandler(
         inputSchema: z.object({
           batchId: z.string(),
           rowIndex: z.number().int().min(0),
-          scriptName: z.string().describe('The name of the script to apply (without extension)'),
+          scriptName: z
+            .string()
+            .regex(/^[a-z0-9-]+$/, 'Script name must be lowercase kebab-case (a-z, 0-9, hyphens only)')
+            .describe('The name of the script to apply (without extension)'),
         }),
       },
       async (input, extra) => {

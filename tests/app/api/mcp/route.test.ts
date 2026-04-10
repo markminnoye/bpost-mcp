@@ -264,6 +264,40 @@ describe('Self-Learning Tools', () => {
     expect(fs.writeFile).toHaveBeenCalledWith(expect.stringContaining('fix-test.ts'), expect.stringContaining('row.x=1'))
   })
 
+  it('create_fix_script rejects path traversal in name', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'create_fix_script', arguments: { name: '../../evil', code: 'x', description: 'y' } },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeTruthy()
+  })
+
+  it('apply_fix_script rejects path traversal in scriptName', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'apply_fix_script', arguments: { batchId: 'b1', rowIndex: 0, scriptName: '../../.env.local' } },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeTruthy()
+  })
+
   it('apply_fix_script executes script and updates row', async () => {
     const fs = (await import('fs/promises')).default
     vi.mocked(fs.readFile).mockResolvedValue('row.priority = "P";')
