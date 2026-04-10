@@ -348,7 +348,9 @@ describe('Self-Learning Tools', () => {
     const body = await parseSseBody(res)
     expect((body?.result as any)?.isError).toBeFalsy()
 
-    const fetchCall = vi.mocked(global.fetch).mock.calls[0]
-    expect(fetchCall[0]).toContain('bpost-e-masspost-skills')
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('bpost-e-masspost-skills/issues'),
+      expect.objectContaining({ method: 'POST' }),
+    )
   })
 })
