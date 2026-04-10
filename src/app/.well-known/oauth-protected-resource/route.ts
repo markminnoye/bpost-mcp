@@ -2,8 +2,9 @@ import {
   protectedResourceHandler,
   metadataCorsOptionsRequestHandler,
 } from 'mcp-handler';
+import { env } from '@/lib/config/env';
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://bpost-mcp.vercel.app';
+const baseUrl = env.NEXT_PUBLIC_BASE_URL;
 
 const handler = protectedResourceHandler({
   authServerUrls: [baseUrl],
