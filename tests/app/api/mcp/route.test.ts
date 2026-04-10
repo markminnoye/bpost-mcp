@@ -346,7 +346,42 @@ describe('Self-Learning Tools', () => {
     const res = await POST(req)
     const body = await parseSseBody(res)
     expect((body?.result as any)?.isError).toBeFalsy()
-    
+
+    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    expect(savedState?.rows[0]?.mapped?.priority).toBe('P')
+  })
+
+  it('apply_fix_script applies mutation even when script contains "return" in a comment', async () => {
+    const fs = (await import('fs/promises')).default
+    // Script has "return" only in a comment, not as a statement
+    vi.mocked(fs.readFile).mockResolvedValue('// this does not return early\nrow.priority = "P";')
+    const mockState = {
+      batchId: 'b_comment', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: [],
+      rows: [{
+        index: 0, raw: {},
+        mapped: { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1' }] } },
+        validationErrors: [{ message: 'err' }],
+      }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'apply_fix_script', arguments: { batchId: 'b_comment', rowIndex: 0, scriptName: 'fix-priority' } },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
     const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
     expect(savedState?.rows[0]?.mapped?.priority).toBe('P')
   })

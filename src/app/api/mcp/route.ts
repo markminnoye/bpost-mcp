@@ -133,8 +133,8 @@ const handler = createMcpHandler(
 
         const sandbox = { row: { ...row.mapped }, console: { log: () => { } } }
         try {
-          // Wrap code in an anonymous function if it doesn't return row
-          const codeToRun = scriptContent.includes('return') ? scriptContent : `(function(row){ ${scriptContent}\n return row; })(row)`
+          // Always wrap in IIFE so scripts can mutate row without needing an explicit return
+          const codeToRun = `(function(row){ ${scriptContent}\n return row; })(row)`
           const result = vm.runInNewContext(codeToRun, sandbox, { timeout: 1000 })
           const candidateMapped = typeof result === 'object' ? result : sandbox.row
 
