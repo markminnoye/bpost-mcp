@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1] - 2026-04-10
+
+### Changed
+- **Batch KV storage** (`src/lib/kv/client.ts`): Switched from `@upstash/redis` (REST / `UPSTASH_REDIS_*`) to the official [`redis`](https://www.npmjs.com/package/redis) TCP client using `REDIS_URL`, matching Vercel Marketplace Redis and avoiding deprecated `@vercel/kv`. Batch state is stored as JSON strings with the same key layout and 24h TTL.
+
+### Removed
+- **Dependency**: `@upstash/redis` (superseded by `redis` for this integration).
+
+### Dependencies
+- **Next.js** `16.2.1` → `16.2.3` (addresses published Server Components DoS advisory per `npm audit`).
+
+### Documentation
+- **README** / **`.env.example`**: Document `REDIS_URL` and Marketplace Redis instead of `KV_REST_*` / Vercel KV REST vars.
+
+---
+
 ## [2.1.0] - 2026-04-10
 
 ### Added
