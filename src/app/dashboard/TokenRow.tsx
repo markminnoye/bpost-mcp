@@ -13,6 +13,39 @@ interface TokenRowProps {
   }
 }
 
+function formatDateTime(iso: string) {
+  try {
+    return new Intl.DateTimeFormat('nl-BE', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(iso))
+  } catch {
+    return iso
+  }
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 6h18" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  )
+}
+
 export function TokenRow({ token }: TokenRowProps) {
   const router = useRouter()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -23,14 +56,13 @@ export function TokenRow({ token }: TokenRowProps) {
   function openModal() {
     setError(null)
     dialogRef.current?.showModal()
-    // Move focus to Cancel button (safe default for destructive action)
     setTimeout(() => {
       dialogRef.current?.querySelector<HTMLButtonElement>('[data-cancel]')?.focus()
     }, 0)
   }
 
   function closeModal() {
-    setError(null)        // spec: error resets on close
+    setError(null)
     dialogRef.current?.close()
     trashRef.current?.focus()
   }
@@ -42,13 +74,11 @@ export function TokenRow({ token }: TokenRowProps) {
       result = await revokeToken(token.id)
     } catch {
       setIsSubmitting(false)
-      setError('Failed to delete token. Please try again.')
+      setError('Verwijderen is mislukt. Probeer opnieuw.')
       return
     }
 
     if (result.ok) {
-      // router.push returns void in Next.js 14. Modal stays open with buttons
-      // disabled until the page unmounts after navigation completes.
       router.push(result.redirect)
       return
     }
@@ -59,123 +89,86 @@ export function TokenRow({ token }: TokenRowProps) {
       return
     }
 
-    // TRANSIENT_ERROR or VALIDATION_ERROR — show in modal, allow retry
     setIsSubmitting(false)
     setError(result.error)
   }
 
   return (
-    <li style={{
-      backgroundColor: '#111',
-      padding: '0.8rem',
-      marginBottom: '0.5rem',
-      border: '1px solid #222',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    }}>
-      {/* Row content */}
+    <li className="bp-token-row">
       <div>
-        <strong style={{ color: '#fff' }}>{token.label}</strong><br />
-        <span style={{ fontSize: '0.7rem', color: '#666' }}>Created {token.createdAt}</span>
+        <strong style={{ color: 'var(--bp-text)' }}>{token.label}</strong>
+        <br />
+        <span style={{ fontSize: '0.75rem', color: 'var(--bp-soft)' }}>
+          Aangemaakt: {formatDateTime(token.createdAt)}
+        </span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        {/* lastUsedAt indicator */}
-        <span style={{ fontSize: '0.7rem', color: '#666' }}>
-          {token.lastUsedAt ? `Last used: ${token.lastUsedAt}` : 'Never used'}
+        <span style={{ fontSize: '0.75rem', color: 'var(--bp-soft)' }}>
+          {token.lastUsedAt ? `Laatst gebruikt: ${formatDateTime(token.lastUsedAt)}` : 'Nog niet gebruikt'}
         </span>
 
-        {/* Trash icon */}
         <button
           ref={trashRef}
+          type="button"
           onClick={openModal}
-          title="Revoke token"
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#666',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            padding: '0.2rem 0.4rem',
-            lineHeight: 1,
-          }}
-          aria-label={`Revoke token ${token.label}`}
+          title="Sleutel intrekken"
+          className="bp-btn bp-btn--ghost bp-icon-btn"
+          aria-label={`Sleutel intrekken: ${token.label}`}
         >
-          🗑
+          <TrashIcon />
         </button>
       </div>
 
-      {/* Confirmation modal */}
       <dialog
         ref={dialogRef}
         aria-labelledby={`dialog-title-${token.id}`}
         aria-modal="true"
+        className="bp-dialog"
         onCancel={(e) => {
-          if (isSubmitting) { e.preventDefault(); return }
+          if (isSubmitting) {
+            e.preventDefault()
+            return
+          }
           closeModal()
         }}
         onKeyDown={(e) => {
-          // Belt-and-suspenders: suppress Escape at keydown level too (onCancel alone
-          // is unreliable across browsers when isSubmitting)
           if (e.key === 'Escape' && isSubmitting) {
             e.preventDefault()
             e.stopPropagation()
           }
         }}
-        style={{
-          background: '#000',
-          border: '2px solid #ff0000',
-          color: '#fff',
-          fontFamily: 'monospace',
-          padding: '1.5rem',
-          minWidth: '320px',
-          maxWidth: '90vw',
-        }}
       >
-        <h2 id={`dialog-title-${token.id}`} style={{ color: '#ff0000', marginTop: 0, fontSize: '1rem' }}>
-          Delete token
+        <h2 id={`dialog-title-${token.id}`} className="bp-dialog-title">
+          Sleutel intrekken?
         </h2>
-        <p style={{ color: '#ccc', fontSize: '0.9rem', margin: '0 0 1rem' }}>
-          Are you sure you want to delete <strong style={{ color: '#fff' }}>{token.label}</strong>?
-          This cannot be undone.
+        <p className="bp-dialog-text">
+          Wil je de sleutel <strong>{token.label}</strong> echt intrekken? Dat kan niet ongedaan worden.
         </p>
 
         {error && (
-          <p role="alert" style={{ color: '#ff0000', fontSize: '0.8rem', margin: '0 0 1rem' }}>{error}</p>
+          <p role="alert" style={{ color: 'var(--bp-brand)', fontSize: '0.875rem', margin: '0 0 1rem' }}>
+            {error}
+          </p>
         )}
 
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+        <div className="bp-btn-row" style={{ justifyContent: 'flex-end', marginTop: '1rem' }}>
           <button
             data-cancel
+            type="button"
             onClick={closeModal}
             disabled={isSubmitting}
-            style={{
-              background: '#333',
-              color: '#fff',
-              border: '1px solid #444',
-              padding: '0.4rem 0.8rem',
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              fontFamily: 'monospace',
-              opacity: isSubmitting ? 0.5 : 1,
-            }}
+            className="bp-btn bp-btn--secondary"
           >
-            Cancel
+            Annuleren
           </button>
           <button
+            type="button"
             onClick={handleDelete}
             disabled={isSubmitting}
-            style={{
-              background: isSubmitting ? '#660000' : '#ff0000',
-              color: '#fff',
-              border: 'none',
-              padding: '0.4rem 0.8rem',
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              fontFamily: 'monospace',
-              fontWeight: 'bold',
-            }}
+            className="bp-btn bp-btn--danger"
           >
-            {isSubmitting ? 'Deleting…' : 'Delete'}
+            {isSubmitting ? 'Bezig…' : 'Intrekken'}
           </button>
         </div>
       </dialog>

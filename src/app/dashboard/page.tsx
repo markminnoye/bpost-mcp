@@ -1,4 +1,5 @@
 // src/app/dashboard/page.tsx
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { handleSignOut } from './actions'
@@ -8,7 +9,7 @@ import { tenants, bpostCredentials, apiTokens } from '@/lib/db/schema'
 import { encrypt, hashToken } from '@/lib/crypto'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
-import { env } from '@/lib/config/env'
+import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
 
 interface Props {
   searchParams: Promise<{ token?: string }>
@@ -23,12 +24,15 @@ export default async function DashboardPage({ searchParams }: Props) {
   const params = await searchParams
   const newlyGeneratedToken = params.token ?? null
 
-  // Ensure we are only looking at the tenant associated with the current user
   const tenantId = session.user.tenantId
   if (!tenantId) {
-    // This should ideally not happen due to the signIn callback logic,
-    // but we'll handle it for safety.
-    return <div>No tenant associated with your account. Please contact support.</div>
+    return (
+      <main className="bp-shell bp-shell--narrow">
+        <p className="bp-prose">
+          Er is geen account gekoppeld aan je login. Neem contact op met support als dit blijft gebeuren.
+        </p>
+      </main>
+    )
   }
 
   const [existingTenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1)
@@ -49,13 +53,13 @@ export default async function DashboardPage({ searchParams }: Props) {
   async function saveCreds(formData: FormData) {
     'use server'
     const username = formData.get('username') as string
-    const password = formData.get('password') as string
+    const passwordRaw = (formData.get('password') as string) ?? ''
+    const password = passwordRaw.trim()
     const customerNumber = formData.get('customerNumber') as string
     const accountId = formData.get('accountId') as string
     const prsNumber = (formData.get('prsNumber') as string) || null
     const encKey = process.env.ENCRYPTION_KEY!
 
-    // IMPORTANT: Use the session's tenantId directly within the action for security
     const session = await auth()
     const actionTenantId = session?.user?.tenantId
     if (!actionTenantId) throw new Error('Unauthorized')
@@ -65,8 +69,6 @@ export default async function DashboardPage({ searchParams }: Props) {
     if (!numericOnly.test(accountId)) throw new Error('Account ID must be 1–8 digits')
     if (prsNumber && !numericOnly.test(prsNumber)) throw new Error('PRS Number must be 1–8 digits')
 
-    const { ciphertext, iv } = encrypt(password, encKey)
-
     const [existingCred] = await db
       .select()
       .from(bpostCredentials)
@@ -74,19 +76,34 @@ export default async function DashboardPage({ searchParams }: Props) {
       .limit(1)
 
     if (existingCred) {
-      await db
-        .update(bpostCredentials)
-        .set({ 
-          username, 
-          passwordEncrypted: ciphertext, 
-          passwordIv: iv, 
-          customerNumber, 
-          accountId, 
-          prsNumber, 
-          updatedAt: new Date() 
-        })
-        .where(eq(bpostCredentials.tenantId, actionTenantId))
+      const common = {
+        username,
+        customerNumber,
+        accountId,
+        prsNumber,
+        updatedAt: new Date(),
+      }
+      if (password.length === 0) {
+        await db
+          .update(bpostCredentials)
+          .set(common)
+          .where(eq(bpostCredentials.tenantId, actionTenantId))
+      } else {
+        const { ciphertext, iv } = encrypt(password, encKey)
+        await db
+          .update(bpostCredentials)
+          .set({
+            ...common,
+            passwordEncrypted: ciphertext,
+            passwordIv: iv,
+          })
+          .where(eq(bpostCredentials.tenantId, actionTenantId))
+      }
     } else {
+      if (password.length === 0) {
+        throw new Error('Password is required for new credentials')
+      }
+      const { ciphertext, iv } = encrypt(password, encKey)
       await db.insert(bpostCredentials).values({
         tenantId: actionTenantId,
         username,
@@ -103,221 +120,172 @@ export default async function DashboardPage({ searchParams }: Props) {
   async function generateToken(formData: FormData) {
     'use server'
     const label = (formData.get('label') as string) || 'claude-desktop'
-    
+
     const session = await auth()
     const actionTenantId = session?.user?.tenantId
     if (!actionTenantId) redirect('/dashboard')
 
     const rawToken = `bpost_${randomBytes(32).toString('hex')}`
     const tokenHash = hashToken(rawToken)
-    await db.insert(apiTokens).values({ 
-      tenantId: actionTenantId, 
-      tokenHash, 
-      label 
+    await db.insert(apiTokens).values({
+      tenantId: actionTenantId,
+      tokenHash,
+      label,
     })
     redirect(`/dashboard?token=${encodeURIComponent(rawToken)}`)
   }
 
   return (
-    <main style={{ 
-      padding: '2rem', 
-      fontFamily: 'monospace', 
-      backgroundColor: '#000', 
-      color: '#fff', 
-      minHeight: '100vh' 
-    }}>
-      <h1 style={{ color: '#ff0000', textTransform: 'uppercase', letterSpacing: '0.1rem' }}>BPost MCP — Settings</h1>
-      <p style={{ color: '#888' }}>Logged in as <span style={{ color: '#fff' }}>{session.user.email}</span></p>
-      <form action={handleSignOut}>
-        <button type="submit" style={{ 
-          backgroundColor: '#333', 
-          color: '#fff', 
-          border: '1px solid #444', 
-          padding: '0.5rem 1rem', 
-          cursor: 'pointer',
-          marginBottom: '2rem'
-        }}>Sign out</button>
-      </form>
+    <main className="bp-shell">
+      <header className="bp-dashboard-header">
+        <div className="bp-dashboard-header__titles">
+          <h1 className="bp-page-title">Accountinstellingen</h1>
+          <p className="bp-page-lead">
+            Ingelogd als <strong style={{ color: 'var(--bp-text)' }}>{session.user.email}</strong>
+          </p>
+        </div>
+        <form action={handleSignOut}>
+          <button type="submit" className="bp-btn bp-btn--secondary">
+            Afmelden
+          </button>
+        </form>
+      </header>
 
       {newlyGeneratedToken && (
-        <div style={{ 
-          background: '#1a0000', 
-          border: '2px solid #ff0000', 
-          padding: '1rem', 
-          margin: '1rem 0',
-          boxShadow: '0 0 15px rgba(255,0,0,0.2)'
-        }}>
-          <strong style={{ color: '#ff0000' }}>⚠️ Copy your bearer token now — it will not be shown again:</strong><br />
-          <code style={{ 
-            wordBreak: 'break-all', 
-            backgroundColor: '#000', 
-            display: 'block', 
-            padding: '0.5rem', 
-            marginTop: '0.5rem',
-            border: '1px solid #333'
-          }}>{newlyGeneratedToken}</code>
+        <div className="bp-alert" role="status" style={{ marginBottom: '1.5rem' }}>
+          <strong style={{ color: 'var(--bp-brand)' }}>
+            Kopieer je sleutel nu — je ziet hem daarna niet meer:
+          </strong>
+          <CopyCodeBlock code={newlyGeneratedToken} copyLabel="Sleutel kopiëren" />
         </div>
       )}
 
-      <hr style={{ border: '0', borderTop: '1px solid #333', margin: '2rem 0' }} />
-      
-      <section style={{ marginBottom: '3rem' }}>
-        <h2 style={{ color: '#ff0000', fontSize: '1.2rem', marginBottom: '1rem' }}>BPost Credentials</h2>
-        {existingCreds && (
-          <p style={{ color: '#00ff00', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            ✅ Credentials configured for user: <strong>{existingCreds.username}</strong>
+      <div className="bp-dashboard-stack">
+        <section className="bp-card bp-card--section">
+          <h2 className="bp-section-title">BPost-gegevens</h2>
+          <p className="bp-prose">
+            Dit zijn de gegevens waarmee deze dienst namens jou communiceert met BPost. Alleen voor dit
+            account.
           </p>
-        )}
-        
-        <form action={saveCreds} style={{ display: 'grid', gap: '1rem', maxWidth: '400px' }}>
-          <label style={{ color: '#888', fontSize: '0.8rem' }}>
-            Username<br />
-            <input 
-              name="username" 
-              defaultValue={existingCreds?.username ?? ''} 
-              required 
-              style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
-            />
-          </label>
-          <label style={{ color: '#888', fontSize: '0.8rem' }}>
-            Password<br />
-            <input 
-              name="password" 
-              type="password" 
-              required 
-              style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
-            />
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <label style={{ color: '#888', fontSize: '0.8rem' }}>
-              Customer Number<br />
+          {existingCreds && (
+            <p className="bp-prose" style={{ color: '#15803d', marginTop: '-0.35rem' }}>
+              Er staat al een configuratie voor gebruiker <strong>{existingCreds.username}</strong>.
+            </p>
+          )}
+
+          <form action={saveCreds} className="bp-form-grid">
+            <label className="bp-label">
+              Gebruikersnaam
               <input
-                name="customerNumber"
-                defaultValue={existingCreds?.customerNumber ?? ''}
+                name="username"
+                className="bp-input"
+                defaultValue={existingCreds?.username ?? ''}
                 required
-                pattern="\d{1,8}"
-                maxLength={8}
-                title="1–8 digits, numbers only"
-                style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
               />
             </label>
-            <label style={{ color: '#888', fontSize: '0.8rem' }}>
-              Account ID<br />
+            <label className="bp-label">
+              Wachtwoord (BPost)
               <input
-                name="accountId"
-                defaultValue={existingCreds?.accountId ?? ''}
-                required
-                pattern="\d{1,8}"
-                maxLength={8}
-                title="1–8 digits, numbers only"
-                style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
+                name="password"
+                className="bp-input"
+                type="password"
+                autoComplete="off"
+                required={!existingCreds}
               />
             </label>
-          </div>
-          <label style={{ color: '#888', fontSize: '0.8rem' }}>
-            PRS Number (optional)<br />
-            <input
-              name="prsNumber"
-              defaultValue={existingCreds?.prsNumber ?? ''}
-              pattern="\d{1,8}"
-              maxLength={8}
-              title="1–8 digits, numbers only"
-              style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
-            />
-          </label>
-          <button type="submit" style={{ 
-            backgroundColor: '#ff0000', 
-            color: '#fff', 
-            border: 'none', 
-            padding: '0.8rem', 
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            marginTop: '1rem'
-          }}>Save Credentials</button>
-        </form>
-      </section>
+            {existingCreds ? (
+              <p className="bp-muted-note" style={{ marginTop: '-0.35rem', marginBottom: '0.5rem' }}>
+                Laat het wachtwoord leeg als je het niet wilt wijzigen. Vul wel iets in als je een nieuw
+                wachtwoord wilt opslaan.
+              </p>
+            ) : null}
+            <div className="bp-form-two-col">
+              <label className="bp-label">
+                Klantnummer
+                <input
+                  name="customerNumber"
+                  className="bp-input"
+                  defaultValue={existingCreds?.customerNumber ?? ''}
+                  required
+                  pattern="\d{1,8}"
+                  maxLength={8}
+                  title="1 tot 8 cijfers"
+                />
+              </label>
+              <label className="bp-label">
+                Account-ID
+                <input
+                  name="accountId"
+                  className="bp-input"
+                  defaultValue={existingCreds?.accountId ?? ''}
+                  required
+                  pattern="\d{1,8}"
+                  maxLength={8}
+                  title="1 tot 8 cijfers"
+                />
+              </label>
+            </div>
+            <label className="bp-label">
+              PRS-nummer (optioneel)
+              <input
+                name="prsNumber"
+                className="bp-input"
+                defaultValue={existingCreds?.prsNumber ?? ''}
+                pattern="\d{1,8}"
+                maxLength={8}
+                title="1 tot 8 cijfers"
+              />
+            </label>
+            <button type="submit" className="bp-btn bp-btn--primary" style={{ marginTop: '0.25rem', width: 'fit-content' }}>
+              Gegevens bewaren
+            </button>
+          </form>
+        </section>
 
-      <hr style={{ border: '0', borderTop: '1px solid #333', margin: '2rem 0' }} />
+        <section className="bp-card bp-card--section">
+          <h2 className="bp-section-title">Sleutels voor apps</h2>
+          <p className="bp-prose">
+            Sommige programma&apos;s vragen een vaste sleutel naast je gewone aanmelding. Je beheert die
+            hier. Hoe je ze precies gebruikt, hoort bij de uitleg van dat programma — niet op deze pagina.
+          </p>
+          <form action={generateToken} className="bp-form-grid" style={{ marginBottom: tokens.length ? '1.25rem' : '0' }}>
+            <label className="bp-label">
+              Naam (bv. thuis-computer)
+              <input name="label" className="bp-input" defaultValue="claude-desktop" required />
+            </label>
+            <button type="submit" className="bp-btn bp-btn--secondary" style={{ width: 'fit-content' }}>
+              Nieuwe sleutel maken
+            </button>
+          </form>
 
-      <section>
-        <h2 style={{ color: '#ff0000', fontSize: '1.2rem', marginBottom: '1rem' }}>Bearer Tokens</h2>
-        <form action={generateToken} style={{ display: 'grid', gap: '1rem', maxWidth: '400px', marginBottom: '2rem' }}>
-          <label style={{ color: '#888', fontSize: '0.8rem' }}>
-            Label (e.g. "claude-desktop-prod")<br />
-            <input 
-              name="label" 
-              defaultValue="claude-desktop" 
-              required 
-              style={{ width: '100%', padding: '0.5rem', backgroundColor: '#111', border: '1px solid #333', color: '#fff', marginTop: '0.3rem' }}
-            />
-          </label>
-          <button type="submit" style={{ 
-            backgroundColor: '#333', 
-            color: '#fff', 
-            border: '1px solid #444', 
-            padding: '0.5rem 1rem', 
-            cursor: 'pointer'
-          }}>Generate Token</button>
-        </form>
+          <h3 className="bp-subtitle" style={{ marginTop: tokens.length ? undefined : 0 }}>
+            Actieve sleutels ({tokens.length})
+          </h3>
+          {tokens.length === 0 ? (
+            <p className="bp-empty-hint">Nog geen sleutels. Maak er een aan als een app dat vraagt.</p>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {tokens.map((t) => (
+                <TokenRow
+                  key={t.id}
+                  token={{
+                    id: t.id,
+                    label: t.label,
+                    createdAt: t.createdAt.toISOString(),
+                    lastUsedAt: t.lastUsedAt?.toISOString() ?? null,
+                  }}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
 
-        <h3 style={{ fontSize: '1rem', color: '#fff', marginBottom: '1rem' }}>
-          Tokens ({tokens.length})
-        </h3>
-        <ul style={{ listStyle: 'none', padding: '0', fontSize: '0.9rem' }}>
-          {tokens.map((t) => (
-            <TokenRow
-              key={t.id}
-              token={{
-                id: t.id,
-                label: t.label,
-                createdAt: t.createdAt.toISOString(),
-                lastUsedAt: t.lastUsedAt?.toISOString() ?? null,
-              }}
-            />
-          ))}
-        </ul>
-      </section>
-
-      <hr style={{ border: '0', borderTop: '1px solid #333', margin: '2rem 0' }} />
-
-      <section>
-        <h2 style={{ color: '#ff0000', fontSize: '1.2rem', marginBottom: '1rem' }}>Claude / MCP Clients</h2>
-        <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-          Verbind Claude met je BPost account:
-        </p>
-        <div style={{
-          background: '#111',
-          border: '1px solid #333',
-          borderRadius: '4px',
-          padding: '12px',
-          fontFamily: 'monospace',
-          fontSize: '13px',
-          color: '#00ff00',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem'
-        }}>
-          <code>{`${env.NEXT_PUBLIC_BASE_URL}/api/mcp`}</code>
-        </div>
-        <p style={{ color: '#888', fontSize: '0.8rem' }}>
-          Plak deze URL in Claude Desktop onder Settings &gt; MCP Servers.
-          Claude regelt de login automatisch via Google.
-        </p>
-        <a
-          href="/install"
-          style={{
-            display: 'inline-block',
-            marginTop: '0.75rem',
-            fontSize: '0.85rem',
-            color: '#ff0000',
-            textDecoration: 'none',
-            fontWeight: '600',
-          }}
-        >
-          How to connect →
-        </a>
-      </section>
+      <p className="bp-muted-note" style={{ marginTop: '2rem' }}>
+        <Link href="/" className="bp-link">
+          ← Terug naar start
+        </Link>
+      </p>
     </main>
   )
 }
