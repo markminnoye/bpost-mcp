@@ -9,10 +9,13 @@ import { verifyToken } from '@/lib/oauth/verify-token'
 import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
 import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
+import { applyMapping } from '@/lib/batch/apply-mapping'
+import { validateMappingTargets } from '@/lib/batch/validate-mapping-targets'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
 import { reportIssueToGithub } from '@/lib/github/report-issue'
 import { MCP_SERVER_INSTRUCTIONS } from '@/lib/mcp/server-instructions'
+import { APP_VERSION, MCP_SERVER_DISPLAY_NAME } from '@/lib/app-version'
 import fs from 'fs/promises'
 import path from 'path'
 import vm from 'vm'
@@ -34,6 +37,25 @@ async function resolveCredentials(tenantId: string) {
 
 const handler = createMcpHandler(
   (server) => {
+    server.registerTool(
+      'get_service_info',
+      {
+        description:
+          'Returns the BPost MCP service name and semantic version from package.json. ' +
+          'Call when the user asks which version or release of the service they are connected to, or for support diagnostics.',
+        inputSchema: z.object({}),
+      },
+      async (_input, extra) => {
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+
+        const payload = { service: MCP_SERVER_DISPLAY_NAME, version: APP_VERSION }
+        return {
+          content: [{ type: 'text' as const, text: JSON.stringify(payload) }],
+        }
+      },
+    )
+
     // ── Self-Learning & Feedback Tools ───────────────────────────────────
 
     server.registerTool(
@@ -240,6 +262,9 @@ const handler = createMcpHandler(
       {
         description:
           'After upload: maps each spreadsheet column header to the correct BPost mailing-row field key (Item schema). ' +
+          'Flat fields: lang, priority, psCode, midNum. ' +
+          'Address columns: use Comps.<code> dot-notation, e.g. { "Familienaam": "Comps.1", "Voornaam": "Comps.2", "Straatnaam": "Comps.3", "Huisnummer": "Comps.4", "Bus": "Comps.5", "Postcode": "Comps.8", "Gemeente": "Comps.9" }. ' +
+          'seq is auto-generated from row index (1-based) unless explicitly mapped. ' +
           'Required before row-level checks are meaningful; afterwards each row is validated against bpost field rules.',
         inputSchema: z.object({
           batchId: z.string(),
@@ -261,17 +286,13 @@ const handler = createMcpHandler(
           return { isError: true, content: [{ type: 'text' as const, text: `Mapping references unknown source columns: ${unknownCols.join(', ')}. Available headers: ${state.headers.join(', ')}` }] }
         }
 
-        const knownFields = Object.keys(ItemSchema.shape)
-        const unknownTargets = Object.values(input.mapping).filter(target => !knownFields.includes(target))
-        if (unknownTargets.length > 0) {
-          return { isError: true, content: [{ type: 'text' as const, text: `Mapping references unknown target fields: ${unknownTargets.join(', ')}. Known fields: ${knownFields.join(', ')}` }] }
+        const targetError = validateMappingTargets(input.mapping)
+        if (targetError) {
+          return { isError: true, content: [{ type: 'text' as const, text: targetError.hint }] }
         }
 
         state.rows = state.rows.map(r => {
-          const mapped: Record<string, unknown> = {}
-          Object.entries(input.mapping).forEach(([sourceCol, targetCol]) => {
-            mapped[targetCol] = r.raw[sourceCol]
-          })
+          const mapped = applyMapping(r.raw, input.mapping, r.index + 1)
           const result = ItemSchema.safeParse(mapped)
           return {
             ...r,
@@ -481,7 +502,7 @@ const handler = createMcpHandler(
     )
   },
   {
-    serverInfo: { name: 'bpost-emasspost', version: '1.0.0' },
+    serverInfo: { name: MCP_SERVER_DISPLAY_NAME, version: APP_VERSION },
     instructions: MCP_SERVER_INSTRUCTIONS,
   },
   { basePath: '/api' },

@@ -50,6 +50,14 @@ All implementation plans, design specs, and architecture decisions live here.
 
 ---
 
+## Phase 2 — Batch Pipeline Fixes
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Issue #10: Comps Mapping + seq Auto-Generation](../../docs/superpowers/plans/2026-04-11-issue10-mapping-comps-seq.md) | ✅ | Fix Comps aggregation, seq auto-gen, error hints |
+
+---
+
 ## Project Onboarding & Setup
 
 | Plan | Status | Notes |

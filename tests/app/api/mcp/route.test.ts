@@ -83,6 +83,29 @@ describe('MCP route auth via withMcpAuth', () => {
     const res = await POST(req)
     expect(res.status).toBe(401)
   })
+
+  it('get_service_info returns JSON with service name and package version', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'get_service_info', arguments: {} },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    const parsed = JSON.parse(text)
+    expect(parsed.service).toBe('bpost-emasspost')
+    expect(parsed.version).toMatch(/^\d+\.\d+\.\d+/)
+  })
 })
 
 describe('apply_row_fix data pollution', () => {
@@ -217,6 +240,83 @@ describe('apply_mapping_rules reset', () => {
     const body = await parseSseBody(res)
     // Should succeed (not return isError) — re-mapping a MAPPED batch is allowed
     expect((body?.result as any)?.isError).toBeFalsy()
+  })
+})
+
+describe('apply_mapping_rules Comps dot-notation', () => {
+  it('maps Comps.<code> targets into nested Comps object with auto-seq', async () => {
+    const mockState = {
+      batchId: 'b-comps', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['Naam', 'Straat', 'Postcode', 'Gemeente', 'Taal', 'Prioriteit'],
+      rows: [{
+        index: 0,
+        raw: { Naam: 'Janssen', Straat: 'Kerkstraat', Postcode: '2000', Gemeente: 'Antwerpen', Taal: 'nl', Prioriteit: 'NP' },
+      }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: {
+          name: 'apply_mapping_rules',
+          arguments: {
+            batchId: 'b-comps',
+            mapping: {
+              Naam: 'Comps.1',
+              Straat: 'Comps.3',
+              Postcode: 'Comps.8',
+              Gemeente: 'Comps.9',
+              Taal: 'lang',
+              Prioriteit: 'priority',
+            },
+          },
+        },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    // Verify the response contains success message with correct row count
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    expect(text).toContain('Successfully mapped 1 rows.')
+  })
+
+  it('rejects bare "Comps" target with a helpful hint', async () => {
+    const mockState = {
+      batchId: 'b-bare', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['Naam'],
+      rows: [{ index: 0, raw: { Naam: 'Jan' } }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(verifyToken).mockClear().mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: {
+          name: 'apply_mapping_rules',
+          arguments: { batchId: 'b-bare', mapping: { Naam: 'Comps' } },
+        },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeTruthy()
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    expect(text).toContain('Comps.<code>')
   })
 })
 

@@ -5,7 +5,9 @@ type McpErrorResponse = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function requireTenantId(extra: any): string | McpErrorResponse {
-  const tenantId = extra?.authInfo?.extra?.tenantId as string | undefined
+  // Support both paths: withMcpAuth provides extra.extra.tenantId
+  // (authInfo is the MCP SDK-level wrapper; extra carries app-level context)
+  const tenantId = (extra?.extra?.tenantId ?? extra?.authInfo?.extra?.tenantId) as string | undefined
   if (!tenantId) {
     return {
       content: [{ type: 'text' as const, text: JSON.stringify({ error: 'Unauthorized: no tenant context' }) }],
