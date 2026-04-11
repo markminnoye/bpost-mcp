@@ -262,6 +262,9 @@ const handler = createMcpHandler(
       {
         description:
           'After upload: maps each spreadsheet column header to the correct BPost mailing-row field key (Item schema). ' +
+          'Flat fields: lang, priority, psCode, midNum. ' +
+          'Address columns: use Comps.<code> dot-notation, e.g. { "Familienaam": "Comps.1", "Voornaam": "Comps.2", "Straatnaam": "Comps.3", "Huisnummer": "Comps.4", "Bus": "Comps.5", "Postcode": "Comps.8", "Gemeente": "Comps.9" }. ' +
+          'seq is auto-generated from row index (1-based) unless explicitly mapped. ' +
           'Required before row-level checks are meaningful; afterwards each row is validated against bpost field rules.',
         inputSchema: z.object({
           batchId: z.string(),
