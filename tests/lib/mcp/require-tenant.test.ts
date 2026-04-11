@@ -22,4 +22,17 @@ describe('requireTenantId', () => {
     expect(typeof result).toBe('object')
     expect((result as any).isError).toBe(true)
   })
+
+  it('returns tenantId from extra.extra.tenantId (withMcpAuth direct path)', () => {
+    const extra = { extra: { tenantId: 'tenant_direct' } }
+    expect(requireTenantId(extra)).toBe('tenant_direct')
+  })
+
+  it('prefers extra.extra.tenantId over authInfo path when both exist', () => {
+    const extra = {
+      extra: { tenantId: 'preferred' },
+      authInfo: { extra: { tenantId: 'fallback' } },
+    }
+    expect(requireTenantId(extra)).toBe('preferred')
+  })
 })

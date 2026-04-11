@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Comps dot-notation in `apply_mapping_rules`**: Multiple CSV columns can now be aggregated into the nested BPost `Comps` object using `Comps.<code>` syntax (e.g. `"Familienaam": "Comps.1"`, `"Straatnaam": "Comps.3"`). Eliminates the need for manual `apply_row_fix` on every row for address data — the most common use case. ([#10](https://github.com/markminnoye/bpost-mcp/issues/10))
+- **Automatic `seq` generation**: `seq` is now auto-assigned from the 1-based row index during mapping when not explicitly mapped, removing a mandatory manual correction step.
+- **Actionable Comps error hints**: When mapping targets are invalid, the error message now explains the `Comps.<code>` syntax with a concrete Belgian address example and lists valid comp codes.
+- **`src/lib/batch/apply-mapping.ts`**: Pure mapping function handling flat fields, Comps aggregation, and seq auto-generation.
+- **`src/lib/batch/validate-mapping-targets.ts`**: Target validator accepting `ItemSchema` flat fields and valid `Comps.<code>` entries with descriptive hints.
+
 ### Fixed
 - **`report_issue` fallback without `GITHUB_TOKEN`**: When `GITHUB_TOKEN` is unset on the server, the tool returns a prefilled GitHub "new issue" URL so users can still report issues in the browser; the same fallback link is also included on GitHub API errors.
 - **Claude Desktop / MCP OAuth on custom domains**: OAuth metadata (`.well-known/oauth-authorization-server`, `.well-known/oauth-protected-resource`), authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from `getPublicOrigin(request)` instead of only `NEXT_PUBLIC_BASE_URL`, so the same deployment works when users hit a custom domain while env still points at the default deployment hostname.

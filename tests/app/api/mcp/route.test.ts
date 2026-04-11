@@ -3,9 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 // Mock verifyToken — withMcpAuth calls this to authenticate requests
 vi.mock('@/lib/oauth/verify-token', () => ({
-  verifyToken: vi.fn().mockResolvedValue({
-    token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
-  }),
+  verifyToken: vi.fn(),
 }))
 
 // Mock getCredentialsByTenantId to avoid DB access
@@ -258,6 +256,9 @@ describe('apply_mapping_rules Comps dot-notation', () => {
     }
     vi.mocked(getBatchState).mockResolvedValue(mockState as any)
     vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
 
     const req = new Request('http://localhost:3000/api/mcp', {
       method: 'POST',
