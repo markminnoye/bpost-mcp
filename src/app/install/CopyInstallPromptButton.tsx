@@ -2,23 +2,11 @@
 
 import { useCallback, useState, type CSSProperties } from 'react'
 
-const btnStyle: CSSProperties = {
-  padding: '0.65rem 1.25rem',
-  backgroundColor: '#e30613',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '6px',
-  fontWeight: 600,
-  fontSize: '0.95rem',
-  cursor: 'pointer',
-  fontFamily: 'system-ui, sans-serif',
-}
-
 const statusStyle: CSSProperties = {
-  fontSize: '0.85rem',
-  marginTop: '0.5rem',
+  fontSize: '0.875rem',
+  marginTop: '0.6rem',
   minHeight: '1.25rem',
-  color: '#333',
+  color: 'var(--bp-muted)',
 }
 
 export function CopyInstallPromptButton() {
@@ -42,7 +30,7 @@ export function CopyInstallPromptButton() {
 
   return (
     <div>
-      <button type="button" style={btnStyle} onClick={onCopy}>
+      <button type="button" className="bp-btn bp-btn--primary" onClick={onCopy}>
         Kopieer de installatie-prompt
       </button>
       <p style={statusStyle} role="status" aria-live="polite">
