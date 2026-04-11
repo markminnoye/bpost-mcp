@@ -1,4 +1,5 @@
 import { env } from '@/lib/config/env'
+import { CopyInstallPromptButton } from '@/app/install/CopyInstallPromptButton'
 
 const BASE_URL = env.NEXT_PUBLIC_BASE_URL
 const MCP_URL = `${BASE_URL}/api/mcp`
@@ -151,6 +152,18 @@ export default function InstallPage() {
       <p style={styles.subtitle}>
         Follow the steps below to connect Claude Desktop or Claude Code to your BPost account.
       </p>
+
+      <section style={{ ...styles.section, marginBottom: '2rem' }}>
+        <h2 style={{ ...styles.heading2, fontSize: '1.15rem', marginBottom: '0.5rem' }}>
+          Voor je AI-assistent
+        </h2>
+        <p style={styles.intro}>
+          Met één klik kopieer je de volledige begeleidingsprompt (Nederlands en Engels) naar je klembord.
+          Plak die daarna in Claude of een andere ondersteunde assistent: die helpt je stap voor stap,
+          in begrijpelijke taal, zonder technisch jargon.
+        </p>
+        <CopyInstallPromptButton />
+      </section>
 
       {/* Which method? */}
       <style>{`
