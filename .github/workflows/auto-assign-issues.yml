@@ -1,0 +1,28 @@
+name: Auto-Assign and Add to Project
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  assign-and-project:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Assign issue to markminnoye
+        run: |
+          gh issue edit ${{ github.event.issue.number }} --add-assignee markminnoye
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: Add issue to contrapuntaiification project
+        run: |
+          gh project item-add 4 \
+            --owner markminnoye \
+            --url ${{ github.event.issue.html_url }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
