@@ -8,11 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **`report_issue` fallback without `GITHUB_TOKEN`**: When `GITHUB_TOKEN` is unset on the server, the tool returns a prefilled GitHub "new issue" URL so users can still report issues in the browser; the same fallback link is also included on GitHub API errors.
 - **Claude Desktop / MCP OAuth on custom domains**: OAuth metadata (`.well-known/oauth-authorization-server`, `.well-known/oauth-protected-resource`), authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from `getPublicOrigin(request)` instead of only `NEXT_PUBLIC_BASE_URL`, so the same deployment works when users hit a custom domain while env still points at the default deployment hostname.
 - **OAuth resource URL alignment**: Protected resource metadata and stored auth codes use a canonical MCP URL (`{origin}/api/mcp`); token exchange accepts equivalent origin vs `/api/mcp` forms and allows omitting `resource` on the token request when the code was bound to the canonical MCP resource (client interop).
 - **Opaque 500 on `/oauth/token` when JWT secret missing**: `OAUTH_JWT_SECRET` is required in `env.ts` (Zod) so misconfigured deployments fail at startup with a clear validation error instead of at first token issuance.
 
 ### Added
+- **`get_service_info` MCP tool**: Returns `{"service":"bpost-emasspost","version":"<package.json version>"}`; enables agents and users to query the service version. Server `serverInfo` now reads version from `package.json` dynamically instead of a hardcoded string.
+- **`src/lib/app-version.ts`**: Single source of truth for `APP_VERSION` and `MCP_SERVER_DISPLAY_NAME`, imported by the MCP route.
 - **`src/lib/oauth/resource-url.ts`**: Helpers for canonical MCP resource URL and OAuth `resource` normalization / token-endpoint matching.
 - **JWT signing options** (`src/lib/oauth/jwt.ts`): `signAccessToken` accepts `{ issuerBaseUrl, expiresInOverride }`; `verifyAccessToken` accepts multiple allowed issuer bases for custom-domain + env transition.
 - **`jwtAllowedIssuerBases`** (`src/lib/oauth/verify-token.ts`): Verifies OAuth JWTs against request origin and configured base when they differ.
