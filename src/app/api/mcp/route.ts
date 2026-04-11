@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
+import { MCP_SERVER_INSTRUCTIONS } from '@/lib/mcp/server-instructions'
 import fs from 'fs/promises'
 import path from 'path'
 import vm from 'vm'
@@ -215,7 +216,8 @@ const handler = createMcpHandler(
       'get_upload_instructions',
       {
         description:
-          'Returns the exact command to execute in your local terminal to securely upload an Excel or CSV file to the BPost MCP Service. Use this BEFORE attempting to validate a local file.',
+          'Returns a one-line curl command to upload a CSV/Excel file to this service (out-of-band, avoids huge files in chat). ' +
+          'Call first when the user has a local file to check; you need the returned batch id for later steps.',
         inputSchema: z.object({}),
       },
       async (_input, extra) => {
@@ -235,7 +237,9 @@ const handler = createMcpHandler(
     server.registerTool(
       'get_raw_headers',
       {
-        description: 'Fetch the raw CSV headers of a newly uploaded batch. Use to prepare semantic mapping rules before triaging errors.',
+        description:
+          'After upload: returns the spreadsheet column headers for this batch so you can build the column→BPost field map. ' +
+          'Call before apply_mapping_rules when headers are unknown.',
         inputSchema: z.object({ batchId: z.string() }),
       },
       async (input, extra) => {
@@ -264,7 +268,9 @@ const handler = createMcpHandler(
     server.registerTool(
       'apply_mapping_rules',
       {
-        description: 'Applies mapping rules to transform raw CSV columns into BPost schema fields. Moves the batch from UNMAPPED to MAPPED.',
+        description:
+          'After upload: maps each spreadsheet column header to the correct BPost mailing-row field key (Item schema). ' +
+          'Required before row-level checks are meaningful; afterwards each row is validated against bpost field rules.',
         inputSchema: z.object({
           batchId: z.string(),
           mapping: z.record(z.string(), z.string()).describe('Format: { "Client Loc": "postalCode" }'),
@@ -318,7 +324,8 @@ const handler = createMcpHandler(
     server.registerTool(
       'get_batch_errors',
       {
-        description: 'Retrieves rows that failed Zod validation after mapping so you can trivially triage them with the user.',
+        description:
+          'Returns rows that failed field validation after mapping (BPost mailing item rules). Use to fix or explain issues to the user in plain language.',
         inputSchema: z.object({ batchId: z.string(), limit: z.number().int().min(1).default(10) }),
       },
       async (input, extra) => {
@@ -337,7 +344,8 @@ const handler = createMcpHandler(
     server.registerTool(
       'apply_row_fix',
       {
-        description: 'Fixes a specific row using corrected payload data. Submits the surgical fix to the KV state cache.',
+        description:
+          'Patches one mapped row with corrected field values, re-validates against BPost item rules, and persists the batch state.',
         inputSchema: z.object({
           batchId: z.string(),
           rowIndex: z.number().int().min(0),
@@ -379,7 +387,8 @@ const handler = createMcpHandler(
     server.registerTool(
       'submit_ready_batch',
       {
-        description: 'Submits all successfully validated rows from the KV batch to the physical BPost e-MassPost service via our XML Client.',
+        description:
+          'Submits all validated rows from the current uploaded batch to BPost e-MassPost (XML client). Only rows without validation errors are included.',
         inputSchema: z.object({ batchId: z.string() }),
       },
       async (input, extra) => {
@@ -501,7 +510,10 @@ const handler = createMcpHandler(
       },
     )
   },
-  { serverInfo: { name: 'bpost-emasspost', version: '1.0.0' } },
+  {
+    serverInfo: { name: 'bpost-emasspost', version: '1.0.0' },
+    instructions: MCP_SERVER_INSTRUCTIONS,
+  },
   { basePath: '/api' },
 )
 

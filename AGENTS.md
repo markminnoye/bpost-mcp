@@ -82,6 +82,17 @@ Invoke relevant skill from `.agent/skills/` before matching tasks.
 | `markdown-token-optimizer` | Token efficiency |
 | `NotebookLM-WrapUp` | Session handoff |
 
+### Customer-facing copy (Vlaams, niet-technisch)
+
+Wanneer je **klantgerichte** code of teksten wijzigt (UI, user-visible errors, onboarding, e-mails, help):
+
+1. Laad expliciet: `@.agent/prompts/customer-facing-agent.md`
+2. Pas die regels **alleen** toe op user-facing output; MCP-toolbeschrijvingen en developer-docs blijven technisch (zie eerdere secties).
+
+**Chat via MCP:** het model krijgt bij connect ook `instructions` uit `src/lib/mcp/server-instructions.ts` (Vlaams naar de gebruiker, geen jargon). Wijzig die tekst daar als de gewenste chat-toon aangepast wordt.
+
+**Cursor:** voor `dashboard`, `install`, `page.tsx` en `layout.tsx` wordt `.cursor/rules/bpost-customer-facing.mdc` automatisch meegenomen; breid globs daar uit als nieuwe klantpagina’s bijkomen.
+
 ### Cross-Agent Collaboration
 
 1. **Shared Logic:** Use `.agent/skills/` and `.agent/workflows/`.
