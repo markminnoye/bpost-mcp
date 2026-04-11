@@ -406,6 +406,8 @@ describe('Self-Learning Tools', () => {
     const res = await POST(req)
     const body = await parseSseBody(res)
     expect((body?.result as any)?.isError).toBeFalsy()
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    expect(text).toContain('http://github.com/issue/1')
     expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('bpost-mcp/issues'), expect.objectContaining({
       method: 'POST',
       headers: expect.objectContaining({ 'Authorization': 'Bearer test-token' })

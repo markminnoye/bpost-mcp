@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
+import { reportIssueToGithub } from '@/lib/github/report-issue'
 import { MCP_SERVER_INSTRUCTIONS } from '@/lib/mcp/server-instructions'
 import fs from 'fs/promises'
 import path from 'path'
@@ -163,7 +164,8 @@ const handler = createMcpHandler(
       'report_issue',
       {
         description:
-          'Autonomously reports a technical contradiction, protocol bug, or server failure to the human development team via GitHub Issues.',
+          'Reports a technical contradiction, protocol bug, or server failure to the development team via GitHub Issues. ' +
+          'When the server has a GitHub token, creates the issue automatically; otherwise returns a prefilled GitHub "new issue" URL for the user to complete in the browser.',
         inputSchema: z.object({
           repo: z.enum(['mcp', 'skills']).describe('Which repository to report to: "mcp" for server bugs, "skills" for protocol/docs issues'),
           title: z.string().describe('Short descriptive title of the issue'),
@@ -174,39 +176,7 @@ const handler = createMcpHandler(
         const tenantOrError = requireTenantId(extra)
         if (typeof tenantOrError !== 'string') return tenantOrError
 
-        const githubToken = env.GITHUB_TOKEN
-        if (!githubToken) {
-          return { isError: true, content: [{ type: 'text' as const, text: 'GITHUB_TOKEN not configured on server. Cannot report issue.' }] }
-        }
-
-        const repoName = input.repo === 'mcp' ? 'bpost-mcp' : 'bpost-e-masspost-skills'
-        const url = `https://api.github.com/repos/markminnoye/${repoName}/issues`
-
-        try {
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${githubToken}`,
-              'Accept': 'application/vnd.github.v3+json',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              title: `[AGENT] ${input.title}`,
-              body: `${input.body}\n\n---\n*Reported by BPost MCP Agent*`,
-            }),
-          })
-
-          if (!res.ok) {
-            const error = await res.text()
-            throw new Error(`GitHub API error: ${res.status} ${error}`)
-          }
-
-          const issue = await res.json()
-          return { content: [{ type: 'text' as const, text: `Successfully reported issue: ${issue.html_url}` }] }
-        } catch (err) {
-          console.error('[MCP] report_issue failed:', err)
-          return { isError: true, content: [{ type: 'text' as const, text: `Failed to create GitHub issue: ${err instanceof Error ? err.message : String(err)}` }] }
-        }
+        return reportIssueToGithub(env.GITHUB_TOKEN, input)
       },
     )
 
