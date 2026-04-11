@@ -62,7 +62,7 @@ describe('applyMapping', () => {
   it('sorts Comp entries by numeric code', () => {
     const raw = { B: 'second', A: 'first' }
     const mapping = { B: 'Comps.10', A: 'Comps.2' }
-    const result = applyMapping(raw, mapping, 1)
+    const result = applyMapping(raw, mapping, 1) as { Comps: { Comp: Array<{ code: string }> } }
 
     expect(result.Comps.Comp[0].code).toBe('2')
     expect(result.Comps.Comp[1].code).toBe('10')
@@ -71,7 +71,7 @@ describe('applyMapping', () => {
   it('skips Comps entries with empty/undefined values', () => {
     const raw = { Naam: 'Jan', Bus: '' }
     const mapping = { Naam: 'Comps.1', Bus: 'Comps.5' }
-    const result = applyMapping(raw, mapping, 1)
+    const result = applyMapping(raw, mapping, 1) as { Comps: { Comp: Array<{ code: string; value: string }> } }
 
     expect(result.Comps.Comp).toHaveLength(1)
     expect(result.Comps.Comp[0]).toEqual({ code: '1', value: 'Jan' })
@@ -85,7 +85,7 @@ describe('applyMapping', () => {
       Naam: 'Comps.1',
       Straat: 'Comps.3',
     }
-    const result = applyMapping(raw, mapping, 1)
+    const result = applyMapping(raw, mapping, 1) as { seq: number; lang: string; priority: string; Comps: { Comp: Array<{ code: string; value: string }> } }
 
     expect(result.seq).toBe(1)
     expect(result.lang).toBe('nl')
