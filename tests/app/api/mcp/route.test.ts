@@ -83,6 +83,29 @@ describe('MCP route auth via withMcpAuth', () => {
     const res = await POST(req)
     expect(res.status).toBe(401)
   })
+
+  it('get_service_info returns JSON with service name and package version', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'get_service_info', arguments: {} },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    const parsed = JSON.parse(text)
+    expect(parsed.service).toBe('bpost-emasspost')
+    expect(parsed.version).toMatch(/^\d+\.\d+\.\d+/)
+  })
 })
 
 describe('apply_row_fix data pollution', () => {

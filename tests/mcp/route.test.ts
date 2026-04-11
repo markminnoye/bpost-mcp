@@ -76,6 +76,7 @@ describe('MCP route (Phase 2 — withMcpAuth)', () => {
     }
 
     const toolNames = body.result?.tools?.map((t) => t.name) ?? []
+    expect(toolNames).toContain('get_service_info')
     expect(toolNames).toContain('bpost_announce_deposit')
     expect(toolNames).toContain('bpost_announce_mailing')
   })

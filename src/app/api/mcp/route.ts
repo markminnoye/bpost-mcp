@@ -13,6 +13,7 @@ import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
 import { reportIssueToGithub } from '@/lib/github/report-issue'
 import { MCP_SERVER_INSTRUCTIONS } from '@/lib/mcp/server-instructions'
+import { APP_VERSION, MCP_SERVER_DISPLAY_NAME } from '@/lib/app-version'
 import fs from 'fs/promises'
 import path from 'path'
 import vm from 'vm'
@@ -34,6 +35,25 @@ async function resolveCredentials(tenantId: string) {
 
 const handler = createMcpHandler(
   (server) => {
+    server.registerTool(
+      'get_service_info',
+      {
+        description:
+          'Returns the BPost MCP service name and semantic version from package.json. ' +
+          'Call when the user asks which version or release of the service they are connected to, or for support diagnostics.',
+        inputSchema: z.object({}),
+      },
+      async (_input, extra) => {
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+
+        const payload = { service: MCP_SERVER_DISPLAY_NAME, version: APP_VERSION }
+        return {
+          content: [{ type: 'text' as const, text: JSON.stringify(payload) }],
+        }
+      },
+    )
+
     // ── Self-Learning & Feedback Tools ───────────────────────────────────
 
     server.registerTool(
@@ -481,7 +501,7 @@ const handler = createMcpHandler(
     )
   },
   {
-    serverInfo: { name: 'bpost-emasspost', version: '1.0.0' },
+    serverInfo: { name: MCP_SERVER_DISPLAY_NAME, version: APP_VERSION },
     instructions: MCP_SERVER_INSTRUCTIONS,
   },
   { basePath: '/api' },
