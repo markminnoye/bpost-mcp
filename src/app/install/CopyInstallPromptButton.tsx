@@ -3,26 +3,30 @@
 import { useCallback, useState, type CSSProperties } from 'react'
 
 const btnStyle: CSSProperties = {
-  padding: '0.65rem 1.25rem',
+  padding: '0.75rem 1.5rem',
   backgroundColor: '#e30613',
   color: '#fff',
   border: 'none',
-  borderRadius: '6px',
+  borderRadius: '8px',
   fontWeight: 600,
-  fontSize: '0.95rem',
+  fontSize: '1rem',
   cursor: 'pointer',
   fontFamily: 'system-ui, sans-serif',
+  boxShadow: '0 2px 8px rgba(227, 6, 19, 0.25)',
+  transition: 'all 0.2s ease',
 }
 
 const statusStyle: CSSProperties = {
-  fontSize: '0.85rem',
-  marginTop: '0.5rem',
+  fontSize: '0.875rem',
+  marginTop: '0.6rem',
   minHeight: '1.25rem',
-  color: '#333',
+  color: '#444',
+  fontFamily: 'system-ui, sans-serif',
 }
 
 export function CopyInstallPromptButton() {
   const [message, setMessage] = useState('')
+  const [isHovered, setIsHovered] = useState(false)
 
   const onCopy = useCallback(async () => {
     setMessage('')
@@ -42,7 +46,20 @@ export function CopyInstallPromptButton() {
 
   return (
     <div>
-      <button type="button" style={btnStyle} onClick={onCopy}>
+      <button
+        type="button"
+        style={{
+          ...btnStyle,
+          backgroundColor: isHovered ? '#c30511' : '#e30613',
+          transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+          boxShadow: isHovered
+            ? '0 4px 16px rgba(227, 6, 19, 0.35)'
+            : '0 2px 8px rgba(227, 6, 19, 0.25)',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={onCopy}
+      >
         Kopieer de installatie-prompt
       </button>
       <p style={statusStyle} role="status" aria-live="polite">

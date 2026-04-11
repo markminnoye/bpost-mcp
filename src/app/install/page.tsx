@@ -11,7 +11,7 @@ export const metadata = {
 
 const styles = {
   page: {
-    maxWidth: '760px',
+    maxWidth: '900px',
     margin: '0 auto',
     padding: '3rem 2rem',
     fontFamily: 'system-ui, sans-serif',
@@ -172,11 +172,24 @@ export default function InstallPage() {
           text-decoration: none;
           color: inherit;
           cursor: pointer;
-          transition: box-shadow 0.15s ease, border-color 0.15s ease;
+          transition: all 0.2s ease;
+          border: 2px solid transparent;
         }
         .install-card:hover {
-          outline: 2px solid #e30613;
-          box-shadow: 0 2px 10px rgba(227,6,19,0.15);
+          border-color: #e30613;
+          box-shadow: 0 4px 20px rgba(227,6,19,0.2);
+          transform: translateY(-2px);
+        }
+        .cta-link {
+          transition: all 0.2s ease;
+        }
+        .cta-link:hover {
+          background-color: #c30511 !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(227,6,19,0.3);
+        }
+        .footer-link:hover {
+          text-decoration: underline;
         }
       `}</style>
       <section style={styles.section}>
@@ -243,7 +256,7 @@ export default function InstallPage() {
         <p style={{ ...styles.intro, marginBottom: '0.5rem' }}>
           <strong>Step 1 — Generate a token:</strong> Log in to the dashboard and generate a Bearer Token under the &ldquo;Bearer Tokens&rdquo; section.
         </p>
-        <a href="/dashboard" style={styles.ctaLink}>Go to Dashboard →</a>
+        <a href="/dashboard" style={styles.ctaLink} className="cta-link">Go to Dashboard →</a>
 
         <h3 style={styles.heading3}>Claude Desktop</h3>
         <p style={styles.intro}>
@@ -264,7 +277,7 @@ export default function InstallPage() {
       {/* Footer */}
       <footer style={styles.footer}>
         <div>
-          <a href="/dashboard" style={styles.footerLink}>← Back to Dashboard</a>
+          <a href="/dashboard" style={styles.footerLink} className="footer-link">← Back to Dashboard</a>
         </div>
         <div>
           Need help? Contact support or visit the{' '}
@@ -273,6 +286,7 @@ export default function InstallPage() {
             target="_blank"
             rel="noopener noreferrer"
             style={styles.footerLink}
+            className="footer-link"
           >
             Skills Documentation
           </a>
