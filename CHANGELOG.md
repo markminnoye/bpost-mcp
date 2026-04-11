@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Shared customer UI surface** (`src/app/globals.css`): Design tokens and utility classes (`bp-btn`, `bp-card`, `bp-shell`, `bp-install-card`, `bp-code-block`, `bp-icon-btn`, form patterns, dialog styles) for home, install, and dashboard; root `body` uses `bp-customer-body` with Geist font variables (`src/app/layout.tsx`).
+- **`CopyCodeBlock`** (`src/components/customer/CopyCodeBlock.tsx`): Client component with clipboard control and accessible status for JSON/CLI snippets.
+
+### Changed
+- **Home** (`src/app/page.tsx`): Call-to-action links use shared `bp-btn` classes and CSS-only hover (avoids passing event handlers from Server Components).
+- **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout, method choice cards via `bp-install-card`, install snippets wrapped with `CopyCodeBlock`, primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
+- **Dashboard** (`src/app/dashboard/page.tsx`): Card-based “accountinstellingen” layout; BPost password optional on update when credentials already exist (server action keeps prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; “Terug naar start” uses `next/link`.
+- **`TokenRow`** (`src/app/dashboard/TokenRow.tsx`): `nl-BE` date/time formatting, trash control as inline SVG + `bp-icon-btn`, confirmation dialog uses shared button classes.
+
 ---
 
 ## [2.2.0] - 2026-04-11
