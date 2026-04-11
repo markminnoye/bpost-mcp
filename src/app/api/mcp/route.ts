@@ -9,6 +9,8 @@ import { verifyToken } from '@/lib/oauth/verify-token'
 import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
 import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
+import { applyMapping } from '@/lib/batch/apply-mapping'
+import { validateMappingTargets } from '@/lib/batch/validate-mapping-targets'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
 import { reportIssueToGithub } from '@/lib/github/report-issue'
@@ -281,17 +283,13 @@ const handler = createMcpHandler(
           return { isError: true, content: [{ type: 'text' as const, text: `Mapping references unknown source columns: ${unknownCols.join(', ')}. Available headers: ${state.headers.join(', ')}` }] }
         }
 
-        const knownFields = Object.keys(ItemSchema.shape)
-        const unknownTargets = Object.values(input.mapping).filter(target => !knownFields.includes(target))
-        if (unknownTargets.length > 0) {
-          return { isError: true, content: [{ type: 'text' as const, text: `Mapping references unknown target fields: ${unknownTargets.join(', ')}. Known fields: ${knownFields.join(', ')}` }] }
+        const targetError = validateMappingTargets(input.mapping)
+        if (targetError) {
+          return { isError: true, content: [{ type: 'text' as const, text: targetError.hint }] }
         }
 
         state.rows = state.rows.map(r => {
-          const mapped: Record<string, unknown> = {}
-          Object.entries(input.mapping).forEach(([sourceCol, targetCol]) => {
-            mapped[targetCol] = r.raw[sourceCol]
-          })
+          const mapped = applyMapping(r.raw, input.mapping, r.index + 1)
           const result = ItemSchema.safeParse(mapped)
           return {
             ...r,
