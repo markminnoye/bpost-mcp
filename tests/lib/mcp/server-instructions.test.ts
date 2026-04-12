@@ -6,5 +6,7 @@ describe('MCP_SERVER_INSTRUCTIONS', () => {
     expect(MCP_SERVER_INSTRUCTIONS.length).toBeGreaterThan(200)
     expect(MCP_SERVER_INSTRUCTIONS).toMatch(/Flemish|Belgian Dutch/i)
     expect(MCP_SERVER_INSTRUCTIONS).toMatch(/bpost|BPost/i)
+    expect(MCP_SERVER_INSTRUCTIONS).toMatch(/alpha|alfa/i)
+    expect(MCP_SERVER_INSTRUCTIONS).toMatch(/test mode|mode/i)
   })
 })

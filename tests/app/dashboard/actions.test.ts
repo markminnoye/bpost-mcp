@@ -24,26 +24,26 @@ beforeEach(() => vi.clearAllMocks())
 describe('revokeToken', () => {
   it('returns VALIDATION_ERROR for a non-UUID id', async () => {
     const result = await revokeToken('not-a-uuid')
-    expect(result).toEqual({ ok: false, code: 'VALIDATION_ERROR', error: 'Invalid request.' })
+    expect(result).toEqual({ ok: false, code: 'VALIDATION_ERROR', error: 'Ongeldige aanvraag.' })
   })
 
   it('returns AUTH_ERROR when session is absent', async () => {
     mockAuth.mockResolvedValue(null)
     const result = await revokeToken(VALID_UUID)
-    expect(result).toEqual({ ok: false, code: 'AUTH_ERROR', error: 'Session expired. Please sign in again.' })
+    expect(result).toEqual({ ok: false, code: 'AUTH_ERROR', error: 'Je sessie is verlopen. Meld je opnieuw aan.' })
   })
 
   it('returns AUTH_ERROR when session has no tenantId', async () => {
     mockAuth.mockResolvedValue({ user: {} })
     const result = await revokeToken(VALID_UUID)
-    expect(result).toEqual({ ok: false, code: 'AUTH_ERROR', error: 'Session expired. Please sign in again.' })
+    expect(result).toEqual({ ok: false, code: 'AUTH_ERROR', error: 'Je sessie is verlopen. Meld je opnieuw aan.' })
   })
 
   it('returns AUTH_ERROR when token is not found', async () => {
     mockAuth.mockResolvedValue({ user: { tenantId: TENANT_ID } })
     mockDbSelect.mockReturnValue({ from: () => ({ where: () => ({ limit: () => [] }) }) })
     const result = await revokeToken(VALID_UUID)
-    expect(result).toEqual({ ok: false, code: 'AUTH_ERROR', error: 'Session expired. Please sign in again.' })
+    expect(result).toEqual({ ok: false, code: 'AUTH_ERROR', error: 'Je sessie is verlopen. Meld je opnieuw aan.' })
   })
 
   it('returns AUTH_ERROR when token belongs to a different tenant', async () => {
@@ -52,7 +52,7 @@ describe('revokeToken', () => {
       from: () => ({ where: () => ({ limit: () => [{ id: VALID_UUID, tenantId: 'other-tenant' }] }) }),
     })
     const result = await revokeToken(VALID_UUID)
-    expect(result).toEqual({ ok: false, code: 'AUTH_ERROR', error: 'Session expired. Please sign in again.' })
+    expect(result).toEqual({ ok: false, code: 'AUTH_ERROR', error: 'Je sessie is verlopen. Meld je opnieuw aan.' })
   })
 
   it('returns TRANSIENT_ERROR on DB delete failure', async () => {
@@ -62,7 +62,7 @@ describe('revokeToken', () => {
     })
     mockDbDelete.mockReturnValue({ where: () => { throw new Error('db down') } })
     const result = await revokeToken(VALID_UUID)
-    expect(result).toEqual({ ok: false, code: 'TRANSIENT_ERROR', error: 'Failed to delete token. Please try again.' })
+    expect(result).toEqual({ ok: false, code: 'TRANSIENT_ERROR', error: 'Sleutel verwijderen is mislukt. Probeer opnieuw.' })
   })
 
   it('returns ok:true with redirect on success', async () => {

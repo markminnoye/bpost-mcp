@@ -7,15 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [2.2.0] - 2026-04-12
+
 ### Added
-- **Shared customer UI surface** (`src/app/globals.css`): Design tokens and utility classes (`bp-btn`, `bp-card`, `bp-shell`, `bp-install-card`, `bp-code-block`, `bp-icon-btn`, form patterns, dialog styles) for home, install, and dashboard; root `body` uses `bp-customer-body` with Geist font variables (`src/app/layout.tsx`).
-- **`CopyCodeBlock`** (`src/components/customer/CopyCodeBlock.tsx`): Client component with clipboard control and accessible status for JSON/CLI snippets.
+- **`AlphaServiceBanner`** (`src/components/customer/AlphaServiceBanner.tsx`): Reusable alpha-warning banner for pre-release notices; used on home, install, and dashboard.
+- **`CopyCodeBlock`** (`src/components/customer/CopyCodeBlock.tsx`): Client component with clipboard copy and accessible status for JSON/CLI snippets.
+- **Shared customer UI surface** (`src/app/globals.css`): Design tokens and utility classes (`bp-btn`, `bp-card`, `bp-shell`, `bp-install-card`, `bp-code-block`, `bp-icon-btn`, form patterns, dialog styles) for home, install, and dashboard; root `body` uses `bp-customer-body` with Geist font variables.
+- **Install guide** (`docs/install/install-prompt.md`): Non-technical step-by-step guide for connecting Claude Desktop, Claude Code, and Claude.ai via OAuth or Bearer token.
+- **Tests**: `app-version.test.ts` and `server-instructions.test.ts` validate version export and Flemish tone respectively.
 
 ### Changed
-- **Home** (`src/app/page.tsx`): Call-to-action links use shared `bp-btn` classes and CSS-only hover (avoids passing event handlers from Server Components).
-- **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout, method choice cards via `bp-install-card`, install snippets wrapped with `CopyCodeBlock`, primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
-- **Dashboard** (`src/app/dashboard/page.tsx`): Card-based “accountinstellingen” layout; BPost password optional on update when credentials already exist (server action keeps prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; “Terug naar start” uses `next/link`.
-- **`TokenRow`** (`src/app/dashboard/TokenRow.tsx`): `nl-BE` date/time formatting, trash control as inline SVG + `bp-icon-btn`, confirmation dialog uses shared button classes.
+- **Home** (`src/app/page.tsx`): Call-to-action links use shared `bp-btn` classes; shows `AlphaServiceBanner` and `APP_VERSION`.
+- **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout; method-choice cards via `bp-install-card`; install snippets wrapped with `CopyCodeBlock`; primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
+- **Dashboard** (`src/app/dashboard/page.tsx`): Card-based "accountinstellingen" layout; BPost password optional on update when credentials already exist (server action preserves prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; "Terug naar start" uses `next/link`.
+- **`TokenRow`** (`src/app/dashboard/TokenRow.tsx`): `nl-BE` date/time formatting; trash control as inline SVG + `bp-icon-btn`; confirmation dialog uses shared button classes.
+- **`server-instructions`** (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
+
+### Fixed
+- **`report_issue` fallback without `GITHUB_TOKEN`**: When `GITHUB_TOKEN` is unset on the server, the tool returns a prefilled GitHub "new issue" URL so users can still report issues in the browser; the same fallback link is also included on GitHub API errors.
+- **Claude Desktop / MCP OAuth on custom domains**: OAuth metadata (`.well-known/oauth-authorization-server`, `.well-known/oauth-protected-resource`), authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from `getPublicOrigin(request)` instead of only `NEXT_PUBLIC_BASE_URL`, so the same deployment works when users hit a custom domain while env still points at the default deployment hostname.
+- **OAuth resource URL alignment**: Protected resource metadata and stored auth codes use a canonical MCP URL (`{origin}/api/mcp`); token exchange accepts equivalent origin vs `/api/mcp` forms and allows omitting `resource` on the token request when the code was bound to the canonical MCP resource (client interop).
+- **Opaque 500 on `/oauth/token` when JWT secret missing**: `OAUTH_JWT_SECRET` is required in `env.ts` (Zod) so misconfigured deployments fail at startup with a clear validation error instead of at first token issuance.
 
 ---
 
@@ -84,7 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **External link security**: Added `rel="noopener noreferrer"` to the "Skills Documentation" link on the homepage.
 - **`no-explicit-any` across codebase**: Replaced all 8 `any` casts with proper types (`unknown`, typed session augmentation). Affected: `upload/route.ts`, `dashboard/page.tsx`, `dashboard/actions.ts`, `lib/auth.ts`, `lib/kv/client.ts`.
 - **Unused variables**: Removed unused `isModalOpen` state (`TokenRow.tsx`), unused `BpostError` import (`client/bpost.ts`), unused `NextAuth` import (`next-auth.d.ts`), unused `tenantId` variable in MCP route.
-- **Unused catch bindings**: `catch (error)` / `catch (err)` → `catch` where the error is never used (`oauth/register/route.ts`, `api/mcp/route.ts`).
+- **Unused catch bindings**: `catch (error: any)` / `catch (err)` → `catch` where the error is never used (`oauth/register/route.ts`, `api/mcp/route.ts`).
 
 ---
 
@@ -178,4 +192,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrated `e-masspost-skills` library as a git submodule.
 - Migrated legacy BPost documentation to the Skills Library format.
 - Added Mermaid diagrams for technical protocol flows.
-

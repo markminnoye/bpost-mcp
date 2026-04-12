@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BPost MCP",
-  description: "BPost e-MassPost MCP Service",
+  title: "MCP-service voor BPost e-MassPost (alfa)",
+  description:
+    "Onafhankelijke MCP-service voor BPost e-MassPost — alfaversie; gebruik bij voorkeur de bpost-testomgeving.",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
@@ -31,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="nl" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="bp-customer-body">{children}</body>
     </html>
   );

@@ -1,7 +1,8 @@
 # Architecture Overview
 
-**Current version:** v2.0.0 — Phase 2 Sprint 2 complete
-**Last updated:** 2026-04-07
+**Current state:** Phase 2 Sprint 3 complete — multi-tenant MCP, OAuth for Claude clients, batch CSV/XLSX pipeline (Redis), self-learning / feedback MCP tools, and public install onboarding. See [`.agent/plans/INDEX.md`](../../.agent/plans/INDEX.md) for plan status.
+
+**Last updated:** 2026-04-12
 
 This document describes the full current architecture. For historical context on the Phase 1 design decisions, see [`phase1-architecture.md`](./phase1-architecture.md).
 
@@ -24,7 +25,10 @@ flowchart LR
         MCP["/api/mcp<br/>mcp-handler + withMcpAuth"]
         AS["OAuth Authorization Server<br/>/oauth/authorize<br/>/oauth/token<br/>/oauth/register"]
         DB["Neon Postgres<br/>(Drizzle ORM)"]
+        R["Redis (TCP)<br/>batch pipeline state"]
         DASH["Dashboard<br/>/dashboard"]
+        INST["Install guide<br/>/install"]
+        UP["POST /api/batches/upload<br/>out-of-band files"]
     end
 
     subgraph BPost["BPost"]
@@ -36,10 +40,14 @@ flowchart LR
     A1 -- "Bearer JWT" --> MCP
     A2 -- "Bearer bpost_*" --> MCP
     MCP -- "verifyToken" --> DB
+    MCP -- "get/save batch JSON" --> R
     MCP -- "XML POST" --> API
     API -- "XML response" --> MCP
     MCP -- "JSON result" --> Clients
-    DASH -- "manage credentials / tokens" --> DB
+    A2 -- "multipart upload + Bearer" --> UP
+    UP -- "persist batch" --> R
+    DASH -- "credentials / tokens" --> DB
+    INST -- "copy MCP URL + prompts" --> Clients
 ```
 
 ---
@@ -52,8 +60,21 @@ The entry point for all AI agent calls. Powered by `mcp-handler` with `withMcpAu
 
 - Accepts GET, POST, DELETE (SSE and JSON transport)
 - `withMcpAuth` validates the Bearer token before any tool executes
-- Two tools registered: `bpost_announce_deposit` and `bpost_announce_mailing`
-- After auth, tool handlers fetch BPost credentials via `getCredentialsByTenantId(tenantId)`
+- **Server metadata:** `serverInfo` (name + version from `src/lib/app-version.ts`) and **chat `instructions`** (`src/lib/mcp/server-instructions.ts`) — Flemish, non-technical guidance for end users in MCP clients
+- Tool handlers that need a tenant call `requireTenantId(extra)` so unauthenticated edge cases return a structured MCP error instead of throwing
+
+**Registered tools (grouped):**
+
+| Group | Tools |
+|-------|--------|
+| **BPost core** | `bpost_announce_deposit`, `bpost_announce_mailing` — Zod-validated JSON → XML → `BpostClient`; credentials injected after auth |
+| **Diagnostics** | `get_service_info` — service name + semantic version |
+| **Self-learning & feedback** | `add_protocol_rule` (append to submodule knowledge file), `create_fix_script` / `apply_fix_script` (saved scripts under `scripts/auto-fixers/`, sandboxed `vm` run), `report_issue` (GitHub issue or prefilled URL via `src/lib/github/report-issue.ts`) |
+| **Batch pipeline** | `get_upload_instructions`, `get_raw_headers`, `apply_mapping_rules`, `get_batch_errors`, `apply_row_fix`, `submit_ready_batch` — state in **Redis** (`src/lib/kv/client.ts`); upload via `POST /api/batches/upload` with Bearer token |
+
+**Note:** `submit_ready_batch` currently returns a **stub** response after marking the batch submitted; wiring full BPost XML dispatch for all ready rows is still outstanding.
+
+After auth, BPost credential tools fetch secrets via `getCredentialsByTenantId(tenantId)` (never returned to the model).
 
 ```mermaid
 sequenceDiagram
@@ -108,7 +129,7 @@ sequenceDiagram
     Claude->>MCP: Request (no token)
     MCP-->>Claude: 401 + WWW-Authenticate: Bearer resource_metadata=...
     Claude->>WK: GET /.well-known/oauth-protected-resource
-    WK-->>Claude: { authorization_servers: ["https://bpost-mcp.vercel.app"] }
+    Note over WK: authorization_servers[] uses<br/>public origin from the deployment<br/>(NEXT_PUBLIC_BASE_URL / Vercel URL)
     Claude->>WK: GET /.well-known/oauth-authorization-server
     WK-->>Claude: { authorize, token, register endpoints }
     Claude->>Auth: GET /oauth/authorize?code_challenge=...&client_id=...
@@ -132,14 +153,15 @@ sequenceDiagram
 
 ### 3. Multi-Tenancy & Credential Layer
 
-Every user has a **tenant**. BPost credentials are stored per tenant, encrypted with AES-256-GCM.
+Tenants own BPost credentials and API tokens. Dashboard users (`user` rows from Auth.js) link to a tenant via `users.tenantId`. BPost passwords are stored encrypted with AES-256-GCM.
 
 ```mermaid
 flowchart TD
-    U["users (Auth.js)<br/>id, email, name"]
-    T["tenants<br/>id → users.id"]
-    C["bpost_credentials<br/>tenantId, username<br/>passwordEncrypted (AES-256-GCM)<br/>passwordIv, customerNumber, accountId"]
+    T["tenants<br/>id, name"]
+    U["user (Auth.js)<br/>id, email, tenantId"]
+    C["bpost_credentials<br/>tenantId, username<br/>passwordEncrypted (AES-256-GCM)<br/>passwordIv, customerNumber, accountId, prsNumber"]
     AT["api_tokens<br/>tenantId, tokenHash<br/>label, createdAt, revokedAt"]
+    AL["audit_log<br/>tenantId, tool, action, status"]
     OC["oauth_clients<br/>clientId, clientSecret (SHA-256)<br/>redirectUris, grantTypes"]
     OAC["oauth_authorization_codes<br/>code (SHA-256), clientId<br/>userId, tenantId, codeChallenge<br/>expiresAt, usedAt"]
     ORT["oauth_refresh_tokens<br/>tokenHash (SHA-256)<br/>clientId, userId, tenantId<br/>expiresAt, revokedAt"]
@@ -147,21 +169,24 @@ flowchart TD
     U --> T
     T --> C
     T --> AT
+    T --> AL
     T --> OAC
     T --> ORT
 ```
 
 The "**agent blinding**" principle: AI agents never receive BPost usernames or passwords. Credentials are fetched inside the MCP server after token verification and used only for the outbound HTTP call.
 
-### 4. Dashboard (`/dashboard`)
+### 4. Batch uploads & Redis
 
-A terminal-style web UI for tenants to self-manage:
+Large spreadsheets are **not** passed through the MCP JSON channel. The agent (or user) uploads a file with `curl` to `POST /api/batches/upload` using the same Bearer token. Parsed rows and headers are stored under a tenant-scoped key in **Redis** (`REDIS_URL`, `redis` npm package — e.g. Vercel Marketplace Redis). MCP tools read/write that state for mapping, validation, row fixes, and (eventually) submission.
 
-- **BPost Credentials** — enter/update BPost username, password, customer number, account ID
-- **API Tokens** — generate `bpost_*` tokens for Langflow/n8n/scripts
-- **Claude / MCP Clients** — copy the MCP URL to paste into Claude Desktop
+- Row cap and size constraints are enforced at upload (see upload route and plans under `.agent/plans/` for history)
+- If `REDIS_URL` is unset, batch tools and upload fail fast with a clear configuration error
 
-Protected by Auth.js v5 (Google OAuth session). `signOut` is a server action.
+### 5. Dashboard (`/dashboard`) & install (`/install`)
+
+- **Dashboard** — Terminal-style UI: BPost credentials, API tokens (`bpost_*`), MCP URL hints. Protected by Auth.js v5 (Google OAuth session). Server actions in `src/app/dashboard/actions.ts`.
+- **Install** — Public `/install` page and `GET /api/install/prompt` for copy-ready connection instructions (OAuth vs bearer token), backed by `src/lib/install/load-install-prompt.ts` and `docs/install/install-prompt.md`.
 
 ---
 
@@ -225,6 +250,15 @@ The OAuth 2.0 MCP flow uses Auth.js under the hood for the identity step (Google
 | BPost password encrypted | AES-256-GCM with per-row IV; `ENCRYPTION_KEY` env var |
 | Agent blinding | AI never sees BPost credentials — fetched server-side after auth |
 | Scope enforcement | `withMcpAuth` enforces `requiredScopes: ['mcp:tools']` |
+| Fix scripts | `apply_fix_script` runs user-written code in `vm.runInNewContext` with timeout; scripts are kebab-case names only |
+
+---
+
+## Configuration
+
+**`src/lib/config/env.ts`** — Zod-validated access for **`NEXT_PUBLIC_BASE_URL`** (resolved from env + `VERCEL_URL` + local fallback), **`OAUTH_JWT_SECRET`**, optional **`REDIS_URL`** and **`GITHUB_TOKEN`**. Application code should prefer `import { env } from '@/lib/config/env'` for these values so misconfiguration fails fast at boot.
+
+**Database URL** — `src/lib/db/client.ts` and `drizzle.config.ts` read **`BPOST_DB_DATABASE_URL`** or **`DATABASE_URL`** (Neon / Vercel integration). Other secrets (`AUTH_*`, `ENCRYPTION_KEY`, etc.) are read where used (Auth.js, crypto layer); keep `.env.example` in sync when adding variables.
 
 ---
 
@@ -235,59 +269,40 @@ bpost-mcp/
 │
 ├── src/
 │   ├── app/
-│   │   ├── api/mcp/
-│   │   │   └── route.ts              ← MCP endpoint (mcp-handler + withMcpAuth)
-│   │   ├── oauth/
-│   │   │   ├── authorize/route.ts    ← OAuth authorization endpoint
-│   │   │   ├── token/route.ts        ← OAuth token endpoint
-│   │   │   └── register/route.ts     ← Dynamic Client Registration
-│   │   ├── .well-known/
-│   │   │   ├── oauth-protected-resource/route.ts  ← RFC 9728
-│   │   │   └── oauth-authorization-server/route.ts ← RFC 8414
-│   │   ├── dashboard/
-│   │   │   └── page.tsx              ← Tenant self-service UI
-│   │   └── layout.tsx                ← Root layout (favicons, metadata)
+│   │   ├── api/mcp/route.ts              ← MCP handler, all tools, server instructions
+│   │   ├── api/batches/upload/route.ts   ← Multipart CSV/XLSX ingest → Redis
+│   │   ├── api/install/prompt/route.ts   ← Install prompt markdown for clients
+│   │   ├── api/auth/[...nextauth]/route.ts
+│   │   ├── oauth/authorize|token|register/route.ts
+│   │   ├── .well-known/oauth-*/route.ts
+│   │   ├── dashboard/page.tsx, actions.ts, TokenRow.tsx
+│   │   ├── install/page.tsx, CopyInstallPromptButton.tsx
+│   │   ├── page.tsx, layout.tsx
+│   │   └── components/customer/           ← Shared customer UI (banners, copy blocks)
 │   │
 │   ├── lib/
-│   │   ├── auth.ts                   ← Auth.js v5 config (Google provider)
-│   │   ├── crypto.ts                 ← AES-256-GCM encrypt/decrypt, hashToken
-│   │   ├── db/
-│   │   │   ├── client.ts             ← Drizzle + Neon connection
-│   │   │   └── schema.ts             ← All table definitions
-│   │   ├── oauth/
-│   │   │   ├── jwt.ts                ← signAccessToken / verifyAccessToken (jose)
-│   │   │   ├── pkce.ts               ← verifyPkceS256
-│   │   │   ├── client-resolver.ts    ← Resolve client_id (metadata doc or DB)
-│   │   │   └── verify-token.ts       ← Unified token verification (JWT + bpost_*)
-│   │   └── tenant/
-│   │       ├── resolve.ts            ← resolveTenant (M2M token → credentials)
-│   │       └── get-credentials.ts    ← getCredentialsByTenantId
+│   │   ├── config/env.ts                  ← Zod env (public URL, OAuth JWT, Redis, GitHub)
+│   │   ├── auth.ts                        ← Auth.js v5
+│   │   ├── crypto.ts
+│   │   ├── xml.ts                         ← fast-xml-parser singleton
+│   │   ├── db/client.ts, schema.ts
+│   │   ├── oauth/ (jwt, pkce, verify-token, client-resolver, resource-url)
+│   │   ├── tenant/ (resolve, get-credentials)
+│   │   ├── mcp/ (server-instructions, require-tenant)
+│   │   ├── kv/client.ts                   ← Redis batch state
+│   │   ├── batch/ (apply-mapping, validate-mapping-targets)
+│   │   ├── github/report-issue.ts
+│   │   ├── install/load-install-prompt.ts
+│   │   └── app-version.ts
 │   │
-│   ├── client/
-│   │   ├── bpost.ts                  ← BpostClient (XML HTTP calls)
-│   │   └── errors.ts                 ← BpostError + parseBpostError
-│   │
-│   └── schemas/                      ← Zod schemas (from BPost XSDs)
-│       ├── common.ts
-│       ├── deposit-request.ts
-│       └── mailing-request.ts
+│   ├── client/bpost.ts, errors.ts
+│   └── schemas/                          ← Zod (deposit/mailing + responses, common)
 │
-├── tests/                            ← Vitest test suite (102 tests)
-│
-├── drizzle/                          ← Generated SQL migrations
-│
-├── docs/
-│   ├── internal/
-│   │   ├── architecture.md           ← This file
-│   │   ├── phase1-architecture.md    ← Phase 1 detailed design
-│   │   ├── project-design.md         ← Decision log and constraints
-│   │   ├── vision.md                 ← Roadmap (3 phases)
-│   │   └── e-masspost/               ← BPost protocol docs (git submodule)
-│   └── samples/                      ← Example JSON/XML payloads
-│
-└── .agent/
-    ├── plans/                        ← Implementation plans (INDEX.md)
-    └── skills/                       ← Agent skill files
+├── scripts/                               ← seed, auto-fixers written by MCP tools
+├── tests/                                 ← Vitest
+├── drizzle/
+├── docs/internal/, docs/install/, docs/samples/
+└── .agent/plans/, .agent/skills/
 ```
 
 ---
@@ -296,15 +311,17 @@ bpost-mcp/
 
 | What | Tool | Why |
 |------|------|-----|
-| **Web framework** | Next.js 16 (App Router) | Vercel deployment, clean API routes, server actions |
+| **Web framework** | Next.js 16 (App Router) | Vercel deployment, API routes, server actions |
 | **MCP server** | `mcp-handler` | `withMcpAuth` + `protectedResourceHandler` out of the box |
 | **Auth (dashboard)** | Auth.js v5 | Google OAuth, session management, Drizzle adapter |
-| **JWT** | `jose` | Lightweight, zero deps, HS256 signing/verification |
+| **JWT** | `jose` | Lightweight, HS256 signing/verification |
 | **Database** | Neon Postgres + Drizzle ORM | Serverless Postgres, type-safe queries |
-| **Validation** | Zod v4 | Runtime validation + TypeScript types from one schema |
+| **Cache / batch state** | `redis` (TCP) | Tenant-scoped batch JSON between upload and MCP tools |
+| **Spreadsheet ingest** | `papaparse` (+ upload route) | CSV parsing; XLSX path as implemented in upload route |
+| **Validation** | Zod v4 | Runtime validation + TypeScript types |
 | **XML** | `fast-xml-parser` v5 | ISO-8859-1 support, predictable JS objects |
-| **Tests** | Vitest 4 | TypeScript-native, fast, `@/` aliases via vite-tsconfig-paths |
-| **Hosting** | Vercel | Serverless, zero-config Next.js, preview deploys on push |
+| **Tests** | Vitest | TypeScript-native, `@/` aliases |
+| **Hosting** | Vercel | Serverless, preview deploys on push |
 
 ---
 
@@ -312,13 +329,14 @@ bpost-mcp/
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `DATABASE_URL` | ✅ | Neon Postgres connection string |
+| `BPOST_DB_DATABASE_URL` or `DATABASE_URL` | ✅ (runtime) | Neon Postgres connection string |
 | `AUTH_SECRET` | ✅ | Auth.js session signing key |
-| `AUTH_GOOGLE_ID` | ✅ | Google OAuth client ID |
-| `AUTH_GOOGLE_SECRET` | ✅ | Google OAuth client secret |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | ✅ | Google OAuth for dashboard + OAuth AS login |
 | `ENCRYPTION_KEY` | ✅ | AES-256-GCM key for BPost passwords (base64, 32 bytes) |
-| `OAUTH_JWT_SECRET` | ✅ | HS256 JWT signing key (base64, 32 bytes) |
-| `NEXT_PUBLIC_BASE_URL` | ✅ | Public URL (e.g. `https://bpost-mcp.vercel.app`) |
+| `OAUTH_JWT_SECRET` | ✅ | HS256 JWT signing key (validated in `env.ts`) |
+| `NEXT_PUBLIC_BASE_URL` | ✅ (recommended) | Canonical public URL; validated in `env.ts`. On Vercel, `VERCEL_URL` can supply a default if unset |
+| `REDIS_URL` | ✅ for batch features | TCP Redis for batch pipeline |
+| `GITHUB_TOKEN` | Optional | PAT for `report_issue` to create GitHub issues automatically |
 
 ---
 
@@ -326,7 +344,7 @@ bpost-mcp/
 
 | Item | Location | Notes |
 |------|----------|-------|
-| DCR rate limiting | `src/app/oauth/register/route.ts` | Max 10 registrations/IP/hour — TODO comment |
-| Expired auth code cleanup | DB `oauth_authorization_codes` | No cron job yet — rows accumulate |
-| Phase 2 self-learning pipeline | `.agent/plans/INDEX.md` | Next sprint |
+| DCR rate limiting | `src/app/oauth/register/route.ts` | Max registrations/IP/hour — TODO / partial |
+| Expired auth code cleanup | `oauth_authorization_codes` | No cron job yet — rows accumulate |
+| `submit_ready_batch` → BPost | `src/app/api/mcp/route.ts` | Stub only; real XML mailing dispatch for batched rows TBD |
 | Phase 3: enterprise automation | `docs/internal/vision.md` | Future |
