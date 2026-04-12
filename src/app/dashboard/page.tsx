@@ -2,10 +2,10 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
-import { handleSignOut } from './actions'
+import { handleSignOut, savePreferences } from './actions'
 import { TokenRow } from './TokenRow'
 import { db } from '@/lib/db/client'
-import { tenants, bpostCredentials, apiTokens } from '@/lib/db/schema'
+import { tenants, bpostCredentials, apiTokens, tenantPreferences } from '@/lib/db/schema'
 import { encrypt, hashToken } from '@/lib/crypto'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
@@ -53,6 +53,18 @@ export default async function DashboardPage({ searchParams }: Props) {
   const tokens = existingTenant
     ? await db.select().from(apiTokens).where(eq(apiTokens.tenantId, existingTenant.id))
     : []
+
+  const existingPrefs = existingTenant
+    ? await db
+        .select()
+        .from(tenantPreferences)
+        .where(eq(tenantPreferences.tenantId, existingTenant.id))
+        .limit(1)
+        .then((rows) => rows[0] ?? null)
+    : null
+
+  const currentStrategy = existingPrefs?.barcodeStrategy ?? 'bpost-generates'
+  const currentLength = existingPrefs?.barcodeLength ?? '7'
 
   async function saveCreds(formData: FormData) {
     'use server'
@@ -263,6 +275,70 @@ export default async function DashboardPage({ searchParams }: Props) {
             </p>
             <button type="submit" className="bp-btn bp-btn--primary" style={{ marginTop: '0.25rem', width: 'fit-content' }}>
               Gegevens bewaren
+            </button>
+          </form>
+        </section>
+
+        <section className="bp-card bp-card--section">
+          <h2 className="bp-section-title">Barcode-instellingen</h2>
+          <p className="bp-prose">
+            Kies hoe de barcodes voor je mailings worden aangemaakt.
+          </p>
+
+          <form action={savePreferences} className="bp-form-grid">
+            <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+              <legend className="bp-label" style={{ marginBottom: '0.5rem' }}>Barcodestrategie</legend>
+              <label style={{ display: 'block', marginBottom: '0.35rem' }}>
+                <input
+                  type="radio"
+                  name="barcodeStrategy"
+                  value="bpost-generates"
+                  defaultChecked={currentStrategy === 'bpost-generates'}
+                />{' '}
+                bpost maakt de barcodes aan
+              </label>
+              <label style={{ display: 'block', marginBottom: '0.35rem' }}>
+                <input
+                  type="radio"
+                  name="barcodeStrategy"
+                  value="customer-provides"
+                  defaultChecked={currentStrategy === 'customer-provides'}
+                />{' '}
+                Ik lever zelf barcodes aan in mijn adresbestand
+              </label>
+              <label style={{ display: 'block', marginBottom: '0.35rem' }}>
+                <input
+                  type="radio"
+                  name="barcodeStrategy"
+                  value="mcp-generates"
+                  defaultChecked={currentStrategy === 'mcp-generates'}
+                />{' '}
+                Laat deze dienst de barcodes automatisch aanmaken
+              </label>
+              {currentStrategy === 'mcp-generates' && !existingCreds?.barcodeCustomerId && (
+                <p className="bp-muted-note" style={{ color: '#b45309', marginTop: '0.25rem' }}>
+                  Hiervoor heb je een Barcode-klant-ID nodig (zie &quot;BPost-gegevens&quot; hierboven).
+                </p>
+              )}
+            </fieldset>
+
+            {currentStrategy === 'bpost-generates' && (
+              <label className="bp-label">
+                Barcodelengte
+                <select name="barcodeLength" className="bp-input" defaultValue={currentLength}>
+                  <option value="7">7 cijfers</option>
+                  <option value="9">9 cijfers</option>
+                  <option value="11">11 cijfers</option>
+                </select>
+              </label>
+            )}
+
+            {currentStrategy !== 'bpost-generates' && (
+              <input type="hidden" name="barcodeLength" value={currentLength} />
+            )}
+
+            <button type="submit" className="bp-btn bp-btn--primary" style={{ marginTop: '0.25rem', width: 'fit-content' }}>
+              Instellingen bewaren
             </button>
           </form>
         </section>
