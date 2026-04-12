@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, integer, unique } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 export const tenants = pgTable('tenants', {
@@ -18,8 +18,30 @@ export const bpostCredentials = pgTable('bpost_credentials', {
   customerNumber: text('customer_number').notNull(),
   accountId: text('account_id').notNull(),
   prsNumber: text('prs_number'),
+  barcodeCustomerId: text('barcode_customer_id'),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
+
+export const tenantPreferences = pgTable('tenant_preferences', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id)
+    .unique(),
+  barcodeStrategy: text('barcode_strategy').notNull().default('bpost-generates'),
+  barcodeLength: text('barcode_length').notNull().default('7'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+
+export const barcodeSequences = pgTable('barcode_sequences', {
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id),
+  week: integer('week').notNull(),
+  nextValue: integer('next_value').notNull().default(0),
+}, (table) => [
+  unique('barcode_sequences_tenant_week_unique').on(table.tenantId, table.week),
+])
 
 export const apiTokens = pgTable('api_tokens', {
   id: uuid('id').primaryKey().defaultRandom(),
