@@ -10,6 +10,7 @@ import { encrypt, hashToken } from '@/lib/crypto'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
 import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
+import { CopyInstallPromptButton } from '@/app/install/CopyInstallPromptButton'
 import { AlphaServiceBanner } from '@/components/customer/AlphaServiceBanner'
 import { env } from '@/lib/config/env'
 
@@ -176,9 +177,9 @@ export default async function DashboardPage({ searchParams }: Props) {
       {newlyGeneratedToken && (
         <div className="bp-alert" role="status" style={{ marginBottom: '1.5rem' }}>
           <strong style={{ color: 'var(--bp-brand)' }}>
-            Kopieer je sleutel nu — je ziet hem daarna niet meer:
+            Kopieer je app-token nu — je ziet hem daarna niet meer:
           </strong>
-          <CopyCodeBlock code={newlyGeneratedToken} copyLabel="Sleutel kopiëren" />
+          <CopyCodeBlock code={newlyGeneratedToken} copyLabel="App-token kopiëren" />
         </div>
       )}
 
@@ -286,34 +287,37 @@ export default async function DashboardPage({ searchParams }: Props) {
           </p>
 
           <form action={savePreferences} className="bp-form-grid">
-            <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-              <legend className="bp-label" style={{ marginBottom: '0.5rem' }}>Barcodestrategie</legend>
-              <label style={{ display: 'block', marginBottom: '0.35rem' }}>
+            <fieldset className="bp-radio-fieldset">
+              <legend className="bp-label">Barcodestrategie</legend>
+              <label className="bp-radio-label">
                 <input
                   type="radio"
                   name="barcodeStrategy"
                   value="bpost-generates"
+                  className="bp-radio"
                   defaultChecked={currentStrategy === 'bpost-generates'}
-                />{' '}
-                bpost maakt de barcodes aan
+                />
+                <span>bpost maakt de barcodes aan</span>
               </label>
-              <label style={{ display: 'block', marginBottom: '0.35rem' }}>
+              <label className="bp-radio-label">
                 <input
                   type="radio"
                   name="barcodeStrategy"
                   value="customer-provides"
+                  className="bp-radio"
                   defaultChecked={currentStrategy === 'customer-provides'}
-                />{' '}
-                Ik lever zelf barcodes aan in mijn adresbestand
+                />
+                <span>Ik lever zelf barcodes aan in mijn adresbestand</span>
               </label>
-              <label style={{ display: 'block', marginBottom: '0.35rem' }}>
+              <label className="bp-radio-label">
                 <input
                   type="radio"
                   name="barcodeStrategy"
                   value="mcp-generates"
+                  className="bp-radio"
                   defaultChecked={currentStrategy === 'mcp-generates'}
-                />{' '}
-                Laat deze dienst de barcodes automatisch aanmaken
+                />
+                <span>Laat deze dienst de barcodes automatisch aanmaken</span>
               </label>
               {currentStrategy === 'mcp-generates' && !existingCreds?.barcodeCustomerId && (
                 <p className="bp-muted-note" style={{ color: '#b45309', marginTop: '0.25rem' }}>
@@ -344,10 +348,30 @@ export default async function DashboardPage({ searchParams }: Props) {
         </section>
 
         <section className="bp-card bp-card--section">
-          <h2 className="bp-section-title">Sleutels voor apps</h2>
+          <h2 className="bp-section-title">Je AI-assistent koppelen Via OAuth</h2>
+          <p className="bp-prose" style={{ fontSize: '0.875rem', marginBottom: '0.35rem' }}>
+            <strong>Server-URL:</strong>
+          </p>
+          <CopyCodeBlock code={MCP_URL} copyLabel="Server-URL kopiëren" />
+
+          <p className="bp-prose" style={{ fontSize: '0.875rem', marginTop: '1.25rem', marginBottom: '0.65rem' }}>
+            Met onderstaande knop kopieer je een installatie-prompt. Plak die tekst daarna in je
+            AI-assistent (bv. Claude Desktop of Claude Code), zodat die de MCP-koppeling voor je kan
+            inrichten.
+          </p>
+          <CopyInstallPromptButton />
+        </section>
+
+        <section id="app-tokens" className="bp-card bp-card--section">
+          <h2 className="bp-section-title">App Tokens</h2>
           <p className="bp-prose">
-            Sommige programma&apos;s vragen een vaste sleutel naast je gewone aanmelding. Je beheert die
-            hier. Hoe je ze precies gebruikt, hoort bij de uitleg van dat programma — niet op deze pagina.
+            Sommige programma&apos;s vragen een vast app-token (Bearer) naast je gewone aanmelding. Je
+            beheert je tokens hier. Hoe je een token instelt en gebruikt (onder meer in Claude Desktop of
+            Claude Code met MCP), lees je op de pagina{' '}
+            <Link href="/install#bearer" className="bp-link">
+              Instellingen
+            </Link>
+            .
           </p>
           <form action={generateToken} className="bp-form-grid" style={{ marginBottom: tokens.length ? '1.25rem' : '0' }}>
             <label className="bp-label">
@@ -355,15 +379,15 @@ export default async function DashboardPage({ searchParams }: Props) {
               <input name="label" className="bp-input" defaultValue="thuis-computer" required />
             </label>
             <button type="submit" className="bp-btn bp-btn--secondary" style={{ width: 'fit-content' }}>
-              Nieuwe sleutel maken
+              Nieuwe app-token
             </button>
           </form>
 
           <h3 className="bp-subtitle" style={{ marginTop: tokens.length ? undefined : 0 }}>
-            Actieve sleutels ({tokens.length})
+            Actieve app-tokens ({tokens.length})
           </h3>
           {tokens.length === 0 ? (
-            <p className="bp-empty-hint">Nog geen sleutels. Maak er een aan als een app dat vraagt.</p>
+            <p className="bp-empty-hint">Nog geen app-tokens. Maak er een aan als een app dat vraagt.</p>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {tokens.map((t) => (
@@ -379,32 +403,6 @@ export default async function DashboardPage({ searchParams }: Props) {
               ))}
             </ul>
           )}
-        </section>
-
-        <section className="bp-card bp-card--section">
-          <h2 className="bp-section-title">Je AI-assistent koppelen</h2>
-          <p className="bp-prose">
-            Om je AI-assistent (zoals Claude Desktop of Claude Code) met deze dienst te verbinden, gebruik
-            je het MCP-protocol. Hieronder vind je de server-URL en de twee manieren om te verbinden.
-          </p>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <p className="bp-prose" style={{ fontSize: '0.875rem', marginBottom: '0.35rem' }}>
-              <strong>Server-URL:</strong>
-            </p>
-            <CopyCodeBlock code={MCP_URL} copyLabel="Server-URL kopiëren" />
-          </div>
-
-          <h3 className="bp-subtitle">Via OAuth (aanbevolen)</h3>
-          <p className="bp-prose" style={{ fontSize: '0.875rem' }}>
-            Geen sleutel om bij te houden. Voeg de server-URL toe in je AI-assistent en meld je de eerste
-            keer aan met Google.
-          </p>
-          <p className="bp-prose" style={{ fontSize: '0.875rem', marginTop: '1rem' }}>
-            <a href="/install" className="bp-btn bp-btn--secondary">
-              Meer informatie over aansluiten
-            </a>
-          </p>
         </section>
       </div>
 

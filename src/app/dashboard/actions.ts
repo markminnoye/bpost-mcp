@@ -73,7 +73,7 @@ export async function revokeToken(id: string): Promise<ActionResult> {
   try {
     await db.delete(apiTokens).where(eq(apiTokens.id, id))
   } catch {
-    return { ok: false, code: 'TRANSIENT_ERROR', error: 'Sleutel verwijderen is mislukt. Probeer opnieuw.' }
+    return { ok: false, code: 'TRANSIENT_ERROR', error: 'App-token verwijderen is mislukt. Probeer opnieuw.' }
   }
 
   return { ok: true, redirect: '/dashboard' }
