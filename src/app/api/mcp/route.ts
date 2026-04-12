@@ -547,7 +547,7 @@ const handler = createMcpHandler(
           priority: z.enum(['P', 'NP']).optional().default('NP'),
           mode: z.enum(['P', 'T', 'C']).optional().default('T'),
           customerFileRef: z.string().max(10).optional(),
-          genMID: z.enum(['N', '7', '9', '11']).optional().default('7'),
+          genMID: z.enum(['N', '7', '9', '11']).optional(),
           genPSC: z.enum(['Y', 'N']).optional().default('N'),
         }),
       },
@@ -570,11 +570,11 @@ const handler = createMcpHandler(
         // ── Barcode strategy resolution ──────────────────────────
         const now = new Date()
         const preferences = await getTenantPreferences(tenantId)
-        let resolvedGenMID = input.genMID
+        // input.genMID is undefined when not provided by the caller (no Zod default)
+        let resolvedGenMID: 'N' | '7' | '9' | '11' = input.genMID ?? '7'
 
-        // Only apply strategy defaults when the user did NOT explicitly provide genMID
-        const userProvidedGenMID = input.genMID !== '7' // '7' is the schema default
-        if (!userProvidedGenMID) {
+        // Only apply tenant strategy when the caller did NOT explicitly provide genMID
+        if (input.genMID === undefined) {
           switch (preferences.barcodeStrategy) {
             case 'bpost-generates':
               resolvedGenMID = preferences.barcodeLength as 'N' | '7' | '9' | '11'
@@ -603,7 +603,12 @@ const handler = createMcpHandler(
           }
 
           const weekNumber = getISOWeekNumber(now)
-          const batchSequence = await claimBatchSequence(tenantId, weekNumber)
+          let batchSequence: number
+          try {
+            batchSequence = await claimBatchSequence(tenantId, weekNumber)
+          } catch {
+            return { isError: true, content: [{ type: 'text' as const, text: 'Internal error while reserving barcode range. Please try again.' }] }
+          }
 
           if (batchSequence > 999) {
             return { isError: true, content: [{ type: 'text' as const, text: `Batch sequence limit reached (1000 batches this week). Try again next week or switch to a different barcode strategy.` }] }
