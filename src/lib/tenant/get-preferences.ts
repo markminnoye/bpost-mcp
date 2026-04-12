@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { z } from 'zod'
 import { db } from '@/lib/db/client'
 import { tenantPreferences } from '@/lib/db/schema'
 
@@ -6,6 +7,11 @@ export interface TenantPreferences {
   barcodeStrategy: 'bpost-generates' | 'customer-provides' | 'mcp-generates'
   barcodeLength: '7' | '9' | '11'
 }
+
+const TenantPreferencesSchema = z.object({
+  barcodeStrategy: z.enum(['bpost-generates', 'customer-provides', 'mcp-generates']),
+  barcodeLength: z.enum(['7', '9', '11']),
+})
 
 const DEFAULTS: TenantPreferences = {
   barcodeStrategy: 'bpost-generates',
@@ -23,9 +29,11 @@ export async function getTenantPreferences(
 
   if (rows.length === 0) return DEFAULTS
 
-  const row = rows[0]
-  return {
-    barcodeStrategy: row.barcodeStrategy as TenantPreferences['barcodeStrategy'],
-    barcodeLength: row.barcodeLength as TenantPreferences['barcodeLength'],
+  const parsed = TenantPreferencesSchema.safeParse(rows[0])
+  if (!parsed.success) {
+    console.error('[getTenantPreferences] Invalid preferences in DB, using defaults:', parsed.error.issues)
+    return DEFAULTS
   }
+
+  return parsed.data
 }

@@ -588,9 +588,13 @@ const handler = createMcpHandler(
 
         // Validate strategy-specific requirements
         if (preferences.barcodeStrategy === 'customer-provides') {
-          const missingMidNum = readyRows.filter(r => !(r.mapped as Record<string, unknown>)?.midNum)
-          if (missingMidNum.length > 0) {
-            return { isError: true, content: [{ type: 'text' as const, text: `Strategy is 'customer-provides' but ${missingMidNum.length} rows are missing midNum. Map the midNum column or change barcode strategy in dashboard settings.` }] }
+          const MID_PATTERN = /^[0-9]{14,18}$/
+          const invalidRows = readyRows.filter(r => {
+            const midNum = (r.mapped as Record<string, unknown>)?.midNum
+            return !midNum || !MID_PATTERN.test(String(midNum))
+          })
+          if (invalidRows.length > 0) {
+            return { isError: true, content: [{ type: 'text' as const, text: `Strategy is 'customer-provides' but ${invalidRows.length} rows have missing or invalid midNum (must be 14–18 digits). Map the midNum column or change barcode strategy in dashboard settings.` }] }
           }
         }
 
@@ -611,7 +615,7 @@ const handler = createMcpHandler(
           }
 
           if (batchSequence > 999) {
-            return { isError: true, content: [{ type: 'text' as const, text: `Batch sequence limit reached (1000 batches this week). Try again next week or switch to a different barcode strategy.` }] }
+            return { isError: true, content: [{ type: 'text' as const, text: `Batch sequence limit reached for ISO week ${weekNumber} (max 1000 batches per week in mcp-generates mode). No further batches can use mcp-generates this week. Try again next ISO week or switch to bpost-generates or customer-provides strategy.` }] }
           }
 
           for (let i = 0; i < readyRows.length; i++) {

@@ -91,7 +91,9 @@ export const accounts = pgTable('account', {
   scope: text('scope'),
   id_token: text('id_token'),
   session_state: text('session_state'),
-})
+}, (table) => [
+  unique('account_provider_providerAccountId_unique').on(table.provider, table.providerAccountId),
+])
 
 export const sessions = pgTable('session', {
   sessionToken: text('sessionToken').primaryKey(),
