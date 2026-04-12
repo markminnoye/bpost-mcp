@@ -209,8 +209,9 @@ const handler = createMcpHandler(
       'get_upload_instructions',
       {
         description:
-          'Returns a one-line curl command to upload a CSV/Excel file to this service (out-of-band, avoids huge files in chat). ' +
-          'Call first when the user has a local file to check; you need the returned batch id for later steps.',
+          'BATCH PIPELINE step 1/6: Returns a curl command for the user to upload a CSV/Excel file out-of-band. ' +
+          'This is the starting point for the batch pipeline. The response includes a batchId needed for all subsequent steps. ' +
+          'Next step: get_raw_headers.',
         inputSchema: z.object({}),
       },
       async (_input, extra) => {
@@ -231,8 +232,9 @@ const handler = createMcpHandler(
       'get_raw_headers',
       {
         description:
-          'After upload: returns the spreadsheet column headers for this batch so you can build the column→BPost field map. ' +
-          'Call before apply_mapping_rules when headers are unknown.',
+          'BATCH PIPELINE step 2/6: Returns the spreadsheet column headers for an uploaded batch so you can build the column→BPost field map. ' +
+          'Requires a batchId from a prior upload (get_upload_instructions). ' +
+          'Next step: apply_mapping_rules.',
         inputSchema: z.object({ batchId: z.string() }),
       },
       async (input, extra) => {
@@ -262,11 +264,13 @@ const handler = createMcpHandler(
       'apply_mapping_rules',
       {
         description:
-          'After upload: maps each spreadsheet column header to the correct BPost mailing-row field key (Item schema). ' +
+          'BATCH PIPELINE step 3/6: Maps each spreadsheet column header to the correct BPost mailing-row field key (Item schema). ' +
+          'Requires headers from get_raw_headers. Produces MAPPED status on the batch. ' +
           'Flat fields: lang, priority, psCode, midNum. ' +
           'Address columns: use Comps.<code> dot-notation, e.g. { "Familienaam": "Comps.1", "Voornaam": "Comps.2", "Straatnaam": "Comps.3", "Huisnummer": "Comps.4", "Bus": "Comps.5", "Postcode": "Comps.8", "Gemeente": "Comps.9" }. ' +
           'seq is auto-generated from row index (1-based) unless explicitly mapped. ' +
-          'Required before row-level checks are meaningful; afterwards each row is validated against bpost field rules.',
+          'After mapping, each row is validated against BPost field rules. ' +
+          'Next step: get_batch_errors to check for validation failures.',
         inputSchema: z.object({
           batchId: z.string(),
           mapping: z.record(z.string(), z.string()).describe('Format: { "Client Loc": "postalCode" }'),
@@ -317,7 +321,10 @@ const handler = createMcpHandler(
       'get_batch_errors',
       {
         description:
-          'Returns rows that failed field validation after mapping (BPost mailing item rules). Use to fix or explain issues to the user in plain language.',
+          'BATCH PIPELINE step 4/6: Returns rows that failed field validation after mapping (BPost mailing item rules). ' +
+          'Call after apply_mapping_rules and again after each round of apply_row_fix to check remaining errors. ' +
+          'When totalErrors is 0, the batch is ready for submit_ready_batch. ' +
+          'Explain issues to the user in plain language.',
         inputSchema: z.object({ batchId: z.string(), limit: z.number().int().min(1).default(10) }),
       },
       async (input, extra) => {
@@ -337,7 +344,8 @@ const handler = createMcpHandler(
       'apply_row_fix',
       {
         description:
-          'Patches one mapped row with corrected field values, re-validates against BPost item rules, and persists the batch state.',
+          'BATCH PIPELINE step 5/6: Patches one mapped row with corrected field values, re-validates against BPost item rules, and persists the batch state. ' +
+          'Use iteratively: fix a row, then call get_batch_errors again to check remaining errors. Repeat until totalErrors is 0.',
         inputSchema: z.object({
           batchId: z.string(),
           rowIndex: z.number().int().min(0),
@@ -380,10 +388,11 @@ const handler = createMcpHandler(
       'submit_ready_batch',
       {
         description:
-          'Submits all validated rows from the current uploaded batch to BPost e-MassPost as a MailingCreate request. ' +
+          'BATCH PIPELINE step 6/6: Submits all validated rows from the current uploaded batch to BPost e-MassPost as a MailingCreate request. ' +
           'Only rows without validation errors are included; skipped rows are reported in the response. ' +
           'IMPORTANT: Before calling, confirm these values with the user: mailingRef, expectedDeliveryDate, format, priority, and mode. ' +
-          'The batch must be in MAPPED status. After successful submission, the batch is locked as SUBMITTED.',
+          'The batch must be in MAPPED status with 0 errors (use get_batch_errors to verify). After successful submission, the batch is locked as SUBMITTED. ' +
+          'Default mode is T (test). Only use C or P when the user explicitly confirms certification/production readiness.',
         inputSchema: z.object({
           batchId: z.string(),
           expectedDeliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
@@ -486,8 +495,11 @@ const handler = createMcpHandler(
       'bpost_announce_deposit',
       {
         description:
-          'Announce a mail deposit to BPost e-MassPost. Accepts a validated DepositRequest payload ' +
-          '(Create, Update, Delete, or Validate actions) and returns the BPost response.',
+          'DIRECT TOOL (not part of the batch pipeline): Announce a mail deposit to BPost e-MassPost. ' +
+          'Accepts a pre-built DepositRequest payload (Create, Update, Delete, or Validate actions). ' +
+          'Use only when the user already has a structured deposit payload. ' +
+          'Deposits must be linked to mailings via master/slave: if deposit is master, set depositRef and leave mailingRef empty; ' +
+          'if mailing is master, reference the existing mailingRef. See server instructions for linking rules.',
         inputSchema: DepositRequestSchema,
       },
       async (input, extra) => {
@@ -532,8 +544,11 @@ const handler = createMcpHandler(
       'bpost_announce_mailing',
       {
         description:
-          'Announce a mailing batch to BPost e-MassPost. Accepts a MailingRequest payload and ' +
-          'returns the BPost response or a structured error with the MPW/MID code.',
+          'DIRECT TOOL (not part of the batch pipeline): Announce a mailing to BPost e-MassPost. ' +
+          'Accepts a pre-built MailingRequest payload and returns the BPost response or a structured error with the MPW/MID code. ' +
+          'Use only when the user already has a structured mailing payload. ' +
+          'For CSV/XLSX files from users, use the batch pipeline instead (starting with get_upload_instructions). ' +
+          'If linking to a deposit: set mailingRef; if this mailing is the slave, also set depositRef to the master deposit.',
         inputSchema: MailingRequestSchema,
       },
       async (input, extra) => {

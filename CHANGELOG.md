@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tests**: `submit-batch.test.ts` — XML construction, priority fallback, numeric conversion, BPost error handling; `app-version.test.ts` and `server-instructions.test.ts` validate version export and Flemish tone respectively.
 
 ### Changed
+- **Server instructions** (`src/lib/mcp/server-instructions.ts`): Added agent orchestration guidance — batch pipeline flow (steps 1–6), pre-submission checklist, communication modes (T/C/P), direct tools vs batch pipeline, deposit/mailing master/slave linking, and upcoming `check_batch` note.
+- **Tool descriptions** (`src/app/api/mcp/route.ts`): All batch pipeline tools now show step numbers (1–6), prerequisites, next steps, and ordering constraints. Direct tools (`bpost_announce_mailing`, `bpost_announce_deposit`) clarified as non-pipeline with deposit/mailing linking guidance.
 - **`submit_ready_batch`** (`src/app/api/mcp/route.ts`): Replaced stub with real BPost XML dispatch. Builds a `MailingCreate` request from mapped batch rows, sends via `BpostClient`, and stores submission metadata (mailingRef, row counts, BPost status, user/client ID) in `BatchState`. Batch stays `MAPPED` on BPost errors for retry.
 - **Home** (`src/app/page.tsx`): Call-to-action links use shared `bp-btn` classes; shows `AlphaServiceBanner` and `APP_VERSION`.
 - **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout; method-choice cards via `bp-install-card`; install snippets wrapped with `CopyCodeBlock`; primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
