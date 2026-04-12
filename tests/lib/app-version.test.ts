@@ -5,7 +5,7 @@ import { APP_VERSION, MCP_SERVER_DISPLAY_NAME } from '@/lib/app-version'
 describe('app-version', () => {
   it('exports version from package.json', () => {
     expect(APP_VERSION).toBe(packageJson.version)
-    expect(APP_VERSION).toMatch(/^\d+\.\d+\.\d+/)
+    expect(APP_VERSION).toMatch(/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/)
   })
 
   it('exports stable MCP display name', () => {

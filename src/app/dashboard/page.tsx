@@ -10,6 +10,10 @@ import { encrypt, hashToken } from '@/lib/crypto'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
 import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
+import { AlphaServiceBanner } from '@/components/customer/AlphaServiceBanner'
+import { env } from '@/lib/config/env'
+
+const MCP_URL = `${env.NEXT_PUBLIC_BASE_URL}/api/mcp`
 
 interface Props {
   searchParams: Promise<{ token?: string }>
@@ -62,12 +66,12 @@ export default async function DashboardPage({ searchParams }: Props) {
 
     const session = await auth()
     const actionTenantId = session?.user?.tenantId
-    if (!actionTenantId) throw new Error('Unauthorized')
+    if (!actionTenantId) throw new Error('Geen toegang.')
 
     const numericOnly = /^\d{1,8}$/
-    if (!numericOnly.test(customerNumber)) throw new Error('Customer Number must be 1–8 digits')
-    if (!numericOnly.test(accountId)) throw new Error('Account ID must be 1–8 digits')
-    if (prsNumber && !numericOnly.test(prsNumber)) throw new Error('PRS Number must be 1–8 digits')
+    if (!numericOnly.test(customerNumber)) throw new Error('Klantnummer: enkel 1 tot 8 cijfers.')
+    if (!numericOnly.test(accountId)) throw new Error('Account-ID: enkel 1 tot 8 cijfers.')
+    if (prsNumber && !numericOnly.test(prsNumber)) throw new Error('PRS-nummer: enkel 1 tot 8 cijfers.')
 
     const [existingCred] = await db
       .select()
@@ -101,7 +105,7 @@ export default async function DashboardPage({ searchParams }: Props) {
       }
     } else {
       if (password.length === 0) {
-        throw new Error('Password is required for new credentials')
+        throw new Error('Voor nieuwe gegevens is een wachtwoord verplicht.')
       }
       const { ciphertext, iv } = encrypt(password, encKey)
       await db.insert(bpostCredentials).values({
@@ -119,7 +123,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
   async function generateToken(formData: FormData) {
     'use server'
-    const label = (formData.get('label') as string) || 'claude-desktop'
+    const label = (formData.get('label') as string) || 'thuis-computer'
 
     const session = await auth()
     const actionTenantId = session?.user?.tenantId
@@ -150,6 +154,8 @@ export default async function DashboardPage({ searchParams }: Props) {
           </button>
         </form>
       </header>
+
+      <AlphaServiceBanner />
 
       {newlyGeneratedToken && (
         <div className="bp-alert" role="status" style={{ marginBottom: '1.5rem' }}>
@@ -251,7 +257,7 @@ export default async function DashboardPage({ searchParams }: Props) {
           <form action={generateToken} className="bp-form-grid" style={{ marginBottom: tokens.length ? '1.25rem' : '0' }}>
             <label className="bp-label">
               Naam (bv. thuis-computer)
-              <input name="label" className="bp-input" defaultValue="claude-desktop" required />
+              <input name="label" className="bp-input" defaultValue="thuis-computer" required />
             </label>
             <button type="submit" className="bp-btn bp-btn--secondary" style={{ width: 'fit-content' }}>
               Nieuwe sleutel maken
@@ -278,6 +284,32 @@ export default async function DashboardPage({ searchParams }: Props) {
               ))}
             </ul>
           )}
+        </section>
+
+        <section className="bp-card bp-card--section">
+          <h2 className="bp-section-title">Je AI-assistent koppelen</h2>
+          <p className="bp-prose">
+            Om je AI-assistent (zoals Claude Desktop of Claude Code) met deze dienst te verbinden, gebruik
+            je het MCP-protocol. Hieronder vind je de server-URL en de twee manieren om te verbinden.
+          </p>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <p className="bp-prose" style={{ fontSize: '0.875rem', marginBottom: '0.35rem' }}>
+              <strong>Server-URL:</strong>
+            </p>
+            <CopyCodeBlock code={MCP_URL} copyLabel="Server-URL kopiëren" />
+          </div>
+
+          <h3 className="bp-subtitle">Via OAuth (aanbevolen)</h3>
+          <p className="bp-prose" style={{ fontSize: '0.875rem' }}>
+            Geen sleutel om bij te houden. Voeg de server-URL toe in je AI-assistent en meld je de eerste
+            keer aan met Google.
+          </p>
+          <p className="bp-prose" style={{ fontSize: '0.875rem', marginTop: '1rem' }}>
+            <a href="/install" className="bp-btn bp-btn--secondary">
+              Meer informatie over aansluiten
+            </a>
+          </p>
         </section>
       </div>
 

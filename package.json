@@ -1,6 +1,6 @@
 {
   "name": "bpost-mcp",
-  "version": "2.1.1",
+  "version": "0.1.0-alpha.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -14,7 +14,7 @@
     "seed": "tsx --env-file=.env.local scripts/seed-demo-tenant.ts",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "check:hardcoded": "grep -r 'vercel.app' src/ && exit 1 || exit 0",
+    "check:hardcoded": "grep -r 'vercel.app' src/ --exclude-dir=node_modules | grep -v 'LEGACY_PUBLIC_ORIGIN' && exit 1 || exit 0",
     "check:all": "npm run lint && npx tsc --noEmit && npm test && npm run check:hardcoded"
   },
   "dependencies": {

@@ -17,13 +17,13 @@ export type ActionResult =
 export async function revokeToken(id: string): Promise<ActionResult> {
   const parsed = z.string().uuid().safeParse(id)
   if (!parsed.success) {
-    return { ok: false, code: 'VALIDATION_ERROR', error: 'Invalid request.' }
+    return { ok: false, code: 'VALIDATION_ERROR', error: 'Ongeldige aanvraag.' }
   }
 
   const session = await auth()
   const tenantId = session?.user?.tenantId
   if (!tenantId) {
-    return { ok: false, code: 'AUTH_ERROR', error: 'Session expired. Please sign in again.' }
+    return { ok: false, code: 'AUTH_ERROR', error: 'Je sessie is verlopen. Meld je opnieuw aan.' }
   }
 
   const [token] = await db
@@ -33,13 +33,13 @@ export async function revokeToken(id: string): Promise<ActionResult> {
     .limit(1)
 
   if (!token || token.tenantId !== tenantId) {
-    return { ok: false, code: 'AUTH_ERROR', error: 'Session expired. Please sign in again.' }
+    return { ok: false, code: 'AUTH_ERROR', error: 'Je sessie is verlopen. Meld je opnieuw aan.' }
   }
 
   try {
     await db.delete(apiTokens).where(eq(apiTokens.id, id))
   } catch {
-    return { ok: false, code: 'TRANSIENT_ERROR', error: 'Failed to delete token. Please try again.' }
+    return { ok: false, code: 'TRANSIENT_ERROR', error: 'Sleutel verwijderen is mislukt. Probeer opnieuw.' }
   }
 
   return { ok: true, redirect: '/dashboard' }
