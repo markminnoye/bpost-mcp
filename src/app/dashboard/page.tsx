@@ -62,6 +62,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     const customerNumber = formData.get('customerNumber') as string
     const accountId = formData.get('accountId') as string
     const prsNumber = (formData.get('prsNumber') as string) || null
+    const barcodeCustomerId = (formData.get('barcodeCustomerId') as string) || null
     const encKey = process.env.ENCRYPTION_KEY!
 
     const session = await auth()
@@ -72,6 +73,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     if (!numericOnly.test(customerNumber)) throw new Error('Klantnummer: enkel 1 tot 8 cijfers.')
     if (!numericOnly.test(accountId)) throw new Error('Account-ID: enkel 1 tot 8 cijfers.')
     if (prsNumber && !numericOnly.test(prsNumber)) throw new Error('PRS-nummer: enkel 1 tot 8 cijfers.')
+    if (barcodeCustomerId && !/^\d{5}$/.test(barcodeCustomerId)) throw new Error('Barcode-klant-ID: exact 5 cijfers.')
 
     const [existingCred] = await db
       .select()
@@ -85,6 +87,7 @@ export default async function DashboardPage({ searchParams }: Props) {
         customerNumber,
         accountId,
         prsNumber,
+        barcodeCustomerId,
         updatedAt: new Date(),
       }
       if (password.length === 0) {
@@ -116,6 +119,7 @@ export default async function DashboardPage({ searchParams }: Props) {
         customerNumber,
         accountId,
         prsNumber,
+        barcodeCustomerId,
       })
     }
     redirect('/dashboard')
@@ -242,6 +246,21 @@ export default async function DashboardPage({ searchParams }: Props) {
                 title="1 tot 8 cijfers"
               />
             </label>
+            <label className="bp-label">
+              Barcode-klant-ID (optioneel)
+              <input
+                name="barcodeCustomerId"
+                className="bp-input"
+                defaultValue={existingCreds?.barcodeCustomerId ?? ''}
+                pattern="\d{5}"
+                maxLength={5}
+                title="Exact 5 cijfers"
+              />
+            </label>
+            <p className="bp-muted-note" style={{ marginTop: '-0.35rem', marginBottom: '0.5rem' }}>
+              Een 5-cijferige code die je van bpost ontvangt als je deelneemt aan het Mail ID-programma.
+              Alleen nodig als je barcodes automatisch wilt laten aanmaken door deze dienst.
+            </p>
             <button type="submit" className="bp-btn bp-btn--primary" style={{ marginTop: '0.25rem', width: 'fit-content' }}>
               Gegevens bewaren
             </button>
