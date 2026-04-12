@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`server-instructions`** (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
 
 ### Fixed
+- **Barcode strategy — `savePreferences` TOCTOU race**: Replaced select-then-insert/update pattern with a single atomic `INSERT … ON CONFLICT DO UPDATE`, eliminating the race condition under concurrent requests.
+- **Barcode strategy — `get-preferences.ts` unsafe DB cast**: Added `TenantPreferencesSchema` with `z.enum` validation and `safeParse`; corrupt DB values now fall back to DEFAULTS with a logged error instead of silently casting.
+- **Barcode strategy — `customer-provides` midNum format**: Validates supplied MID numbers against `/^[0-9]{14,18}$/` instead of a presence-only check, rejecting non-numeric or out-of-range values immediately.
+- **Barcode strategy — sequence overflow message**: Overflow error for `mcp-generates` now includes the current ISO week number and explicitly states the limit is non-recoverable for the remainder of that week.
 - **`report_issue` fallback without `GITHUB_TOKEN`**: When `GITHUB_TOKEN` is unset on the server, the tool returns a prefilled GitHub "new issue" URL so users can still report issues in the browser; the same fallback link is also included on GitHub API errors.
 - **Claude Desktop / MCP OAuth on custom domains**: OAuth metadata (`.well-known/oauth-authorization-server`, `.well-known/oauth-protected-resource`), authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from `getPublicOrigin(request)` instead of only `NEXT_PUBLIC_BASE_URL`, so the same deployment works when users hit a custom domain while env still points at the default deployment hostname.
 - **OAuth resource URL alignment**: Protected resource metadata and stored auth codes use a canonical MCP URL (`{origin}/api/mcp`); token exchange accepts equivalent origin vs `/api/mcp` forms and allows omitting `resource` on the token request when the code was bound to the canonical MCP resource (client interop).
