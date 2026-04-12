@@ -9,6 +9,7 @@ export interface BpostCredentials {
   customerNumber: string;
   accountId: string;
   prsNumber?: string;
+  barcodeCustomerId?: string;
 }
 
 export async function getCredentialsByTenantId(
@@ -34,5 +35,6 @@ export async function getCredentialsByTenantId(
     customerNumber: row.customerNumber,
     accountId: row.accountId,
     prsNumber: row.prsNumber ?? undefined,
+    barcodeCustomerId: row.barcodeCustomerId ?? undefined,
   };
 }
