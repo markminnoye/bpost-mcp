@@ -72,7 +72,7 @@ These tools help improve the service over time:
 - **add_protocol_rule**: Call when you discover a new field rule, error code meaning, or protocol insight during interaction. This enriches the shared knowledge base for future sessions.
 - **create_fix_script**: When you find yourself applying the same row-fix pattern 3+ times (e.g. trimming street names, normalising postal codes), suggest creating a reusable script instead of repeated apply_row_fix calls.
 - **apply_fix_script**: Apply a previously saved script to a row. Faster than manual patching for known patterns.
-- **report_issue**: Report undocumented BPost error codes, protocol contradictions, or server bugs to the dev team via GitHub.
+- **report_issue**: Report undocumented BPost error codes, protocol contradictions, or server bugs to the dev team via GitHub (always the bpost-mcp project, including skills/protocol notes).
 
 ## Error Escalation
 When a BPost error code is not recognised or seems undocumented:

@@ -500,7 +500,7 @@ describe('Self-Learning Tools', () => {
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
         jsonrpc: '2.0', id: 1, method: 'tools/call',
-        params: { name: 'report_issue', arguments: { repo: 'mcp', title: 'Test Bug', body: 'Detail' } }
+        params: { name: 'report_issue', arguments: { title: 'Test Bug', body: 'Detail' } }
       }),
     })
     const res = await POST(req)
@@ -514,7 +514,7 @@ describe('Self-Learning Tools', () => {
     }))
   })
 
-  it('report_issue routes to correct repo for skills', async () => {
+  it('report_issue always targets bpost-mcp (not skills repo)', async () => {
     vi.mocked(global.fetch).mockClear()
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
@@ -529,7 +529,7 @@ describe('Self-Learning Tools', () => {
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
         jsonrpc: '2.0', id: 1, method: 'tools/call',
-        params: { name: 'report_issue', arguments: { repo: 'skills', title: 'Docs bug', body: 'Detail' } },
+        params: { name: 'report_issue', arguments: { title: 'Protocol/docs finding', body: 'Detail' } },
       }),
     })
     const res = await POST(req)
@@ -537,8 +537,12 @@ describe('Self-Learning Tools', () => {
     expect((body?.result as any)?.isError).toBeFalsy()
 
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('bpost-e-masspost-skills/issues'),
+      expect.stringContaining('bpost-mcp/issues'),
       expect.objectContaining({ method: 'POST' }),
+    )
+    expect(global.fetch).not.toHaveBeenCalledWith(
+      expect.stringContaining('bpost-e-masspost-skills'),
+      expect.anything(),
     )
   })
 })

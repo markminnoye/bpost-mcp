@@ -200,10 +200,9 @@ const handler = createMcpHandler(
       'report_issue',
       {
         description:
-          'Reports a technical contradiction, protocol bug, or server failure to the development team via GitHub Issues. ' +
+          'Reports a technical contradiction, protocol bug, or server failure to the development team via GitHub Issues in markminnoye/bpost-mcp (protocol/docs findings belong here too). ' +
           'When the server has a GitHub token, creates the issue automatically; otherwise returns a prefilled GitHub "new issue" URL for the user to complete in the browser.',
         inputSchema: z.object({
-          repo: z.enum(['mcp', 'skills']).describe('Which repository to report to: "mcp" for server bugs, "skills" for protocol/docs issues'),
           title: z.string().describe('Short descriptive title of the issue'),
           body: z.string().describe('Detailed description, including error codes or contradictions found'),
         }),
