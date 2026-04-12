@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`check_batch` MCP tool** (`src/lib/batch/check-batch.ts`): New service function for BPost OptiAddress (MailingCheck) pre-validation. Sends all batch rows to BPost for address-level validation before submission. Mirrors `submit-batch.ts` pattern. Can be called multiple times (non-destructive, batch stays MAPPED).
+- **`BpostValidationItem`** (`src/lib/kv/client.ts`): New type stored on `BatchRow.bpostValidation` — tracks checkedAt timestamp, status (OK/ERROR/WARNING), BPost status code/message, and address correction suggestions.
+- **`get_batch_errors` expanded**: Now shows both Zod validation errors AND BPost OptiAddress errors/warnings. Agents can see per-row BPost feedback alongside field validation failures.
 - **`src/lib/batch/submit-batch.ts`**: Service function that constructs the full `MailingRequest` XML envelope from batch rows + mailing-level params + tenant credentials, sends to BPost, and returns a structured result.
 - **`SubmissionRecord`** (`src/lib/kv/client.ts`): New type tracking submission params, row counts, BPost response status, user/client audit fields. Stored as `submission?` on `BatchState` in Redis.
 - **`submit_ready_batch` input schema** (`src/app/api/mcp/route.ts`): Expanded from `{ batchId }` to include `expectedDeliveryDate`, `format`, `mailingRef`, `priority` (default NP), `mode` (default T), `customerFileRef`, `genMID` (default 7), `genPSC` (default N). Auto-generates `mailingRef` as `B-YYYYMMDD-HHmm` when omitted.

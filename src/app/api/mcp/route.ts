@@ -12,6 +12,7 @@ import { getBatchState, saveBatchState } from '@/lib/kv/client'
 import { applyMapping } from '@/lib/batch/apply-mapping'
 import { validateMappingTargets } from '@/lib/batch/validate-mapping-targets'
 import { submitBatch } from '@/lib/batch/submit-batch'
+import { checkBatch } from '@/lib/batch/check-batch'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
 import { reportIssueToGithub } from '@/lib/github/report-issue'
@@ -321,8 +322,9 @@ const handler = createMcpHandler(
       'get_batch_errors',
       {
         description:
-          'BATCH PIPELINE step 4/6: Returns rows that failed field validation after mapping (BPost mailing item rules). ' +
+          'BATCH PIPELINE step 4/6: Returns rows that failed field validation after mapping (Zod/BPost mailing item rules) AND BPost OptiAddress errors from check_batch. ' +
           'Call after apply_mapping_rules and again after each round of apply_row_fix to check remaining errors. ' +
+          'Also call after check_batch to see BPost-level address validation feedback (errors, warnings, suggestions). ' +
           'When totalErrors is 0, the batch is ready for submit_ready_batch. ' +
           'Explain issues to the user in plain language.',
         inputSchema: z.object({ batchId: z.string(), limit: z.number().int().min(1).default(10) }),
@@ -334,9 +336,141 @@ const handler = createMcpHandler(
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
 
-        const erroredRows = state.rows.filter(r => r.validationErrors && r.validationErrors.length > 0)
-        const sliced = erroredRows.slice(0, input.limit)
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ totalErrors: erroredRows.length, visible: sliced.length, errors: sliced }, null, 2) }] }
+        const zodErroredRows = state.rows.filter(r => r.validationErrors && r.validationErrors.length > 0)
+        const bpostErrorRows = state.rows.filter(r => r.bpostValidation?.status === 'ERROR')
+        const bpostWarningRows = state.rows.filter(r => r.bpostValidation?.status === 'WARNING')
+
+        const hasZodErrors = zodErroredRows.length > 0
+        const hasBpostErrors = bpostErrorRows.length > 0
+        const hasBpostWarnings = bpostWarningRows.length > 0
+
+        if (!hasZodErrors && !hasBpostErrors && !hasBpostWarnings) {
+          return { content: [{ type: 'text' as const, text: JSON.stringify({ totalErrors: 0, message: 'All rows valid according to Zod AND BPost OptiAddress!' }, null, 2) }] }
+        }
+
+        const zodSlice = zodErroredRows.slice(0, input.limit)
+        const bpostErrorSlice = bpostErrorRows.slice(0, input.limit)
+        const bpostWarningSlice = bpostWarningRows.slice(0, input.limit)
+
+        return { content: [{ type: 'text' as const, text: JSON.stringify({ zodErrors: { total: zodErroredRows.length, visible: zodSlice.length, rows: zodSlice }, bpostErrors: { total: bpostErrorRows.length, visible: bpostErrorSlice.length, rows: bpostErrorSlice }, bpostWarnings: { total: bpostWarningRows.length, visible: bpostWarningSlice.length, rows: bpostWarningSlice } }, null, 2) }] }
+      },
+    )
+
+    server.registerTool(
+      'check_batch',
+      {
+        description:
+          'BATCH PIPELINE step 4b/6: Validates all batch rows against BPost OptiAddress (address validation service) before submission. ' +
+          'Call AFTER apply_mapping_rules (step 3) AND BEFORE submit_ready_batch (step 6). ' +
+          'MailingCheck is non-destructive — batch stays in MAPPED status and can be called multiple times to re-verify fixes. ' +
+          'Use the response to identify rows with BPost-level errors (undeliverable addresses, invalid postal codes, etc.) ' +
+          'Use apply_row_fix to correct identified issues, then call check_batch again to re-verify.',
+        inputSchema: z.object({
+          batchId: z.string(),
+          mailingRef: z.string().max(20).optional(),
+          mode: z.enum(['P', 'T', 'C']).optional().default('T'),
+          customerFileRef: z.string().max(10).optional(),
+          copyRequestItem: z.enum(['Y', 'N']).optional().default('N'),
+          suggestionsCount: z.number().int().min(0).max(9999).optional().default(5),
+          suggestionsMinScore: z.number().int().min(1).max(100).optional().default(60),
+          pdpInResponse: z.enum(['Y', 'N']).optional().default('N'),
+          allRecordInResponse: z.enum(['Y', 'N']).optional().default('Y'),
+        }),
+      },
+      async (input, extra) => {
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
+
+        const state = await getBatchState(tenantId, input.batchId)
+        if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
+        if (state.status !== 'MAPPED') return { isError: true, content: [{ type: 'text' as const, text: `Batch ${input.batchId} is not in MAPPED state. Current status: ${state.status}. Map the batch first using apply_mapping_rules.` }] }
+
+        const credentials = await resolveCredentials(tenantId)
+
+        const now = new Date()
+        const mailingRef = input.mailingRef ?? `CHK-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`
+        const customerFileRef = input.customerFileRef ?? input.batchId.slice(0, 10)
+
+        const result = await checkBatch(
+          state.rows,
+          {
+            mailingRef,
+            mode: input.mode,
+            customerFileRef,
+            copyRequestItem: input.copyRequestItem,
+            suggestionsCount: input.suggestionsCount,
+            suggestionsMinScore: input.suggestionsMinScore,
+            pdpInResponse: input.pdpInResponse,
+            allRecordInResponse: input.allRecordInResponse,
+          },
+          credentials,
+        )
+
+        if (result.success) {
+          // Store per-row validation results back into BatchRow
+          const response = result.bpostResponse as Record<string, unknown>
+          const mailingCheck = (
+            (response.MailingResponse as Record<string, unknown>)?.MailingCheck as Array<Record<string, unknown>>
+          )?.[0]
+          const replies = mailingCheck?.Replies as Record<string, unknown> | undefined
+          const replyArray = (replies?.Reply as Array<Record<string, unknown>>) ?? []
+
+          // Build a map of seq -> validation result
+          const validationMap = new Map<number, Record<string, unknown>>()
+          for (const reply of replyArray) {
+            const seq = reply.seq as number
+            validationMap.set(seq, reply)
+          }
+
+          // Update bpostValidation on each row
+          for (const row of state.rows) {
+            const mapped = row.mapped as Record<string, unknown> | undefined
+            const seq = mapped?.seq as number | undefined
+            if (seq !== undefined && validationMap.has(seq)) {
+              const reply = validationMap.get(seq)!
+              const statusRec = reply.Status as Record<string, unknown>
+              const statusCode = statusRec?.code as string | undefined
+              row.bpostValidation = {
+                checkedAt: now.toISOString(),
+                status: statusCode === 'WARNING' ? 'WARNING' : statusCode === 'ERROR' ? 'ERROR' : 'OK',
+                statusCode: statusCode === 'OK' ? undefined : statusCode,
+                statusMessage: statusCode !== 'OK' ? (statusRec?.description as string | undefined) : undefined,
+              }
+            } else {
+              row.bpostValidation = {
+                checkedAt: now.toISOString(),
+                status: 'OK',
+              }
+            }
+          }
+
+          try {
+            await saveBatchState(state)
+          } catch (err) {
+            console.error('[MCP] saveBatchState failed after check_batch:', err)
+            return { isError: true, content: [{ type: 'text' as const, text: 'Check completed but state save failed. Please retry.' }] }
+          }
+
+          const errorRows = state.rows.filter(r => r.bpostValidation?.status === 'ERROR')
+          const warningRows = state.rows.filter(r => r.bpostValidation?.status === 'WARNING')
+          const okRows = state.rows.filter(r => r.bpostValidation?.status === 'OK')
+
+          let summary = `Check complete: ${result.checkedCount} rows checked.\nOK: ${okRows.length}`
+          if (warningRows.length > 0) summary += ` | Warnings: ${warningRows.length}`
+          if (errorRows.length > 0) summary += ` | Errors: ${errorRows.length}`
+          summary += '\n\nUse get_batch_errors to see detailed per-row feedback.'
+
+          return { content: [{ type: 'text' as const, text: summary }] }
+        }
+
+        return {
+          isError: true,
+          content: [{
+            type: 'text' as const,
+            text: `BPost rejected the check request.\nCode: ${result.error!.code}\nMessage: ${result.error!.message}`,
+          }],
+        }
       },
     )
 

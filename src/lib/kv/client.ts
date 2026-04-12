@@ -36,11 +36,23 @@ async function getRedis(): Promise<RedisClient> {
 
 export type BatchStatus = 'UNMAPPED' | 'MAPPED' | 'SUBMITTED'
 
+export interface BpostValidationItem {
+  checkedAt: string
+  status: 'OK' | 'ERROR' | 'WARNING'
+  statusCode?: string
+  statusMessage?: string
+  suggestions?: Array<{
+    score: number
+    comps: Array<{ code: string; value: string }>
+  }>
+}
+
 export interface BatchRow {
   index: number
-  raw: Record<string, unknown> // The original data exactly as provided in the CSV
-  mapped?: Record<string, unknown> // The data transformed into BPost schema shape
-  validationErrors?: $ZodIssue[] // Errors from Zod validation (if any)
+  raw: Record<string, unknown>
+  mapped?: Record<string, unknown>
+  validationErrors?: $ZodIssue[]
+  bpostValidation?: BpostValidationItem
 }
 
 export interface SubmissionRecord {

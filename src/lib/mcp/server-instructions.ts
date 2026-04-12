@@ -35,7 +35,8 @@ When a user has a CSV/XLSX file to send to bpost, follow this pipeline in order:
 3. **apply_mapping_rules** → map spreadsheet columns to BPost fields (Comps.* for address parts)
 4. **get_batch_errors** → check for validation failures after mapping
 5. **apply_row_fix** (iterate) → fix each errored row, then call get_batch_errors again until 0 errors
-6. **submit_ready_batch** → submit the validated batch to BPost as a MailingCreate request
+6. **check_batch** → validate addresses via BPost OptiAddress (MailingCheck). Fix any errors/warnings with apply_row_fix, then recheck.
+7. **submit_ready_batch** → submit the validated batch to BPost as a MailingCreate request
 
 Do NOT skip steps. Each step depends on the previous one succeeding.
 
@@ -79,6 +80,9 @@ When a BPost error code is not recognised or seems undocumented:
 2. Call add_protocol_rule to capture the finding for future reference
 3. Offer to call report_issue so the development team can investigate
 
-## Address Validation (Coming Soon)
-In production, addresses should be pre-validated via MailingCheck (OptiAddress) before MailingCreate submission. A \`check_batch\` tool is planned (issue #13). For now, rely on Zod field validation and test mode.
+## Address Validation (OptiAddress)
+Use **check_batch** to pre-validate addresses via BPost OptiAddress (MailingCheck) before submission. This catches BPost-level issues (undeliverable addresses, invalid postal codes, etc.) that Zod schema validation cannot detect.
+- **check_batch** is non-destructive — batch stays in MAPPED status and can be called multiple times.
+- After check_batch, review errors/warnings in get_batch_errors, fix with apply_row_fix, then recheck.
+- Only call submit_ready_batch after check_batch shows 0 errors.
 `.trim()

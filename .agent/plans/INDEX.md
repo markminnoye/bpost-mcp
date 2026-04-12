@@ -56,6 +56,7 @@ All implementation plans, design specs, and architecture decisions live here.
 |---|---|---|
 | [Issue #10: Comps Mapping + seq Auto-Generation](../../docs/superpowers/plans/2026-04-11-issue10-mapping-comps-seq.md) | ✅ | Fix Comps aggregation, seq auto-gen, error hints |
 | [submit_ready_batch BPost XML Dispatch](../../docs/superpowers/plans/2026-04-12-submit-ready-batch.md) | ✅ | Replace stub with real MailingCreate dispatch |
+| [Issue #13: check_batch (OptiAddress pre-validation)](../../docs/superpowers/plans/2026-04-12-check-batch.md) | ✅ | MailingCheck service, BpostValidation on BatchRow, updated get_batch_errors |
 
 ---
 
