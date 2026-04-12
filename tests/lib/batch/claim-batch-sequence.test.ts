@@ -34,8 +34,8 @@ describe('claimBatchSequence', () => {
   it('returns incrementing values on successive calls', async () => {
     const { db } = await import('@/lib/db/client')
     let counter = 0
-    vi.mocked(db.execute).mockImplementation(async () => {
-      return [{ batch_sequence: counter++ }] as any
+    ;(db.execute as any).mockImplementation(async () => {
+      return [{ batch_sequence: counter++ }]
     })
 
     const { claimBatchSequence } = await import('@/lib/batch/claim-batch-sequence')

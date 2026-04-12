@@ -7,6 +7,9 @@ import { createBpostClient } from '@/client/bpost'
 import { BpostError } from '@/client/errors'
 import { verifyToken } from '@/lib/oauth/verify-token'
 import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
+import { getTenantPreferences } from '@/lib/tenant/get-preferences'
+import { generateMidNumber } from '@/lib/batch/generate-barcode'
+import { claimBatchSequence } from '@/lib/batch/claim-batch-sequence'
 import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 import { applyMapping } from '@/lib/batch/apply-mapping'
@@ -24,6 +27,14 @@ import vm from 'vm'
 
 export const dynamic = 'force-dynamic'
 
+function getISOWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  const dayNum = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
+}
+
 async function resolveCredentials(tenantId: string) {
   const creds = await getCredentialsByTenantId(tenantId)
   if (!creds) {
@@ -34,6 +45,7 @@ async function resolveCredentials(tenantId: string) {
     password: creds.bpostPassword,
     customerNumber: creds.customerNumber,
     accountId: creds.accountId,
+    barcodeCustomerId: creds.barcodeCustomerId,
   }
 }
 
@@ -555,7 +567,59 @@ const handler = createMcpHandler(
 
         const credentials = await resolveCredentials(tenantId)
 
+        // ── Barcode strategy resolution ──────────────────────────
         const now = new Date()
+        const preferences = await getTenantPreferences(tenantId)
+        let resolvedGenMID = input.genMID
+
+        // Only apply strategy defaults when the user did NOT explicitly provide genMID
+        const userProvidedGenMID = input.genMID !== '7' // '7' is the schema default
+        if (!userProvidedGenMID) {
+          switch (preferences.barcodeStrategy) {
+            case 'bpost-generates':
+              resolvedGenMID = preferences.barcodeLength as 'N' | '7' | '9' | '11'
+              break
+            case 'customer-provides':
+            case 'mcp-generates':
+              resolvedGenMID = 'N'
+              break
+          }
+        }
+
+        // Validate strategy-specific requirements
+        if (preferences.barcodeStrategy === 'customer-provides') {
+          const missingMidNum = readyRows.filter(r => !(r.mapped as Record<string, unknown>)?.midNum)
+          if (missingMidNum.length > 0) {
+            return { isError: true, content: [{ type: 'text' as const, text: `Strategy is 'customer-provides' but ${missingMidNum.length} rows are missing midNum. Map the midNum column or change barcode strategy in dashboard settings.` }] }
+          }
+        }
+
+        if (preferences.barcodeStrategy === 'mcp-generates') {
+          if (!credentials.barcodeCustomerId) {
+            return { isError: true, content: [{ type: 'text' as const, text: `Strategy is 'mcp-generates' but barcodeCustomerId is not configured. Add your 5-digit Barcode-klant-ID in dashboard settings.` }] }
+          }
+          if (readyRows.length > 999999) {
+            return { isError: true, content: [{ type: 'text' as const, text: `Batch has ${readyRows.length} rows but MCP barcode generation supports max 999,999 per batch.` }] }
+          }
+
+          const weekNumber = getISOWeekNumber(now)
+          const batchSequence = await claimBatchSequence(tenantId, weekNumber)
+
+          if (batchSequence > 999) {
+            return { isError: true, content: [{ type: 'text' as const, text: `Batch sequence limit reached (1000 batches this week). Try again next week or switch to a different barcode strategy.` }] }
+          }
+
+          for (let i = 0; i < readyRows.length; i++) {
+            const midNum = generateMidNumber(
+              credentials.barcodeCustomerId,
+              weekNumber,
+              batchSequence,
+              i,
+            )
+            ;(readyRows[i].mapped as Record<string, unknown>).midNum = midNum
+          }
+        }
+
         const mailingRef = input.mailingRef ?? `B-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`
         const customerFileRef = input.customerFileRef ?? input.batchId.slice(0, 10)
 
@@ -568,7 +632,7 @@ const handler = createMcpHandler(
             priority: input.priority,
             mode: input.mode,
             customerFileRef,
-            genMID: input.genMID,
+            genMID: resolvedGenMID,
             genPSC: input.genPSC,
           },
           credentials,
@@ -588,7 +652,7 @@ const handler = createMcpHandler(
             priority: input.priority,
             mode: input.mode,
             customerFileRef,
-            genMID: input.genMID,
+            genMID: resolvedGenMID,
             genPSC: input.genPSC,
             submittedAt: now.toISOString(),
             submittedRowCount: readyRows.length,
