@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Barcode strategy configuration: tenants can choose `bpost-generates`, `customer-provides`, or `mcp-generates` (#16)
+- `barcodeCustomerId` field on BPost credentials for Mail ID program participation
+- MCP barcode generation: auto-generates 18-digit MID numbers (FCC 12 + week-based uniqueness)
+- Dashboard "Barcode-instellingen" section for strategy and length preferences
+- `tenant_preferences` and `barcode_sequences` database tables
 - **`check_batch` MCP tool** (`src/lib/batch/check-batch.ts`): New service function for BPost OptiAddress (MailingCheck) pre-validation. Sends all batch rows to BPost for address-level validation before submission. Mirrors `submit-batch.ts` pattern. Can be called multiple times (non-destructive, batch stays MAPPED).
 - **`BpostValidationItem`** (`src/lib/kv/client.ts`): New type stored on `BatchRow.bpostValidation` — tracks checkedAt timestamp, status (OK/ERROR/WARNING), BPost status code/message, and address correction suggestions.
 - **`get_batch_errors` expanded**: Now shows both Zod validation errors AND BPost OptiAddress errors/warnings. Agents can see per-row BPost feedback alongside field validation failures.

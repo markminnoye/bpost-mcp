@@ -24,10 +24,10 @@ export async function savePreferences(formData: FormData): Promise<void> {
   const strategy = formData.get('barcodeStrategy') as string
   const length = formData.get('barcodeLength') as string
 
-  if (!BARCODE_STRATEGIES.includes(strategy as any)) {
+  if (!BARCODE_STRATEGIES.includes(strategy as typeof BARCODE_STRATEGIES[number])) {
     throw new Error('Ongeldige barcodestrategie.')
   }
-  if (!BARCODE_LENGTHS.includes(length as any)) {
+  if (!BARCODE_LENGTHS.includes(length as typeof BARCODE_LENGTHS[number])) {
     throw new Error('Ongeldige barcodelengte.')
   }
 
