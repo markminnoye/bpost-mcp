@@ -43,6 +43,28 @@ export interface BatchRow {
   validationErrors?: $ZodIssue[] // Errors from Zod validation (if any)
 }
 
+export interface SubmissionRecord {
+  mailingRef: string
+  expectedDeliveryDate: string
+  format: 'Large' | 'Small'
+  priority: 'P' | 'NP'
+  mode: 'P' | 'T' | 'C'
+  customerFileRef: string
+  genMID: 'N' | '7' | '9' | '11'
+  genPSC: 'Y' | 'N'
+  submittedAt: string
+  submittedRowCount: number
+  skippedRowCount: number
+  userId?: string
+  clientId: string
+  bpostStatus?: string
+  bpostErrors?: Array<{
+    seq: number
+    code: string
+    message: string
+  }>
+}
+
 export interface BatchState {
   batchId: string
   tenantId: string // Security isolation: only the owner tenant can access this batch
@@ -50,6 +72,7 @@ export interface BatchState {
   headers: string[] // The raw CSV headers extracted from the file
   rows: BatchRow[]
   createdAt: string
+  submission?: SubmissionRecord
 }
 
 // Ensure complete PII protection by enforcing a maximum time-to-live

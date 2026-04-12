@@ -8,13 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`src/lib/batch/submit-batch.ts`**: Service function that constructs the full `MailingRequest` XML envelope from batch rows + mailing-level params + tenant credentials, sends to BPost, and returns a structured result.
+- **`SubmissionRecord`** (`src/lib/kv/client.ts`): New type tracking submission params, row counts, BPost response status, user/client audit fields. Stored as `submission?` on `BatchState` in Redis.
+- **`submit_ready_batch` input schema** (`src/app/api/mcp/route.ts`): Expanded from `{ batchId }` to include `expectedDeliveryDate`, `format`, `mailingRef`, `priority` (default NP), `mode` (default T), `customerFileRef`, `genMID` (default 7), `genPSC` (default N). Auto-generates `mailingRef` as `B-YYYYMMDD-HHmm` when omitted.
 - **`AlphaServiceBanner`** (`src/components/customer/AlphaServiceBanner.tsx`): Reusable alpha-warning banner for pre-release notices; used on home, install, and dashboard.
 - **`CopyCodeBlock`** (`src/components/customer/CopyCodeBlock.tsx`): Client component with clipboard copy and accessible status for JSON/CLI snippets.
 - **Shared customer UI surface** (`src/app/globals.css`): Design tokens and utility classes (`bp-btn`, `bp-card`, `bp-shell`, `bp-install-card`, `bp-code-block`, `bp-icon-btn`, form patterns, dialog styles) for home, install, and dashboard; root `body` uses `bp-customer-body` with Geist font variables.
 - **Install guide** (`docs/install/install-prompt.md`): Non-technical step-by-step guide for connecting Claude Desktop, Claude Code, and Claude.ai via OAuth or Bearer token.
-- **Tests**: `app-version.test.ts` and `server-instructions.test.ts` validate version export and Flemish tone respectively.
+- **Tests**: `submit-batch.test.ts` — XML construction, priority fallback, numeric conversion, BPost error handling; `app-version.test.ts` and `server-instructions.test.ts` validate version export and Flemish tone respectively.
 
 ### Changed
+- **`submit_ready_batch`** (`src/app/api/mcp/route.ts`): Replaced stub with real BPost XML dispatch. Builds a `MailingCreate` request from mapped batch rows, sends via `BpostClient`, and stores submission metadata (mailingRef, row counts, BPost status, user/client ID) in `BatchState`. Batch stays `MAPPED` on BPost errors for retry.
 - **Home** (`src/app/page.tsx`): Call-to-action links use shared `bp-btn` classes; shows `AlphaServiceBanner` and `APP_VERSION`.
 - **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout; method-choice cards via `bp-install-card`; install snippets wrapped with `CopyCodeBlock`; primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
 - **Dashboard** (`src/app/dashboard/page.tsx`): Card-based "accountinstellingen" layout; BPost password optional on update when credentials already exist (server action preserves prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; "Terug naar start" uses `next/link`.

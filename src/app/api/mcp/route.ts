@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 import { applyMapping } from '@/lib/batch/apply-mapping'
 import { validateMappingTargets } from '@/lib/batch/validate-mapping-targets'
+import { submitBatch } from '@/lib/batch/submit-batch'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
 import { reportIssueToGithub } from '@/lib/github/report-issue'
@@ -379,13 +380,27 @@ const handler = createMcpHandler(
       'submit_ready_batch',
       {
         description:
-          'Submits all validated rows from the current uploaded batch to BPost e-MassPost (XML client). Only rows without validation errors are included.',
-        inputSchema: z.object({ batchId: z.string() }),
+          'Submits all validated rows from the current uploaded batch to BPost e-MassPost as a MailingCreate request. ' +
+          'Only rows without validation errors are included; skipped rows are reported in the response. ' +
+          'IMPORTANT: Before calling, confirm these values with the user: mailingRef, expectedDeliveryDate, format, priority, and mode. ' +
+          'The batch must be in MAPPED status. After successful submission, the batch is locked as SUBMITTED.',
+        inputSchema: z.object({
+          batchId: z.string(),
+          expectedDeliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
+          format: z.enum(['Large', 'Small']),
+          mailingRef: z.string().max(20).optional(),
+          priority: z.enum(['P', 'NP']).optional().default('NP'),
+          mode: z.enum(['P', 'T', 'C']).optional().default('T'),
+          customerFileRef: z.string().max(10).optional(),
+          genMID: z.enum(['N', '7', '9', '11']).optional().default('7'),
+          genPSC: z.enum(['Y', 'N']).optional().default('N'),
+        }),
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
         if (typeof tenantOrError !== 'string') return tenantOrError
         const tenantId = tenantOrError
+
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
 
@@ -393,17 +408,75 @@ const handler = createMcpHandler(
         if (state.status !== 'MAPPED') return { isError: true, content: [{ type: 'text' as const, text: `Batch ${input.batchId} is not in MAPPED state. Current status: ${state.status}` }] }
 
         const readyRows = state.rows.filter(r => !r.validationErrors || r.validationErrors.length === 0)
-        if (readyRows.length === 0) return { isError: true, content: [{ type: 'text' as const, text: 'No physically ready rows to submit.' }] }
+        if (readyRows.length === 0) return { isError: true, content: [{ type: 'text' as const, text: 'No valid rows to submit. Use get_batch_errors and apply_row_fix first.' }] }
 
-        state.status = 'SUBMITTED'
-        try {
-          await saveBatchState(state)
-        } catch (err) {
-          console.error('[MCP] saveBatchState failed:', err)
-          return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
+        const credentials = await resolveCredentials(tenantId)
+
+        const now = new Date()
+        const mailingRef = input.mailingRef ?? `B-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`
+        const customerFileRef = input.customerFileRef ?? input.batchId.slice(0, 10)
+
+        const result = await submitBatch(
+          readyRows,
+          {
+            mailingRef,
+            expectedDeliveryDate: input.expectedDeliveryDate,
+            format: input.format,
+            priority: input.priority,
+            mode: input.mode,
+            customerFileRef,
+            genMID: input.genMID,
+            genPSC: input.genPSC,
+          },
+          credentials,
+        )
+
+        const skippedCount = state.rows.length - readyRows.length
+        const authInfo = extra.authInfo
+        const userId = (authInfo?.extra as Record<string, unknown> | undefined)?.userId as string | undefined
+        const clientId = authInfo?.clientId ?? 'unknown'
+
+        if (result.success) {
+          state.status = 'SUBMITTED'
+          state.submission = {
+            mailingRef,
+            expectedDeliveryDate: input.expectedDeliveryDate,
+            format: input.format,
+            priority: input.priority,
+            mode: input.mode,
+            customerFileRef,
+            genMID: input.genMID,
+            genPSC: input.genPSC,
+            submittedAt: now.toISOString(),
+            submittedRowCount: readyRows.length,
+            skippedRowCount: skippedCount,
+            userId,
+            clientId,
+            bpostStatus: 'OK',
+          }
+          try {
+            await saveBatchState(state)
+          } catch (err) {
+            console.error('[MCP] saveBatchState failed after BPost success:', err)
+            return { isError: true, content: [{ type: 'text' as const, text: `BPost accepted the mailing but state save failed. mailingRef: ${mailingRef}. Please contact support.` }] }
+          }
+
+          return {
+            content: [{
+              type: 'text' as const,
+              text: `Mailing submitted: ${readyRows.length} rows sent, ${skippedCount} skipped (validation errors).\nmailingRef: ${mailingRef}\nBPost status: OK`,
+            }],
+          }
         }
 
-        return { content: [{ type: 'text' as const, text: `[STUB] ${readyRows.length} rows are ready for submission. BPost XML dispatch is not yet implemented.` }] }
+        // BPost error — batch stays MAPPED
+        return {
+          isError: true,
+          content: [{
+            type: 'text' as const,
+            text: `BPost rejected the mailing.\nCode: ${result.error!.code}\nMessage: ${result.error!.message}\nBatch stays in MAPPED status — fix errors and retry.`,
+          }],
+        }
       },
     )
 
