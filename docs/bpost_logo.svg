@@ -1,16 +1,4 @@
-import packageJson from '../../package.json'
-
-/** Semantic version from package.json (MCP serverInfo and user-facing support). */
-export const APP_VERSION: string = packageJson.version
-
-/** Stable MCP product name for initialize / support. */
-export const MCP_SERVER_DISPLAY_NAME = 'bpost-emasspost'
-
-/** User-facing description for the MCP server. */
-export const MCP_SERVER_DESCRIPTION = 'BPost e-MassPost connector — valideer adressen en maak zendingen aan.'
-
-/** Base64 encoded SVG icon for the MCP server, ensuring it works independently of deployment URLs. */
-const svgIcon = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 176 140" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
     <g transform="matrix(1,0,0,1,-8.756422,-27.276593)">
@@ -21,5 +9,4 @@ const svgIcon = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
             <path d="M58.896,83.202C69.826,69.6 82.728,63.043 91.125,68.059C92.566,68.917 93.797,70.078 94.842,71.501L107.241,54.476C95.494,42.461 71.341,55.387 54.527,74.056L58.896,83.202Z" style="fill:rgb(211,64,52);"/>
         </g>
     </g>
-</svg>`
-export const MCP_SERVER_ICON_URL = `data:image/svg+xml;base64,${Buffer.from(svgIcon).toString('base64')}`
+</svg>

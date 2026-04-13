@@ -21,7 +21,7 @@ import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
 import { reportIssueToGithub } from '@/lib/github/report-issue'
 import { MCP_SERVER_INSTRUCTIONS } from '@/lib/mcp/server-instructions'
-import { APP_VERSION, MCP_SERVER_DISPLAY_NAME } from '@/lib/app-version'
+import { APP_VERSION, MCP_SERVER_DISPLAY_NAME, MCP_SERVER_DESCRIPTION, MCP_SERVER_ICON_URL } from '@/lib/app-version'
 import fs from 'fs/promises'
 import path from 'path'
 import vm from 'vm'
@@ -964,7 +964,13 @@ const handler = createMcpHandler(
     )
   },
   {
-    serverInfo: { name: MCP_SERVER_DISPLAY_NAME, version: APP_VERSION },
+    serverInfo: Object.assign(
+      { name: MCP_SERVER_DISPLAY_NAME, version: APP_VERSION },
+      {
+        description: MCP_SERVER_DESCRIPTION,
+        icons: [{ src: MCP_SERVER_ICON_URL, mimeType: 'image/svg+xml', sizes: '32x32' }],
+      },
+    ),
     instructions: MCP_SERVER_INSTRUCTIONS,
   },
   { basePath: '/api' },
