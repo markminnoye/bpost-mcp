@@ -250,14 +250,14 @@ const handler = createMcpHandler(
       {
         description:
           'BATCH PIPELINE step 1/6 (preferred): Upload a CSV file directly through the MCP protocol. ' +
-          'Pass the file content as a base64-encoded string — the server decodes it, authenticates using your session token, ' +
+          'Pass the file content as a base64-encoded string (the bytes must represent UTF-8 text) — the server decodes it, authenticates using your session token, ' +
           'parses the CSV, and stores the batch securely under your tenant. ' +
           'Returns a batchId needed for all subsequent pipeline steps. ' +
           'Use this tool instead of get_upload_instructions whenever possible — it avoids the need for out-of-band curl commands. ' +
           'Next step: get_raw_headers.',
         inputSchema: z.object({
           fileName: z.string().describe('Original file name, must end with .csv'),
-          fileContentBase64: z.string().describe('Full content of the CSV file encoded as base64'),
+          fileContentBase64: z.string().describe('Full content of the CSV file encoded as base64 (must be UTF-8 bytes). If exporting from Excel, choose "CSV UTF-8".'),
         }),
       },
       async (input, extra) => {
@@ -384,7 +384,7 @@ const handler = createMcpHandler(
           'Use these friendly field names as mapping targets: ' +
           '"lastName" (recipient last name), "firstName" (first name), "street" (street name), ' +
           '"houseNumber" (house number), "box" (box/bus number), "postalCode" (postal code), ' +
-          '"municipality" (city/town), "language" (lang: nl/fr/de), "priority" (P or NP), ' +
+          '"municipality" (city/town), "language" (lang: nl/fr/de), "priority" (item priority: NP for non-prior/D+2, P for prior/D+1), ' +
           '"mailIdBarcode" (customer-provided Mail ID barcode, 14–18 digits), ' +
           '"presortCode" (pre-sort code). ' +
           'Advanced: you may also use Comps.<code> dot-notation directly (e.g. "Comps.70") for fields without an alias. ' +
@@ -666,8 +666,10 @@ const handler = createMcpHandler(
           expectedDeliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
           format: z.enum(['Large', 'Small']),
           mailingRef: z.string().max(20).optional(),
-          priority: z.enum(['P', 'NP']).optional().default('NP'),
-          mode: z.enum(['P', 'T', 'C']).optional().default('T'),
+          priority: z.enum(['P', 'NP']).optional().default('NP')
+            .describe('Item priority for the mailing. NP = non-prior (D+2, default), P = prior (D+1). Do not confuse with mode P (Production).'),
+          mode: z.enum(['P', 'T', 'C']).optional().default('T')
+            .describe('Communication mode: T = test (default), C = certification, P = production (real mail). Not the same as item priority P.'),
           customerFileRef: z.string().max(10).optional(),
           barcodeStrategy: z.enum(['bpost-generates', 'customer-provides', 'mcp-generates']).optional()
             .describe('Barcode generation strategy. If omitted, uses the user\'s dashboard default.'),

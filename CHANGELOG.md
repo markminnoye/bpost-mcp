@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Aanpassingen**
 
 - Foutmeldingen bij barcode-validatie maken nu duidelijk of de strategie via de tool-aanroep of via het dashboard is ingesteld.
+- `upload_batch_file` tool beschrijft nu expliciet dat CSV als UTF-8 bytes in base64 moet worden aangeleverd (Excel-gebruikers: kies "CSV UTF-8").
+- `ingestCsv` verwijdert nu de UTF-8 BOM en normaliseert CRLF naar LF, met een uitgebreidere foutmelding bij parse-problemen (rijnummer, PapaParse-foutcode, en checklist).
+- `priority`-parameter in `apply_mapping_rules` en `submit_ready_batch` beschrijft nu D+1/D+2 betekenis en waarschuwt voor verwarring met mode P (Production).
+- `server-instructions.ts` en `submit_ready_batch`-schema maken nu expliciet onderscheid tussen **item priority** P/NP en **communicatiemodus** T/C/P.
 
 ### Added
 
@@ -39,6 +43,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `submit_ready_batch` Zod schema rejects `barcodeLength` unless `barcodeStrategy` is `bpost-generates`, preventing silent ignores when the agent omits the strategy.
 - Barcode validation errors now distinguish between a strategy set on the tool call vs. inherited from dashboard settings, so agents are not pointed only at the dashboard when the caller overrode the strategy.
+- `upload_batch_file` tool description now states that CSV must be provided as UTF-8 bytes in base64 (Excel users: choose "CSV UTF-8").
+- `priority` parameter in `apply_mapping_rules` and `submit_ready_batch` now documents the D+1/D+2 meaning and warns about confusion with mode P (Production).
+- `server-instructions.ts` and `submit_ready_batch` schema now explicitly separate **item priority** P/NP from **communication mode** T/C/P.
+
+### Fixed
+
+- `ingestCsv` now strips the UTF-8 BOM before parsing, normalises CRLF to LF, and returns a richer error message on parse failure (row number, PapaParse error code, and a checklist).
+- Row offset in parse error messages corrected: CSV line numbers now correctly include the header row (was off-by-one).
 
 ### Fixed
 

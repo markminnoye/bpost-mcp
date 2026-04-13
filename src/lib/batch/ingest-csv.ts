@@ -29,18 +29,30 @@ export function ingestCsv(csvText: string, fileName: string, tenantId: string): 
     }
   }
 
-  const parsed = Papa.parse<Record<string, unknown>>(csvText, {
+  // 1. Strip UTF-8 BOM if present (often causes header parsing issues)
+  let cleanText = csvText.replace(/^\uFEFF/, '')
+  // 2. Normalize CRLF to LF. Note: lone \r (old Mac CR-only) is not normalized —
+  // PapaParse handles common variants but CR-only exports may still fail.
+  cleanText = cleanText.replace(/\r\n/g, '\n')
+
+  const parsed = Papa.parse<Record<string, unknown>>(cleanText, {
     header: true,
     skipEmptyLines: true,
     dynamicTyping: false,
   })
 
   if (parsed.errors.length > 0) {
+    const firstError = parsed.errors[0]
+    // row is 0-indexed over data rows (header not counted), so +2 gives the correct CSV line number
+    const rowInfo = firstError.row !== undefined ? ` at row ${firstError.row + 2}` : ''
+    const message = `Failed to parse CSV file${rowInfo}: ${firstError.message} (${firstError.code}). ` +
+      `Check if the file is correctly encoded as UTF-8, uses valid delimiters, and has matching quotes.`
+
     return {
       ok: false,
       error: {
         kind: 'parse_error',
-        message: 'Failed to parse CSV file.',
+        message,
         details: parsed.errors,
       },
     }
