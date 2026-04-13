@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Nieuw**
 
+- Issues aangemaakt via `report_issue` krijgen automatisch het label `MCP` op GitHub en bevatten de tenant-ID en naam van de meldende organisatie in de body — zo zijn agentmeldingen onmiddellijk herkenbaar en te filteren.
 - Engelse veldnamen (`lastName`, `street`, `postalCode`, …) werken nu als mapping-targets — ze worden automatisch vertaald naar de interne bpost-veldnamen (#21).
 - Bij het verzenden van een batch kan je nu een barcode-strategie (`bpost-generates`, `customer-provides`, `mcp-generates`) en optioneel een barcodelength meegeven, in plaats van de cryptische `genMID` parameter (#20, #21).
 
@@ -36,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `report_issue` MCP tool now tags every GitHub issue with the `MCP` label and appends tenant identity (ID + name) to the issue body, making agent-reported issues filterable and attributable.
+- `getTenantName` helper exported from `src/lib/tenant/get-credentials.ts` — queries the `tenants` table to resolve a display name from a tenant ID.
 - Mapping accepts English alias targets (`lastName`, `street`, `postalCode`, `mailIdBarcode`, …) — resolved to internal bpost field names via a safe lookup that prevents prototype-key hijacking (#21).
 - `submit_ready_batch` accepts `barcodeStrategy` and optional `barcodeLength` (`7` | `9` | `11`) as explicit parameters, replacing the opaque `genMID` argument. An explicit strategy overrides tenant dashboard preferences for that submission (#20, #21).
 
@@ -49,11 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `report_issue` handler now wraps the `getTenantName` DB call in a try/catch; a database failure no longer causes an unhandled exception — the issue is still created, just without tenant name.
 - `ingestCsv` now strips the UTF-8 BOM before parsing, normalises CRLF to LF, and returns a richer error message on parse failure (row number, PapaParse error code, and a checklist).
 - Row offset in parse error messages corrected: CSV line numbers now correctly include the header row (was off-by-one).
-
-### Fixed
-
 - `submit_ready_batch` ignored explicit barcode intent when dashboard was `customer-provides` — passing `barcodeStrategy` on the tool call now drives effective strategy and `genMID` resolution for that request (#20).
 
 ---

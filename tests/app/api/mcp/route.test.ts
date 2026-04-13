@@ -9,6 +9,7 @@ vi.mock('@/lib/oauth/verify-token', () => ({
 // Mock getCredentialsByTenantId to avoid DB access
 vi.mock('@/lib/tenant/get-credentials', () => ({
   getCredentialsByTenantId: vi.fn(),
+  getTenantName: vi.fn().mockResolvedValue('Test Tenant'),
 }))
 
 // Mock getTenantPreferences to avoid DB access
@@ -573,6 +574,11 @@ describe('Self-Learning Tools', () => {
       method: 'POST',
       headers: expect.objectContaining({ 'Authorization': 'Bearer test-token' })
     }))
+
+    const callBody = JSON.parse((vi.mocked(global.fetch).mock.calls[0][1] as RequestInit)?.body as string)
+    expect(callBody.labels).toEqual(['MCP'])
+    expect(callBody.body).toContain('tenant_a')
+    expect(callBody.body).toContain('Test Tenant')
   })
 
   it('report_issue always targets bpost-mcp (not skills repo)', async () => {

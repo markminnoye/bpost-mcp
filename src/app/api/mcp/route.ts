@@ -6,7 +6,7 @@ import { buildXml } from '@/lib/xml'
 import { createBpostClient } from '@/client/bpost'
 import { BpostError } from '@/client/errors'
 import { verifyToken } from '@/lib/oauth/verify-token'
-import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
+import { getCredentialsByTenantId, getTenantName } from '@/lib/tenant/get-credentials'
 import { getTenantPreferences } from '@/lib/tenant/get-preferences'
 import { generateMidNumber } from '@/lib/batch/generate-barcode'
 import { claimBatchSequence } from '@/lib/batch/claim-batch-sequence'
@@ -238,8 +238,21 @@ const handler = createMcpHandler(
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
         if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
 
-        return reportIssueToGithub(env.GITHUB_TOKEN, input)
+        let tenantName: string | null = null
+        try {
+          tenantName = await getTenantName(tenantId)
+        } catch {
+          // Non-fatal: proceed without tenant name
+        }
+
+        return reportIssueToGithub(env.GITHUB_TOKEN, {
+          title: input.title,
+          body: input.body,
+          labels: ['MCP'],
+          tenantMeta: { id: tenantId, name: tenantName ?? undefined },
+        })
       },
     )
 
