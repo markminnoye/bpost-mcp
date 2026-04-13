@@ -1,22 +1,29 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "@/lib/oauth/verify-token"
 import { saveBatchState, BatchState, BatchRow } from "@/lib/kv/client"
+import { resolveRequestAuth, type AuthPolicy } from "@/lib/auth/resolve-request-auth"
 import Papa from "papaparse"
 import { randomUUID } from "crypto"
 
+const uploadAuthPolicy: AuthPolicy = {
+  allowBearer: true,
+  allowSession: true,
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization')
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
-    if (!token) {
-      return NextResponse.json({ error: "Missing or invalid Authorization header" }, { status: 401 })
+    const authResult = await resolveRequestAuth(req, uploadAuthPolicy)
+    if (!authResult.success) {
+      const status = authResult.error.status
+      const messages: Record<typeof authResult.error.reason, string> = {
+        missing_auth: 'No authentication provided. Supply a valid Bearer token or sign in first.',
+        invalid_bearer: 'The provided Bearer token is invalid or expired.',
+        invalid_session: 'Your session has expired. Please sign in again.',
+        missing_tenant: 'Your account is not linked to a BPost tenant. Please configure your credentials first.',
+      }
+      const message = messages[authResult.error.reason] ?? 'Authentication failed.'
+      return NextResponse.json({ error: message }, { status })
     }
-
-    const authInfo = await verifyToken(req, token)
-    if (!authInfo?.extra?.tenantId) {
-      return NextResponse.json({ error: "Unauthorized or invalid API token" }, { status: 401 })
-    }
-    const tenantId = authInfo.extra.tenantId as string
+    const tenantId = authResult.context.tenantId
 
     // 2. Parse FormData
     const formData = await req.formData()
