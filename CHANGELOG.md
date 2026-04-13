@@ -9,7 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- *(nothing yet — all items below are part of 0.2.0)*
+- **MCP `apply_mapping_rules`**: English alias targets (`lastName`, `street`, `postalCode`, `mailIdBarcode`, …) are resolved to internal bpost field names via a safe lookup (`hasOwnProperty`) so prototype keys cannot hijack the alias table (#21).
+- **MCP `submit_ready_batch`**: `barcodeStrategy` (`bpost-generates` | `customer-provides` | `mcp-generates`) and optional `barcodeLength` (`7` | `9` | `11`) replace the cryptic `genMID` tool argument; explicit `barcodeStrategy` overrides tenant dashboard preferences for that submission (#20, #21).
+
+### Changed
+
+- **MCP `submit_ready_batch`**: Zod schema now rejects `barcodeLength` unless `barcodeStrategy` is `bpost-generates`, preventing silent ignores when the agent omits the strategy.
+- **MCP error copy**: `customer-provides` / `mcp-generates` validation errors distinguish between a strategy set on the tool call vs. inherited from dashboard settings, so agents are not pointed only at the dashboard when the caller overrode the strategy.
+
+### Fixed
+
+- **`submit_ready_batch` ignored explicit barcode intent when dashboard was `customer-provides`**: Passing `barcodeStrategy` on the tool call now drives effective strategy and `genMID` resolution for that request (#20).
 
 ---
 
