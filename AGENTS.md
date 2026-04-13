@@ -54,7 +54,7 @@ Plans live in `.agent/plans/`.
 ### Issue Management
 
 When an implementation task is complete:
-- **Do NOT close the GitHub issue.** Label it with `in review` instead.
+- **Do NOT close the GitHub issue.** Set the issue's **Status** on the GitHub Project board to **In review** (single select field on the project — not a GitHub issue label).
 - This gives you the opportunity to review the implementation before final closure.
 - Only close the issue after you have explicitly reviewed and approved it.
 

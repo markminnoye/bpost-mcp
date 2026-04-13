@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`submit_ready_batch` ignored explicit barcode intent when dashboard was `customer-provides`**: Passing `barcodeStrategy` on the tool call now drives effective strategy and `genMID` resolution for that request (#20).
+- `**submit_ready_batch` ignored explicit barcode intent when dashboard was `customer-provides`**: Passing `barcodeStrategy` on the tool call now drives effective strategy and `genMID` resolution for that request (#20).
 
 ---
 
@@ -36,10 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `**BpostValidationItem*`* (`src/lib/kv/client.ts`): New type stored on `BatchRow.bpostValidation` — tracks checkedAt timestamp, status (OK/ERROR/WARNING), BPost status code/message, and address correction suggestions.
 - `**get_batch_errors` expanded**: Now shows both Zod validation errors AND BPost OptiAddress errors/warnings. Agents can see per-row BPost feedback alongside field validation failures.
 - `**src/lib/batch/submit-batch.ts`**: Service function that constructs the full `MailingRequest` XML envelope from batch rows + mailing-level params + tenant credentials, sends to BPost, and returns a structured result.
-- `**SubmissionRecord**` (`src/lib/kv/client.ts`): New type tracking submission params, row counts, BPost response status, user/client audit fields. Stored as `submission?` on `BatchState` in Redis.
+- `**SubmissionRecord`** (`src/lib/kv/client.ts`): New type tracking submission params, row counts, BPost response status, user/client audit fields. Stored as `submission?` on `BatchState` in Redis.
 - `**submit_ready_batch` input schema** (`src/app/api/mcp/route.ts`): Expanded from `{ batchId }` to include `expectedDeliveryDate`, `format`, `mailingRef`, `priority` (default NP), `mode` (default T), `customerFileRef`, `genMID` (default 7), `genPSC` (default N). Auto-generates `mailingRef` as `B-YYYYMMDD-HHmm` when omitted.
 - `**AlphaServiceBanner`** (`src/components/customer/AlphaServiceBanner.tsx`): Reusable alpha-warning banner for pre-release notices; used on home, install, and dashboard.
-- `**CopyCodeBlock**` (`src/components/customer/CopyCodeBlock.tsx`): Client component with clipboard copy and accessible status for JSON/CLI snippets.
+- `**CopyCodeBlock`** (`src/components/customer/CopyCodeBlock.tsx`): Client component with clipboard copy and accessible status for JSON/CLI snippets.
 - **Shared customer UI surface** (`src/app/globals.css`): Design tokens and utility classes (`bp-btn`, `bp-card`, `bp-shell`, `bp-install-card`, `bp-code-block`, `bp-icon-btn`, form patterns, dialog styles) for home, install, and dashboard; root `body` uses `bp-customer-body` with Geist font variables.
 - **Install guide** (`docs/install/install-prompt.md`): Non-technical step-by-step guide for connecting Claude Desktop, Claude Code, and Claude.ai via OAuth or Bearer token.
 - **Tests fixtures** (`tests/fixtures/`): Sample CSV, mapping JSON, and BPost mock XML responses for batch pipeline testing.
@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout; method-choice cards via `bp-install-card`; install snippets wrapped with `CopyCodeBlock`; primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
 - **Dashboard** (`src/app/dashboard/page.tsx`): Card-based "accountinstellingen" layout; BPost password optional on update when credentials already exist (server action preserves prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; "Terug naar start" uses `next/link`.
 - `**TokenRow`** (`src/app/dashboard/TokenRow.tsx`): `nl-BE` date/time formatting; trash control as inline SVG + `bp-icon-btn`; confirmation dialog uses shared button classes.
-- `**server-instructions**` (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
+- `**server-instructions`** (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
 
 ### Fixed
 
@@ -77,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout; method-choice cards via `bp-install-card`; install snippets wrapped with `CopyCodeBlock`; primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
 - **Dashboard** (`src/app/dashboard/page.tsx`): Card-based "accountinstellingen" layout; BPost password optional on update when credentials already exist (server action preserves prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; "Terug naar start" uses `next/link`.
 - `**TokenRow`** (`src/app/dashboard/TokenRow.tsx`): `nl-BE` date/time formatting; trash control as inline SVG + `bp-icon-btn`; confirmation dialog uses shared button classes.
-- `**server-instructions**` (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
+- `**server-instructions`** (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
 
 ### Fixed
 
@@ -100,10 +100,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Automatic `seq` generation**: `seq` is now auto-assigned from the 1-based row index during mapping when not explicitly mapped, removing a mandatory manual correction step.
 - **Actionable Comps error hints**: When mapping targets are invalid, the error message now explains the `Comps.<code>` syntax with a concrete Belgian address example and lists valid comp codes.
 - `**src/lib/batch/apply-mapping.ts`**: Pure mapping function handling flat fields, Comps aggregation, and seq auto-generation.
-- `**src/lib/batch/validate-mapping-targets.ts**`: Target validator accepting `ItemSchema` flat fields and valid `Comps.<code>` entries with descriptive hints.
+- `**src/lib/batch/validate-mapping-targets.ts`**: Target validator accepting `ItemSchema` flat fields and valid `Comps.<code>` entries with descriptive hints.
 - `**get_service_info` MCP tool**: Returns `{"service":"bpost-emasspost","version":"<package.json version>"}`; enables agents and users to query the service version. Server `serverInfo` now reads version from `package.json` dynamically instead of a hardcoded string.
 - `**src/lib/app-version.ts`**: Single source of truth for `APP_VERSION` and `MCP_SERVER_DISPLAY_NAME`, imported by the MCP route.
-- `**src/lib/oauth/resource-url.ts**`: Helpers for canonical MCP resource URL and OAuth `resource` normalization / token-endpoint matching.
+- `**src/lib/oauth/resource-url.ts`**: Helpers for canonical MCP resource URL and OAuth `resource` normalization / token-endpoint matching.
 - **JWT signing options** (`src/lib/oauth/jwt.ts`): `signAccessToken` accepts `{ issuerBaseUrl, expiresInOverride }`; `verifyAccessToken` accepts multiple allowed issuer bases for custom-domain + env transition.
 - `**jwtAllowedIssuerBases`** (`src/lib/oauth/verify-token.ts`): Verifies OAuth JWTs against request origin and configured base when they differ.
 - **Tests**: `resource-url.test.ts`, token interop case for omitted `resource`, JWT multi-issuer tests; OAuth/MCP request URLs use `http://localhost:3000` to match Vitest `NEXT_PUBLIC_BASE_URL`; `vitest.config.ts` sets `OAUTH_JWT_SECRET` for the worker.
@@ -177,7 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Batch pipeline hardening**: `apply_row_fix` no longer persists unvalidated `correctedData` to KV on re-validation failure (data pollution fix)
 - **KV write resilience**: `apply_mapping_rules`, `apply_row_fix`, `submit_ready_batch` now return structured `isError` responses on Redis write failure instead of propagating unhandled exceptions
 - `**get_raw_headers`**: Returns `errorCount` alongside `totalRows` when batch status is `MAPPED` or `SUBMITTED`, saving agents a round-trip
-- `**apply_mapping_rules**`: Now allows re-mapping a `MAPPED` batch; only `SUBMITTED` batches cannot be re-mapped
+- `**apply_mapping_rules`**: Now allows re-mapping a `MAPPED` batch; only `SUBMITTED` batches cannot be re-mapped
 - **Upload route**: `catch (error: any)` replaced with `unknown` + type-safe message extraction
 
 ### Added
@@ -200,7 +200,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **JWT support**: HS256 access tokens (1h) via `jose`; refresh tokens (90d, stateful in DB)
 - **PKCE S256 enforcement**: Mandatory for all authorization code flows
 - **Client ID Metadata Documents**: Preferred client resolution mechanism per MCP spec
-- **Unified token verification**: OAuth JWT and legacy `bpost_*` M2M tokens both accepted at MCP boundary
+- **Unified token verification**: OAuth JWT and legacy `bpost_`* M2M tokens both accepted at MCP boundary
 - **3 new DB tables**: `oauth_clients`, `oauth_authorization_codes`, `oauth_refresh_tokens`
 - **Dashboard**: "Claude / MCP Clients" section showing MCP URL for Claude Desktop
 - **Favicons & PWA**: PNG icons (16×16, 32×32, 192×192, 512×512), `apple-touch-icon.png`, `site.webmanifest`; wired into root layout via Next.js metadata API
