@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript, Zod, `fast-xml-parser` (via `buildXml`), `BpostClient`, Redis (via `src/lib/kv/client.ts`)
 
-**Spec:** `docs/superpowers/specs/2026-04-12-submit-ready-batch-design.md`
+**Spec:** `../../docs/superpowers/specs/2026-04-12-submit-ready-batch-design.md`
 
 ---
 

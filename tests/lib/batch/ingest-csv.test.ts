@@ -91,3 +91,45 @@ describe('ingestCsv — happy path', () => {
     expect(result.state.tenantId).toBe('other_tenant')
   })
 })
+
+describe('ingestCsv — utf-8 and edge cases', () => {
+  it('strips UTF-8 BOM if present', () => {
+    const csv = '\uFEFFnaam,postcode\nJan Janssen,2000'
+    const result = ingestCsv(csv, 'bom.csv', TENANT)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.state.headers).toEqual(['naam', 'postcode']) // Should not include the BOM character
+  })
+
+  it('handles special characters correctly (e.g., ß, é)', () => {
+    const csv = 'naam,postcode\nHauptstraße,2000\nCafé,3000'
+    const result = ingestCsv(csv, 'special.csv', TENANT)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.state.rows[0].raw).toEqual({ naam: 'Hauptstraße', postcode: '2000' })
+    expect(result.state.rows[1].raw).toEqual({ naam: 'Café', postcode: '3000' })
+  })
+
+  it('normalizes CRLF to LF', () => {
+    const csv = 'naam,postcode\r\nJan Janssen,2000\r\nPiet Peeters,9000'
+    const result = ingestCsv(csv, 'crlf.csv', TENANT)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.state.rows).toHaveLength(2)
+  })
+
+  it('provides a detailed error message when parsing fails', () => {
+    // Generate a parser error by providing inconsistent quotes
+    const csv = 'naam,postcode\n"Jan Janssen,2000\nPiet Peeters,9000'
+    const result = ingestCsv(csv, 'error.csv', TENANT)
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    
+    expect(result.error.kind).toBe('parse_error')
+    expect(result.error.message).toContain('Failed to parse CSV file')
+    expect(result.error.message).toContain('Check if the file is correctly encoded')
+    // Verify row info and non-boilerplate message length without coupling to PapaParse internals
+    expect(result.error.message).toContain('at row')
+    expect(result.error.message.length).toBeGreaterThan(60)
+  })
+})

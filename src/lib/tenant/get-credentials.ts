@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
-import { bpostCredentials } from '@/lib/db/schema';
+import { bpostCredentials, tenants } from '@/lib/db/schema';
 import { decrypt } from '@/lib/crypto';
 
 export interface BpostCredentials {
@@ -37,4 +37,13 @@ export async function getCredentialsByTenantId(
     prsNumber: row.prsNumber ?? undefined,
     barcodeCustomerId: row.barcodeCustomerId ?? undefined,
   };
+}
+
+export async function getTenantName(tenantId: string): Promise<string | null> {
+  const rows = await db
+    .select({ name: tenants.name })
+    .from(tenants)
+    .where(eq(tenants.id, tenantId))
+    .limit(1);
+  return rows[0]?.name ?? null;
 }

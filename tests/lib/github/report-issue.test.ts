@@ -56,4 +56,43 @@ describe('reportIssueToGithub', () => {
     expect(out.content[0]?.text).toContain('401')
     expect(out.content[0]?.text).toContain('github.com/markminnoye/bpost-mcp/issues/new')
   })
+
+  it('sends labels to GitHub API', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ html_url: 'https://github.com/markminnoye/bpost-mcp/issues/1' }),
+    })
+    await reportIssueToGithub('token', { title: 'T', body: 'B', labels: ['MCP'] }, fetchMock)
+    const callBody = JSON.parse(fetchMock.mock.calls[0][1]?.body)
+    expect(callBody.labels).toEqual(['MCP'])
+  })
+
+  it('includes tenant ID and name in issue body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ html_url: 'https://github.com/markminnoye/bpost-mcp/issues/1' }),
+    })
+    await reportIssueToGithub('token', {
+      title: 'T',
+      body: 'B',
+      tenantMeta: { id: 'tenant-uuid-123', name: 'Acme Corp' },
+    }, fetchMock)
+    const callBody = JSON.parse(fetchMock.mock.calls[0][1]?.body)
+    expect(callBody.body).toContain('**Tenant:** Acme Corp (tenant-uuid-123)')
+  })
+
+  it('includes tenant ID only when name is absent', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ html_url: 'https://github.com/markminnoye/bpost-mcp/issues/1' }),
+    })
+    await reportIssueToGithub('token', {
+      title: 'T',
+      body: 'B',
+      tenantMeta: { id: 'tenant-uuid-456' },
+    }, fetchMock)
+    const callBody = JSON.parse(fetchMock.mock.calls[0][1]?.body)
+    expect(callBody.body).toContain('**Tenant ID:** tenant-uuid-456')
+    expect(callBody.body).not.toContain('Tenant:')
+  })
 })

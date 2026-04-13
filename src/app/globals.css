@@ -580,6 +580,33 @@ a {
   padding: 2rem 1.25rem;
   text-align: center;
   gap: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.bp-home-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.bp-home-hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bp-home-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  z-index: 1;
 }
 
 .bp-home-title {

@@ -6,8 +6,13 @@ function formatIssueTitle(title: string): string {
   return `[AGENT] ${title}`
 }
 
-function formatIssueBody(body: string, footer: string): string {
-  return `${body}\n\n---\n${footer}`
+function formatIssueBody(body: string, footer: string, tenantMeta?: { id: string; name?: string }): string {
+  const base = `${body}\n\n---\n${footer}`
+  if (!tenantMeta) return base
+  const tenantLine = tenantMeta.name
+    ? `**Tenant:** ${tenantMeta.name} (${tenantMeta.id})`
+    : `**Tenant ID:** ${tenantMeta.id}`
+  return `${base}\n${tenantLine}`
 }
 
 /** Web UI URL so users can file the same issue when the server has no PAT. */
@@ -18,7 +23,12 @@ export function buildNewIssueUrl(title: string, body: string): string {
   return `https://github.com/${GITHUB_OWNER}/${GITHUB_ISSUES_REPO_SLUG}/issues/new?${params.toString()}`
 }
 
-type ReportIssueInput = { title: string; body: string }
+type ReportIssueInput = {
+  title: string
+  body: string
+  labels?: string[]
+  tenantMeta?: { id: string; name?: string }
+}
 
 type ToolTextResult = { content: Array<{ type: 'text'; text: string }>; isError: boolean }
 
@@ -59,7 +69,8 @@ export async function reportIssueToGithub(
       },
       body: JSON.stringify({
         title: formatIssueTitle(input.title),
-        body: formatIssueBody(input.body, '*Reported by BPost MCP Agent*'),
+        body: formatIssueBody(input.body, '*Reported by BPost MCP Agent*', input.tenantMeta),
+        labels: input.labels,
       }),
     })
 

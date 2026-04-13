@@ -45,7 +45,7 @@ Before calling submit_ready_batch, you MUST confirm these values with the user:
 - mailingRef (or accept auto-generated)
 - expectedDeliveryDate (YYYY-MM-DD)
 - format (Large or Small)
-- priority (P = prior, NP = non-prior)
+- item priority for mailing (NP = non-prior / D+2, P = prior / D+1)
 - mode (T, C, or P — see below)
 
 ## Communication Modes
@@ -53,6 +53,7 @@ Before calling submit_ready_batch, you MUST confirm these values with the user:
 - **C** (Certification): Pre-production validation, max 2000 addresses. Requires bpost coordination.
 - **P** (Production): Real mail delivery. Requires prior bpost certification.
 Always default to T. Only use C or P when the user explicitly confirms they are certified and ready.
+Note: mode P (Production) is not the same as item priority P (prior).
 
 ## Direct Tools vs Batch Pipeline
 - **bpost_announce_mailing** / **bpost_announce_deposit**: Low-level tools for pre-built XML payloads. NOT part of the batch pipeline. Use only when the user already has a fully structured MailingRequest or DepositRequest.

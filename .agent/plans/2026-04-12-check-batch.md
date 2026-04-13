@@ -1,8 +1,8 @@
 # Plan: `check_batch` — BPost OptiAddress Pre-Validation
 
 **Date:** 2026-04-12
-**Status:** Active
-**Spec:** `docs/superpowers/specs/2026-04-12-check-batch-design.md`
+**Status:** Complete
+**Spec:** `../../docs/superpowers/specs/2026-04-12-check-batch-design.md`
 
 ---
 

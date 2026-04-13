@@ -9,7 +9,7 @@ const MCP_URL = `${BASE_URL}/api/mcp`
 export const metadata = {
   title: 'Installatie — MCP-service voor BPost e-MassPost (alfa)',
   description:
-    'Alfaversie: sluit Claude Desktop of Claude Code aan bij je bpost-account (OAuth of vast Bearer-token). Gebruik bij voorkeur de testomgeving van bpost.',
+    'Alfaversie: sluit Claude Desktop of Mistral Le Chat aan bij je bpost-account via OAuth 2.1 of een vast App Token.',
 }
 
 export default function InstallPage() {
@@ -33,43 +33,38 @@ export default function InstallPage() {
 
   return (
     <main className="bp-shell">
-      <h1 className="bp-page-title">Aansluiten op de MCP-service</h1>
+      <h1 className="bp-page-title">De MCP-service koppelen</h1>
       <AlphaServiceBanner />
       <p className="bp-page-lead">
-        Volg de stappen hieronder om Claude Desktop of Claude Code te koppelen aan je account voor deze
-        dienst.
+        Om deze service als <strong>connector</strong> toe te voegen aan je AI-agent (zoals <strong>Claude Desktop</strong> of <strong>Mistral Le Chat</strong>), gebruik je de onderstaande URL. Kopieer deze link en plak hem in de configuratie van je programma (meestal onder de instelling <strong>MCP Servers</strong>, <strong>Connectors</strong> of <strong>Tools</strong>).
       </p>
 
       <section className="bp-section">
         <h2 className="bp-section-title" style={{ fontSize: '1.1rem' }}>
-          Voor je AI-assistent
+          Service URL
         </h2>
-        <p className="bp-prose">
-          Met één klik kopieer je de volledige begeleidingsprompt naar je klembord. Plak die daarna in
-          Claude of een andere ondersteunde assistent: die helpt je stap voor stap, in begrijpelijke taal,
-          zonder moeilijke termen.
-        </p>
-        <CopyInstallPromptButton />
+        <CopyCodeBlock code={MCP_URL} copyLabel="URL kopiëren" />
       </section>
 
       <section className="bp-section">
         <h2 className="bp-subtitle" style={{ marginTop: 0 }}>
-          Welke manier past bij jou?
+          Authenticatie: twee mogelijkheden
         </h2>
+        <p className="bp-prose">
+          Afhankelijk van hoe je de service integreert, zijn er twee manieren om de toegang te autoriseren:
+        </p>
         <div className="bp-install-grid">
           <a href="#oauth" className="bp-install-card">
             <div className="bp-install-card-title">
-              OAuth 2.0 <span className="bp-badge">aanbevolen</span>
+              1. OAuth 2.1 <span className="bp-badge">aanbevolen</span>
             </div>
-            <p className="bp-install-card-item">Aanmelden met Google — geen app-token om bij te houden</p>
-            <p className="bp-install-card-item">Meest geschikt voor persoonlijk gebruik</p>
-            <p className="bp-install-card-item">Aanmelden gebeurt automatisch in je browser</p>
+            <p className="bp-install-card-item"><strong>Voor interactief gebruik:</strong> De client start bij de eerste verbinding een browserflow.</p>
+            <p className="bp-install-card-item">Je autoriseert eenmalig via Google; geen handmatige tokens nodig.</p>
           </a>
           <a href="#bearer" className="bp-install-card">
-            <div className="bp-install-card-title">Bearer (vast app-token)</div>
-            <p className="bp-install-card-item">Je plakt één vast app-token in je configuratie</p>
-            <p className="bp-install-card-item">Handig voor automatisering of gedeelde omgevingen</p>
-            <p className="bp-install-card-item">Je maakt het token één keer aan in je account</p>
+            <div className="bp-install-card-title">2. App Tokens</div>
+            <p className="bp-install-card-item"><strong>Voor automatisering en pipelines:</strong> Gebruik een vast Bearer-token voor headless omgevingen.</p>
+            <p className="bp-install-card-item">Handig voor CI/CD of scripts waar een interactieve login niet mogelijk is.</p>
           </a>
         </div>
       </section>
@@ -77,11 +72,11 @@ export default function InstallPage() {
       <hr className="bp-hr" />
 
       <section id="oauth" className="bp-section">
-        <h2 className="bp-section-title">A — OAuth 2.0</h2>
+        <h2 className="bp-section-title">A — OAuth 2.1 (Interactief)</h2>
         <p className="bp-prose">
-          De MCP-server regelt de aanmelding met Google automatisch wanneer Claude verbinding maakt. Je
-          hoeft geen app-token te kopiëren of bij te houden: voeg alleen de server-URL toe en bij de eerste
-          verbinding opent Claude een browservenster om aan te melden.
+          Voor de meeste gebruikers in een desktop-app of web-interface is dit de eenvoudigste methode.
+          Zodra je de URL hebt toegevoegd, zal de client bij de eerste verbinding een <strong>browserflow</strong> starten.
+          Je autoriseert de toegang dan eenmalig via je Google-account. De client regelt de verversing van de sessie op de achtergrond.
         </p>
 
         <h3 className="bp-subtitle">Claude Desktop</h3>
@@ -102,10 +97,10 @@ export default function InstallPage() {
       <hr className="bp-hr" />
 
       <section id="bearer" className="bp-section">
-        <h2 className="bp-section-title">B — Bearer (vast app-token)</h2>
+        <h2 className="bp-section-title">B — App Tokens (Headless)</h2>
         <p className="bp-prose">
-          Gebruik deze manier als je liever met één vast app-token werkt, of als je MCP instelt voor een
-          gedeelde of geautomatiseerde omgeving.
+          Voor scenario&apos;s zonder browser-interactie — zoals <strong>CI/CD pipelines</strong>, <strong>server-side scripts</strong> of <strong>headless automatiseringen</strong> — kun je gebruikmaken van een vast <strong>Bearer-token</strong>.
+          Je genereert dit token in je dashboard en voegt het handmatig toe aan de HTTP-headers van je MCP-client (<code>Authorization: Bearer &lt;jouw-token&gt;</code>).
         </p>
 
         <p className="bp-prose" style={{ marginBottom: '0.5rem' }}>

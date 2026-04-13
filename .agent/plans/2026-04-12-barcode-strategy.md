@@ -8,7 +8,7 @@
 
 **Tech Stack:** Drizzle ORM, Postgres, Zod, Vitest, Next.js Server Components + Server Actions
 
-**Spec:** `docs/superpowers/specs/2026-04-12-barcode-strategy-design.md`
+**Spec:** `../../docs/superpowers/specs/2026-04-12-barcode-strategy-design.md`
 
 ---
 
@@ -1094,26 +1094,10 @@ Add under `[Unreleased]`:
 - `tenant_preferences` and `barcode_sequences` database tables
 ```
 
-- [ ] **Step 5: Register plan in INDEX.md**
+- [x] **Step 5: Register plan in INDEX.md**
 
-Add to `.agent/plans/INDEX.md` under "Phase 2 — Batch Pipeline Fixes":
+Plan registered in `.agent/plans/INDEX.md` under "Phase 2 — Batch Pipeline Fixes".
 
-```markdown
-| [Barcode Strategy Configuration](../../docs/superpowers/plans/2026-04-12-barcode-strategy.md) | 🔄 | Tenant barcode strategy, MCP generation, dashboard UI |
-```
+- [x] **Step 6: Final commit**
 
-- [ ] **Step 6: Final commit**
-
-```bash
-git add -A
-git commit -m "$(cat <<'EOF'
-feat: implement barcode strategy configuration (#16)
-
-- Add barcodeCustomerId to bpost_credentials
-- Add tenant_preferences and barcode_sequences tables
-- Pure generateMidNumber() for MCP barcode generation (WW+BBB+NNNNNN)
-- Strategy resolution in submit_ready_batch handler
-- Dashboard UI: credentials field + Barcode-instellingen section
-EOF
-)"
-```
+Implemented in `develop` branch. Commit via `git log --oneline` or Vercel deploy log.
