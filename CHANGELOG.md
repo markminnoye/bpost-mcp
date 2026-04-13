@@ -5,265 +5,370 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> **Hoe we dit schrijven** — Elke release opent met een **Samenvatting** in het
+> Nederlands: wat is er nieuw, wat is opgelost, wat is aangepast — geschreven
+> voor operators en stakeholders, niet voor compiler-output. GitHub-issues
+> (`#n`) worden gelinkt waar relevant. Daaronder volgen de Engelse
+> *Added / Changed / Fixed* secties voor contributors en audit.
+
+---
+
 ## [Unreleased]
+
+### Samenvatting
+
+**Nieuw**
+
+- Engelse veldnamen (`lastName`, `street`, `postalCode`, …) werken nu als mapping-targets — ze worden automatisch vertaald naar de interne bpost-veldnamen (#21).
+- Bij het verzenden van een batch kan je nu een barcode-strategie (`bpost-generates`, `customer-provides`, `mcp-generates`) en optioneel een barcodelength meegeven, in plaats van de cryptische `genMID` parameter (#20, #21).
+
+**Oplossingen**
+
+- De barcode-strategie die je meegaf bij `submit_ready_batch` werd genegeerd als het dashboard op `customer-provides` stond — dat is nu verholpen (#20).
+
+**Aanpassingen**
+
+- Foutmeldingen bij barcode-validatie maken nu duidelijk of de strategie via de tool-aanroep of via het dashboard is ingesteld.
 
 ### Added
 
-- **MCP `apply_mapping_rules`**: English alias targets (`lastName`, `street`, `postalCode`, `mailIdBarcode`, …) are resolved to internal bpost field names via a safe lookup (`hasOwnProperty`) so prototype keys cannot hijack the alias table (#21).
-- **MCP `submit_ready_batch`**: `barcodeStrategy` (`bpost-generates` | `customer-provides` | `mcp-generates`) and optional `barcodeLength` (`7` | `9` | `11`) replace the cryptic `genMID` tool argument; explicit `barcodeStrategy` overrides tenant dashboard preferences for that submission (#20, #21).
+- Mapping accepts English alias targets (`lastName`, `street`, `postalCode`, `mailIdBarcode`, …) — resolved to internal bpost field names via a safe lookup that prevents prototype-key hijacking (#21).
+- `submit_ready_batch` accepts `barcodeStrategy` and optional `barcodeLength` (`7` | `9` | `11`) as explicit parameters, replacing the opaque `genMID` argument. An explicit strategy overrides tenant dashboard preferences for that submission (#20, #21).
 
 ### Changed
 
-- **MCP `submit_ready_batch`**: Zod schema now rejects `barcodeLength` unless `barcodeStrategy` is `bpost-generates`, preventing silent ignores when the agent omits the strategy.
-- **MCP error copy**: `customer-provides` / `mcp-generates` validation errors distinguish between a strategy set on the tool call vs. inherited from dashboard settings, so agents are not pointed only at the dashboard when the caller overrode the strategy.
+- `submit_ready_batch` Zod schema rejects `barcodeLength` unless `barcodeStrategy` is `bpost-generates`, preventing silent ignores when the agent omits the strategy.
+- Barcode validation errors now distinguish between a strategy set on the tool call vs. inherited from dashboard settings, so agents are not pointed only at the dashboard when the caller overrode the strategy.
 
 ### Fixed
 
-- `**submit_ready_batch` ignored explicit barcode intent when dashboard was `customer-provides`**: Passing `barcodeStrategy` on the tool call now drives effective strategy and `genMID` resolution for that request (#20).
+- `submit_ready_batch` ignored explicit barcode intent when dashboard was `customer-provides` — passing `barcodeStrategy` on the tool call now drives effective strategy and `genMID` resolution for that request (#20).
 
 ---
 
 ## [0.2.0] - 2026-04-13
 
+### Samenvatting
+
+**Nieuw**
+
+- Barcode-strategie instelbaar per tenant: bpost genereert, klant levert zelf, of MCP genereert automatisch (#16).
+- Batch controleren vóór verzending: adresvalidatie via bpost OptiAddress (MailingCheck), met per-rij feedback (OK / WARNING / ERROR).
+- Batch effectief verzenden naar bpost — de volledige XML-envelop wordt opgebouwd en verstuurd, inclusief audit-metadata.
+- Dashboard-sectie "Barcode-instellingen" voor strategie- en lengtevoorkeuren.
+- Alpha-servicebanner op alle klantpagina's.
+- Installatie-gids: stap-voor-stap aansluiten van Claude Desktop, Claude Code en Claude.ai.
+- Kopieerbare codeblokken met klembord-knop op de installatiepagina.
+
+**Oplossingen**
+
+- Race condition bij gelijktijdig opslaan van barcode-voorkeuren verholpen (#16).
+- Ongeldige barcode-nummers (niet-numeriek of verkeerde lengte) worden nu direct geweigerd.
+- OAuth-aanmelding werkt nu correct op custom domeinen (bpost.sonicrocket.io e.a.) — niet meer gebonden aan het standaard Vercel-adres.
+- Ontbrekende JWT-secret geeft nu een duidelijke fout bij het opstarten in plaats van een cryptische 500-error bij het eerste token-verzoek.
+- Issue-rapportering werkt ook zonder `GITHUB_TOKEN` — gebruikers krijgen een vooringevulde GitHub-link.
+
+**Aanpassingen**
+
+- Batch-pipeline tools tonen nu stapnummers (1–6) met volgorde en vereisten.
+- Home, installatie en dashboard hebben een vernieuwd UI met gedeelde designtokens.
+- Flemish tone in server-instructies verfijnd: geen MCP-jargon naar gebruikers.
+
 ### Added
 
-- Barcode strategy configuration: tenants can choose `bpost-generates`, `customer-provides`, or `mcp-generates` (#16)
-- `barcodeCustomerId` field on BPost credentials for Mail ID program participation
-- MCP barcode generation: auto-generates 18-digit MID numbers (FCC 12 + week-based uniqueness)
-- Dashboard "Barcode-instellingen" section for strategy and length preferences
-- `tenant_preferences` and `barcode_sequences` database tables
-- `**check_batch` MCP tool** (`src/lib/batch/check-batch.ts`): New service function for BPost OptiAddress (MailingCheck) pre-validation. Sends all batch rows to BPost for address-level validation before submission. Mirrors `submit-batch.ts` pattern. Can be called multiple times (non-destructive, batch stays MAPPED).
-- `**BpostValidationItem*`* (`src/lib/kv/client.ts`): New type stored on `BatchRow.bpostValidation` — tracks checkedAt timestamp, status (OK/ERROR/WARNING), BPost status code/message, and address correction suggestions.
-- `**get_batch_errors` expanded**: Now shows both Zod validation errors AND BPost OptiAddress errors/warnings. Agents can see per-row BPost feedback alongside field validation failures.
-- `**src/lib/batch/submit-batch.ts`**: Service function that constructs the full `MailingRequest` XML envelope from batch rows + mailing-level params + tenant credentials, sends to BPost, and returns a structured result.
-- `**SubmissionRecord`** (`src/lib/kv/client.ts`): New type tracking submission params, row counts, BPost response status, user/client audit fields. Stored as `submission?` on `BatchState` in Redis.
-- `**submit_ready_batch` input schema** (`src/app/api/mcp/route.ts`): Expanded from `{ batchId }` to include `expectedDeliveryDate`, `format`, `mailingRef`, `priority` (default NP), `mode` (default T), `customerFileRef`, `genMID` (default 7), `genPSC` (default N). Auto-generates `mailingRef` as `B-YYYYMMDD-HHmm` when omitted.
-- `**AlphaServiceBanner`** (`src/components/customer/AlphaServiceBanner.tsx`): Reusable alpha-warning banner for pre-release notices; used on home, install, and dashboard.
-- `**CopyCodeBlock`** (`src/components/customer/CopyCodeBlock.tsx`): Client component with clipboard copy and accessible status for JSON/CLI snippets.
-- **Shared customer UI surface** (`src/app/globals.css`): Design tokens and utility classes (`bp-btn`, `bp-card`, `bp-shell`, `bp-install-card`, `bp-code-block`, `bp-icon-btn`, form patterns, dialog styles) for home, install, and dashboard; root `body` uses `bp-customer-body` with Geist font variables.
-- **Install guide** (`docs/install/install-prompt.md`): Non-technical step-by-step guide for connecting Claude Desktop, Claude Code, and Claude.ai via OAuth or Bearer token.
-- **Tests fixtures** (`tests/fixtures/`): Sample CSV, mapping JSON, and BPost mock XML responses for batch pipeline testing.
-- **Tests**: `submit-batch.test.ts` — XML construction, priority fallback, numeric conversion, BPost error handling; `check-batch.test.ts` — MailingCheck parsing, OK/WARNING/ERROR counting, retryable error handling; `app-version.test.ts` and `server-instructions.test.ts` validate version export and Flemish tone respectively.
+- Barcode strategy configuration: tenants can choose `bpost-generates`, `customer-provides`, or `mcp-generates` (#16).
+- `barcodeCustomerId` field on BPost credentials for Mail ID program participation.
+- MCP barcode generation: auto-generates 18-digit MID numbers (FCC 12 + week-based uniqueness).
+- Dashboard "Barcode-instellingen" section for strategy and length preferences.
+- `tenant_preferences` and `barcode_sequences` database tables.
+- `check_batch` MCP tool: sends all batch rows to BPost OptiAddress for address-level pre-validation. Non-destructive — batch stays MAPPED and can be checked multiple times.
+- `get_batch_errors` now shows both Zod validation errors and BPost OptiAddress errors/warnings per row.
+- `submit_ready_batch` constructs the full `MailingRequest` XML envelope from mapped rows, sends to BPost, and stores submission metadata (mailingRef, row counts, BPost status, audit fields).
+- `submit_ready_batch` input schema expanded to include `expectedDeliveryDate`, `format`, `mailingRef`, `priority`, `mode`, `customerFileRef`, `genMID`, `genPSC`. Auto-generates `mailingRef` when omitted.
+- `AlphaServiceBanner` component for pre-release notices on home, install, and dashboard.
+- `CopyCodeBlock` component with clipboard copy and accessible status for config snippets.
+- Shared customer UI design tokens (`bp-btn`, `bp-card`, `bp-shell`, etc.) for home, install, and dashboard.
+- Install guide for connecting Claude Desktop, Claude Code, and Claude.ai via OAuth or Bearer token.
+- Test fixtures: sample CSV, mapping JSON, and BPost mock XML responses.
+- Tests for `submit-batch`, `check-batch`, `app-version`, and `server-instructions`.
 
 ### Changed
 
-- **Server instructions** (`src/lib/mcp/server-instructions.ts`): Added agent orchestration guidance — batch pipeline flow (steps 1–6), pre-submission checklist, communication modes (T/C/P), direct tools vs batch pipeline, deposit/mailing master/slave linking, and upcoming `check_batch` note.
-- **Tool descriptions** (`src/app/api/mcp/route.ts`): All batch pipeline tools now show step numbers (1–6), prerequisites, next steps, and ordering constraints. Direct tools (`bpost_announce_mailing`, `bpost_announce_deposit`) clarified as non-pipeline with deposit/mailing linking guidance.
-- `**submit_ready_batch`** (`src/app/api/mcp/route.ts`): Replaced stub with real BPost XML dispatch. Builds a `MailingCreate` request from mapped batch rows, sends via `BpostClient`, and stores submission metadata (mailingRef, row counts, BPost status, user/client ID) in `BatchState`. Batch stays `MAPPED` on BPost errors for retry.
-- **Home** (`src/app/page.tsx`): Call-to-action links use shared `bp-btn` classes; shows `AlphaServiceBanner` and `APP_VERSION`.
-- **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout; method-choice cards via `bp-install-card`; install snippets wrapped with `CopyCodeBlock`; primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
-- **Dashboard** (`src/app/dashboard/page.tsx`): Card-based "accountinstellingen" layout; BPost password optional on update when credentials already exist (server action preserves prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; "Terug naar start" uses `next/link`.
-- `**TokenRow`** (`src/app/dashboard/TokenRow.tsx`): `nl-BE` date/time formatting; trash control as inline SVG + `bp-icon-btn`; confirmation dialog uses shared button classes.
-- `**server-instructions`** (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
+- Server instructions include batch pipeline flow (steps 1–6), pre-submission checklist, communication modes (T/C/P), direct tools vs batch pipeline, and deposit/mailing linking guidance.
+- All batch pipeline tool descriptions now show step numbers, prerequisites, next steps, and ordering constraints.
+- `submit_ready_batch` replaced stub with real BPost XML dispatch. Batch stays MAPPED on BPost errors for retry.
+- Home page shows `AlphaServiceBanner` and version number.
+- Install page uses wider layout with method-choice cards and `CopyCodeBlock` for snippets.
+- Dashboard uses card-based layout; BPost password optional on update when credentials already exist.
+- `TokenRow` uses `nl-BE` date/time formatting and inline SVG trash control.
+- Server instructions refined for Flemish tone; test-mode preference; no MCP jargon in user-facing messages.
 
 ### Fixed
 
-- **Barcode strategy — `savePreferences` TOCTOU race**: Replaced select-then-insert/update pattern with a single atomic `INSERT … ON CONFLICT DO UPDATE`, eliminating the race condition under concurrent requests.
-- **Barcode strategy — `get-preferences.ts` unsafe DB cast**: Added `TenantPreferencesSchema` with `z.enum` validation and `safeParse`; corrupt DB values now fall back to DEFAULTS with a logged error instead of silently casting.
-- **Barcode strategy — `customer-provides` midNum format**: Validates supplied MID numbers against `/^[0-9]{14,18}$/` instead of a presence-only check, rejecting non-numeric or out-of-range values immediately.
-- **Barcode strategy — sequence overflow message**: Overflow error for `mcp-generates` now includes the current ISO week number and explicitly states the limit is non-recoverable for the remainder of that week.
-- `**report_issue` fallback without `GITHUB_TOKEN`**: When `GITHUB_TOKEN` is unset on the server, the tool returns a prefilled GitHub "new issue" URL so users can still report issues in the browser; the same fallback link is also included on GitHub API errors.
-- **Claude Desktop / MCP OAuth on custom domains**: OAuth metadata (`.well-known/oauth-authorization-server`, `.well-known/oauth-protected-resource`), authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from `getPublicOrigin(request)` instead of only `NEXT_PUBLIC_BASE_URL`, so the same deployment works when users hit a custom domain while env still points at the default deployment hostname.
-- **OAuth resource URL alignment**: Protected resource metadata and stored auth codes use a canonical MCP URL (`{origin}/api/mcp`); token exchange accepts equivalent origin vs `/api/mcp` forms and allows omitting `resource` on the token request when the code was bound to the canonical MCP resource (client interop).
-- **Opaque 500 on `/oauth/token` when JWT secret missing**: `OAUTH_JWT_SECRET` is required in `env.ts` (Zod) so misconfigured deployments fail at startup with a clear validation error instead of at first token issuance.
-- **OAuth metadata on custom domains**: Both `bpost.sonicrocket.io` and `preview.bpost.sonicrocket.io` now return correct issuer in `.well-known/oauth-authorization-server` — custom domain, not `*.vercel.app`.
-
-### Changed
-
-- **Server instructions** (`src/lib/mcp/server-instructions.ts`): Added agent orchestration guidance — batch pipeline flow (steps 1–6), pre-submission checklist, communication modes (T/C/P), direct tools vs batch pipeline, deposit/mailing master/slave linking, and upcoming `check_batch` note.
-- **Tool descriptions** (`src/app/api/mcp/route.ts`): All batch pipeline tools now show step numbers (1–6), prerequisites, next steps, and ordering constraints. Direct tools (`bpost_announce_mailing`, `bpost_announce_deposit`) clarified as non-pipeline with deposit/mailing linking guidance.
-- `**submit_ready_batch`** (`src/app/api/mcp/route.ts`): Replaced stub with real BPost XML dispatch. Builds a `MailingCreate` request from mapped batch rows, sends via `BpostClient`, and stores submission metadata (mailingRef, row counts, BPost status, user/client ID) in `BatchState`. Batch stays `MAPPED` on BPost errors for retry.
-- **Home** (`src/app/page.tsx`): Call-to-action links use shared `bp-btn` classes; shows `AlphaServiceBanner` and `APP_VERSION`.
-- **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout; method-choice cards via `bp-install-card`; install snippets wrapped with `CopyCodeBlock`; primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
-- **Dashboard** (`src/app/dashboard/page.tsx`): Card-based "accountinstellingen" layout; BPost password optional on update when credentials already exist (server action preserves prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; "Terug naar start" uses `next/link`.
-- `**TokenRow`** (`src/app/dashboard/TokenRow.tsx`): `nl-BE` date/time formatting; trash control as inline SVG + `bp-icon-btn`; confirmation dialog uses shared button classes.
-- `**server-instructions`** (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
-
-### Fixed
-
-- **Barcode strategy — `savePreferences` TOCTOU race**: Replaced select-then-insert/update pattern with a single atomic `INSERT … ON CONFLICT DO UPDATE`, eliminating the race condition under concurrent requests.
-- **Barcode strategy — `get-preferences.ts` unsafe DB cast**: Added `TenantPreferencesSchema` with `z.enum` validation and `safeParse`; corrupt DB values now fall back to DEFAULTS with a logged error instead of silently casting.
-- **Barcode strategy — `customer-provides` midNum format**: Validates supplied MID numbers against `/^[0-9]{14,18}$/` instead of a presence-only check, rejecting non-numeric or out-of-range values immediately.
-- **Barcode strategy — sequence overflow message**: Overflow error for `mcp-generates` now includes the current ISO week number and explicitly states the limit is non-recoverable for the remainder of that week.
-- `**report_issue` fallback without `GITHUB_TOKEN`**: When `GITHUB_TOKEN` is unset on the server, the tool returns a prefilled GitHub "new issue" URL so users can still report issues in the browser; the same fallback link is also included on GitHub API errors.
-- **Claude Desktop / MCP OAuth on custom domains**: OAuth metadata (`.well-known/oauth-authorization-server`, `.well-known/oauth-protected-resource`), authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from `getPublicOrigin(request)` instead of only `NEXT_PUBLIC_BASE_URL`, so the same deployment works when users hit a custom domain while env still points at the default deployment hostname.
-- **OAuth resource URL alignment**: Protected resource metadata and stored auth codes use a canonical MCP URL (`{origin}/api/mcp`); token exchange accepts equivalent origin vs `/api/mcp` forms and allows omitting `resource` on the token request when the code was bound to the canonical MCP resource (client interop).
-- **Opaque 500 on `/oauth/token` when JWT secret missing**: `OAUTH_JWT_SECRET` is required in `env.ts` (Zod) so misconfigured deployments fail at startup with a clear validation error instead of at first token issuance.
+- Barcode strategy `savePreferences` TOCTOU race: replaced select-then-upsert pattern with atomic `INSERT … ON CONFLICT DO UPDATE` (#16).
+- Barcode strategy DB cast safety: corrupt preference values fall back to defaults with a logged error instead of silently casting.
+- `customer-provides` midNum format: validates MID numbers against `/^[0-9]{14,18}$/` instead of a presence-only check.
+- Barcode sequence overflow message now includes the ISO week number and states the limit is non-recoverable for that week.
+- `report_issue` fallback: returns a prefilled GitHub "new issue" URL when `GITHUB_TOKEN` is unset or the API errors.
+- OAuth on custom domains: metadata endpoints, authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from the request instead of only `NEXT_PUBLIC_BASE_URL`.
+- OAuth resource URL alignment: token exchange accepts both origin and `/api/mcp` forms and allows omitting `resource` when bound to the canonical MCP resource.
+- Missing `OAUTH_JWT_SECRET` now fails at startup with a clear validation error instead of a 500 on first token issuance.
+- OAuth metadata on custom domains: both `bpost.sonicrocket.io` and `preview.bpost.sonicrocket.io` return correct issuer.
 
 ---
 
 ## [2.2.0] - 2026-04-11
 
+### Samenvatting
+
+**Nieuw**
+
+- Adresvelden mappen via `Comps.1`, `Comps.3` enz. — geen handmatige rij-correcties meer nodig voor het meestvoorkomende geval ([#10](https://github.com/markminnoye/bpost-mcp/issues/10)).
+- Rijnummers (`seq`) worden automatisch toegekend tijdens mapping.
+- Versie-info opvraagbaar via het `get_service_info`-commando.
+
+**Oplossingen**
+
+- OAuth werkt nu correct op custom domeinen (zie 0.2.0 voor details).
+- Issue-rapportering werkt zonder `GITHUB_TOKEN`.
+
+**Aanpassingen**
+
+- `NEXT_PUBLIC_BASE_URL` valt nu terug op `VERCEL_URL` (Vercel) of `localhost:3000` (lokaal) als het niet is ingesteld.
+
 ### Added
 
-- **Comps dot-notation in `apply_mapping_rules`**: Multiple CSV columns can now be aggregated into the nested BPost `Comps` object using `Comps.<code>` syntax (e.g. `"Familienaam": "Comps.1"`, `"Straatnaam": "Comps.3"`). Eliminates the need for manual `apply_row_fix` on every row for address data — the most common use case. ([#10](https://github.com/markminnoye/bpost-mcp/issues/10))
-- **Automatic `seq` generation**: `seq` is now auto-assigned from the 1-based row index during mapping when not explicitly mapped, removing a mandatory manual correction step.
-- **Actionable Comps error hints**: When mapping targets are invalid, the error message now explains the `Comps.<code>` syntax with a concrete Belgian address example and lists valid comp codes.
-- `**src/lib/batch/apply-mapping.ts`**: Pure mapping function handling flat fields, Comps aggregation, and seq auto-generation.
-- `**src/lib/batch/validate-mapping-targets.ts`**: Target validator accepting `ItemSchema` flat fields and valid `Comps.<code>` entries with descriptive hints.
-- `**get_service_info` MCP tool**: Returns `{"service":"bpost-emasspost","version":"<package.json version>"}`; enables agents and users to query the service version. Server `serverInfo` now reads version from `package.json` dynamically instead of a hardcoded string.
-- `**src/lib/app-version.ts`**: Single source of truth for `APP_VERSION` and `MCP_SERVER_DISPLAY_NAME`, imported by the MCP route.
-- `**src/lib/oauth/resource-url.ts`**: Helpers for canonical MCP resource URL and OAuth `resource` normalization / token-endpoint matching.
-- **JWT signing options** (`src/lib/oauth/jwt.ts`): `signAccessToken` accepts `{ issuerBaseUrl, expiresInOverride }`; `verifyAccessToken` accepts multiple allowed issuer bases for custom-domain + env transition.
-- `**jwtAllowedIssuerBases`** (`src/lib/oauth/verify-token.ts`): Verifies OAuth JWTs against request origin and configured base when they differ.
-- **Tests**: `resource-url.test.ts`, token interop case for omitted `resource`, JWT multi-issuer tests; OAuth/MCP request URLs use `http://localhost:3000` to match Vitest `NEXT_PUBLIC_BASE_URL`; `vitest.config.ts` sets `OAUTH_JWT_SECRET` for the worker.
+- Comps dot-notation in `apply_mapping_rules`: aggregate multiple CSV columns into the nested BPost `Comps` object using `Comps.<code>` syntax (e.g. `"Familienaam": "Comps.1"`). Eliminates manual `apply_row_fix` for address data ([#10](https://github.com/markminnoye/bpost-mcp/issues/10)).
+- Automatic `seq` generation: auto-assigned from the 1-based row index during mapping when not explicitly mapped.
+- Actionable Comps error hints: invalid mapping targets now explain the `Comps.<code>` syntax with a Belgian address example and list valid comp codes.
+- `get_service_info` MCP tool: returns service name and version from `package.json`; server `serverInfo` reads version dynamically.
+- OAuth resource URL helpers for canonical MCP URL and `resource` normalization.
+- JWT signing accepts `issuerBaseUrl` and `expiresInOverride`; verification accepts multiple allowed issuer bases for custom-domain transitions.
+- Tests for resource URL helpers, token interop, and JWT multi-issuer scenarios.
 
 ### Fixed
 
-- `**report_issue` fallback without `GITHUB_TOKEN`**: When `GITHUB_TOKEN` is unset on the server, the tool returns a prefilled GitHub "new issue" URL so users can still report issues in the browser; the same fallback link is also included on GitHub API errors.
-- **Claude Desktop / MCP OAuth on custom domains**: OAuth metadata (`.well-known/oauth-authorization-server`, `.well-known/oauth-protected-resource`), authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from `getPublicOrigin(request)` instead of only `NEXT_PUBLIC_BASE_URL`, so the same deployment works when users hit a custom domain while env still points at the default deployment hostname.
-- **OAuth resource URL alignment**: Protected resource metadata and stored auth codes use a canonical MCP URL (`{origin}/api/mcp`); token exchange accepts equivalent origin vs `/api/mcp` forms and allows omitting `resource` on the token request when the code was bound to the canonical MCP resource (client interop).
-- **Opaque 500 on `/oauth/token` when JWT secret missing**: `OAUTH_JWT_SECRET` is required in `env.ts` (Zod) so misconfigured deployments fail at startup with a clear validation error instead of at first token issuance.
+- `report_issue` returns a prefilled GitHub "new issue" URL when `GITHUB_TOKEN` is unset or the API errors.
+- OAuth on custom domains: metadata, redirects, token matching, and JWT claims now derive the public host from the request (see 0.2.0 for full details).
+- OAuth resource URL alignment: token exchange accepts equivalent origin and `/api/mcp` forms.
+- Missing `OAUTH_JWT_SECRET` now fails at startup instead of on first token issuance.
 
 ### Changed
 
-- `**NEXT_PUBLIC_BASE_URL` resolution** (`env.ts`): Falls back to `VERCEL_URL` on Vercel, then `http://localhost:3000` locally, when unset; operators should still set an explicit canonical URL for dashboard/install copy.
+- `NEXT_PUBLIC_BASE_URL` falls back to `VERCEL_URL` on Vercel, then `http://localhost:3000` locally, when unset.
 
 ---
 
 ## [2.1.1] - 2026-04-10
 
+### Samenvatting
+
+**Aanpassingen**
+
+- Redis-opslag overgeschakeld van Upstash REST naar een standaard TCP-client — compatibel met Vercel Marketplace Redis.
+- Next.js beveiligingsupdate (16.2.1 naar 16.2.3).
+
 ### Changed
 
-- **Batch KV storage** (`src/lib/kv/client.ts`): Switched from `@upstash/redis` (REST / `UPSTASH_REDIS_*`) to the official `[redis](https://www.npmjs.com/package/redis)` TCP client using `REDIS_URL`, matching Vercel Marketplace Redis and avoiding deprecated `@vercel/kv`. Batch state is stored as JSON strings with the same key layout and 24h TTL.
+- Batch KV storage switched from `@upstash/redis` (REST) to the official `redis` TCP client using `REDIS_URL`, matching Vercel Marketplace Redis.
 
 ### Removed
 
-- **Dependency**: `@upstash/redis` (superseded by `redis` for this integration).
+- `@upstash/redis` dependency (superseded by `redis`).
 
 ### Dependencies
 
-- **Next.js** `16.2.1` → `16.2.3` (addresses published Server Components DoS advisory per `npm audit`).
+- Next.js 16.2.1 → 16.2.3 (addresses Server Components DoS advisory per `npm audit`).
 
 ### Documentation
 
-- **README** / `**.env.example`**: Document `REDIS_URL` and Marketplace Redis instead of `KV_REST_*` / Vercel KV REST vars.
+- README and `.env.example` updated: `REDIS_URL` replaces `KV_REST_`* / Vercel KV REST vars.
 
 ---
 
 ## [2.1.0] - 2026-04-10
 
+### Samenvatting
+
+**Nieuw**
+
+- Installatiepagina (`/install`): stap-voor-stap gids voor Claude Desktop en Claude Code — OAuth en Bearer Token, met kopieerbare snippets.
+- Tokens verwijderen vanuit het dashboard (trash-icoon met bevestigingsdialoog).
+- Drie zelflerend-tools: protocol-regels opslaan, fix-scripts bewaren, en problemen escaleren naar een mens.
+- Alle environment variables worden nu bij het opstarten gevalideerd — ontbrekende waarden geven een duidelijke foutmelding.
+- ESLint-configuratie toegevoegd.
+
+**Oplossingen**
+
+- Dashboard-redirect na Google-login werkt nu correct.
+- CLI-snippets voor Claude Code gecorrigeerd (`--transport http`).
+- Alle `any`-types in de codebase vervangen door correcte types.
+
 ### Added
 
-- `**/install` page** (`src/app/install/page.tsx`): Public-facing installation guide for connecting Claude Desktop and Claude Code to the BPost MCP service. Covers OAuth 2.0 (recommended) and Bearer Token methods with copy-ready config snippets. No login required. Includes jump-nav, comparison cards with hover effects, and a page-level `metadata` export for SEO.
-- **"How to connect" entry points**: Button added to homepage and link added to the dashboard "Claude / MCP Clients" section, both pointing to `/install`.
-- **Token revocation UI** (`src/app/dashboard/TokenRow.tsx`): Trash icon on each dashboard token row opens a confirmation modal for hard-deleting the token. Replaces the static ACTIVE/REVOKED badge with a `lastUsedAt` indicator.
-- `**revokeToken` server action** (`src/app/dashboard/actions.ts`): Validates UUID input, verifies ownership, hard-deletes the token, and returns a typed `ActionResult` union — no `redirect()` inside the action.
-- **Self-Learning & Feedback MCP tools** (Phase 2 Sprint 3): Three new tools added to the MCP handler:
-  - `add_protocol_rule` — writes discovered BPost protocol rules to the shared knowledge base
-  - `add_fix_script` — persists auto-fixer scripts for reuse across sessions
-  - `escalate_to_human` — surfaces unresolvable issues for human review
-- **Env var centralisation** (`src/lib/config/env.ts`): All environment variables validated at startup via Zod; replaces scattered `process.env` accesses.
-- `**check:hardcoded` script**: `npm run check:hardcoded` fails the build if any hardcoded `vercel.app` URLs are found in `src/`.
-- `**check:all` script**: Runs lint + type-check + tests + hardcoded-URL check in one command.
-- **ESLint setup**: ESLint 10 + `eslint-config-next` installed and wired up (`eslint.config.mjs`). `npm run lint` and `npm run lint:fix` now work correctly under Next.js 16.
+- `/install` page: public-facing installation guide for Claude Desktop and Claude Code. Covers OAuth 2.0 and Bearer Token methods with copy-ready config snippets. Includes jump-nav and comparison cards.
+- "How to connect" entry points added to homepage and dashboard.
+- Token revocation UI: trash icon on each dashboard token row opens a confirmation modal for hard-deleting the token. `lastUsedAt` indicator replaces static ACTIVE/REVOKED badge.
+- `revokeToken` server action: validates UUID, verifies ownership, hard-deletes the token, returns typed `ActionResult`.
+- Self-Learning & Feedback MCP tools: `add_protocol_rule`, `add_fix_script`, `escalate_to_human`.
+- Env var centralisation via Zod validation at startup; replaces scattered `process.env` accesses.
+- `check:hardcoded` script: fails the build if hardcoded `vercel.app` URLs are found in `src/`.
+- `check:all` script: runs lint + type-check + tests + hardcoded-URL check.
+- ESLint 10 + `eslint-config-next` configured.
 
 ### Fixed
 
-- **Dashboard sign-in redirect**: After Google OAuth, users are now correctly returned to `/dashboard` (`callbackUrl=/dashboard` added to sign-in redirect).
-- **Claude Code CLI snippets**: Corrected `claude mcp add` syntax to include `--transport http`.
-- **Fallback `BASE_URL`**: Install page fallback updated to `bpost.sonicrocket.io`.
-- **External link security**: Added `rel="noopener noreferrer"` to the "Skills Documentation" link on the homepage.
-- `**no-explicit-any` across codebase**: Replaced all 8 `any` casts with proper types (`unknown`, typed session augmentation). Affected: `upload/route.ts`, `dashboard/page.tsx`, `dashboard/actions.ts`, `lib/auth.ts`, `lib/kv/client.ts`.
-- **Unused variables**: Removed unused `isModalOpen` state (`TokenRow.tsx`), unused `BpostError` import (`client/bpost.ts`), unused `NextAuth` import (`next-auth.d.ts`), unused `tenantId` variable in MCP route.
-- **Unused catch bindings**: `catch (error: any)` / `catch (err)` → `catch` where the error is never used (`oauth/register/route.ts`, `api/mcp/route.ts`).
+- Dashboard sign-in redirect: users now correctly return to `/dashboard` after Google OAuth.
+- Claude Code CLI snippets corrected to include `--transport http`.
+- Install page fallback URL updated to `bpost.sonicrocket.io`.
+- External link security: added `rel="noopener noreferrer"` to "Skills Documentation" link.
+- Replaced all 8 `any` casts with proper types across upload route, dashboard, auth, and KV client.
+- Removed unused variables and catch bindings across token row, bpost client, next-auth types, and MCP route.
 
 ---
 
 ## [2.0.1] - 2026-04-08
 
+### Samenvatting
+
+**Oplossingen**
+
+- Batch-pipeline robuuster: ongeldige data wordt niet meer opgeslagen bij een mislukte rij-correctie.
+- Redis-schrijffouten geven nu een gestructureerde foutmelding in plaats van een onafgevangen uitzondering.
+- `get_raw_headers` toont nu ook het aantal fouten, zodat de agent een extra stap bespaart.
+- Een batch die al gemapt is kan opnieuw gemapt worden (alleen SUBMITTED is definitief).
+
 ### Fixed
 
-- **Batch pipeline hardening**: `apply_row_fix` no longer persists unvalidated `correctedData` to KV on re-validation failure (data pollution fix)
-- **KV write resilience**: `apply_mapping_rules`, `apply_row_fix`, `submit_ready_batch` now return structured `isError` responses on Redis write failure instead of propagating unhandled exceptions
-- `**get_raw_headers`**: Returns `errorCount` alongside `totalRows` when batch status is `MAPPED` or `SUBMITTED`, saving agents a round-trip
-- `**apply_mapping_rules`**: Now allows re-mapping a `MAPPED` batch; only `SUBMITTED` batches cannot be re-mapped
-- **Upload route**: `catch (error: any)` replaced with `unknown` + type-safe message extraction
+- `apply_row_fix` no longer persists unvalidated `correctedData` to KV on re-validation failure (data pollution fix).
+- `apply_mapping_rules`, `apply_row_fix`, `submit_ready_batch` now return structured `isError` responses on Redis write failure instead of propagating unhandled exceptions.
+- `get_raw_headers` returns `errorCount` alongside `totalRows` when batch status is MAPPED or SUBMITTED, saving agents a round-trip.
+- `apply_mapping_rules` now allows re-mapping a MAPPED batch; only SUBMITTED batches cannot be re-mapped.
+- Upload route catch clause uses `unknown` instead of `any` with type-safe message extraction.
 
 ### Added
 
-- `**requireTenantId` helper** (`src/lib/mcp/require-tenant.ts`): Shared guard eliminating 8× duplicated tenantId extraction across MCP tool handlers
+- `requireTenantId` shared helper: eliminates 8x duplicated tenantId extraction across MCP tool handlers.
 
 ---
 
 ## [2.0.0] - 2026-04-07
 
+### Samenvatting
+
+**Nieuw**
+
+- OAuth 2.0 voor MCP: aanmelden via Google in de browser — geen handmatig token meer kopiëren.
+- Volledige OAuth-server: autorisatie, token-uitwisseling, refresh-tokens, dynamische client-registratie.
+- JWT access tokens (1 uur) en refresh tokens (90 dagen) met rotatie.
+- PKCE-beveiliging verplicht voor alle autorisatie-flows.
+- Dashboard toont MCP-verbindingsgegevens voor Claude Desktop.
+- Favicons en PWA-iconen toegevoegd.
+
+**Beveiliging**
+
+- Autorisatiecodes worden gehasht (SHA-256) en zijn eenmalig bruikbaar.
+- Refresh-tokens worden geroteerd — het oude token wordt ingetrokken bij vernieuwing.
+- Alle secrets worden gehasht vóór opslag; BPost-wachtwoorden blijven AES-256-GCM versleuteld.
+
 ### Added
 
-- **OAuth 2.0 MCP Integration**: Claude.ai/Desktop can now authenticate via standard browser-based Google login — no more manual bearer token copy-paste.
-- **OAuth Authorization Server** (custom Next.js implementation):
-  - `GET /oauth/authorize` — PKCE S256, client resolution, Auth.js session check, BPost credential verification, auth code generation
-  - `POST /oauth/token` — `authorization_code` and `refresh_token` grants with rotation
-  - `POST /oauth/register` — Dynamic Client Registration (RFC 7591)
-  - `GET /.well-known/oauth-protected-resource` — RFC 9728 Protected Resource Metadata
-  - `GET /.well-known/oauth-authorization-server` — RFC 8414 Authorization Server Metadata
-- **JWT support**: HS256 access tokens (1h) via `jose`; refresh tokens (90d, stateful in DB)
-- **PKCE S256 enforcement**: Mandatory for all authorization code flows
-- **Client ID Metadata Documents**: Preferred client resolution mechanism per MCP spec
-- **Unified token verification**: OAuth JWT and legacy `bpost_`* M2M tokens both accepted at MCP boundary
-- **3 new DB tables**: `oauth_clients`, `oauth_authorization_codes`, `oauth_refresh_tokens`
-- **Dashboard**: "Claude / MCP Clients" section showing MCP URL for Claude Desktop
-- **Favicons & PWA**: PNG icons (16×16, 32×32, 192×192, 512×512), `apple-touch-icon.png`, `site.webmanifest`; wired into root layout via Next.js metadata API
+- OAuth 2.0 MCP integration: Claude.ai/Desktop authenticates via standard browser-based Google login.
+- OAuth Authorization Server: `/oauth/authorize` (PKCE S256), `/oauth/token` (authorization_code + refresh_token grants), `/oauth/register` (RFC 7591 Dynamic Client Registration), `/.well-known/oauth-protected-resource` (RFC 9728), `/.well-known/oauth-authorization-server` (RFC 8414).
+- JWT support: HS256 access tokens (1h) via `jose`; refresh tokens (90d, stateful in DB).
+- PKCE S256 enforcement mandatory for all authorization code flows.
+- Client ID Metadata Documents as preferred client resolution per MCP spec.
+- Unified token verification: OAuth JWT and legacy `bpost_`* M2M tokens both accepted at MCP boundary.
+- 3 new DB tables: `oauth_clients`, `oauth_authorization_codes`, `oauth_refresh_tokens`.
+- Dashboard "Claude / MCP Clients" section showing MCP URL for Claude Desktop.
+- Favicons & PWA: PNG icons, `apple-touch-icon.png`, `site.webmanifest`.
 
 ### Changed
 
-- **MCP route** (`/api/mcp`): Migrated from raw `@modelcontextprotocol/sdk` to `mcp-handler` + `withMcpAuth`; `requiredScopes: ['mcp:tools']` enforced
-- `**@modelcontextprotocol/sdk`**: Moved to `devDependencies` (type-only import)
-- **Page title**: Updated to "BPost MCP"
+- MCP route migrated from raw `@modelcontextprotocol/sdk` to `mcp-handler` + `withMcpAuth` with `requiredScopes: ['mcp:tools']`.
+- `@modelcontextprotocol/sdk` moved to `devDependencies` (type-only import).
+- Page title updated to "BPost MCP".
 
 ### Security
 
-- Authorization codes SHA-256 hashed and single-use (`used_at` prevents replay)
-- Refresh token rotation — old token revoked before new token issued
-- PKCE mandatory — no authorization code without `code_challenge`
-- All secrets hashed before DB storage; BPost credentials remain AES-256-GCM encrypted
+- Authorization codes SHA-256 hashed and single-use (`used_at` prevents replay).
+- Refresh token rotation — old token revoked before new token issued.
+- PKCE mandatory — no authorization code without `code_challenge`.
+- All secrets hashed before DB storage; BPost credentials remain AES-256-GCM encrypted.
 
 ---
 
 ## [1.3.0] - 2026-04-05
 
+### Samenvatting
+
+**Nieuw**
+
+- Multi-tenant dashboard voor BPost-instellingen en API-tokens.
+- BPost-wachtwoorden versleuteld opgeslagen (AES-256-GCM).
+- Inloggen via Google OAuth.
+- API-tokens aanmaken en intrekken voor machine-to-machine clients (Langflow, n8n).
+- Audit-logging voor alle wijzigingen en MCP-aanroepen.
+- Bulk-batch-ondersteuning via Vercel KV.
+
 ### Added
 
-- **Multi-tenant Dashboard** (`/dashboard`): Manage BPost credentials and API tokens per tenant
-- **Credential encryption**: AES-256-GCM for BPost passwords at rest
-- **Auth.js v5 integration**: Google OAuth login for dashboard access
-- **API token management**: Generate/revoke `bpost_`* bearer tokens for M2M clients (Langflow, n8n)
-- **Audit logging**: Credential changes and MCP calls logged to `audit_log` table
-- **KV batch pipeline**: Bulk batch announcement support with Vercel KV
+- Multi-tenant Dashboard (`/dashboard`): manage BPost credentials and API tokens per tenant.
+- Credential encryption: AES-256-GCM for BPost passwords at rest.
+- Auth.js v5 integration: Google OAuth login for dashboard access.
+- API token management: generate/revoke `bpost_`* bearer tokens for M2M clients (Langflow, n8n).
+- Audit logging: credential changes and MCP calls logged to `audit_log` table.
+- KV batch pipeline: bulk batch announcement support with Vercel KV.
 
 ### Fixed
 
-- `signOut` wrapped in server action to resolve 500 error
-- Credential field validation added to dashboard form
+- `signOut` wrapped in server action to resolve 500 error.
+- Credential field validation added to dashboard form.
 
 ---
 
 ## [1.2.0] - 2026-04-03
 
+### Samenvatting
+
+**Aanpassingen**
+
+- Phase 1 afgerond: alle BPost actie-schema's (Deposit en Mailing CRUD, Check, Reuse) volledig geïmplementeerd op basis van de XSD-bronnen.
+
 ### Changed
 
-- **Phase 1 Complete**: All action sub-schemas (`DepositCreate`, `DepositUpdate`, `DepositDelete`, `DepositValidate`, `MailingCreate`, `MailingCheck`, `MailingDelete`, `MailingReuse`) fully implemented from XSD sources. Response schemas (`deposit-response.ts`, `mailing-response.ts`) added.
-- **AGENTS.md**: Updated active work section to reflect Phase 1 completion; removed in-progress implementation notes.
-- **next-env.d.ts**: Updated route types import path to `.next/dev/types/routes.d.ts` (Next.js tooling update, auto-generated).
-- **Claude settings**: Accumulated session permissions in `.claude/settings.local.json` for local tooling operations.
+- Phase 1 complete: all action sub-schemas (`DepositCreate`, `DepositUpdate`, `DepositDelete`, `DepositValidate`, `MailingCreate`, `MailingCheck`, `MailingDelete`, `MailingReuse`) fully implemented from XSD sources. Response schemas added.
 
 ---
 
 ## [1.1.0] - 2026-03-29
 
+### Samenvatting
+
+**Aanpassingen**
+
+- Documentatiebibliotheek gestandaardiseerd met een volledige XSD-audit (BUG-001).
+- Alle technische referenties hernoemd naar "e-MassPost" voor consistentie.
+- Engelse lokalisatie van de protocoldocumentatie.
+
 ### Changed
 
-- **Submodule Upgrade (v1.1.0)**: Standardized the documentation library with a full XSD-compliant audit (BUG-001).
-- **Naming Unification**: Renamed and unified all technical references to **e-MassPost** for consistency across the codebase and Skills Library.
+- Submodule upgrade (v1.1.0): standardized the documentation library with a full XSD-compliant audit (BUG-001).
+- Naming unification: renamed all technical references to **e-MassPost** for consistency.
 
 ### Added
 
-- **Build Automation**: Integrated automated version management for skill bundles.
-- **English Localization**: Fully localized the protocol documentation and build instructions.
-- **Formal Audit Record**: Added systematic audit log and agent feedback loops to `AGENTS.md`.
-- **Documentation Audit (2026-03-28)**: A systematic audit (BUG-001) identified several casing and naming inconsistencies between the e-MassPost Markdown files and the source XSDs. Key fixes included lowercase attribute names for `<Context>` tags and mapping `fieldToPrint1-3` to `distributionOffice/routeName/routeSeq` in responses. Always prioritize `.xsd` files in `resources/` as the absolute source of truth.
+- Build automation: integrated automated version management for skill bundles.
+- English localization: fully localized the protocol documentation and build instructions.
+- Formal audit record: added systematic audit log and agent feedback loops to `AGENTS.md`.
+
+---
 
 ## [1.0.0] - 2026-03-27
+
+### Samenvatting
+
+Eerste release: projectstructuur met Vercel, TypeScript en Zod. BPost e-MassPost Skills Library als git-submodule geïntegreerd. Protocoldocumentatie gemigreerd en voorzien van Mermaid-diagrammen.
 
 ### Added
 
