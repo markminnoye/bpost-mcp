@@ -28,6 +28,33 @@ import vm from 'vm'
 
 export const dynamic = 'force-dynamic'
 
+/**
+ * Friendly English alias → internal bpost field mapping.
+ * The LLM uses these aliases; this layer translates them before processing.
+ * Unknown values (e.g. "Comps.70") are passed through untouched (hybrid fallback).
+ */
+/** Same keys as internal names are listed for documentation parity with the tool description. */
+const BPOST_ALIASES: Record<string, string> = {
+  lastName:      'Comps.1',
+  firstName:     'Comps.2',
+  street:        'Comps.3',
+  houseNumber:   'Comps.4',
+  box:           'Comps.5',
+  postalCode:    'Comps.8',
+  municipality:  'Comps.9',
+  language:      'lang',
+  priority:      'priority',
+  mailIdBarcode: 'midNum',
+  presortCode:   'psCode',
+}
+
+function resolveMappingTarget(target: string): string {
+  if (Object.prototype.hasOwnProperty.call(BPOST_ALIASES, target)) {
+    return BPOST_ALIASES[target]
+  }
+  return target
+}
+
 function getISOWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   const dayNum = d.getUTCDay() || 7
@@ -352,16 +379,24 @@ const handler = createMcpHandler(
       'apply_mapping_rules',
       {
         description:
-          'BATCH PIPELINE step 3/6: Maps each spreadsheet column header to the correct BPost mailing-row field key (Item schema). ' +
+          'BATCH PIPELINE step 3/6: Maps each spreadsheet column header to the correct BPost mailing-row field. ' +
           'Requires headers from get_raw_headers. Produces MAPPED status on the batch. ' +
-          'Flat fields: lang, priority, psCode, midNum. ' +
-          'Address columns: use Comps.<code> dot-notation, e.g. { "Familienaam": "Comps.1", "Voornaam": "Comps.2", "Straatnaam": "Comps.3", "Huisnummer": "Comps.4", "Bus": "Comps.5", "Postcode": "Comps.8", "Gemeente": "Comps.9" }. ' +
+          'Use these friendly field names as mapping targets: ' +
+          '"lastName" (recipient last name), "firstName" (first name), "street" (street name), ' +
+          '"houseNumber" (house number), "box" (box/bus number), "postalCode" (postal code), ' +
+          '"municipality" (city/town), "language" (lang: nl/fr/de), "priority" (P or NP), ' +
+          '"mailIdBarcode" (customer-provided Mail ID barcode, 14–18 digits), ' +
+          '"presortCode" (pre-sort code). ' +
+          'Advanced: you may also use Comps.<code> dot-notation directly (e.g. "Comps.70") for fields without an alias. ' +
           'seq is auto-generated from row index (1-based) unless explicitly mapped. ' +
           'After mapping, each row is validated against BPost field rules. ' +
           'Next step: get_batch_errors to check for validation failures.',
         inputSchema: z.object({
           batchId: z.string(),
-          mapping: z.record(z.string(), z.string()).describe('Format: { "Client Loc": "postalCode" }'),
+          mapping: z.record(z.string(), z.string()).describe(
+            'Map each CSV column header to a field name. ' +
+            'Example: { "Familienaam": "lastName", "Straat": "street", "Postcode": "postalCode" }'
+          ),
         }),
       },
       async (input, extra) => {
@@ -374,18 +409,24 @@ const handler = createMcpHandler(
           return { isError: true, content: [{ type: 'text' as const, text: 'Cannot re-map a submitted batch.' }] }
         }
 
-        const unknownCols = Object.keys(input.mapping).filter(col => !state.headers.includes(col))
+        // Translate friendly aliases to internal bpost field names before validation
+        const resolvedMapping: Record<string, string> = {}
+        for (const [col, target] of Object.entries(input.mapping)) {
+          resolvedMapping[col] = resolveMappingTarget(target)
+        }
+
+        const unknownCols = Object.keys(resolvedMapping).filter(col => !state.headers.includes(col))
         if (unknownCols.length > 0) {
           return { isError: true, content: [{ type: 'text' as const, text: `Mapping references unknown source columns: ${unknownCols.join(', ')}. Available headers: ${state.headers.join(', ')}` }] }
         }
 
-        const targetError = validateMappingTargets(input.mapping)
+        const targetError = validateMappingTargets(resolvedMapping)
         if (targetError) {
           return { isError: true, content: [{ type: 'text' as const, text: targetError.hint }] }
         }
 
         state.rows = state.rows.map(r => {
-          const mapped = applyMapping(r.raw, input.mapping, r.index + 1)
+          const mapped = applyMapping(r.raw, resolvedMapping, r.index + 1)
           const result = ItemSchema.safeParse(mapped)
           return {
             ...r,
@@ -613,7 +654,13 @@ const handler = createMcpHandler(
           'Only rows without validation errors are included; skipped rows are reported in the response. ' +
           'IMPORTANT: Before calling, confirm these values with the user: mailingRef, expectedDeliveryDate, format, priority, and mode. ' +
           'The batch must be in MAPPED status with 0 errors (use get_batch_errors to verify). After successful submission, the batch is locked as SUBMITTED. ' +
-          'Default mode is T (test). Only use C or P when the user explicitly confirms certification/production readiness.',
+          'Default mode is T (test). Only use C or P when the user explicitly confirms certification/production readiness. ' +
+          'barcodeStrategy controls Mail ID barcode generation: ' +
+          '"bpost-generates" = bpost generates barcodes automatically (use barcodeLength to select 7, 9, or 11 digits; defaults to 7); ' +
+          '"customer-provides" = each row must already have a mailIdBarcode value mapped; ' +
+          '"mcp-generates" = the MCP server generates unique barcodes using the configured barcode customer ID. ' +
+          'If omitted, the user\'s dashboard default barcode strategy is used. ' +
+          'barcodeLength is only valid together with barcodeStrategy "bpost-generates".',
         inputSchema: z.object({
           batchId: z.string(),
           expectedDeliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
@@ -622,9 +669,18 @@ const handler = createMcpHandler(
           priority: z.enum(['P', 'NP']).optional().default('NP'),
           mode: z.enum(['P', 'T', 'C']).optional().default('T'),
           customerFileRef: z.string().max(10).optional(),
-          genMID: z.enum(['N', '7', '9', '11']).optional(),
+          barcodeStrategy: z.enum(['bpost-generates', 'customer-provides', 'mcp-generates']).optional()
+            .describe('Barcode generation strategy. If omitted, uses the user\'s dashboard default.'),
+          barcodeLength: z.enum(['7', '9', '11']).optional()
+            .describe('Number of digits for bpost-generated barcodes. Only used when barcodeStrategy is "bpost-generates". Defaults to 7.'),
           genPSC: z.enum(['Y', 'N']).optional().default('N'),
-        }),
+        }).refine(
+          (data) => data.barcodeLength === undefined || data.barcodeStrategy === 'bpost-generates',
+          {
+            message: 'barcodeLength is only allowed when barcodeStrategy is "bpost-generates". Either set barcodeStrategy to "bpost-generates" or omit barcodeLength.',
+            path: ['barcodeLength'],
+          },
+        ),
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -645,37 +701,58 @@ const handler = createMcpHandler(
         // ── Barcode strategy resolution ──────────────────────────
         const now = new Date()
         const preferences = await getTenantPreferences(tenantId)
-        // input.genMID is undefined when not provided by the caller (no Zod default)
-        let resolvedGenMID: 'N' | '7' | '9' | '11' = input.genMID ?? '7'
 
-        // Only apply tenant strategy when the caller did NOT explicitly provide genMID
-        if (input.genMID === undefined) {
-          switch (preferences.barcodeStrategy) {
+        // Determine effective strategy: caller's explicit input overrides dashboard setting
+        const effectiveStrategy = input.barcodeStrategy ?? preferences.barcodeStrategy
+
+        let resolvedGenMID: 'N' | '7' | '9' | '11'
+        if (input.barcodeStrategy !== undefined) {
+          // Caller explicitly provided a strategy — use it, ignore dashboard setting
+          switch (input.barcodeStrategy) {
             case 'bpost-generates':
-              resolvedGenMID = preferences.barcodeLength as 'N' | '7' | '9' | '11'
+              resolvedGenMID = (input.barcodeLength ?? '7') as '7' | '9' | '11'
               break
             case 'customer-provides':
             case 'mcp-generates':
               resolvedGenMID = 'N'
               break
           }
+        } else {
+          // Fall back to dashboard strategy
+          switch (preferences.barcodeStrategy) {
+            case 'bpost-generates':
+              resolvedGenMID = (preferences.barcodeLength ?? '7') as 'N' | '7' | '9' | '11'
+              break
+            case 'customer-provides':
+            case 'mcp-generates':
+              resolvedGenMID = 'N'
+              break
+            default:
+              resolvedGenMID = '7'
+          }
         }
 
         // Validate strategy-specific requirements
-        if (preferences.barcodeStrategy === 'customer-provides') {
+        if (effectiveStrategy === 'customer-provides') {
           const MID_PATTERN = /^[0-9]{14,18}$/
           const invalidRows = readyRows.filter(r => {
             const midNum = (r.mapped as Record<string, unknown>)?.midNum
             return !midNum || !MID_PATTERN.test(String(midNum))
           })
           if (invalidRows.length > 0) {
-            return { isError: true, content: [{ type: 'text' as const, text: `Strategy is 'customer-provides' but ${invalidRows.length} rows have missing or invalid midNum (must be 14–18 digits). Map the midNum column or change barcode strategy in dashboard settings.` }] }
+            const hint = input.barcodeStrategy === 'customer-provides'
+              ? `Strategy is 'customer-provides' (from this tool call) but ${invalidRows.length} rows have missing or invalid midNum (must be 14–18 digits). Map a column to mailIdBarcode / midNum, or call again with barcodeStrategy "bpost-generates" or "mcp-generates".`
+              : `Strategy is 'customer-provides' (from dashboard settings) but ${invalidRows.length} rows have missing or invalid midNum (must be 14–18 digits). Map a column to mailIdBarcode / midNum, override with barcodeStrategy in this tool, or change the strategy in dashboard settings.`
+            return { isError: true, content: [{ type: 'text' as const, text: hint }] }
           }
         }
 
-        if (preferences.barcodeStrategy === 'mcp-generates') {
+        if (effectiveStrategy === 'mcp-generates') {
           if (!credentials.barcodeCustomerId) {
-            return { isError: true, content: [{ type: 'text' as const, text: `Strategy is 'mcp-generates' but barcodeCustomerId is not configured. Add your 5-digit Barcode-klant-ID in dashboard settings.` }] }
+            const hint = input.barcodeStrategy === 'mcp-generates'
+              ? `Strategy is 'mcp-generates' (from this tool call) but barcodeCustomerId is not configured. Add your 5-digit Barcode-klant-ID in dashboard settings, or call again with a different barcodeStrategy.`
+              : `Strategy is 'mcp-generates' (from dashboard settings) but barcodeCustomerId is not configured. Add your 5-digit Barcode-klant-ID in dashboard settings, or override barcodeStrategy in this tool.`
+            return { isError: true, content: [{ type: 'text' as const, text: hint }] }
           }
           if (readyRows.length > 999999) {
             return { isError: true, content: [{ type: 'text' as const, text: `Batch has ${readyRows.length} rows but MCP barcode generation supports max 999,999 per batch.` }] }

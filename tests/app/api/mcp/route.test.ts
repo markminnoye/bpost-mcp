@@ -24,6 +24,14 @@ vi.mock('@/lib/batch/claim-batch-sequence', () => ({
   claimBatchSequence: vi.fn().mockResolvedValue(0),
 }))
 
+vi.mock('@/lib/batch/submit-batch', () => ({
+  submitBatch: vi.fn().mockResolvedValue({
+    success: true,
+    mailingRef: 'mock-ref',
+    submittedCount: 1,
+  }),
+}))
+
 vi.mock('@/lib/kv/client', () => ({
   getBatchState: vi.fn(),
   saveBatchState: vi.fn(),
@@ -52,6 +60,9 @@ global.fetch = vi.fn()
 
 import { GET, POST, DELETE } from '@/app/api/mcp/route'
 import { verifyToken } from '@/lib/oauth/verify-token'
+import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
+import { getTenantPreferences } from '@/lib/tenant/get-preferences'
+import { submitBatch } from '@/lib/batch/submit-batch'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 
 /** Parse the first JSON object from an SSE response body (data: <json> lines). */
@@ -594,6 +605,277 @@ describe('Self-Learning Tools', () => {
       expect.stringContaining('bpost-e-masspost-skills'),
       expect.anything(),
     )
+  })
+})
+
+// ── apply_mapping_rules alias translation ─────────────────────────────────────
+
+describe('apply_mapping_rules alias translation', () => {
+  it('translates friendly aliases (lastName, street, postalCode) to bpost field names', async () => {
+    vi.mocked(saveBatchState).mockClear()
+    const mockState = {
+      batchId: 'b-alias', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['Naam', 'Straat', 'Postcode', 'Gemeente', 'Taal', 'Prioriteit'],
+      rows: [{
+        index: 0,
+        raw: { Naam: 'Janssen', Straat: 'Kerkstraat', Postcode: '2000', Gemeente: 'Antwerpen', Taal: 'nl', Prioriteit: 'NP' },
+      }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: {
+          name: 'apply_mapping_rules',
+          arguments: {
+            batchId: 'b-alias',
+            mapping: {
+              Naam: 'lastName',
+              Straat: 'street',
+              Postcode: 'postalCode',
+              Gemeente: 'municipality',
+              Taal: 'language',
+              Prioriteit: 'priority',
+            },
+          },
+        },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    expect(text).toContain('Successfully mapped 1 rows.')
+
+    // Verify the row was mapped correctly using the resolved aliases
+    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    const row = savedState?.rows[0]
+    const comps = row?.mapped?.Comps?.Comp as Array<{ code: string; value: string }>
+    expect(comps?.find((c: { code: string }) => c.code === '1')?.value).toBe('Janssen')  // lastName → Comps.1
+    expect(comps?.find((c: { code: string }) => c.code === '3')?.value).toBe('Kerkstraat') // street → Comps.3
+    expect(comps?.find((c: { code: string }) => c.code === '8')?.value).toBe('2000')      // postalCode → Comps.8
+  })
+
+  it('does not resolve prototype property names as alias keys', async () => {
+    const mockState = {
+      batchId: 'b-proto', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['ColA'],
+      rows: [{ index: 0, raw: { ColA: 'x' } }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: {
+          name: 'apply_mapping_rules',
+          arguments: { batchId: 'b-proto', mapping: { ColA: '__proto__' } },
+        },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeTruthy()
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    expect(text).toMatch(/unknown target|Mapping references unknown/i)
+  })
+
+  it('passes through unknown targets (hybrid fallback) without error', async () => {
+    const mockState = {
+      batchId: 'b-hybrid', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['Naam', 'Prioriteit'],
+      rows: [{ index: 0, raw: { Naam: 'Janssen', Prioriteit: 'NP' } }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: {
+          name: 'apply_mapping_rules',
+          // Direct Comps.X notation (hybrid fallback) should still work
+          arguments: { batchId: 'b-hybrid', mapping: { Naam: 'Comps.1', Prioriteit: 'priority' } },
+        },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+  })
+})
+
+// ── submit_ready_batch barcodeStrategy ────────────────────────────────────────
+
+describe('submit_ready_batch barcodeStrategy', () => {
+  const makeSubmitRequest = (args: Record<string, unknown>) =>
+    new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'submit_ready_batch', arguments: args },
+      }),
+    })
+
+  const makeMappedBatch = (batchId: string) => ({
+    batchId, tenantId: 'tenant_a', status: 'MAPPED' as const,
+    headers: ['Naam', 'Prioriteit'],
+    rows: [{
+      index: 0,
+      raw: { Naam: 'Janssen', Prioriteit: 'NP' },
+      mapped: {
+        seq: 1,
+        priority: 'NP',
+        lang: 'nl',
+        Comps: { Comp: [{ code: '1', value: 'Janssen' }] },
+      },
+    }],
+    createdAt: '2026-01-01',
+  })
+
+  beforeEach(() => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(submitBatch).mockClear()
+    vi.mocked(submitBatch).mockResolvedValue({
+      success: true,
+      mailingRef: 'mock-ref',
+      submittedCount: 1,
+    })
+    vi.mocked(getCredentialsByTenantId).mockResolvedValue({
+      bpostUsername: 'u',
+      bpostPassword: 'p',
+      customerNumber: '100',
+      accountId: '200',
+    })
+  })
+
+  it('strips legacy genMID from arguments (Zod extra keys); tool response does not mention genMID', async () => {
+    vi.mocked(getBatchState).mockResolvedValue(makeMappedBatch('b-submit-1') as any)
+    const res = await POST(makeSubmitRequest({
+      batchId: 'b-submit-1',
+      expectedDeliveryDate: '2026-05-01',
+      format: 'Large',
+      genMID: '7', // legacy field — stripped by Zod; not part of the schema
+    }))
+    const body = await parseSseBody(res)
+    const text = (body?.result as any)?.content?.[0]?.text as string ?? ''
+    expect(text).not.toContain('genMID')
+  })
+
+  it('accepts barcodeStrategy and barcodeLength without a schema validation error', async () => {
+    vi.mocked(getBatchState).mockResolvedValue(makeMappedBatch('b-submit-2') as any)
+
+    const res = await POST(makeSubmitRequest({
+      batchId: 'b-submit-2',
+      expectedDeliveryDate: '2026-05-01',
+      format: 'Large',
+      barcodeStrategy: 'bpost-generates',
+      barcodeLength: '9',
+    }))
+    expect(res.status).toBe(200)
+    // The tool should not return an error about unrecognised schema fields.
+    // It may fail further down (e.g. missing credentials) but NOT on schema validation.
+    const body = await parseSseBody(res)
+    const text = (body?.result as any)?.content?.[0]?.text as string ?? ''
+    expect(text).not.toContain('Unrecognized key')
+    expect(text).not.toContain('Invalid enum value')
+  })
+
+  it('returns validation error when barcodeLength is set without barcodeStrategy', async () => {
+    vi.mocked(getBatchState).mockResolvedValue(makeMappedBatch('b-submit-len') as any)
+    const res = await POST(makeSubmitRequest({
+      batchId: 'b-submit-len',
+      expectedDeliveryDate: '2026-05-01',
+      format: 'Large',
+      barcodeLength: '11',
+    }))
+    expect(res.status).toBe(200)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeTruthy()
+    const text = (body?.result as any)?.content?.[0]?.text as string ?? ''
+    expect(text).toMatch(/barcodeLength|bpost-generates/i)
+  })
+
+  it('customer-provides from tool call: error text does not blame dashboard-only', async () => {
+    vi.mocked(getBatchState).mockResolvedValue(makeMappedBatch('b-submit-cp-tool') as any)
+    const res = await POST(makeSubmitRequest({
+      batchId: 'b-submit-cp-tool',
+      expectedDeliveryDate: '2026-05-01',
+      format: 'Large',
+      barcodeStrategy: 'customer-provides',
+    }))
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeTruthy()
+    const text = (body?.result as any)?.content?.[0]?.text as string ?? ''
+    expect(text).toContain('from this tool call')
+    expect(text).not.toContain('dashboard settings')
+  })
+
+  it('customer-provides from dashboard: error text mentions dashboard settings', async () => {
+    vi.mocked(getTenantPreferences).mockResolvedValueOnce({
+      barcodeStrategy: 'customer-provides',
+      barcodeLength: '7',
+    })
+    vi.mocked(getBatchState).mockResolvedValue(makeMappedBatch('b-submit-cp-dash') as any)
+    const res = await POST(makeSubmitRequest({
+      batchId: 'b-submit-cp-dash',
+      expectedDeliveryDate: '2026-05-01',
+      format: 'Large',
+    }))
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeTruthy()
+    const text = (body?.result as any)?.content?.[0]?.text as string ?? ''
+    expect(text).toContain('from dashboard settings')
+  })
+
+  it('mcp-generates injects midNum and calls submitBatch with genMID N', async () => {
+    vi.mocked(getCredentialsByTenantId).mockResolvedValue({
+      bpostUsername: 'u',
+      bpostPassword: 'p',
+      customerNumber: '100',
+      accountId: '200',
+      barcodeCustomerId: '12345',
+    })
+    vi.mocked(getBatchState).mockResolvedValue(makeMappedBatch('b-submit-mcp') as any)
+
+    const res = await POST(makeSubmitRequest({
+      batchId: 'b-submit-mcp',
+      expectedDeliveryDate: '2026-05-01',
+      format: 'Large',
+      barcodeStrategy: 'mcp-generates',
+    }))
+    expect(res.status).toBe(200)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    expect(vi.mocked(submitBatch)).toHaveBeenCalled()
+    const callArgs = vi.mocked(submitBatch).mock.calls[0]
+    expect(callArgs[1].genMID).toBe('N')
+    const rows = callArgs[0] as Array<{ mapped: Record<string, unknown> }>
+    expect(String(rows[0].mapped.midNum)).toMatch(/^[0-9]{14,18}$/)
   })
 })
 
