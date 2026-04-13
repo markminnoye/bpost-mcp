@@ -221,8 +221,8 @@ const handler = createMcpHandler(
       'get_upload_instructions',
       {
         description:
-          'BATCH PIPELINE step 1/6: Returns a curl command for the user to upload a CSV/Excel file out-of-band. ' +
-          'This is the starting point for the batch pipeline. The response includes a batchId needed for all subsequent steps. ' +
+          'BATCH PIPELINE step 1/6: Returns upload request details (endpoint, method, headers, multipart field) plus an example curl command. ' +
+          'Use these details to perform the file upload via HTTP (agent-executed or user-executed). The upload response contains the batchId needed for all subsequent steps. ' +
           'Next step: get_raw_headers.',
         inputSchema: z.object({}),
       },
@@ -231,10 +231,24 @@ const handler = createMcpHandler(
         if (typeof tenantOrError !== 'string') return tenantOrError
         const baseUrl = env.NEXT_PUBLIC_BASE_URL
         const uploadUrl = `${baseUrl}/api/batches/upload`
+        const payload = {
+          upload: {
+            method: 'POST',
+            url: uploadUrl,
+            authHeader: 'Authorization: Bearer <TOKEN>',
+            multipartField: 'file',
+            acceptedFormats: ['csv', 'xlsx'],
+          },
+          exampleCurl: `curl -X POST -F "file=@<YOUR_FILE.csv>" ${uploadUrl} -H "Authorization: Bearer <TOKEN>"`,
+          responseShape: {
+            batchId: '<batch-id>',
+          },
+          nextStep: 'Call get_raw_headers with the batchId from the upload response.',
+        }
         return {
           content: [{
             type: 'text' as const,
-            text: `To securely upload your file, execute the following command in your local terminal exactly as written. Ensure you substitute <YOUR_FILE.csv> and your Bearer token:\n\ncurl -X POST -F "file=@<YOUR_FILE.csv>" ${uploadUrl} -H "Authorization: Bearer <TOKEN>"\n\nAfter a successful upload, you will receive a batchId in the JSON response. Use the "get_raw_headers" tool with that batchId to continue.`,
+            text: JSON.stringify(payload, null, 2),
           }],
         }
       },

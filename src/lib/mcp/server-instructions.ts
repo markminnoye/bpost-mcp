@@ -30,7 +30,7 @@ AGENT ORCHESTRATION GUIDANCE (not user-facing — for your tool-calling logic):
 
 ## Batch Pipeline Flow
 When a user has a CSV/XLSX file to send to bpost, follow this pipeline in order:
-1. **get_upload_instructions** → give the user a curl command; they upload and get a batchId
+1. **get_upload_instructions** → get upload request details (endpoint/headers/example curl), perform the upload via HTTP, and capture the returned batchId
 2. **get_raw_headers** → retrieve column names from the uploaded file
 3. **apply_mapping_rules** → map spreadsheet columns to BPost fields (Comps.* for address parts)
 4. **get_batch_errors** → check for validation failures after mapping

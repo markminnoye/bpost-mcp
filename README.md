@@ -14,7 +14,7 @@ BPost's API requires XML payloads, strict field validation, and cryptic error co
 
 | Tool | Description |
 |------|-------------|
-| `get_upload_instructions` | Returns a `curl` command for out-of-band CSV/Excel upload |
+| `get_upload_instructions` | Returns structured upload request details (plus example `curl`) for CSV/Excel upload |
 | `get_raw_headers` | Fetch raw CSV column headers after upload |
 | `apply_mapping_rules` | Map raw columns to BPost schema fields |
 | `get_batch_errors` | Retrieve validation errors row-by-row |
