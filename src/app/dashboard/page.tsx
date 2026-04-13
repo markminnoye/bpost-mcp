@@ -10,7 +10,6 @@ import { encrypt, hashToken } from '@/lib/crypto'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
 import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
-import { CopyInstallPromptButton } from '@/app/install/CopyInstallPromptButton'
 import { AlphaServiceBanner } from '@/components/customer/AlphaServiceBanner'
 import { env } from '@/lib/config/env'
 
