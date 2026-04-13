@@ -1,5 +1,4 @@
 import { env } from '@/lib/config/env'
-import { CopyInstallPromptButton } from '@/app/install/CopyInstallPromptButton'
 import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
 import { AlphaServiceBanner } from '@/components/customer/AlphaServiceBanner'
 
