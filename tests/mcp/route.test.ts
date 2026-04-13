@@ -28,6 +28,19 @@ vi.mock('@/lib/tenant/get-credentials', () => ({
   }),
 }))
 
+// Mock getTenantPreferences to avoid DB access
+vi.mock('@/lib/tenant/get-preferences', () => ({
+  getTenantPreferences: vi.fn().mockResolvedValue({
+    barcodeStrategy: 'bpost-generates',
+    barcodeLength: '7',
+  }),
+}))
+
+// Mock claimBatchSequence to avoid DB access
+vi.mock('@/lib/batch/claim-batch-sequence', () => ({
+  claimBatchSequence: vi.fn().mockResolvedValue(0),
+}))
+
 // Mock KV client to avoid Redis access
 vi.mock('@/lib/kv/client', () => ({
   getBatchState: vi.fn(),

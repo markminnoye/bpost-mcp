@@ -210,4 +210,38 @@ describe('submitBatch', () => {
   it('throws when rows array is empty', async () => {
     await expect(submitBatch([], MOCK_PARAMS, MOCK_CREDENTIALS)).rejects.toThrow('No rows to submit')
   })
+
+  it('builds Large format XML correctly', async () => {
+    const rows = [makeReadyRow(1, { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Test' }] } })]
+
+    await submitBatch(rows, { ...MOCK_PARAMS, format: 'Large' }, MOCK_CREDENTIALS)
+
+    const xmlArg = vi.mocked(buildXml).mock.calls[0][0] as Record<string, Record<string, unknown>>
+    const mailing = (xmlArg.MailingRequest.MailingCreate as Record<string, unknown>[])[0]
+    expect(mailing.Format).toEqual({ value: 'Large' })
+  })
+
+  it('builds P priority XML correctly', async () => {
+    const rows = [makeReadyRow(1, { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Test' }] } })]
+
+    await submitBatch(rows, { ...MOCK_PARAMS, priority: 'P' }, MOCK_CREDENTIALS)
+
+    const xmlArg = vi.mocked(buildXml).mock.calls[0][0] as Record<string, Record<string, unknown>>
+    const mailing = (xmlArg.MailingRequest.MailingCreate as Record<string, unknown>[])[0]
+    expect(mailing.genMID).toBe('7')
+    expect(mailing.genPSC).toBe('N')
+  })
+
+  it('returns retryable=true on retryable BPost error', async () => {
+    mockSendMailingRequest.mockRejectedValue(
+      new BpostError('MPW-000', 'Temporary BPost unavailable', true),
+    )
+
+    const rows = [makeReadyRow(1, { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Test' }] } })]
+
+    const result = await submitBatch(rows, MOCK_PARAMS, MOCK_CREDENTIALS)
+
+    expect(result.success).toBe(false)
+    expect(result.error?.retryable).toBe(true)
+  })
 })

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- BPost MailingCheckResponse: 3 items: 1 OK, 1 WARNING with suggestions, 1 ERROR -->
+<mailing:MailingResponse xmlns:mailing="http://emasspost.bpost.be/mailing">
+  <mailing:Context requestName="MailingResponse" dataset="M037_MID" sender="MID" receiver="123456" version="0100"/>
+  <mailing:Header customerId="123456" accountId="999"/>
+  <mailing:MailingCheck>
+    <mailing:Status code="OK"/>
+    <mailing:Replies>
+      <mailing:Reply>
+        <mailing:seq>1</mailing:seq>
+        <mailing:Status code="OK"/>
+        <mailing:StatusMessage>Valid address</mailing:StatusMessage>
+      </mailing:Reply>
+      <mailing:Reply>
+        <mailing:seq>2</mailing:seq>
+        <mailing:Status code="WARNING"/>
+        <mailing:StatusMessage>Address could be optimised</mailing:StatusMessage>
+        <mailing:Suggestions>
+          <mailing:Suggestion score="85">
+            <mailing:Comps>
+              <mailing:Comp code="3" value="Grote Markt"/>
+              <mailing:Comp code="4" value="15"/>
+              <mailing:Comp code="7" value="B"/>
+            </mailing:Comps>
+          </mailing:Suggestion>
+        </mailing:Suggestions>
+      </mailing:Reply>
+      <mailing:Reply>
+        <mailing:seq>3</mailing:seq>
+        <mailing:Status code="ERROR"/>
+        <mailing:StatusMessage>Postal code not found for this municipality</mailing:StatusMessage>
+      </mailing:Reply>
+    </mailing:Replies>
+  </mailing:MailingCheck>
+</mailing:MailingResponse>

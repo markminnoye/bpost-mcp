@@ -62,8 +62,8 @@ When an implementation task is complete:
 
 See `.agent/plans/INDEX.md` for details.
 - **Phase 1 & Phase 2 Sprint 1 & 2:** ✅ Complete.
-- **Phase 2 Sprint 3:** 🔄 Active (Self-learning & Feedback Loop).
-- **Task:** Implementing `add_protocol_rule`, `create_fix_script`, and `report_issue` tools.
+- **Phase 2 Sprint 3:** ✅ Complete (declarative, procedural, escalation tools; `check_batch`, `submit_ready_batch`, barcode strategy).
+- **Release Freeze:** 🔄 Active — Main release to production in progress. Only blockers/fixes; no scope expansion.
 
 ### Available Agent Skills
 

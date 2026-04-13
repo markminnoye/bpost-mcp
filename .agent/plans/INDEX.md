@@ -65,7 +65,16 @@ All implementation plans, design specs, and architecture decisions live here.
 
 | Plan | Status | Notes |
 |---|---|---|
-| [Vercel Project Onboarding](2026-04-03-vercel-onboarding.md) | 🔄 | Create project, link repo, ready credentials |
+| [Vercel Project Onboarding](2026-04-03-vercel-onboarding.md) | ⬜ | Superseded — project already deployed and running on Vercel |
+
+---
+
+## Release — Main Production
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Main Release Vandaag](2026-04-13-main-release-readiness.md) | 🔄 | Scope lock + validatie voor productiedeploy |
+| [Stap 3 Validatie Checklist](2026-04-13-step3-validatie-checklist.md) | 🔄 | Test assets + functionele regressie + manueel sign-off |
 
 ---
 

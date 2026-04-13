@@ -166,4 +166,97 @@ describe('checkBatch', () => {
 
     await expect(checkBatch(rows, MOCK_PARAMS, MOCK_CREDENTIALS)).rejects.toThrow('Network timeout')
   })
+
+  it('parses OK/WARNING/ERROR replies and counts correctly', async () => {
+    mockSendMailingRequest.mockResolvedValue({
+      MailingResponse: {
+        Context: { requestName: 'MailingResponse', dataset: 'M037_MID', sender: 'MID', receiver: 12345, version: '0100' },
+        Header: { customerId: 12345 },
+        MailingCheck: [{
+          Status: { code: 'OK' },
+          Replies: {
+            Reply: [
+              { seq: 1, Status: { code: 'OK' } },
+              { seq: 2, Status: { code: 'WARNING' } },
+              { seq: 3, Status: { code: 'ERROR' } },
+            ],
+          },
+        }],
+      },
+    })
+
+    const rows = [
+      makeRow(1, { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Janssens' }] } }),
+      makeRow(2, { seq: 2, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Peeters' }] } }),
+      makeRow(3, { seq: 3, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Mertens' }] } }),
+    ]
+
+    const result = await checkBatch(rows, MOCK_PARAMS, MOCK_CREDENTIALS)
+
+    expect(result.success).toBe(true)
+    expect(result.checkedCount).toBe(3)
+    expect(result.okCount).toBe(1)
+    expect(result.warningCount).toBe(1)
+    expect(result.errorCount).toBe(1)
+  })
+
+  it('parses suggestion comps from WARNING reply', async () => {
+    mockSendMailingRequest.mockResolvedValue({
+      MailingResponse: {
+        Context: { requestName: 'MailingResponse', dataset: 'M037_MID', sender: 'MID', receiver: 12345, version: '0100' },
+        Header: { customerId: 12345 },
+        MailingCheck: [{
+          Status: { code: 'OK' },
+          Replies: {
+            Reply: [{
+              seq: 1,
+              Status: { code: 'WARNING' },
+              StatusMessage: 'Address could be optimised',
+              Suggestions: {
+                Suggestion: [{
+                  score: 85,
+                  Comps: {
+                    Comp: [
+                      { code: '3', value: 'Grote Markt' },
+                      { code: '4', value: '15' },
+                    ],
+                  },
+                }],
+              },
+            }],
+          },
+        }],
+      },
+    })
+
+    const rows = [makeRow(1, { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Dubois' }] } })]
+    const result = await checkBatch(rows, MOCK_PARAMS, MOCK_CREDENTIALS)
+
+    expect(result.warningCount).toBe(1)
+    expect(result.bpostResponse).toBeDefined()
+  })
+
+  it('returns retryable=false on non-retryable BPost error', async () => {
+    mockSendMailingRequest.mockRejectedValue(
+      new BpostError('MID-4010', 'Invalid address data', false),
+    )
+
+    const rows = [makeRow(1, { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Test' }] } })]
+    const result = await checkBatch(rows, MOCK_PARAMS, MOCK_CREDENTIALS)
+
+    expect(result.success).toBe(false)
+    expect(result.error?.retryable).toBe(false)
+  })
+
+  it('returns retryable=true on retryable BPost error', async () => {
+    mockSendMailingRequest.mockRejectedValue(
+      new BpostError('MPW-000', 'Temporary BPost unavailable', true),
+    )
+
+    const rows = [makeRow(1, { seq: 1, priority: 'NP', Comps: { Comp: [{ code: '1', value: 'Test' }] } })]
+    const result = await checkBatch(rows, MOCK_PARAMS, MOCK_CREDENTIALS)
+
+    expect(result.success).toBe(false)
+    expect(result.error?.retryable).toBe(true)
+  })
 })

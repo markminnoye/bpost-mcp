@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- *(nothing yet — all items below are part of 0.2.0)*
+
+---
+
+## [0.2.0] - 2026-04-13
+
+### Added
 - Barcode strategy configuration: tenants can choose `bpost-generates`, `customer-provides`, or `mcp-generates` (#16)
 - `barcodeCustomerId` field on BPost credentials for Mail ID program participation
 - MCP barcode generation: auto-generates 18-digit MID numbers (FCC 12 + week-based uniqueness)
@@ -23,7 +30,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`CopyCodeBlock`** (`src/components/customer/CopyCodeBlock.tsx`): Client component with clipboard copy and accessible status for JSON/CLI snippets.
 - **Shared customer UI surface** (`src/app/globals.css`): Design tokens and utility classes (`bp-btn`, `bp-card`, `bp-shell`, `bp-install-card`, `bp-code-block`, `bp-icon-btn`, form patterns, dialog styles) for home, install, and dashboard; root `body` uses `bp-customer-body` with Geist font variables.
 - **Install guide** (`docs/install/install-prompt.md`): Non-technical step-by-step guide for connecting Claude Desktop, Claude Code, and Claude.ai via OAuth or Bearer token.
-- **Tests**: `submit-batch.test.ts` — XML construction, priority fallback, numeric conversion, BPost error handling; `app-version.test.ts` and `server-instructions.test.ts` validate version export and Flemish tone respectively.
+- **Tests fixtures** (`tests/fixtures/`): Sample CSV, mapping JSON, and BPost mock XML responses for batch pipeline testing.
+- **Tests**: `submit-batch.test.ts` — XML construction, priority fallback, numeric conversion, BPost error handling; `check-batch.test.ts` — MailingCheck parsing, OK/WARNING/ERROR counting, retryable error handling; `app-version.test.ts` and `server-instructions.test.ts` validate version export and Flemish tone respectively.
+
+### Changed
+- **Server instructions** (`src/lib/mcp/server-instructions.ts`): Added agent orchestration guidance — batch pipeline flow (steps 1–6), pre-submission checklist, communication modes (T/C/P), direct tools vs batch pipeline, deposit/mailing master/slave linking, and upcoming `check_batch` note.
+- **Tool descriptions** (`src/app/api/mcp/route.ts`): All batch pipeline tools now show step numbers (1–6), prerequisites, next steps, and ordering constraints. Direct tools (`bpost_announce_mailing`, `bpost_announce_deposit`) clarified as non-pipeline with deposit/mailing linking guidance.
+- **`submit_ready_batch`** (`src/app/api/mcp/route.ts`): Replaced stub with real BPost XML dispatch. Builds a `MailingCreate` request from mapped batch rows, sends via `BpostClient`, and stores submission metadata (mailingRef, row counts, BPost status, user/client ID) in `BatchState`. Batch stays `MAPPED` on BPost errors for retry.
+- **Home** (`src/app/page.tsx`): Call-to-action links use shared `bp-btn` classes; shows `AlphaServiceBanner` and `APP_VERSION`.
+- **Install** (`src/app/install/page.tsx`): Wider `bp-shell` layout; method-choice cards via `bp-install-card`; install snippets wrapped with `CopyCodeBlock`; primary/secondary actions aligned with `bp-btn`; `CopyInstallPromptButton` uses `bp-btn bp-btn--primary`.
+- **Dashboard** (`src/app/dashboard/page.tsx`): Card-based "accountinstellingen" layout; BPost password optional on update when credentials already exist (server action preserves prior ciphertext when the field is left blank); MCP connection / install copy removed from this page; "Terug naar start" uses `next/link`.
+- **`TokenRow`** (`src/app/dashboard/TokenRow.tsx`): `nl-BE` date/time formatting; trash control as inline SVG + `bp-icon-btn`; confirmation dialog uses shared button classes.
+- **`server-instructions`** (`src/lib/mcp/server-instructions.ts`): Refined Flemish tone guidance; test-mode preference; no MCP jargon in user-facing messages.
+
+### Fixed
+- **Barcode strategy — `savePreferences` TOCTOU race**: Replaced select-then-insert/update pattern with a single atomic `INSERT … ON CONFLICT DO UPDATE`, eliminating the race condition under concurrent requests.
+- **Barcode strategy — `get-preferences.ts` unsafe DB cast**: Added `TenantPreferencesSchema` with `z.enum` validation and `safeParse`; corrupt DB values now fall back to DEFAULTS with a logged error instead of silently casting.
+- **Barcode strategy — `customer-provides` midNum format**: Validates supplied MID numbers against `/^[0-9]{14,18}$/` instead of a presence-only check, rejecting non-numeric or out-of-range values immediately.
+- **Barcode strategy — sequence overflow message**: Overflow error for `mcp-generates` now includes the current ISO week number and explicitly states the limit is non-recoverable for the remainder of that week.
+- **`report_issue` fallback without `GITHUB_TOKEN`**: When `GITHUB_TOKEN` is unset on the server, the tool returns a prefilled GitHub "new issue" URL so users can still report issues in the browser; the same fallback link is also included on GitHub API errors.
+- **Claude Desktop / MCP OAuth on custom domains**: OAuth metadata (`.well-known/oauth-authorization-server`, `.well-known/oauth-protected-resource`), authorize redirects, token `resource` matching, and JWT `iss`/`aud` now derive the public host from `getPublicOrigin(request)` instead of only `NEXT_PUBLIC_BASE_URL`, so the same deployment works when users hit a custom domain while env still points at the default deployment hostname.
+- **OAuth resource URL alignment**: Protected resource metadata and stored auth codes use a canonical MCP URL (`{origin}/api/mcp`); token exchange accepts equivalent origin vs `/api/mcp` forms and allows omitting `resource` on the token request when the code was bound to the canonical MCP resource (client interop).
+- **Opaque 500 on `/oauth/token` when JWT secret missing**: `OAUTH_JWT_SECRET` is required in `env.ts` (Zod) so misconfigured deployments fail at startup with a clear validation error instead of at first token issuance.
+- **OAuth metadata on custom domains**: Both `bpost.sonicrocket.io` and `preview.bpost.sonicrocket.io` now return correct issuer in `.well-known/oauth-authorization-server` — custom domain, not `*.vercel.app`.
 
 ### Changed
 - **Server instructions** (`src/lib/mcp/server-instructions.ts`): Added agent orchestration guidance — batch pipeline flow (steps 1–6), pre-submission checklist, communication modes (T/C/P), direct tools vs batch pipeline, deposit/mailing master/slave linking, and upcoming `check_batch` note.
