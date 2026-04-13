@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16, mcp-handler, jose (JWT), Drizzle ORM, Neon Postgres, Auth.js v5, Vitest
 
-**Spec:** `docs/superpowers/specs/2026-04-07-oauth-mcp-integration-design.md`
+**Spec:** `../../docs/superpowers/specs/2026-04-07-oauth-mcp-integration-design.md`
 
 ---
 

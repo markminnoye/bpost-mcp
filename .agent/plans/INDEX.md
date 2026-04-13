@@ -46,7 +46,7 @@ All implementation plans, design specs, and architecture decisions live here.
 
 | Plan | Status | Notes |
 |---|---|---|
-| [Install Page — /install connection guide](../../docs/superpowers/plans/2026-04-10-install-page.md) | ✅ | Public install guide: OAuth + Bearer Token setup |
+| [Install Page — /install connection guide](2026-04-10-install-page.md) | ✅ | Public install guide: OAuth + Bearer Token setup |
 
 ---
 
@@ -54,10 +54,22 @@ All implementation plans, design specs, and architecture decisions live here.
 
 | Plan | Status | Notes |
 |---|---|---|
-| [Issue #10: Comps Mapping + seq Auto-Generation](../../docs/superpowers/plans/2026-04-11-issue10-mapping-comps-seq.md) | ✅ | Fix Comps aggregation, seq auto-gen, error hints |
-| [submit_ready_batch BPost XML Dispatch](../../docs/superpowers/plans/2026-04-12-submit-ready-batch.md) | ✅ | Replace stub with real MailingCreate dispatch |
-| [Issue #13: check_batch (OptiAddress pre-validation)](../../docs/superpowers/plans/2026-04-12-check-batch.md) | ✅ | MailingCheck service, BpostValidation on BatchRow, updated get_batch_errors |
-| [Barcode Strategy Configuration](../../docs/superpowers/plans/2026-04-12-barcode-strategy.md) | ✅ | Tenant barcode strategy, MCP generation, dashboard UI |
+| [Issue #10: Comps Mapping + seq Auto-Generation](2026-04-11-issue10-mapping-comps-seq.md) | ✅ | Fix Comps aggregation, seq auto-gen, error hints |
+| [submit_ready_batch BPost XML Dispatch](2026-04-12-submit-ready-batch.md) | ✅ | Replace stub with real MailingCreate dispatch |
+| [Issue #13: check_batch (OptiAddress pre-validation)](2026-04-12-check-batch.md) | ✅ | MailingCheck service, BpostValidation on BatchRow, updated get_batch_errors |
+| [Barcode Strategy Configuration](2026-04-12-barcode-strategy.md) | ✅ | Tenant barcode strategy, MCP generation, dashboard UI |
+
+---
+
+## Superpowers — Afgeronde plannen
+
+Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stonden oorspronkelijk in `docs/superpowers/plans/`.
+
+| Plan | Status | Notes |
+|---|---|---|
+| [OAuth 2.0 MCP Integration](2026-04-07-oauth-mcp-integration.md) | ✅ | OAuth / OIDC auth flows voor MCP |
+| [Batch Pipeline Hardening](2026-04-08-batch-pipeline-hardening.md) | ✅ | 7 code-review fixes in batch pipeline |
+| [Token Revocation UI](2026-04-10-token-revocation-ui.md) | ✅ | Revoke-token modal + server action |
 
 ---
 

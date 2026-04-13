@@ -92,4 +92,4 @@ Constraint: per-klant isolatie én gedeelde globale basiskennis moeten mogelijk 
 - `docs/internal/vision.md` — volledige roadmap en fase-definities (§3 en §4 meest relevant)
 - `docs/internal/phase1-architecture.md` — wat er gebouwd is in Fase 1
 - `docs/internal/project-design.md` — architectuurbeslissingen log
-- `docs/superpowers/plans/2026-03-31-phase1-implementation.md` — Fase 1 implementatieplan
+- `.agent/plans/2026-03-31-phase1-implementation.md` — Fase 1 implementatieplan

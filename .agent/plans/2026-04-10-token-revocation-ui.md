@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 14 App Router, TypeScript, Drizzle ORM, Zod, Vitest, native `<dialog>` element.
 
-**Spec:** `docs/superpowers/specs/2026-04-10-token-revocation-design.md`
+**Spec:** `../../docs/superpowers/specs/2026-04-10-token-revocation-design.md`
 
 ---
 
