@@ -1,0 +1,10 @@
+{
+  "Familienaam": "Comps.1",
+  "Straat": "Comps.3",
+  "HuisNr": "Comps.4",
+  "Bus": "Comps.7",
+  "Postcode": "zipCode",
+  "Gemeente": "municipality",
+  "Land": "country",
+  "Taal": "lang"
+}

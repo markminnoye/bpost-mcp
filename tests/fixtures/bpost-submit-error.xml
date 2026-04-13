@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- BPost MailingCreateResponse: Error case (retryable) -->
+<mailing:MailingResponse xmlns:mailing="http://emasspost.bpost.be/mailing">
+  <mailing:Context requestName="MailingResponse" dataset="M037_MID" sender="MID" receiver="123456" version="0100"/>
+  <mailing:Header customerId="123456" accountId="999"/>
+  <mailing:Error code="MPW-200" retryable="true">
+    Invalid accountId format
+  </mailing:Error>
+</mailing:MailingResponse>

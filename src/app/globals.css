@@ -462,6 +462,64 @@ a {
   max-width: 32rem;
 }
 
+/* Dashboard: radio group (bpost rood / wit / grijs) */
+.bp-radio-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.bp-radio-fieldset > legend.bp-label {
+  margin-bottom: 0.5rem;
+}
+
+.bp-radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  margin-bottom: 0.35rem;
+  font-size: 1rem;
+  color: var(--bp-text);
+  line-height: 1.45;
+}
+
+.bp-radio-label:last-of-type {
+  margin-bottom: 0;
+}
+
+.bp-radio {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0.2rem 0 0;
+  flex-shrink: 0;
+  border: 2px solid #9ca3af;
+  border-radius: 50%;
+  background-color: var(--bp-surface);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.bp-radio:hover {
+  border-color: var(--bp-soft);
+}
+
+.bp-radio:checked {
+  border-color: var(--bp-brand);
+  background-color: var(--bp-surface);
+  background-image: radial-gradient(circle at center, var(--bp-brand) 0 30%, var(--bp-surface) 31%);
+}
+
+.bp-radio:focus-visible {
+  outline: 2px solid var(--bp-brand);
+  outline-offset: 2px;
+}
+
 .bp-form-two-col {
   display: grid;
   gap: 1rem;
@@ -517,6 +575,7 @@ a {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-height: 100vh;
   padding: 2rem 1.25rem;
   text-align: center;
@@ -548,6 +607,16 @@ a {
   gap: 0.75rem;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* Home: twee keuzes naast elkaar (skills vs MCP) — blok horizontaal centreren */
+.bp-home-choice {
+  box-sizing: border-box;
+  width: min(44rem, 100%);
+  margin-inline: auto;
+  align-self: center;
+  text-align: left;
+  margin-top: 0.25rem;
 }
 
 .bp-dialog {

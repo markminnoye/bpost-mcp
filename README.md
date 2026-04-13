@@ -14,11 +14,13 @@ BPost's API requires XML payloads, strict field validation, and cryptic error co
 
 | Tool | Description |
 |------|-------------|
-| `get_upload_instructions` | Returns a `curl` command for out-of-band CSV/Excel upload |
+| `upload_batch_file` | **Agent-native upload (preferred):** accepts base64-encoded CSV content, authenticates server-side, returns `batchId` |
+| `get_upload_instructions` | Manual fallback: returns `curl` command details for environments where `upload_batch_file` cannot be used |
 | `get_raw_headers` | Fetch raw CSV column headers after upload |
 | `apply_mapping_rules` | Map raw columns to BPost schema fields |
 | `get_batch_errors` | Retrieve validation errors row-by-row |
 | `apply_row_fix` | Patch individual rows with corrected values |
+| `check_batch` | Pre-validate addresses via BPost OptiAddress before submission |
 | `submit_ready_batch` | Submit the validated batch to BPost |
 
 ### Direct BPost API

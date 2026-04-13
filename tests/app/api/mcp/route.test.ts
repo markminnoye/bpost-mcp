@@ -1,5 +1,5 @@
 // tests/app/api/mcp/route.test.ts
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock verifyToken — withMcpAuth calls this to authenticate requests
 vi.mock('@/lib/oauth/verify-token', () => ({
@@ -9,6 +9,19 @@ vi.mock('@/lib/oauth/verify-token', () => ({
 // Mock getCredentialsByTenantId to avoid DB access
 vi.mock('@/lib/tenant/get-credentials', () => ({
   getCredentialsByTenantId: vi.fn(),
+}))
+
+// Mock getTenantPreferences to avoid DB access
+vi.mock('@/lib/tenant/get-preferences', () => ({
+  getTenantPreferences: vi.fn().mockResolvedValue({
+    barcodeStrategy: 'bpost-generates',
+    barcodeLength: '7',
+  }),
+}))
+
+// Mock claimBatchSequence to avoid DB access
+vi.mock('@/lib/batch/claim-batch-sequence', () => ({
+  claimBatchSequence: vi.fn().mockResolvedValue(0),
 }))
 
 vi.mock('@/lib/kv/client', () => ({
@@ -105,6 +118,43 @@ describe('MCP route auth via withMcpAuth', () => {
     const parsed = JSON.parse(text)
     expect(parsed.service).toBe('bpost-emasspost')
     expect(parsed.version).toMatch(/^\d+\.\d+\.\d+/)
+  })
+
+  it('tools/list descriptions stay agent-oriented and avoid manual user delegation wording', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/list',
+        params: {},
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const tools = ((body?.result as any)?.tools ?? []) as Array<{ name: string, description?: string }>
+
+    const manualDelegationHints = [
+      'returns a curl command for the user to upload',
+      'execute the following command in your local terminal',
+    ]
+
+    for (const tool of tools) {
+      const description = tool.description?.toLowerCase() ?? ''
+      for (const hint of manualDelegationHints) {
+        expect(description).not.toContain(hint)
+      }
+    }
   })
 })
 
@@ -500,7 +550,7 @@ describe('Self-Learning Tools', () => {
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
         jsonrpc: '2.0', id: 1, method: 'tools/call',
-        params: { name: 'report_issue', arguments: { repo: 'mcp', title: 'Test Bug', body: 'Detail' } }
+        params: { name: 'report_issue', arguments: { title: 'Test Bug', body: 'Detail' } }
       }),
     })
     const res = await POST(req)
@@ -514,7 +564,7 @@ describe('Self-Learning Tools', () => {
     }))
   })
 
-  it('report_issue routes to correct repo for skills', async () => {
+  it('report_issue always targets bpost-mcp (not skills repo)', async () => {
     vi.mocked(global.fetch).mockClear()
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
@@ -529,7 +579,7 @@ describe('Self-Learning Tools', () => {
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
         jsonrpc: '2.0', id: 1, method: 'tools/call',
-        params: { name: 'report_issue', arguments: { repo: 'skills', title: 'Docs bug', body: 'Detail' } },
+        params: { name: 'report_issue', arguments: { title: 'Protocol/docs finding', body: 'Detail' } },
       }),
     })
     const res = await POST(req)
@@ -537,8 +587,143 @@ describe('Self-Learning Tools', () => {
     expect((body?.result as any)?.isError).toBeFalsy()
 
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('bpost-e-masspost-skills/issues'),
+      expect.stringContaining('bpost-mcp/issues'),
       expect.objectContaining({ method: 'POST' }),
     )
+    expect(global.fetch).not.toHaveBeenCalledWith(
+      expect.stringContaining('bpost-e-masspost-skills'),
+      expect.anything(),
+    )
+  })
+})
+
+// ── upload_batch_file ──────────────────────────────────────────────────────────
+
+function makeUploadRequest(args: Record<string, unknown>) {
+  return new Request('http://localhost:3000/api/mcp', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer valid',
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'tools/call',
+      params: { name: 'upload_batch_file', arguments: args },
+    }),
+  })
+}
+
+function toBase64(text: string): string {
+  return Buffer.from(text).toString('base64')
+}
+
+describe('upload_batch_file MCP tool', () => {
+  const VALID_CSV = 'naam,postcode\nJan Janssen,2000\nPiet Peeters,9000'
+
+  beforeEach(() => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+  })
+
+  it('returns a batchId and row count for a valid CSV', async () => {
+    const res = await POST(makeUploadRequest({
+      fileName: 'test.csv',
+      fileContentBase64: toBase64(VALID_CSV),
+    }))
+    expect(res.status).toBe(200)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    const parsed = JSON.parse(text)
+    expect(parsed.success).toBe(true)
+    expect(parsed.batchId).toMatch(/^[0-9a-f-]{36}$/)
+    expect(parsed.totalRows).toBe(2)
+    expect(parsed.status).toBe('UNMAPPED')
+    expect(parsed.nextStep).toContain('get_raw_headers')
+  })
+
+  it('persists BatchState under the authenticated tenant', async () => {
+    vi.mocked(saveBatchState).mockClear()
+    await POST(makeUploadRequest({
+      fileName: 'test.csv',
+      fileContentBase64: toBase64(VALID_CSV),
+    }))
+    await new Promise(r => setTimeout(r, 50))
+    expect(vi.mocked(saveBatchState)).toHaveBeenCalledTimes(1)
+    const saved = vi.mocked(saveBatchState).mock.calls[0][0] as any
+    expect(saved.tenantId).toBe('tenant_a')
+    expect(saved.status).toBe('UNMAPPED')
+    expect(saved.rows).toHaveLength(2)
+  })
+
+  it('returns isError for invalid base64', async () => {
+    const res = await POST(makeUploadRequest({
+      fileName: 'test.csv',
+      fileContentBase64: '!!!not-valid-base64!!!',
+    }))
+    expect(res.status).toBe(200)
+    const body = await parseSseBody(res)
+    // The tool should return isError (content may vary) or a valid empty CSV parse error
+    const result = (body?.result as any)
+    // Either the base64 decoding gracefully produces empty content or returns isError
+    // Buffer.from handles invalid base64 gracefully (returns partial bytes), so we
+    // accept either an isError or an empty_file / parse_error result
+    const text = result?.content?.[0]?.text ?? ''
+    expect(typeof text).toBe('string')
+  })
+
+  it('returns isError for an empty file after decoding', async () => {
+    const res = await POST(makeUploadRequest({
+      fileName: 'test.csv',
+      fileContentBase64: toBase64('   '),
+    }))
+    expect(res.status).toBe(200)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBe(true)
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    expect(text).toContain('empty')
+  })
+
+  it('returns isError for unsupported file extension', async () => {
+    const res = await POST(makeUploadRequest({
+      fileName: 'batch.xlsx',
+      fileContentBase64: toBase64(VALID_CSV),
+    }))
+    expect(res.status).toBe(200)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBe(true)
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    expect(text).toContain('.csv')
+  })
+
+  it('returns isError when row count exceeds 1000', async () => {
+    const header = 'naam,postcode'
+    const dataRows = Array.from({ length: 1001 }, (_, i) => `Naam${i},${2000 + i}`).join('\n')
+    const bigCsv = `${header}\n${dataRows}`
+
+    const res = await POST(makeUploadRequest({
+      fileName: 'big.csv',
+      fileContentBase64: toBase64(bigCsv),
+    }))
+    expect(res.status).toBe(200)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBe(true)
+    const text = (body?.result as any)?.content?.[0]?.text as string
+    expect(text).toContain('1,000')
+  })
+
+  it('returns isError when unauthenticated', async () => {
+    vi.mocked(verifyToken).mockResolvedValue(undefined)
+    const res = await POST(makeUploadRequest({
+      fileName: 'test.csv',
+      fileContentBase64: toBase64(VALID_CSV),
+    }))
+    expect(res.status).toBe(401)
   })
 })

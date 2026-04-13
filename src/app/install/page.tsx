@@ -9,7 +9,7 @@ const MCP_URL = `${BASE_URL}/api/mcp`
 export const metadata = {
   title: 'Installatie — MCP-service voor BPost e-MassPost (alfa)',
   description:
-    'Alfaversie: sluit Claude Desktop of Claude Code aan bij je bpost-account (OAuth of vaste sleutel). Gebruik bij voorkeur de testomgeving van bpost.',
+    'Alfaversie: sluit Claude Desktop of Claude Code aan bij je bpost-account (OAuth of vast Bearer-token). Gebruik bij voorkeur de testomgeving van bpost.',
 }
 
 export default function InstallPage() {
@@ -20,7 +20,7 @@ export default function InstallPage() {
       mcpServers: {
         bpost: {
           url: MCP_URL,
-          headers: { Authorization: 'Bearer <jouw-sleutel>' },
+          headers: { Authorization: 'Bearer <jouw-token>' },
         },
       },
     },
@@ -29,7 +29,7 @@ export default function InstallPage() {
   )
 
   const codeOAuthSnippet = `claude mcp add bpost ${MCP_URL} --transport http`
-  const codeBearerSnippet = `claude mcp add bpost ${MCP_URL} --transport http --header "Authorization: Bearer <jouw-sleutel>"`
+  const codeBearerSnippet = `claude mcp add bpost ${MCP_URL} --transport http --header "Authorization: Bearer <jouw-token>"`
 
   return (
     <main className="bp-shell">
@@ -61,15 +61,15 @@ export default function InstallPage() {
             <div className="bp-install-card-title">
               OAuth 2.0 <span className="bp-badge">aanbevolen</span>
             </div>
-            <p className="bp-install-card-item">Aanmelden met Google — geen sleutel om bij te houden</p>
+            <p className="bp-install-card-item">Aanmelden met Google — geen app-token om bij te houden</p>
             <p className="bp-install-card-item">Meest geschikt voor persoonlijk gebruik</p>
             <p className="bp-install-card-item">Aanmelden gebeurt automatisch in je browser</p>
           </a>
           <a href="#bearer" className="bp-install-card">
-            <div className="bp-install-card-title">Vaste sleutel (Bearer)</div>
-            <p className="bp-install-card-item">Je plakt één vaste sleutel in je configuratie</p>
+            <div className="bp-install-card-title">Bearer (vast app-token)</div>
+            <p className="bp-install-card-item">Je plakt één vast app-token in je configuratie</p>
             <p className="bp-install-card-item">Handig voor automatisering of gedeelde omgevingen</p>
-            <p className="bp-install-card-item">Je maakt de sleutel één keer aan in je account</p>
+            <p className="bp-install-card-item">Je maakt het token één keer aan in je account</p>
           </a>
         </div>
       </section>
@@ -80,7 +80,7 @@ export default function InstallPage() {
         <h2 className="bp-section-title">A — OAuth 2.0</h2>
         <p className="bp-prose">
           De MCP-server regelt de aanmelding met Google automatisch wanneer Claude verbinding maakt. Je
-          hoeft geen sleutel te kopiëren of bij te houden: voeg alleen de server-URL toe en bij de eerste
+          hoeft geen app-token te kopiëren of bij te houden: voeg alleen de server-URL toe en bij de eerste
           verbinding opent Claude een browservenster om aan te melden.
         </p>
 
@@ -102,15 +102,15 @@ export default function InstallPage() {
       <hr className="bp-hr" />
 
       <section id="bearer" className="bp-section">
-        <h2 className="bp-section-title">B — Vaste sleutel (Bearer)</h2>
+        <h2 className="bp-section-title">B — Bearer (vast app-token)</h2>
         <p className="bp-prose">
-          Gebruik deze manier als je liever met één vaste sleutel werkt, of als je MCP instelt voor een
+          Gebruik deze manier als je liever met één vast app-token werkt, of als je MCP instelt voor een
           gedeelde of geautomatiseerde omgeving.
         </p>
 
         <p className="bp-prose" style={{ marginBottom: '0.5rem' }}>
-          <strong>Stap 1 — Maak een sleutel aan:</strong> meld je aan bij je account en maak onder
-          &ldquo;Sleutels voor apps&rdquo; een nieuwe sleutel.
+          <strong>Stap 1 — Maak een app-token aan:</strong> meld je aan bij je account en maak onder
+          &ldquo;App Tokens&rdquo; een nieuw token.
         </p>
         <div className="bp-btn-row" style={{ marginBottom: '1.25rem' }}>
           <a href="/dashboard" className="bp-btn bp-btn--primary">
@@ -120,12 +120,12 @@ export default function InstallPage() {
 
         <h3 className="bp-subtitle">Claude Desktop</h3>
         <p className="bp-prose">
-          Voeg de MCP-server-URL en je sleutel toe aan <code>claude_desktop_config.json</code>:
+          Voeg de MCP-server-URL en je app-token toe aan <code>claude_desktop_config.json</code>:
         </p>
         <CopyCodeBlock code={desktopBearerSnippet} copyLabel="JSON-configuratie kopiëren" />
         <p className="bp-muted-note">
-          Vervang <code>&lt;jouw-sleutel&gt;</code> door de sleutel uit je account. Die sleutel zie je maar
-          één keer.
+          Vervang <code>&lt;jouw-token&gt;</code> door het token uit je account. Dat token zie je maar één
+          keer.
         </p>
 
         <h3 className="bp-subtitle">Claude Code</h3>

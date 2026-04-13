@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- BPost MailingCreateResponse: Success case -->
+<mailing:MailingResponse xmlns:mailing="http://emasspost.bpost.be/mailing">
+  <mailing:Context requestName="MailingResponse" dataset="M037_MID" sender="MID" receiver="123456" version="0100"/>
+  <mailing:Header customerId="123456" accountId="999"/>
+  <mailing:MailingCreate>
+    <mailing:Status code="OK"/>
+    <mailing:StatusMessage>Mailing created successfully</mailing:StatusMessage>
+    <mailing:MailingRef>B-20260413-1030</mailing:MailingRef>
+    <mailing:ItemCount>10</mailing:ItemCount>
+  </mailing:MailingCreate>
+</mailing:MailingResponse>

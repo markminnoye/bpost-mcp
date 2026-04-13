@@ -8,6 +8,13 @@
       "when": 1775590685993,
       "tag": "0000_brainy_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776024775148,
+      "tag": "0001_watery_shaman",
+      "breakpoints": true
     }
   ]
 }

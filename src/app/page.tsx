@@ -14,23 +14,26 @@ export default function Home() {
       <p className="bp-muted-note" style={{ margin: 0 }}>
         Versie {APP_VERSION}
       </p>
-      <div className="bp-home-cta">
-        <a href="/dashboard" className="bp-btn bp-btn--primary">
-          Naar je account
-        </a>
-      </div>
-      <p className="bp-home-footer-note">
-        De{' '}
+
+      <div className="bp-install-grid bp-home-choice">
         <a
           href="https://github.com/markminnoye/bpost-e-masspost-skills"
           target="_blank"
           rel="noopener noreferrer"
-          className="bp-link"
+          className="bp-install-card"
         >
-          e-MassPost skill-bibliotheek op GitHub
-        </a>{' '}
-        legt uit hoe je AI-assistent de regels van bpost leert kennen en jouw mailings controleert.
-      </p>
+          <div className="bp-install-card-title">Skills voor BPost e-MassPost downloaden</div>
+          <p className="bp-install-card-item">
+          Optimaliseer uw workflow met de bpost e-MassPost skill. Deze skill biedt uw AI-assistent de specifieke achtergrondinformatie die nodig is om uw mailingvoorbereiding volledig te ondersteunen.
+          </p>
+        </a>
+        <a href="/dashboard" className="bp-install-card">
+          <div className="bp-install-card-title">Verbinden met de MCP-service</div>
+          <p className="bp-install-card-item">
+          Verbind uw AI-assistent via het MCP-protocol met bpost. Zo kan uw agent niet alleen teksten genereren, maar ook daadwerkelijk mailings versturen en poststromen binnen uw organisatie afhandelen.
+          </p>
+        </a>
+      </div>
     </div>
   )
 }

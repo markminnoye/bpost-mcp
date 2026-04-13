@@ -55,6 +55,9 @@ All implementation plans, design specs, and architecture decisions live here.
 | Plan | Status | Notes |
 |---|---|---|
 | [Issue #10: Comps Mapping + seq Auto-Generation](../../docs/superpowers/plans/2026-04-11-issue10-mapping-comps-seq.md) | ✅ | Fix Comps aggregation, seq auto-gen, error hints |
+| [submit_ready_batch BPost XML Dispatch](../../docs/superpowers/plans/2026-04-12-submit-ready-batch.md) | ✅ | Replace stub with real MailingCreate dispatch |
+| [Issue #13: check_batch (OptiAddress pre-validation)](../../docs/superpowers/plans/2026-04-12-check-batch.md) | ✅ | MailingCheck service, BpostValidation on BatchRow, updated get_batch_errors |
+| [Barcode Strategy Configuration](../../docs/superpowers/plans/2026-04-12-barcode-strategy.md) | ✅ | Tenant barcode strategy, MCP generation, dashboard UI |
 
 ---
 
@@ -62,7 +65,16 @@ All implementation plans, design specs, and architecture decisions live here.
 
 | Plan | Status | Notes |
 |---|---|---|
-| [Vercel Project Onboarding](2026-04-03-vercel-onboarding.md) | 🔄 | Create project, link repo, ready credentials |
+| [Vercel Project Onboarding](2026-04-03-vercel-onboarding.md) | ⬜ | Superseded — project already deployed and running on Vercel |
+
+---
+
+## Release — Main Production
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Main Release Vandaag](2026-04-13-main-release-readiness.md) | 🔄 | Scope lock + validatie voor productiedeploy |
+| [Stap 3 Validatie Checklist](2026-04-13-step3-validatie-checklist.md) | 🔄 | Test assets + functionele regressie + manueel sign-off |
 
 ---
 

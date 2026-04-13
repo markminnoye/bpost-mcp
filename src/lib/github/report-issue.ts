@@ -1,8 +1,6 @@
 const GITHUB_OWNER = 'markminnoye' as const
-
-export function resolveGithubRepoSlug(repo: 'mcp' | 'skills'): string {
-  return repo === 'mcp' ? 'bpost-mcp' : 'bpost-e-masspost-skills'
-}
+/** All agent-reported issues go to the MCP service repository (not the skills submodule repo). */
+const GITHUB_ISSUES_REPO_SLUG = 'bpost-mcp' as const
 
 function formatIssueTitle(title: string): string {
   return `[AGENT] ${title}`
@@ -13,15 +11,14 @@ function formatIssueBody(body: string, footer: string): string {
 }
 
 /** Web UI URL so users can file the same issue when the server has no PAT. */
-export function buildNewIssueUrl(repo: 'mcp' | 'skills', title: string, body: string): string {
-  const slug = resolveGithubRepoSlug(repo)
+export function buildNewIssueUrl(title: string, body: string): string {
   const issueTitle = formatIssueTitle(title)
   const issueBody = formatIssueBody(body, '*Gemeld via BPost MCP (handmatig)*')
   const params = new URLSearchParams({ title: issueTitle, body: issueBody })
-  return `https://github.com/${GITHUB_OWNER}/${slug}/issues/new?${params.toString()}`
+  return `https://github.com/${GITHUB_OWNER}/${GITHUB_ISSUES_REPO_SLUG}/issues/new?${params.toString()}`
 }
 
-type ReportIssueInput = { repo: 'mcp' | 'skills'; title: string; body: string }
+type ReportIssueInput = { title: string; body: string }
 
 type ToolTextResult = { content: Array<{ type: 'text'; text: string }>; isError: boolean }
 
@@ -34,7 +31,7 @@ export async function reportIssueToGithub(
   input: ReportIssueInput,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ToolTextResult> {
-  const manualUrl = buildNewIssueUrl(input.repo, input.title, input.body)
+  const manualUrl = buildNewIssueUrl(input.title, input.body)
   const token = githubToken?.trim()
 
   if (!token) {
@@ -50,8 +47,7 @@ export async function reportIssueToGithub(
     }
   }
 
-  const slug = resolveGithubRepoSlug(input.repo)
-  const url = `https://api.github.com/repos/${GITHUB_OWNER}/${slug}/issues`
+  const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_ISSUES_REPO_SLUG}/issues`
 
   try {
     const res = await fetchImpl(url, {

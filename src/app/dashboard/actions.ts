@@ -1,5 +1,6 @@
 'use server'
 import { signOut, auth } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 
 export async function handleSignOut() {
   await signOut({ redirectTo: '/api/auth/signin' })
@@ -7,8 +8,41 @@ export async function handleSignOut() {
 
 import { z } from 'zod'
 import { db } from '@/lib/db/client'
-import { apiTokens } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { apiTokens, tenantPreferences } from '@/lib/db/schema'
+import { eq, sql } from 'drizzle-orm'
+
+const BARCODE_STRATEGIES = ['bpost-generates', 'customer-provides', 'mcp-generates'] as const
+const BARCODE_LENGTHS = ['7', '9', '11'] as const
+
+export async function savePreferences(formData: FormData): Promise<void> {
+  const session = await auth()
+  const tenantId = session?.user?.tenantId
+  if (!tenantId) throw new Error('Je sessie is verlopen. Meld je opnieuw aan.')
+
+  const strategy = formData.get('barcodeStrategy') as string
+  const length = (formData.get('barcodeLength') as string) || '7'
+
+  if (!BARCODE_STRATEGIES.includes(strategy as typeof BARCODE_STRATEGIES[number])) {
+    throw new Error('Ongeldige barcodestrategie.')
+  }
+  if (!BARCODE_LENGTHS.includes(length as typeof BARCODE_LENGTHS[number])) {
+    throw new Error('Ongeldige barcodelengte.')
+  }
+
+  await db
+    .insert(tenantPreferences)
+    .values({ tenantId, barcodeStrategy: strategy, barcodeLength: length })
+    .onConflictDoUpdate({
+      target: tenantPreferences.tenantId,
+      set: {
+        barcodeStrategy: sql`excluded.barcode_strategy`,
+        barcodeLength: sql`excluded.barcode_length`,
+        updatedAt: new Date(),
+      },
+    })
+
+  redirect('/dashboard')
+}
 
 export type ActionResult =
   | { ok: true; redirect: string }
@@ -39,7 +73,7 @@ export async function revokeToken(id: string): Promise<ActionResult> {
   try {
     await db.delete(apiTokens).where(eq(apiTokens.id, id))
   } catch {
-    return { ok: false, code: 'TRANSIENT_ERROR', error: 'Sleutel verwijderen is mislukt. Probeer opnieuw.' }
+    return { ok: false, code: 'TRANSIENT_ERROR', error: 'App-token verwijderen is mislukt. Probeer opnieuw.' }
   }
 
   return { ok: true, redirect: '/dashboard' }

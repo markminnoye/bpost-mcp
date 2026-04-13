@@ -112,9 +112,9 @@ export function TokenRow({ token }: TokenRowProps) {
           ref={trashRef}
           type="button"
           onClick={openModal}
-          title="Sleutel intrekken"
+          title="App-token intrekken"
           className="bp-btn bp-btn--ghost bp-icon-btn"
-          aria-label={`Sleutel intrekken: ${token.label}`}
+          aria-label={`App-token intrekken: ${token.label}`}
         >
           <TrashIcon />
         </button>
@@ -140,10 +140,10 @@ export function TokenRow({ token }: TokenRowProps) {
         }}
       >
         <h2 id={`dialog-title-${token.id}`} className="bp-dialog-title">
-          Sleutel intrekken?
+          App-token intrekken?
         </h2>
         <p className="bp-dialog-text">
-          Wil je de sleutel <strong>{token.label}</strong> echt intrekken? Dat kan niet ongedaan worden.
+          Wil je het app-token <strong>{token.label}</strong> echt intrekken? Dat kan niet ongedaan worden.
         </p>
 
         {error && (

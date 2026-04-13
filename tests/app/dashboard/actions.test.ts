@@ -62,7 +62,7 @@ describe('revokeToken', () => {
     })
     mockDbDelete.mockReturnValue({ where: () => { throw new Error('db down') } })
     const result = await revokeToken(VALID_UUID)
-    expect(result).toEqual({ ok: false, code: 'TRANSIENT_ERROR', error: 'Sleutel verwijderen is mislukt. Probeer opnieuw.' })
+    expect(result).toEqual({ ok: false, code: 'TRANSIENT_ERROR', error: 'App-token verwijderen is mislukt. Probeer opnieuw.' })
   })
 
   it('returns ok:true with redirect on success', async () => {

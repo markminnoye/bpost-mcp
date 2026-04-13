@@ -51,12 +51,19 @@ Plans live in `.agent/plans/`.
 - **New Task:** Create `YYYY-MM-DD-name.md` and register in Index.
 - **Handoff:** Add `## Status: Paused` to active plan with current state.
 
+### Issue Management
+
+When an implementation task is complete:
+- **Do NOT close the GitHub issue.** Label it with `in review` instead.
+- This gives you the opportunity to review the implementation before final closure.
+- Only close the issue after you have explicitly reviewed and approved it.
+
 ### Active Work
 
 See `.agent/plans/INDEX.md` for details.
 - **Phase 1 & Phase 2 Sprint 1 & 2:** ✅ Complete.
-- **Phase 2 Sprint 3:** 🔄 Active (Self-learning & Feedback Loop).
-- **Task:** Implementing `add_protocol_rule`, `create_fix_script`, and `report_issue` tools.
+- **Phase 2 Sprint 3:** ✅ Complete (declarative, procedural, escalation tools; `check_batch`, `submit_ready_batch`, barcode strategy).
+- **Release Freeze:** 🔄 Active — Main release to production in progress. Only blockers/fixes; no scope expansion.
 
 ### Available Agent Skills
 

@@ -72,7 +72,11 @@ The entry point for all AI agent calls. Powered by `mcp-handler` with `withMcpAu
 | **Self-learning & feedback** | `add_protocol_rule` (append to submodule knowledge file), `create_fix_script` / `apply_fix_script` (saved scripts under `scripts/auto-fixers/`, sandboxed `vm` run), `report_issue` (GitHub issue or prefilled URL via `src/lib/github/report-issue.ts`) |
 | **Batch pipeline** | `get_upload_instructions`, `get_raw_headers`, `apply_mapping_rules`, `get_batch_errors`, `apply_row_fix`, `submit_ready_batch` — state in **Redis** (`src/lib/kv/client.ts`); upload via `POST /api/batches/upload` with Bearer token |
 
+<<<<<<< HEAD
 **Note:** `submit_ready_batch` currently returns a **stub** response after marking the batch submitted; wiring full BPost XML dispatch for all ready rows is still outstanding.
+=======
+`submit_ready_batch` builds a full `MailingCreate` XML envelope from mapped batch rows via `src/lib/batch/submit-batch.ts`, sends to BPost, and stores submission metadata (mailingRef, row counts, BPost status, audit fields) in the batch state.
+>>>>>>> develop
 
 After auth, BPost credential tools fetch secrets via `getCredentialsByTenantId(tenantId)` (never returned to the model).
 
@@ -290,7 +294,11 @@ bpost-mcp/
 │   │   ├── tenant/ (resolve, get-credentials)
 │   │   ├── mcp/ (server-instructions, require-tenant)
 │   │   ├── kv/client.ts                   ← Redis batch state
+<<<<<<< HEAD
 │   │   ├── batch/ (apply-mapping, validate-mapping-targets)
+=======
+│   │   ├── batch/ (apply-mapping, validate-mapping-targets, submit-batch)
+>>>>>>> develop
 │   │   ├── github/report-issue.ts
 │   │   ├── install/load-install-prompt.ts
 │   │   └── app-version.ts
@@ -346,5 +354,9 @@ bpost-mcp/
 |------|----------|-------|
 | DCR rate limiting | `src/app/oauth/register/route.ts` | Max registrations/IP/hour — TODO / partial |
 | Expired auth code cleanup | `oauth_authorization_codes` | No cron job yet — rows accumulate |
+<<<<<<< HEAD
 | `submit_ready_batch` → BPost | `src/app/api/mcp/route.ts` | Stub only; real XML mailing dispatch for batched rows TBD |
+=======
+| `check_batch` (OptiAddress) | Issue #13 | Pre-validate addresses via MailingCheck before MailingCreate |
+>>>>>>> develop
 | Phase 3: enterprise automation | `docs/internal/vision.md` | Future |

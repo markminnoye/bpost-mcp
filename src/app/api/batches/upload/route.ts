@@ -1,24 +1,29 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "@/lib/oauth/verify-token"
-import { saveBatchState, BatchState, BatchRow } from "@/lib/kv/client"
-import Papa from "papaparse"
-import { randomUUID } from "crypto"
+import { saveBatchState } from "@/lib/kv/client"
+import { resolveRequestAuth, type AuthPolicy } from "@/lib/auth/resolve-request-auth"
+import { ingestCsv } from "@/lib/batch/ingest-csv"
+
+const uploadAuthPolicy: AuthPolicy = {
+  allowBearer: true,
+  allowSession: true,
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization')
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
-    if (!token) {
-      return NextResponse.json({ error: "Missing or invalid Authorization header" }, { status: 401 })
+    const authResult = await resolveRequestAuth(req, uploadAuthPolicy)
+    if (!authResult.success) {
+      const status = authResult.error.status
+      const messages: Record<typeof authResult.error.reason, string> = {
+        missing_auth: 'No authentication provided. Supply a valid Bearer token or sign in first.',
+        invalid_bearer: 'The provided Bearer token is invalid or expired.',
+        invalid_session: 'Your session has expired. Please sign in again.',
+        missing_tenant: 'Your account is not linked to a BPost tenant. Please configure your credentials first.',
+      }
+      const message = messages[authResult.error.reason] ?? 'Authentication failed.'
+      return NextResponse.json({ error: message }, { status })
     }
+    const tenantId = authResult.context.tenantId
 
-    const authInfo = await verifyToken(req, token)
-    if (!authInfo?.extra?.tenantId) {
-      return NextResponse.json({ error: "Unauthorized or invalid API token" }, { status: 401 })
-    }
-    const tenantId = authInfo.extra.tenantId as string
-
-    // 2. Parse FormData
     const formData = await req.formData()
     const file = formData.get("file") as File | null
 
@@ -26,80 +31,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No 'file' field found in form data" }, { status: 400 })
     }
 
-    // Currently only supporting CSV for MVP simplicity
-    // A future upgrade would parse XLSX using xlsx or exceljs
-    if (!file.name.endsWith(".csv")) {
-      return NextResponse.json({ error: "Currently only .csv files are supported for initial upload." }, { status: 400 })
-    }
-
-    // 3. Read and Parse CSV Data
     const fileText = await file.text()
-    
-    // PapaParse handles CSV string extraction safely
-    const parsed = Papa.parse<Record<string, unknown>>(fileText, {
-      header: true,
-      skipEmptyLines: true, // Prevents trailing empty lines from breaking indexation
-      dynamicTyping: false  // We want everything raw as strings to prevent premature casting errors
-    })
+    const result = ingestCsv(fileText, file.name, tenantId)
 
-    if (parsed.errors.length > 0) {
-       return NextResponse.json({ 
-         error: "Failed to parse CSV file", 
-         details: parsed.errors 
-       }, { status: 400 })
+    if (!result.ok) {
+      const statusMap: Record<string, number> = {
+        unsupported_format: 400,
+        parse_error: 400,
+        empty_file: 400,
+        too_many_rows: 413,
+      }
+      const httpStatus = statusMap[result.error.kind] ?? 400
+      return NextResponse.json({ error: result.error.message }, { status: httpStatus })
     }
 
-    const rawRows = parsed.data
-    if (rawRows.length === 0) {
-      return NextResponse.json({ error: "The provided CSV file contains no data rows." }, { status: 400 })
-    }
+    await saveBatchState(result.state)
 
-    // Hard cap at 1,000 rows to stay within Upstash's 1MB per-key value limit.
-    // The full BatchState (raw + mapped data for every row) is serialized into a single Redis key.
-    // At ~800 bytes/row average, 1,000 rows approaches the limit safely.
-    // Resolution tracked in: https://github.com/markminnoye/bpost-mcp/issues/4
-    if (rawRows.length > 1000) {
-      return NextResponse.json({ error: "Files exceeding 1,000 rows are not supported in this tier. Please split your file and upload in batches." }, { status: 413 })
-    }
-
-    // 4. Extract standard headers from the first parsed row
-    const headers = Object.keys(rawRows[0] || {})
-
-    // 5. Construct Initial Batch State
-    const batchId = randomUUID()
-    
-    const rows: BatchRow[] = rawRows.map((rawRow, index) => ({
-      index, // Absolute index is critical for deterministic row patching
-      raw: rawRow
-    }))
-
-    const batchState: BatchState = {
-      batchId,
-      tenantId,
-      status: 'UNMAPPED',
-      headers,
-      rows,
-      createdAt: new Date().toISOString()
-    }
-
-    // 6. Save State Securely mapped to Tenant
-    await saveBatchState(batchState)
-
-    // 7. Return Instructions to the Agent
     return NextResponse.json({
       success: true,
       message: "Batch successfully uploaded and parsed into memory.",
-      batchId: batchId,
-      status: batchState.status,
-      totalRows: rows.length,
-      nextStep: "Use the get_raw_headers MCP tool to retrieve the columns, and apply_mapping_rules to transform the payload to BPost schemas."
+      batchId: result.state.batchId,
+      status: result.state.status,
+      totalRows: result.state.rows.length,
+      nextStep: "Use the get_raw_headers MCP tool to retrieve the columns, and apply_mapping_rules to transform the payload to BPost schemas.",
     }, { status: 201 })
 
   } catch (error: unknown) {
-    console.error("[UPLOAD_BATCH]", error);
+    console.error("[UPLOAD_BATCH]", error)
     return NextResponse.json(
       { error: "Internal Server Error", details: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
