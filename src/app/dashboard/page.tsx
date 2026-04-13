@@ -348,46 +348,40 @@ export default async function DashboardPage({ searchParams }: Props) {
         </section>
 
         <section className="bp-card bp-card--section">
-          <h2 className="bp-section-title">Je AI-assistent koppelen Via OAuth</h2>
+          <h2 className="bp-section-title">De MCP-service koppelen</h2>
+          <p className="bp-prose">
+            Koppel deze service als <strong>connector</strong> aan je AI-agent (zoals <strong>Claude Desktop</strong> of <strong>Mistral Le Chat</strong>) via de onderstaande URL.
+          </p>
           <p className="bp-prose" style={{ fontSize: '0.875rem', marginBottom: '0.35rem' }}>
             <strong>Server-URL:</strong>
           </p>
-          <CopyCodeBlock code={MCP_URL} copyLabel="Server-URL kopiëren" />
+          <div style={{ marginBottom: '1.5rem' }}>
+            <CopyCodeBlock code={MCP_URL} copyLabel="Server-URL kopiëren" />
+          </div>
 
-          <p className="bp-prose" style={{ fontSize: '0.875rem', marginTop: '1.25rem', marginBottom: '0.65rem' }}>
-            Met onderstaande knop kopieer je een installatie-prompt. Plak die tekst daarna in je
-            AI-assistent (bv. Claude Desktop of Claude Code), zodat die de MCP-koppeling voor je kan
-            inrichten.
-          </p>
-          <CopyInstallPromptButton />
-        </section>
-
-        <section id="app-tokens" className="bp-card bp-card--section">
-          <h2 className="bp-section-title">App Tokens</h2>
+          <h3 className="bp-subtitle" style={{ marginTop: '1.5rem' }}>Authenticatie</h3>
           <p className="bp-prose">
-            Sommige programma&apos;s vragen een vast app-token (Bearer) naast je gewone aanmelding. Je
-            beheert je tokens hier. Hoe je een token instelt en gebruikt (onder meer in Claude Desktop of
-            Claude Code met MCP), lees je op de pagina{' '}
-            <Link href="/install#bearer" className="bp-link">
-              Instellingen
-            </Link>
-            .
+            Voor interactief gebruik in een AI-agent verloopt de autorisatie via <strong>OAuth 2.1</strong> (eenmalige browserflow bij de eerste verbinding).
           </p>
-          <form action={generateToken} className="bp-form-grid" style={{ marginBottom: tokens.length ? '1.25rem' : '0' }}>
+          <p className="bp-prose" style={{ marginTop: '0.75rem' }}>
+            Voor <strong>automatisering, pipelines of headless omgevingen</strong> kun je hieronder een vast <strong>App Token</strong> (Bearer) aanmaken.
+          </p>
+
+          <form action={generateToken} className="bp-form-grid" style={{ marginTop: '1.25rem', marginBottom: tokens.length ? '1.25rem' : '0' }}>
             <label className="bp-label">
-              Naam (bv. thuis-computer)
+              Nieuw token aanmaken (bv. CI-pipeline)
               <input name="label" className="bp-input" defaultValue="thuis-computer" required />
             </label>
             <button type="submit" className="bp-btn bp-btn--secondary" style={{ width: 'fit-content' }}>
-              Nieuwe app-token
+              App-token genereren
             </button>
           </form>
 
-          <h3 className="bp-subtitle" style={{ marginTop: tokens.length ? undefined : 0 }}>
+          <h3 className="bp-subtitle" style={{ marginTop: tokens.length ? undefined : '1.25rem' }}>
             Actieve app-tokens ({tokens.length})
           </h3>
           {tokens.length === 0 ? (
-            <p className="bp-empty-hint">Nog geen app-tokens. Maak er een aan als een app dat vraagt.</p>
+            <p className="bp-empty-hint">Nog geen app-tokens. Maak er een aan voor headless scenario&apos;s.</p>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {tokens.map((t) => (
@@ -403,6 +397,13 @@ export default async function DashboardPage({ searchParams }: Props) {
               ))}
             </ul>
           )}
+          <p className="bp-muted-note" style={{ marginTop: '1.25rem' }}>
+            Hulp nodig bij de configuratie? Bekijk de{' '}
+            <Link href="/install" className="bp-link">
+              installatie-instructies
+            </Link>
+            .
+          </p>
         </section>
       </div>
 
