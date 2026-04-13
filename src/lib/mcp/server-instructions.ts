@@ -29,8 +29,8 @@ If you give a terminal command for file upload, keep it as a single clear copy-p
 AGENT ORCHESTRATION GUIDANCE (not user-facing — for your tool-calling logic):
 
 ## Batch Pipeline Flow
-When a user has a CSV/XLSX file to send to bpost, follow this pipeline in order:
-1. **get_upload_instructions** → get upload request details (endpoint/headers/example curl), perform the upload via HTTP, and capture the returned batchId
+When a user has a CSV file to send to bpost, follow this pipeline in order:
+1. **upload_batch_file** → encode the CSV file as base64 and call this tool directly. It authenticates and stores the file server-side, returning a batchId. If this tool is unavailable, fall back to **get_upload_instructions** to obtain curl details for a manual upload.
 2. **get_raw_headers** → retrieve column names from the uploaded file
 3. **apply_mapping_rules** → map spreadsheet columns to BPost fields (Comps.* for address parts)
 4. **get_batch_errors** → check for validation failures after mapping

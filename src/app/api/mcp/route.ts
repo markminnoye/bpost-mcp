@@ -12,6 +12,7 @@ import { generateMidNumber } from '@/lib/batch/generate-barcode'
 import { claimBatchSequence } from '@/lib/batch/claim-batch-sequence'
 import { z } from 'zod'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
+import { ingestCsv } from '@/lib/batch/ingest-csv'
 import { applyMapping } from '@/lib/batch/apply-mapping'
 import { validateMappingTargets } from '@/lib/batch/validate-mapping-targets'
 import { submitBatch } from '@/lib/batch/submit-batch'
@@ -218,11 +219,71 @@ const handler = createMcpHandler(
     // ── Batch Pipeline Tools ─────────────────────────────────────────────
 
     server.registerTool(
+      'upload_batch_file',
+      {
+        description:
+          'BATCH PIPELINE step 1/6 (preferred): Upload a CSV file directly through the MCP protocol. ' +
+          'Pass the file content as a base64-encoded string — the server decodes it, authenticates using your session token, ' +
+          'parses the CSV, and stores the batch securely under your tenant. ' +
+          'Returns a batchId needed for all subsequent pipeline steps. ' +
+          'Use this tool instead of get_upload_instructions whenever possible — it avoids the need for out-of-band curl commands. ' +
+          'Next step: get_raw_headers.',
+        inputSchema: z.object({
+          fileName: z.string().describe('Original file name, must end with .csv'),
+          fileContentBase64: z.string().describe('Full content of the CSV file encoded as base64'),
+        }),
+      },
+      async (input, extra) => {
+        const tenantOrError = requireTenantId(extra)
+        if (typeof tenantOrError !== 'string') return tenantOrError
+        const tenantId = tenantOrError
+
+        let csvText: string
+        try {
+          csvText = Buffer.from(input.fileContentBase64, 'base64').toString('utf-8')
+        } catch {
+          return { isError: true, content: [{ type: 'text' as const, text: 'Invalid base64 encoding. Ensure fileContentBase64 is a valid base64 string.' }] }
+        }
+
+        if (csvText.trim().length === 0) {
+          return { isError: true, content: [{ type: 'text' as const, text: 'File content is empty after decoding.' }] }
+        }
+
+        const result = ingestCsv(csvText, input.fileName, tenantId)
+
+        if (!result.ok) {
+          return { isError: true, content: [{ type: 'text' as const, text: result.error.message }] }
+        }
+
+        try {
+          await saveBatchState(result.state)
+        } catch (err) {
+          console.error('[MCP] upload_batch_file saveBatchState failed:', err)
+          return { isError: true, content: [{ type: 'text' as const, text: 'Failed to store batch. Please retry.' }] }
+        }
+
+        return {
+          content: [{
+            type: 'text' as const,
+            text: JSON.stringify({
+              success: true,
+              batchId: result.state.batchId,
+              status: result.state.status,
+              totalRows: result.state.rows.length,
+              nextStep: 'Call get_raw_headers with this batchId to inspect column headers.',
+            }, null, 2),
+          }],
+        }
+      },
+    )
+
+    server.registerTool(
       'get_upload_instructions',
       {
         description:
-          'BATCH PIPELINE step 1/6: Returns upload request details (endpoint, method, headers, multipart field) plus an example curl command. ' +
-          'Use these details to perform the file upload via HTTP (agent-executed or user-executed). The upload response contains the batchId needed for all subsequent steps. ' +
+          'BATCH PIPELINE step 1/6 (manual fallback): Returns upload request details (endpoint, method, headers, multipart field) plus an example curl command ' +
+          'for environments where upload_batch_file cannot be used. ' +
+          'Prefer upload_batch_file for agent-native uploads that avoid manual curl steps. ' +
           'Next step: get_raw_headers.',
         inputSchema: z.object({}),
       },
@@ -237,13 +298,14 @@ const handler = createMcpHandler(
             url: uploadUrl,
             authHeader: 'Authorization: Bearer <TOKEN>',
             multipartField: 'file',
-            acceptedFormats: ['csv', 'xlsx'],
+            acceptedFormats: ['csv'],
           },
           exampleCurl: `curl -X POST -F "file=@<YOUR_FILE.csv>" ${uploadUrl} -H "Authorization: Bearer <TOKEN>"`,
           responseShape: {
             batchId: '<batch-id>',
           },
           nextStep: 'Call get_raw_headers with the batchId from the upload response.',
+          note: 'For agent-native upload without curl, use the upload_batch_file tool instead.',
         }
         return {
           content: [{
@@ -259,7 +321,7 @@ const handler = createMcpHandler(
       {
         description:
           'BATCH PIPELINE step 2/6: Returns the spreadsheet column headers for an uploaded batch so you can build the column→BPost field map. ' +
-          'Requires a batchId from a prior upload (get_upload_instructions). ' +
+          'Requires a batchId from a prior upload (upload_batch_file, or get_upload_instructions as manual fallback). ' +
           'Next step: apply_mapping_rules.',
         inputSchema: z.object({ batchId: z.string() }),
       },
@@ -767,7 +829,7 @@ const handler = createMcpHandler(
           'DIRECT TOOL (not part of the batch pipeline): Announce a mailing to BPost e-MassPost. ' +
           'Accepts a pre-built MailingRequest payload and returns the BPost response or a structured error with the MPW/MID code. ' +
           'Use only when the user already has a structured mailing payload. ' +
-          'For CSV/XLSX files from users, use the batch pipeline instead (starting with get_upload_instructions). ' +
+          'For CSV files from users, use the batch pipeline instead (starting with upload_batch_file). ' +
           'If linking to a deposit: set mailingRef; if this mailing is the slave, also set depositRef to the master deposit.',
         inputSchema: MailingRequestSchema,
       },
