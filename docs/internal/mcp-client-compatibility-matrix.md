@@ -22,6 +22,17 @@ Track which `initialize.serverInfo` shape is safe across supported MCP clients, 
 
 Use preview deployments to enable one flag group at a time and validate clients before promoting to production defaults.
 
+## Preview vs production (zelfde Git-commit)
+
+Als **productie** met commit `X` werkt maar een **Preview** met dezelfde `X` niet, zit het verschil vrijwel altijd in **host + Vercel-env + IdP**, niet in de broncode.
+
+1. **Gebruik consequent de preview-host** — MCP- en OAuth-flow testen tegen `https://bpost-….vercel.app` (of jouw preview-domein), niet tegen de productie-URL.
+2. **`NEXT_PUBLIC_BASE_URL` (Preview)** — Laat leeg zodat `VERCEL_URL` per deployment klopt, **of** zet per preview-branch een waarde die exact overeenkomt met die deployment. Eén vaste URL voor alle previews kan andere preview-URLs breken.
+3. **Google OAuth (Auth.js)** — In Google Cloud Console moet **Authorized redirect URI** elke preview-origin bevatten die je echt gebruikt: `https://<preview-host>/api/auth/callback/google`. Zonder die URI faalt inloggen op preview vaak meteen, terwijl productie wel werkt.
+4. **Neon preview-branch vs schema** — Als `POST /oauth/register` op preview **500** geeft terwijl productie werkt: controleer of de Neon-branch voor die preview dezelfde migraties heeft als `main` (bv. tabel `oauth_clients`). Ontbreekt die: migraties draaien op die branch, of de branch **reset from parent** (`main`).
+5. **OAuth-fout `redirect_uri not registered`** — Komt uit jullie `/oauth/authorize` validatie tegen het geregistreerde MCP-client-record (DB of client-metadata), niet uit Le Chat’s “integration create”.
+6. **Nog steeds `integrations.create` + TRPC internal error in Le Chat** — Raakt je server niet; zie de sectie *Le Chat (Mistral)* hieronder.
+
 ## Rollout step 1 — `serverInfo.description` only (current focus)
 
 **Goal:** prove that adding only `description` does not break Claude Desktop or Le Chat, before enabling `title`, `websiteUrl`, or `icons`.
@@ -73,7 +84,7 @@ Some failures happen **before** your MCP server is contacted.
 | Client         | name+version | +title    | +description | +websiteUrl | +icons    | Notes                                                                     |
 | -------------- | ------------ | --------- | ------------ | ----------- | --------- | ------------------------------------------------------------------------- |
 | Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ in test    | ⏳ pending   | ⏳ pending | Validate connect + tool call + reconnect                                  |
-| Le Chat        | ✅ baseline   | ⏳ pending | ⏳ blocked    | ⏳ pending   | ⏳ pending | `integrations.create` → TRPC internal error (platform); see section above |
+| Le Chat        | ✅ baseline   | ⏳ pending | ⏳ in test    | ⏳ pending   | ⏳ pending | Preview OAuth OK na Neon `preview/develop` reset; platformfouten `integrations.create` mogelijk; zie secties |
 
 
 ## Validation Checklist per step
@@ -83,4 +94,3 @@ Some failures happen **before** your MCP server is contacted.
 3. `tools/list` and one representative `tools/call` succeed.
 4. Reconnect after token refresh still succeeds.
 5. No client-side parsing errors in logs/UI.
-
