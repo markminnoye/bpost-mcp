@@ -39,34 +39,6 @@ const envSchema = z.object({
       1,
       'OAUTH_JWT_SECRET is required for OAuth JWT signing. Set it in Vercel (Production) or .env.local. Generate: openssl rand -base64 32',
     ),
-
-  /** Feature flag: include serverInfo.title in MCP initialize response. */
-  MCP_SERVERINFO_ENABLE_TITLE: z
-    .enum(['true', 'false'])
-    .optional()
-    .default('false')
-    .transform((value) => value === 'true'),
-
-  /** Feature flag: include serverInfo.description in MCP initialize response. */
-  MCP_SERVERINFO_ENABLE_DESCRIPTION: z
-    .enum(['true', 'false'])
-    .optional()
-    .default('false')
-    .transform((value) => value === 'true'),
-
-  /** Feature flag: include serverInfo.websiteUrl in MCP initialize response. */
-  MCP_SERVERINFO_ENABLE_WEBSITE_URL: z
-    .enum(['true', 'false'])
-    .optional()
-    .default('false')
-    .transform((value) => value === 'true'),
-
-  /** Feature flag: include serverInfo.icons in MCP initialize response. */
-  MCP_SERVERINFO_ENABLE_ICONS: z
-    .enum(['true', 'false'])
-    .optional()
-    .default('false')
-    .transform((value) => value === 'true'),
 })
 
 // Use safeParse to provide better error messages if validation fails
@@ -75,10 +47,6 @@ const result = envSchema.safeParse({
   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   REDIS_URL: process.env.REDIS_URL,
   OAUTH_JWT_SECRET: process.env.OAUTH_JWT_SECRET,
-  MCP_SERVERINFO_ENABLE_TITLE: process.env.MCP_SERVERINFO_ENABLE_TITLE,
-  MCP_SERVERINFO_ENABLE_DESCRIPTION: process.env.MCP_SERVERINFO_ENABLE_DESCRIPTION,
-  MCP_SERVERINFO_ENABLE_WEBSITE_URL: process.env.MCP_SERVERINFO_ENABLE_WEBSITE_URL,
-  MCP_SERVERINFO_ENABLE_ICONS: process.env.MCP_SERVERINFO_ENABLE_ICONS,
 })
 
 if (!result.success) {

@@ -18,7 +18,8 @@ export const MCP_SERVER_DESCRIPTION = 'BPost e-MassPost connector — valideer a
 export type McpServerIconDescriptor = {
   src: string
   mimeType: 'image/svg+xml'
-  sizes: string
+  /** MCP `Icon.sizes`: array of WxH strings or `"any"` for scalable SVG (spec 2025-11-25). */
+  sizes: string[]
 }
 
 /** Base64 encoded SVG icon for the MCP server, ensuring it works independently of deployment URLs. */
@@ -46,12 +47,12 @@ export function buildMcpServerIcons(publicBaseUrl: string): McpServerIconDescrip
     {
       src: `${origin}${MCP_SERVER_ICON_PUBLIC_PATH}`,
       mimeType: 'image/svg+xml',
-      sizes: 'any',
+      sizes: ['any'],
     },
     {
       src: MCP_SERVER_ICON_URL,
       mimeType: 'image/svg+xml',
-      sizes: '32x32',
+      sizes: ['32x32'],
     },
   ]
 }

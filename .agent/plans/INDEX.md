@@ -70,6 +70,14 @@ All implementation plans, design specs, and architecture decisions live here.
 
 ---
 
+## Phase 2 — MCP client compatibility & `serverInfo`
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Issue #29: MCP metadata compatibility](2026-04-14-issue29-mcp-metadata-compatibility.md) | ✅ | Full `initialize.serverInfo`, spec-correct `icons[].sizes`, compatibility matrix doc; removed `MCP_SERVERINFO_ENABLE_*` flags |
+
+---
+
 ## Superpowers — Afgeronde plannen
 
 Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stonden oorspronkelijk in `docs/superpowers/plans/`.

@@ -70,6 +70,12 @@ import { getTenantPreferences } from '@/lib/tenant/get-preferences'
 import { submitBatch } from '@/lib/batch/submit-batch'
 import { checkBatch } from '@/lib/batch/check-batch'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
+import {
+  APP_VERSION,
+  buildMcpServerIcons,
+  MCP_SERVER_DESCRIPTION,
+  MCP_SERVER_DISPLAY_TITLE,
+} from '@/lib/app-version'
 
 /** Parse the first JSON object from an SSE response body (data: <json> lines). */
 async function parseSseBody(res: Response): Promise<Record<string, unknown>> {
@@ -114,7 +120,7 @@ describe('MCP route auth via withMcpAuth', () => {
     expect(res.status).toBe(401)
   })
 
-  it('initialize keeps serverInfo minimal by default for client compatibility', async () => {
+  it('initialize returns full serverInfo metadata', async () => {
     vi.mocked(verifyToken).mockResolvedValue({
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
       extra: { tenantId: 'tenant_a' },
@@ -143,14 +149,14 @@ describe('MCP route auth via withMcpAuth', () => {
     const body = await parseSseBody(res)
     const serverInfo = (body?.result as any)?.serverInfo as Record<string, unknown>
 
-    expect(serverInfo).toEqual(expect.objectContaining({
+    expect(serverInfo).toEqual({
       name: 'bpost-emasspost',
-    }))
-    expect(typeof serverInfo?.version).toBe('string')
-    expect(serverInfo).not.toHaveProperty('title')
-    expect(serverInfo).not.toHaveProperty('description')
-    expect(serverInfo).not.toHaveProperty('websiteUrl')
-    expect(serverInfo).not.toHaveProperty('icons')
+      version: APP_VERSION,
+      title: MCP_SERVER_DISPLAY_TITLE,
+      description: MCP_SERVER_DESCRIPTION,
+      websiteUrl: 'http://localhost:3000',
+      icons: buildMcpServerIcons('http://localhost:3000'),
+    })
   })
 
   it('get_service_info returns JSON with service name and package version', async () => {
