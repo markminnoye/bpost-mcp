@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - MCP `initialize.serverInfo` bevat altijd alle metadata (`title`, `description`, `websiteUrl`, `icons`); de omgevingsvariabelen `MCP_SERVERINFO_ENABLE_*` zijn verwijderd (geen gefaseerde rollout meer).
 - Interne compatibiliteitsmatrix bijgewerkt voor dit gedrag; troubleshooting voor preview/productie en Le Chat blijft staan.
+- Issue [#29](https://github.com/markminnoye/bpost-mcp/issues/29) afgerond: metadata-compatibiliteit vastgelegd in docs/tests; gefaseerde env-flag-aanpak vervangen door altijd-volle `serverInfo`.
 
 **Oplossingen**
 
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MCP:** `initialize.serverInfo` is always the full metadata block (`title`, `description`, `websiteUrl`, `icons`); removed `MCP_SERVERINFO_ENABLE_*` env feature flags.
 - **Docs:** MCP client compatibility matrix rewritten for always-on `serverInfo` (no rollout/flag tables); kept preview vs production troubleshooting, Neon `oauth_clients` drift, Google redirect URIs, and Le Chat `integrations.create` platform-error note.
+- **Issue [#29](https://github.com/markminnoye/bpost-mcp/issues/29):** MCP metadata compatibility work completed (full `serverInfo`, matrix, tests); phased env-flag rollout superseded — issue closed.
 
 ---
 
