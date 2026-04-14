@@ -66,6 +66,7 @@ All implementation plans, design specs, and architecture decisions live here.
 | Plan | Status | Notes |
 |---|---|---|
 | [Issue #15: MCP Knowledge Transparency Page](2026-04-14-issue15-transparency-page.md) | ✅ | Static `/reference` page + build-time MCP metadata extraction |
+| [Reference Page: Floating Index UI](2026-04-14-floating-index.md) | ✅ | Sticky UI bar with scroll spy & compact tool cards |
 
 ---
 
