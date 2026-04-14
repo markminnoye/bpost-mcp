@@ -114,6 +114,45 @@ describe('MCP route auth via withMcpAuth', () => {
     expect(res.status).toBe(401)
   })
 
+  it('initialize keeps serverInfo minimal by default for client compatibility', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: { name: 'vitest-client', version: '1.0.0' },
+        },
+      }),
+    })
+
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const serverInfo = (body?.result as any)?.serverInfo as Record<string, unknown>
+
+    expect(serverInfo).toEqual(expect.objectContaining({
+      name: 'bpost-emasspost',
+    }))
+    expect(typeof serverInfo?.version).toBe('string')
+    expect(serverInfo).not.toHaveProperty('title')
+    expect(serverInfo).not.toHaveProperty('description')
+    expect(serverInfo).not.toHaveProperty('websiteUrl')
+    expect(serverInfo).not.toHaveProperty('icons')
+  })
+
   it('get_service_info returns JSON with service name and package version', async () => {
     vi.mocked(verifyToken).mockResolvedValue({
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'],

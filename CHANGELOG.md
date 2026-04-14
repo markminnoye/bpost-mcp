@@ -435,7 +435,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-tenant Dashboard (`/dashboard`): manage BPost credentials and API tokens per tenant.
 - Credential encryption: AES-256-GCM for BPost passwords at rest.
 - Auth.js v5 integration: Google OAuth login for dashboard access.
-- API token management: generate/revoke `bpost_`* bearer tokens for M2M clients (Langflow, n8n).
+- API token management: generate/revoke `bpost`_* bearer tokens for M2M clients (Langflow, n8n).
 - Audit logging: credential changes and MCP calls logged to `audit_log` table.
 - KV batch pipeline: bulk batch announcement support with Vercel KV.
 
