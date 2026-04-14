@@ -109,7 +109,7 @@ function parseMetadataObject(node: ts.Expression | undefined, sourceFile: ts.Sou
       continue
     }
 
-    if (key === 'arguments') {
+    if (key === 'arguments' || key === 'argsSchema') {
       argsSpec = value
       continue
     }
@@ -233,19 +233,25 @@ function parsePromptArguments(argsSpec: ts.Expression | undefined, sourceFile: t
   for (const property of argsSpec.properties) {
     if (!ts.isPropertyAssignment(property)) continue
     const name = ts.isIdentifier(property.name) ? property.name.text : property.name.getText(sourceFile).replace(/['"]/g, '')
-    if (!ts.isObjectLiteralExpression(property.initializer)) {
-      args.push({ name, required: true })
+    if (ts.isObjectLiteralExpression(property.initializer)) {
+      let description: string | undefined
+      let required = true
+      for (const field of property.initializer.properties) {
+        if (!ts.isPropertyAssignment(field)) continue
+        const key = ts.isIdentifier(field.name) ? field.name.text : field.name.getText(sourceFile).replace(/['"]/g, '')
+        if (key === 'description' && isStringLiteralLike(field.initializer)) description = field.initializer.text
+        if (key === 'required' && field.initializer.kind === ts.SyntaxKind.FalseKeyword) required = false
+      }
+      args.push({ name, description, required })
       continue
     }
-    let description: string | undefined
-    let required = true
-    for (const field of property.initializer.properties) {
-      if (!ts.isPropertyAssignment(field)) continue
-      const key = ts.isIdentifier(field.name) ? field.name.text : field.name.getText(sourceFile).replace(/['"]/g, '')
-      if (key === 'description' && isStringLiteralLike(field.initializer)) description = field.initializer.text
-      if (key === 'required' && field.initializer.kind === ts.SyntaxKind.FalseKeyword) required = false
-    }
-    args.push({ name, description, required })
+
+    const parameter = parseParameter(name, property.initializer, sourceFile)
+    args.push({
+      name,
+      description: parameter.description,
+      required: parameter.required,
+    })
   }
 
   return args

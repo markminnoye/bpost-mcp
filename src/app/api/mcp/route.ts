@@ -51,6 +51,62 @@ const BPOST_ALIASES: Record<string, string> = {
   presortCode:   'psCode',
 }
 
+const MAPPING_GLOSSARY_RESOURCE_URI = 'bpost://guides/mapping-glossary'
+const MODE_PRIORITY_MATRIX_RESOURCE_URI = 'bpost://guides/mode-priority-matrix'
+const COMMON_ERROR_GUIDANCE_RESOURCE_URI = 'bpost://guides/common-error-guidance'
+
+const MAPPING_GLOSSARY_RESOURCE = `Friendly mapping targets for apply_mapping_rules:
+- lastName -> Comps.1 (recipient last name)
+- firstName -> Comps.2 (recipient first name)
+- street -> Comps.3 (street name)
+- houseNumber -> Comps.4 (house number)
+- box -> Comps.5 (box/bus number)
+- postalCode -> Comps.8 (postal code)
+- municipality -> Comps.9 (city/town)
+- language -> lang (nl/fr/de)
+- priority -> priority (NP default, P optional)
+- mailIdBarcode -> midNum (14-18 digits when customer-provides)
+- presortCode -> psCode
+
+Notes:
+- You can map directly to Comps.<code> for fields without a friendly alias.
+- seq is auto-generated from row index unless explicitly mapped.
+`
+
+const MODE_PRIORITY_MATRIX_RESOURCE = `Do not confuse communication mode with item priority.
+
+Mode (Header.mode):
+- T = Test (default, safe validation mode)
+- C = Certification (pre-production validation track)
+- P = Production (real submission)
+
+Priority (Item.priority):
+- NP = Non-prior / D+2 (default)
+- P = Prior / D+1
+
+Quick reminder:
+- mode controls where/how the request is processed by BPost.
+- priority controls delivery speed for each item.
+`
+
+const COMMON_ERROR_GUIDANCE_RESOURCE = `Common guidance for batch error handling:
+
+1) Mapping and schema errors (before BPost):
+- Run get_raw_headers and confirm mapping targets.
+- Use apply_mapping_rules, then get_batch_errors.
+- Fix rows with apply_row_fix and re-check until totalErrors = 0.
+
+2) BPost validation errors (check_batch):
+- Call check_batch after mapping to receive OptiAddress feedback.
+- Re-run get_batch_errors to inspect BPost errors/warnings.
+- Apply focused fixes, then run check_batch again.
+
+3) Submission preflight:
+- Confirm mailingRef, expectedDeliveryDate, format, priority, and mode with the user.
+- Keep mode=T unless user explicitly confirms C or P.
+- Ensure barcode strategy requirements are satisfied before submit_ready_batch.
+`
+
 function resolveMappingTarget(target: string): string {
   if (Object.prototype.hasOwnProperty.call(BPOST_ALIASES, target)) {
     return BPOST_ALIASES[target]
@@ -102,8 +158,190 @@ async function resolveCredentials(tenantId: string) {
   }
 }
 
+const ServiceInfoOutputSchema = z.object({
+  service: z.string(),
+  version: z.string(),
+})
+
+const RawHeadersOutputSchema = z.object({
+  headers: z.array(z.string()),
+  status: z.string(),
+  totalRows: z.number().int().nonnegative(),
+  errorCount: z.number().int().nonnegative().optional(),
+})
+
+const BatchErrorsOutputSchema = z.object({
+  zodErrors: z.object({
+    total: z.number().int().nonnegative(),
+    visible: z.number().int().nonnegative(),
+    rows: z.array(z.any()),
+  }).optional(),
+  bpostErrors: z.object({
+    total: z.number().int().nonnegative(),
+    visible: z.number().int().nonnegative(),
+    rows: z.array(z.any()),
+  }).optional(),
+  bpostWarnings: z.object({
+    total: z.number().int().nonnegative(),
+    visible: z.number().int().nonnegative(),
+    rows: z.array(z.any()),
+  }).optional(),
+  totalErrors: z.number().int().nonnegative().optional(),
+  message: z.string().optional(),
+})
+
+const CheckBatchOutputSchema = z.object({
+  checkedCount: z.number().int().nonnegative(),
+  okCount: z.number().int().nonnegative(),
+  warningCount: z.number().int().nonnegative(),
+  errorCount: z.number().int().nonnegative(),
+  mailingRef: z.string(),
+  customerFileRef: z.string(),
+  mode: z.enum(['P', 'T', 'C']),
+})
+
+function jsonToolResult<T extends Record<string, unknown>>(payload: T) {
+  return {
+    structuredContent: payload,
+    content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }],
+  }
+}
+
 const handler = createMcpHandler(
   (server) => {
+    server.registerResource(
+      'mapping_glossary',
+      MAPPING_GLOSSARY_RESOURCE_URI,
+      {
+        mimeType: 'text/plain',
+        description: 'Friendly aliases mapped to Comps.* fields and key batch mapping notes.',
+      },
+      async () => ({
+        contents: [{
+          uri: MAPPING_GLOSSARY_RESOURCE_URI,
+          mimeType: 'text/plain',
+          text: MAPPING_GLOSSARY_RESOURCE,
+        }],
+      }),
+    )
+
+    server.registerResource(
+      'mode_priority_matrix',
+      MODE_PRIORITY_MATRIX_RESOURCE_URI,
+      {
+        mimeType: 'text/plain',
+        description: 'Difference between mode (T/C/P) and item priority (P/NP).',
+      },
+      async () => ({
+        contents: [{
+          uri: MODE_PRIORITY_MATRIX_RESOURCE_URI,
+          mimeType: 'text/plain',
+          text: MODE_PRIORITY_MATRIX_RESOURCE,
+        }],
+      }),
+    )
+
+    server.registerResource(
+      'common_error_guidance',
+      COMMON_ERROR_GUIDANCE_RESOURCE_URI,
+      {
+        mimeType: 'text/plain',
+        description: 'BPost and validation workflow troubleshooting guidance for batch flows.',
+      },
+      async () => ({
+        contents: [{
+          uri: COMMON_ERROR_GUIDANCE_RESOURCE_URI,
+          mimeType: 'text/plain',
+          text: COMMON_ERROR_GUIDANCE_RESOURCE,
+        }],
+      }),
+    )
+
+    server.registerPrompt(
+      'batch_onboarding_flow',
+      {
+        description: 'Prompt template to onboard a user through the full batch flow.',
+        argsSchema: {
+          userGoal: z.string().optional().describe('User objective for this mailing batch'),
+        },
+      },
+      async (args) => ({
+        messages: [{
+          role: 'user',
+          content: {
+            type: 'text',
+            text:
+              `Guide me through the BPost batch onboarding flow step by step.\n` +
+              `Goal: ${args?.userGoal ?? 'prepare and submit a valid mailing batch'}\n\n` +
+              `Use this sequence:\n` +
+              `1) upload_batch_file (or get_upload_instructions fallback)\n` +
+              `2) get_raw_headers\n` +
+              `3) apply_mapping_rules\n` +
+              `4) get_batch_errors (and optionally check_batch)\n` +
+              `5) apply_row_fix loop until no errors\n` +
+              `6) submit_ready_batch after explicit preflight confirmation`,
+          },
+        }],
+      }),
+    )
+
+    server.registerPrompt(
+      'batch_error_triage_fix_loop',
+      {
+        description: 'Prompt template to triage batch errors and iterate fixes safely.',
+        argsSchema: {
+          batchId: z.string().describe('Batch identifier to triage'),
+        },
+      },
+      async (args) => ({
+        messages: [{
+          role: 'user',
+          content: {
+            type: 'text',
+            text:
+              `Run an error triage loop for batch ${args?.batchId ?? '<missing-batch-id>'}.\n` +
+              `- Call get_batch_errors to list current issues.\n` +
+              `- Explain each issue in plain language.\n` +
+              `- Propose precise apply_row_fix updates per failing row.\n` +
+              `- Re-run get_batch_errors after each fix round.\n` +
+              `- If address quality is uncertain, run check_batch and include BPost feedback.\n` +
+              `Stop when totalErrors is 0 or when user confirmation is required.`,
+          },
+        }],
+      }),
+    )
+
+    server.registerPrompt(
+      'submit_preflight_confirmation',
+      {
+        description: 'Prompt template to confirm submission-critical fields before submit_ready_batch.',
+        argsSchema: {
+          batchId: z.string().describe('Batch identifier to submit'),
+          expectedDeliveryDate: z.string().describe('Expected delivery date (YYYY-MM-DD)'),
+          format: z.string().describe('Mail format (Large or Small)'),
+          priority: z.string().optional().describe('Item priority (NP or P)'),
+          mode: z.string().optional().describe('Communication mode (T, C, or P)'),
+        },
+      },
+      async (args) => ({
+        messages: [{
+          role: 'user',
+          content: {
+            type: 'text',
+            text:
+              `Before submit_ready_batch, confirm these values with the user:\n` +
+              `- batchId: ${args?.batchId ?? '<missing-batch-id>'}\n` +
+              `- expectedDeliveryDate: ${args?.expectedDeliveryDate ?? '<missing-date>'}\n` +
+              `- format: ${args?.format ?? '<missing-format>'}\n` +
+              `- priority: ${args?.priority ?? 'NP (default)'}\n` +
+              `- mode: ${args?.mode ?? 'T (default)'}\n\n` +
+              `Explicitly remind: mode (T/C/P) is different from priority (NP/P).\n` +
+              `Proceed only after user confirms all values and the batch has no remaining errors.`,
+          },
+        }],
+      }),
+    )
+
     server.registerTool(
       'get_service_info',
       {
@@ -111,15 +349,20 @@ const handler = createMcpHandler(
           'Returns the BPost MCP service name and semantic version from package.json. ' +
           'Call when the user asks which version or release of the service they are connected to, or for support diagnostics.',
         inputSchema: z.object({}),
+        outputSchema: ServiceInfoOutputSchema,
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       async (_input, extra) => {
         const tenantOrError = requireTenantId(extra)
         if (typeof tenantOrError !== 'string') return tenantOrError
 
         const payload = { service: MCP_SERVER_DISPLAY_NAME, version: APP_VERSION }
-        return {
-          content: [{ type: 'text' as const, text: JSON.stringify(payload) }],
-        }
+        return jsonToolResult(payload)
       },
     )
 
@@ -168,6 +411,12 @@ const handler = createMcpHandler(
           code: z.string().describe('The executable JS/TS code snippet'),
           description: z.string().describe('Description of what the script fixes'),
         }),
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -202,6 +451,12 @@ const handler = createMcpHandler(
             .regex(/^[a-z0-9-]+$/, 'Script name must be lowercase kebab-case (a-z, 0-9, hyphens only)')
             .describe('The name of the script to apply (without extension)'),
         }),
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -390,6 +645,13 @@ const handler = createMcpHandler(
           'Requires a batchId from a prior upload (upload_batch_file, or get_upload_instructions as manual fallback). ' +
           'Next step: apply_mapping_rules.',
         inputSchema: z.object({ batchId: z.string() }),
+        outputSchema: RawHeadersOutputSchema,
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -400,17 +662,13 @@ const handler = createMcpHandler(
         const errorCount = state.status !== 'UNMAPPED'
           ? state.rows.filter(r => r.validationErrors && r.validationErrors.length > 0).length
           : undefined
-        return {
-          content: [{
-            type: 'text' as const,
-            text: JSON.stringify({
-              headers: state.headers,
-              status: state.status,
-              totalRows: state.rows.length,
-              ...(errorCount !== undefined ? { errorCount } : {}),
-            }, null, 2),
-          }],
+        const payload = {
+          headers: state.headers,
+          status: state.status,
+          totalRows: state.rows.length,
+          ...(errorCount !== undefined ? { errorCount } : {}),
         }
+        return jsonToolResult(payload)
       },
     )
 
@@ -496,6 +754,13 @@ const handler = createMcpHandler(
           'When totalErrors is 0, the batch is ready for submit_ready_batch. ' +
           'Explain issues to the user in plain language.',
         inputSchema: z.object({ batchId: z.string(), limit: z.number().int().min(1).default(10) }),
+        outputSchema: BatchErrorsOutputSchema,
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -513,14 +778,21 @@ const handler = createMcpHandler(
         const hasBpostWarnings = bpostWarningRows.length > 0
 
         if (!hasZodErrors && !hasBpostErrors && !hasBpostWarnings) {
-          return { content: [{ type: 'text' as const, text: JSON.stringify({ totalErrors: 0, message: 'All rows valid according to Zod AND BPost OptiAddress!' }, null, 2) }] }
+          return jsonToolResult({
+            totalErrors: 0,
+            message: 'All rows valid according to Zod AND BPost OptiAddress!',
+          })
         }
 
         const zodSlice = zodErroredRows.slice(0, input.limit)
         const bpostErrorSlice = bpostErrorRows.slice(0, input.limit)
         const bpostWarningSlice = bpostWarningRows.slice(0, input.limit)
 
-        return { content: [{ type: 'text' as const, text: JSON.stringify({ zodErrors: { total: zodErroredRows.length, visible: zodSlice.length, rows: zodSlice }, bpostErrors: { total: bpostErrorRows.length, visible: bpostErrorSlice.length, rows: bpostErrorSlice }, bpostWarnings: { total: bpostWarningRows.length, visible: bpostWarningSlice.length, rows: bpostWarningSlice } }, null, 2) }] }
+        return jsonToolResult({
+          zodErrors: { total: zodErroredRows.length, visible: zodSlice.length, rows: zodSlice },
+          bpostErrors: { total: bpostErrorRows.length, visible: bpostErrorSlice.length, rows: bpostErrorSlice },
+          bpostWarnings: { total: bpostWarningRows.length, visible: bpostWarningSlice.length, rows: bpostWarningSlice },
+        })
       },
     )
 
@@ -544,6 +816,13 @@ const handler = createMcpHandler(
           pdpInResponse: z.enum(['Y', 'N']).optional().default('N'),
           allRecordInResponse: z.enum(['Y', 'N']).optional().default('Y'),
         }),
+        outputSchema: CheckBatchOutputSchema,
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: true,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -624,12 +903,28 @@ const handler = createMcpHandler(
           const warningRows = state.rows.filter(r => r.bpostValidation?.status === 'WARNING')
           const okRows = state.rows.filter(r => r.bpostValidation?.status === 'OK')
 
-          let summary = `Check complete: ${result.checkedCount} rows checked.\nOK: ${okRows.length}`
-          if (warningRows.length > 0) summary += ` | Warnings: ${warningRows.length}`
-          if (errorRows.length > 0) summary += ` | Errors: ${errorRows.length}`
-          summary += '\n\nUse get_batch_errors to see detailed per-row feedback.'
+          const payload = {
+            checkedCount: result.checkedCount,
+            okCount: okRows.length,
+            warningCount: warningRows.length,
+            errorCount: errorRows.length,
+            mailingRef,
+            customerFileRef,
+            mode: input.mode,
+          }
 
-          return { content: [{ type: 'text' as const, text: summary }] }
+          return {
+            structuredContent: payload,
+            content: [{
+              type: 'text' as const,
+              text:
+                `Check complete: ${result.checkedCount} rows checked.\n` +
+                `OK: ${okRows.length}` +
+                `${warningRows.length > 0 ? ` | Warnings: ${warningRows.length}` : ''}` +
+                `${errorRows.length > 0 ? ` | Errors: ${errorRows.length}` : ''}` +
+                '\n\nUse get_batch_errors to see detailed per-row feedback.',
+            }],
+          }
         }
 
         return {
@@ -653,6 +948,12 @@ const handler = createMcpHandler(
           rowIndex: z.number().int().min(0),
           correctedData: z.record(z.string(), z.any()),
         }),
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -723,6 +1024,12 @@ const handler = createMcpHandler(
             path: ['barcodeLength'],
           },
         ),
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
