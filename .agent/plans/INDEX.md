@@ -61,6 +61,14 @@ All implementation plans, design specs, and architecture decisions live here.
 
 ---
 
+## Phase 2 — Transparency & Reviewability
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Issue #15: MCP Knowledge Transparency Page](2026-04-14-issue15-transparency-page.md) | ✅ | Static `/reference` page + build-time MCP metadata extraction |
+
+---
+
 ## Superpowers — Afgeronde plannen
 
 Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stonden oorspronkelijk in `docs/superpowers/plans/`.

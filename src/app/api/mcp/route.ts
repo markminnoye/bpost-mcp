@@ -58,6 +58,28 @@ function resolveMappingTarget(target: string): string {
   return target
 }
 
+function normalizeMappedPriority(mapped: Record<string, unknown>): Record<string, unknown> {
+  const normalized = { ...mapped }
+  const rawPriority = normalized.priority
+
+  if (rawPriority === undefined || rawPriority === null) {
+    normalized.priority = 'NP'
+    return normalized
+  }
+
+  if (typeof rawPriority === 'string') {
+    const trimmed = rawPriority.trim()
+    if (trimmed === '') {
+      normalized.priority = 'NP'
+      return normalized
+    }
+    normalized.priority = trimmed.toUpperCase()
+  }
+
+  // Non-string values are intentionally left untouched so ItemSchema can reject them explicitly.
+  return normalized
+}
+
 function getISOWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   const dayNum = d.getUTCDay() || 7
@@ -206,8 +228,9 @@ const handler = createMcpHandler(
           const codeToRun = `(function(row){ ${scriptContent}\n return row; })(row)`
           const result = vm.runInNewContext(codeToRun, sandbox, { timeout: 1000 })
           const candidateMapped = typeof result === 'object' ? result : sandbox.row
+          const normalizedMapped = normalizeMappedPriority(candidateMapped as Record<string, unknown>)
 
-          const validationResult = ItemSchema.safeParse(candidateMapped)
+          const validationResult = ItemSchema.safeParse(normalizedMapped)
           if (validationResult.success) {
             row.mapped = validationResult.data
             row.validationErrors = undefined
@@ -400,7 +423,7 @@ const handler = createMcpHandler(
           'Use these friendly field names as mapping targets: ' +
           '"lastName" (recipient last name), "firstName" (first name), "street" (street name), ' +
           '"houseNumber" (house number), "box" (box/bus number), "postalCode" (postal code), ' +
-          '"municipality" (city/town), "language" (lang: nl/fr/de), "priority" (item priority: NP for non-prior/D+2, P for prior/D+1), ' +
+          '"municipality" (city/town), "language" (lang: nl/fr/de), "priority" (item priority: NP for non-prior/D+2, P for prior/D+1; optional, defaults to NP if omitted), ' +
           '"mailIdBarcode" (customer-provided Mail ID barcode, 14–18 digits), ' +
           '"presortCode" (pre-sort code). ' +
           'Advanced: you may also use Comps.<code> dot-notation directly (e.g. "Comps.70") for fields without an alias. ' +
@@ -443,10 +466,11 @@ const handler = createMcpHandler(
 
         state.rows = state.rows.map(r => {
           const mapped = applyMapping(r.raw, resolvedMapping, r.index + 1)
-          const result = ItemSchema.safeParse(mapped)
+          const normalizedMapped = normalizeMappedPriority(mapped)
+          const result = ItemSchema.safeParse(normalizedMapped)
           return {
             ...r,
-            mapped: result.success ? result.data : mapped,
+            mapped: result.success ? result.data : normalizedMapped,
             validationErrors: result.success ? undefined : result.error.issues,
           }
         })
@@ -640,7 +664,7 @@ const handler = createMcpHandler(
         const row = state.rows.find(r => r.index === input.rowIndex)
         if (!row) return { isError: true, content: [{ type: 'text' as const, text: 'Row not found' }] }
 
-        const candidateMapped = { ...row.mapped, ...input.correctedData }
+        const candidateMapped = normalizeMappedPriority({ ...row.mapped, ...input.correctedData })
         const validationResult = ItemSchema.safeParse(candidateMapped)
         if (validationResult.success) {
           row.mapped = validationResult.data   // only Zod-validated output written to row.mapped

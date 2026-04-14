@@ -401,7 +401,11 @@ export default async function DashboardPage({ searchParams }: Props) {
             <Link href="/install" className="bp-link">
               installatie-instructies
             </Link>
-            .
+            {' '}of open de{' '}
+            <Link href="/reference" className="bp-link">
+              transparantiepagina
+            </Link>
+            {' '}met alle tool- en instructieteksten.
           </p>
         </section>
       </div>

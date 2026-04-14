@@ -1,9 +1,10 @@
 {
   "name": "bpost-mcp",
-  "version": "0.2.2-alpha.0",
+  "version": "0.2.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "tsx scripts/extract-tool-metadata.ts",
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
