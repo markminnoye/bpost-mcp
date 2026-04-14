@@ -827,12 +827,16 @@ a {
   background: #f9fafb;
 }
 
-.bp-reference-pre {
+.bp-reference-pre,
+.bp-reference-block {
   margin: 0;
   border-radius: 10px;
   border: 1px solid var(--bp-border);
   padding: 0.75rem;
   background: #f8fafc;
+}
+
+.bp-reference-pre {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 0.8rem;
   line-height: 1.5;
@@ -850,4 +854,137 @@ a {
   font-size: 0.88rem;
   color: var(--bp-muted);
   margin-bottom: 0.5rem;
+}
+
+/* Reference page top index */
+.bp-reference-index {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(248, 250, 252, 0.85); /* Halftransparant ipv solid #f8fafc */
+  backdrop-filter: blur(8px); /* Frosted glass effect */
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--bp-border);
+  border-radius: 10px;
+  margin: 0 auto 1.5rem; /* Gecentreerd via auto margins */
+  max-width: max-content; /* Omsluit alleen de benodigde breedte */
+  position: sticky;
+  top: 1rem;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Zwevend effect */
+}
+
+.bp-reference-index-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bp-soft);
+  flex-shrink: 0;
+}
+
+.bp-reference-index-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: nowrap; /* Voorkom wrappen op kleine schermen */
+  gap: 0.35rem 0.6rem;
+  overflow-x: auto; /* Laat swipen toe */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Verberg scrollbar in Firefox */
+}
+
+.bp-reference-index-list::-webkit-scrollbar {
+  display: none; /* Verberg scrollbar in Chrome/Safari */
+}
+
+@media (max-width: 640px) {
+  .bp-reference-index {
+    max-width: 100%; /* Neem alle ruimte in op mobiel */
+    border-radius: 0; /* Geen ronde hoeken als we de rand raken */
+    border-left: none;
+    border-right: none;
+  }
+  .bp-reference-index-label {
+    display: none; /* Verberg 'INHOUD' tekst op kleine schermen om ruimte te besparen */
+  }
+}
+
+.bp-reference-index-link {
+  font-size: 0.85rem;
+  color: var(--bp-brand);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  background: #fff;
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.15s ease;
+  display: inline-block;
+}
+
+.bp-reference-index-link:hover {
+  border-color: var(--bp-brand);
+  background: #fff5f5;
+  color: var(--bp-brand-hover);
+  text-decoration: underline;
+}
+
+/* Anchor scroll offset for all reference sections */
+[id="server-info"],
+[id="instructions"],
+[id="tools"],
+[id="resources"],
+[id="prompts"] {
+  scroll-margin-top: 5rem;
+}
+
+/* Markdown content in reference blocks */
+.bp-reference-markdown {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.bp-reference-markdown p {
+  margin: 0 0 0.75rem;
+}
+
+.bp-reference-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.bp-reference-markdown ul,
+.bp-reference-markdown ol {
+  margin: 0.4rem 0 0.75rem 1.25rem;
+  padding: 0;
+}
+
+.bp-reference-markdown li {
+  margin-bottom: 0.25rem;
+}
+
+.bp-reference-markdown code {
+  font-size: 0.82em;
+  background: #f1f5f9;
+  border: 1px solid var(--bp-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+.bp-reference-markdown strong {
+  font-weight: 600;
+}
+
+.bp-reference-markdown a {
+  color: var(--bp-brand);
+  text-decoration: none;
+}
+
+.bp-reference-markdown a:hover {
+  text-decoration: underline;
 }
