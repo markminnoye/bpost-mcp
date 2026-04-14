@@ -24,7 +24,7 @@ Use preview deployments to enable one flag group at a time and validate clients 
 
 ## Actuele preview-configuratie (`develop` → `preview.bpost.sonicrocket.io`)
 
-Operatorstand **2026-04-14** (na env-wijziging steeds **opnieuw deployen** zodat de build de flags meeneemt):
+Operatorstand **2026-04-14** / **2026-04-15** (na env-wijziging steeds **opnieuw deployen** zodat de build de flags meeneemt):
 
 
 | Variable                            | Preview (`develop`) |
@@ -32,10 +32,10 @@ Operatorstand **2026-04-14** (na env-wijziging steeds **opnieuw deployen** zodat
 | `MCP_SERVERINFO_ENABLE_DESCRIPTION` | `true`              |
 | `MCP_SERVERINFO_ENABLE_TITLE`       | `true`              |
 | `MCP_SERVERINFO_ENABLE_WEBSITE_URL` | `true`              |
-| `MCP_SERVERINFO_ENABLE_ICONS`       | `false` (of unset)  |
+| `MCP_SERVERINFO_ENABLE_ICONS`       | `true`              |
 
 
-Verwacht in `initialize.serverInfo` op die host: `name`, `version`, `title`, `description`, **`websiteUrl`** (= `NEXT_PUBLIC_BASE_URL` van die deployment). Nog **geen** `icons`.
+Verwacht in `initialize.serverInfo`: `name`, `version`, `title`, `description`, `websiteUrl` (= `NEXT_PUBLIC_BASE_URL`), **`icons`** (array: HTTPS `…/mcp-server-icon.svg` + `data:image/svg+xml;base64,…` — zie `buildMcpServerIcons` in `src/lib/app-version.ts`).
 
 ## Preview vs production (zelfde Git-commit)
 
@@ -92,6 +92,12 @@ Nog **geen** `icons` tenzij `MCP_SERVERINFO_ENABLE_ICONS=true`.
 
 Werk de matrix bij per client; noteer datum en host (bv. `preview.bpost.sonicrocket.io`).
 
+## Rollout step 3 — `serverInfo.icons`
+
+**Goal:** `icons` toevoegen (`MCP_SERVERINFO_ENABLE_ICONS=true`); entries uit `buildMcpServerIcons(NEXT_PUBLIC_BASE_URL)` (HTTPS-pad eerst voor strikte clients).
+
+**Status (preview `develop`):** vlag **`true`**, deployment **Ready** (`dpl_9czrpnzijicDBNEcKvDp7R75p7B5`, alias `preview.bpost.sonicrocket.io`).
+
 ## Le Chat (Mistral) — integration registration vs MCP payload
 
 Some failures happen **before** your MCP server is contacted.
@@ -109,8 +115,8 @@ Some failures happen **before** your MCP server is contacted.
 
 | Client         | name+version | +title    | +description | +websiteUrl | +icons    | Notes                                                                                                                                                      |
 | -------------- | ------------ | --------- | ------------ | ----------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ pending    | ⏳ in test   | ⏳ pending | Preview: `description`+`title`+`websiteUrl` aan per 2026-04-14 — nog te bevestigen in Desktop                                                             |
-| Le Chat        | ✅ baseline   | ⏳ in test | ⏳ in test    | ⏳ in test   | ⏳ pending | Preview OAuth OK (Neon `preview/develop`); `websiteUrl` = `NEXT_PUBLIC_BASE_URL`; UI kan velden nog verbergen — zie *Le Chat*                              |
+| Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ pending    | ⏳ in test   | ⏳ in test | Preview: alle vier optionele `serverInfo`-flags aan (2026-04-15) — nog te bevestigen in Desktop                                                            |
+| Le Chat        | ✅ baseline   | ⏳ in test | ⏳ in test    | ⏳ in test   | ⏳ in test | Zelfde MCP-payload; **UI toont titel/omschrijving/URL/icon vaak niet** — geen serverfout; zie *Le Chat*                                                    |
 
 
 ## Validation Checklist per step
