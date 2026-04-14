@@ -4,6 +4,7 @@
 node_modules/
 .env*.local
 tmp/
+src/generated/
 
 # Next.js build output
 .next/

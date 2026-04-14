@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "tsx scripts/extract-tool-metadata.ts",
     "build": "next build",
     "start": "next start",
     "test": "vitest run",

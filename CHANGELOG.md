@@ -15,7 +15,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nog geen items voor de volgende release._
+### Samenvatting
+
+**Nieuw**
+
+- Issue [#15](https://github.com/markminnoye/bpost-mcp/issues/15): nieuwe publieke transparantiepagina op `/reference` die build-time automatisch toont welke MCP-kennis de AI ontvangt (server-info, system instructions, tools, parameters, en later ook resources/prompts).
+- Dashboard bevat nu een directe link naar de transparantiepagina, zodat stakeholders die sneller kunnen terugvinden.
+
+**Oplossingen**
+
+- Issue [#30](https://github.com/markminnoye/bpost-mcp/issues/30): `apply_mapping_rules` blokkeert niet langer batches zonder gemapte `priority`-kolom — ontbrekende waarden krijgen nu automatisch `NP` tijdens mapping.
+- `priority`-normalisatie bij mapping en row-fixes maakt CSV-invoer robuuster: spaties en kleine letters worden automatisch gecorrigeerd (`" np "` -> `NP`, `"p"` -> `P`), terwijl echt ongeldige waarden expliciet fout blijven.
+
+**Aanpassingen**
+
+- `check_batch` en `submit_ready_batch` behouden hun `priority` fallback als defensieve safety net voor legacy of inconsistente batch-state, ook al gebeurt defaulting nu al in de mappingstap.
+
+### Changed
+
+- `apply_mapping_rules` description now states that `priority` mapping is optional and defaults to `NP` when omitted.
+- Priority normalization/defaulting is now applied before validation in both `apply_mapping_rules` and `apply_row_fix`.
+- Added build-time MCP metadata extraction (`scripts/extract-tool-metadata.ts`) and `prebuild` integration so `/reference` always reflects latest tool registrations.
+- Added static `/reference` App Router page with readable + JSON schema preview for extracted tool metadata.
+- Added shared `ToolRegistry` typing for extractor and UI rendering.
+
+### Fixed
+
+- Fixed false validation blockers where mapped rows without `priority` failed early despite downstream batch flows already defaulting to non-prior (`NP`) (#30).
+- Added regression coverage for missing, normalized, and invalid `priority` values in mapping and row-fix flows.
+- Fixed parameter type inference on transparency output for chained/multiline Zod expressions (e.g. `z.string().regex(...).describe(...)` now resolves to `string` instead of `unknown`).
+- Reduced extractor test fragility by deriving expected tool count from `registerTool(...)` calls instead of hardcoding a fixed number.
+- Improved toggle accessibility semantics on `/reference` by using a pressed-state button group.
 
 ---
 
