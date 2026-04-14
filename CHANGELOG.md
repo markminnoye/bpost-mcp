@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Metadata-extractie ondersteunt nu ook `argsSchema` en uitgebreidere argument-afleiding, zodat prompt-parameters consistenter in de transparantie-output terechtkomen.
 - Tool-contracten zijn verder gehard met output schema's en annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) op kritieke batch-tools.
 - **Issue [#25](https://github.com/markminnoye/bpost-mcp/issues/25) Standards Upgrade:** sprint 1 en sprint 2 lopen nog; release blijft in uitvoering met focus op compatibiliteit en gefaseerde metadata-hardening.
+- Sprint 3 metadata-rollout werkt nu in fases via feature flags: `title`, `description`, `websiteUrl` en `icons` kunnen per omgeving veilig aan/uit zonder de default minimale `serverInfo` te breken.
 
 **Oplossingen**
 
@@ -37,11 +38,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Registered MCP resources (`mapping_glossary`, `mode_priority_matrix`, `common_error_guidance`) and prompts (`batch_onboarding_flow`, `batch_error_triage_fix_loop`, `submit_preflight_confirmation`) in the main MCP route.
 - Improved metadata extraction for prompt arguments by supporting both `arguments` and `argsSchema` and deriving parameter metadata from richer initializer shapes.
 - Added explicit output schemas for key tools to align runtime responses with machine-readable contracts.
+- Introduced feature-flagged MCP `serverInfo` enrichment (`title`, `description`, `websiteUrl`, `icons`) with a safe-by-default minimal payload.
 
 ### Fixed
 
 - Ensured `get_service_info` tool responses include `structuredContent` parity with textual JSON payload.
 - Added stronger test coverage to prevent regressions in tools/resources/prompts discovery and annotation propagation.
+- Added regression coverage for server info composition so phased metadata rollout remains deterministic.
 
 ---
 

@@ -53,6 +53,20 @@ const envSchema = z.object({
     .optional()
     .default('false')
     .transform((value) => value === 'true'),
+
+  /** Feature flag: include serverInfo.websiteUrl in MCP initialize response. */
+  MCP_SERVERINFO_ENABLE_WEBSITE_URL: z
+    .enum(['true', 'false'])
+    .optional()
+    .default('false')
+    .transform((value) => value === 'true'),
+
+  /** Feature flag: include serverInfo.icons in MCP initialize response. */
+  MCP_SERVERINFO_ENABLE_ICONS: z
+    .enum(['true', 'false'])
+    .optional()
+    .default('false')
+    .transform((value) => value === 'true'),
 })
 
 // Use safeParse to provide better error messages if validation fails
@@ -63,6 +77,8 @@ const result = envSchema.safeParse({
   OAUTH_JWT_SECRET: process.env.OAUTH_JWT_SECRET,
   MCP_SERVERINFO_ENABLE_TITLE: process.env.MCP_SERVERINFO_ENABLE_TITLE,
   MCP_SERVERINFO_ENABLE_DESCRIPTION: process.env.MCP_SERVERINFO_ENABLE_DESCRIPTION,
+  MCP_SERVERINFO_ENABLE_WEBSITE_URL: process.env.MCP_SERVERINFO_ENABLE_WEBSITE_URL,
+  MCP_SERVERINFO_ENABLE_ICONS: process.env.MCP_SERVERINFO_ENABLE_ICONS,
 })
 
 if (!result.success) {

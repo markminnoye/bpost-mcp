@@ -23,6 +23,7 @@ import { reportIssueToGithub } from '@/lib/github/report-issue'
 import { MCP_SERVER_INSTRUCTIONS } from '@/lib/mcp/server-instructions'
 import {
   APP_VERSION,
+  buildMcpServerIcons,
   MCP_SERVER_DESCRIPTION,
   MCP_SERVER_DISPLAY_NAME,
   MCP_SERVER_DISPLAY_TITLE,
@@ -1307,8 +1308,12 @@ const handler = createMcpHandler(
       version: APP_VERSION,
       title: MCP_SERVER_DISPLAY_TITLE,
       description: MCP_SERVER_DESCRIPTION,
+      websiteUrl: env.NEXT_PUBLIC_BASE_URL,
+      icons: buildMcpServerIcons(env.NEXT_PUBLIC_BASE_URL),
       enableTitle: env.MCP_SERVERINFO_ENABLE_TITLE,
       enableDescription: env.MCP_SERVERINFO_ENABLE_DESCRIPTION,
+      enableWebsiteUrl: env.MCP_SERVERINFO_ENABLE_WEBSITE_URL,
+      enableIcons: env.MCP_SERVERINFO_ENABLE_ICONS,
     }),
     instructions: MCP_SERVER_INSTRUCTIONS,
   },

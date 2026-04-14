@@ -3,6 +3,8 @@ export type McpServerInfo = {
   version: string
   title?: string
   description?: string
+  websiteUrl?: string
+  icons?: Array<{ src: string; mimeType: string; sizes: string }>
 }
 
 type BuildMcpServerInfoInput = {
@@ -10,8 +12,12 @@ type BuildMcpServerInfoInput = {
   version: string
   title: string
   description: string
+  websiteUrl: string
+  icons: Array<{ src: string; mimeType: string; sizes: string }>
   enableTitle: boolean
   enableDescription: boolean
+  enableWebsiteUrl: boolean
+  enableIcons: boolean
 }
 
 /**
@@ -24,5 +30,7 @@ export function buildMcpServerInfo(input: BuildMcpServerInfoInput): McpServerInf
     version: input.version,
     ...(input.enableTitle ? { title: input.title } : {}),
     ...(input.enableDescription ? { description: input.description } : {}),
+    ...(input.enableWebsiteUrl ? { websiteUrl: input.websiteUrl } : {}),
+    ...(input.enableIcons ? { icons: input.icons } : {}),
   }
 }

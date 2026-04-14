@@ -58,6 +58,13 @@ When an implementation task is complete:
 - This gives you the opportunity to review the implementation before final closure.
 - Only close the issue after you have explicitly reviewed and approved it.
 
+### Commit & Changelog Discipline
+
+- **Mandatory before every commit:** update `CHANGELOG.md` under `## [Unreleased]` for user-visible or behavior-impacting changes.
+- **Bundle related work:** when multiple small commits belong to the same fix/feature, merge them into one coherent changelog entry instead of duplicating bullets.
+- **Structure:** keep entries grouped as `Nieuw`, `Aanpassingen`, `Oplossingen` (NL summary) and `Added/Changed/Fixed` (EN audit), with issue links where relevant.
+- **No stale releases:** if a release heading is accidentally removed or malformed during merges, restore it before committing.
+
 ### Active Work
 
 See `.agent/plans/INDEX.md` for details.
