@@ -11,17 +11,17 @@
 }
 
 html {
-  height: 100%;
+  /* Removed height: 100% to fix sticky positioning */
 }
 
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
-  min-height: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   color: var(--foreground);
@@ -729,21 +729,6 @@ a {
   margin: 0;
 }
 
-.bp-reference-label {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
-  line-height: 1;
-  display: inline-flex;
-  width: fit-content;
-  padding: 0.32rem 0.5rem;
-  border-radius: 6px;
-  border: 1px solid #fecaca;
-  color: #991b1b;
-  background: #fef2f2;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-}
-
 .bp-reference-badges {
   display: flex;
   flex-wrap: wrap;
@@ -870,6 +855,7 @@ a {
   border-radius: 10px;
   margin: 0 auto 1.5rem; /* Gecentreerd via auto margins */
   max-width: max-content; /* Omsluit alleen de benodigde breedte */
+  position: -webkit-sticky;
   position: sticky;
   top: 1rem;
   z-index: 50;
@@ -932,6 +918,14 @@ a {
   background: #fff5f5;
   color: var(--bp-brand-hover);
   text-decoration: underline;
+}
+
+.bp-reference-index-link.is-active {
+  background: var(--bp-brand);
+  color: #fff;
+  border-color: var(--bp-brand);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
 }
 
 /* Anchor scroll offset for all reference sections */

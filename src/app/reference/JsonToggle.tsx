@@ -11,7 +11,12 @@ type JsonToggleProps = {
 export function JsonToggle({ parameters, rawSchema }: JsonToggleProps) {
   const [view, setView] = useState<'readable' | 'json'>('readable')
 
-  const jsonPreview = useMemo(() => JSON.stringify(rawSchema, null, 2), [rawSchema])
+  const jsonPreview = useMemo(() => {
+    if (rawSchema?.source) {
+      return `// schema kind: ${rawSchema.kind || 'unknown'}\n${rawSchema.source}`
+    }
+    return JSON.stringify(rawSchema, null, 2)
+  }, [rawSchema])
 
   return (
     <div className="bp-reference-toggle">
@@ -30,7 +35,7 @@ export function JsonToggle({ parameters, rawSchema }: JsonToggleProps) {
           onClick={() => setView('json')}
           aria-pressed={view === 'json'}
         >
-          JSON
+          Schema
         </button>
       </div>
 

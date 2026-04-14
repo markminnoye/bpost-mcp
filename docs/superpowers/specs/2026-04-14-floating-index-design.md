@@ -22,13 +22,12 @@ Dit past het beste bij de `force-static` eigenschap van `/reference`. Er is geen
 
 ## Vereiste Aanpassingen (Actiepunten)
 
-1. **`src/app/globals.css`**
-   - Update `.bp-reference-index` (sticky, width, styling)
-   - Update `.bp-reference-index-list` (overflow-x handling voor mobiel)
-   - Pas de styling aan van `.bp-reference-index-label` (marge of verbergen op mobiel if space constrained)
-
+1. `**src/app/globals.css`**
+  - Update `.bp-reference-index` (sticky, width, styling)
+  - Update `.bp-reference-index-list` (overflow-x handling voor mobiel)
+  - Pas de styling aan van `.bp-reference-index-label` (marge of verbergen op mobiel if space constrained)
 2. **Geen JSX Wijzigingen Nodig**
-   - De HTML van `page.tsx` blijft identiek, de class-structuur is al prima voor deze feature.
+  - De HTML van `page.tsx` blijft identiek, de class-structuur is al prima voor deze feature.
 
 ## Testen & Validatie
 
