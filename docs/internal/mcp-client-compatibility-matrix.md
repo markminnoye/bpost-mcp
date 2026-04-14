@@ -26,14 +26,16 @@ Use preview deployments to enable one flag group at a time and validate clients 
 
 Operatorstand **2026-04-14** (na env-wijziging steeds **opnieuw deployen** zodat de build de flags meeneemt):
 
-| Variable | Preview (`develop`) |
-| -------- | ------------------- |
-| `MCP_SERVERINFO_ENABLE_DESCRIPTION` | `true` |
-| `MCP_SERVERINFO_ENABLE_TITLE` | `true` |
-| `MCP_SERVERINFO_ENABLE_WEBSITE_URL` | `false` (of unset) |
-| `MCP_SERVERINFO_ENABLE_ICONS` | `false` (of unset) |
 
-Verwacht in `initialize.serverInfo` op die host: `name`, `version`, `title` (= `MCP_SERVER_DISPLAY_TITLE` in code), `description` (= `MCP_SERVER_DESCRIPTION`). Nog **geen** `websiteUrl` / `icons`.
+| Variable                            | Preview (`develop`) |
+| ----------------------------------- | ------------------- |
+| `MCP_SERVERINFO_ENABLE_DESCRIPTION` | `true`              |
+| `MCP_SERVERINFO_ENABLE_TITLE`       | `true`              |
+| `MCP_SERVERINFO_ENABLE_WEBSITE_URL` | `true`              |
+| `MCP_SERVERINFO_ENABLE_ICONS`       | `false` (of unset)  |
+
+
+Verwacht in `initialize.serverInfo` op die host: `name`, `version`, `title`, `description`, **`websiteUrl`** (= `NEXT_PUBLIC_BASE_URL` van die deployment). Nog **geen** `icons`.
 
 ## Preview vs production (zelfde Git-commit)
 
@@ -52,24 +54,30 @@ Als **productie** met commit `X` werkt maar een **Preview** met dezelfde `X` nie
 
 Strikt (alleen stap 1):
 
-| Variable | Value |
-| -------- | ----- |
-| `MCP_SERVERINFO_ENABLE_DESCRIPTION` | `true` |
-| `MCP_SERVERINFO_ENABLE_TITLE` | `false` (or unset) |
+
+| Variable                            | Value              |
+| ----------------------------------- | ------------------ |
+| `MCP_SERVERINFO_ENABLE_DESCRIPTION` | `true`             |
+| `MCP_SERVERINFO_ENABLE_TITLE`       | `false` (or unset) |
 | `MCP_SERVERINFO_ENABLE_WEBSITE_URL` | `false` (or unset) |
-| `MCP_SERVERINFO_ENABLE_ICONS` | `false` (or unset) |
+| `MCP_SERVERINFO_ENABLE_ICONS`       | `false` (or unset) |
+
 
 **Opmerking:** op preview hebben we **titel + beschrijving samen** gezet omdat Le Chat de beschrijving in de UI nog niet toonde; zie **Actuele preview-configuratie** hierboven.
 
-## Rollout step 2 — `serverInfo.websiteUrl` (volgende focus)
+## Rollout step 2 — `serverInfo.websiteUrl`
 
-**Goal:** `websiteUrl` toevoegen (`MCP_SERVERINFO_ENABLE_WEBSITE_URL=true`), met `title` / `description` nog steeds naar keuze aan op preview voor vergelijking.
+**Goal:** `websiteUrl` toevoegen (`MCP_SERVERINFO_ENABLE_WEBSITE_URL=true`); waarde = `NEXT_PUBLIC_BASE_URL` van de deployment.
 
-Strikt (alleen `websiteUrl` bijkomen, andere optionele flags volgens huidige preview-beslissing):
+**Status (preview `develop`):** vlag **`true`**, nieuwe preview-build gedeployed (zie **Actuele preview-configuratie**).
 
-| Variable | Value |
-| -------- | ----- |
+Strikt (alleen `websiteUrl` bijkomen t.o.v. stap 1):
+
+
+| Variable                            | Value  |
+| ----------------------------------- | ------ |
 | `MCP_SERVERINFO_ENABLE_WEBSITE_URL` | `true` |
+
 
 Daarna opnieuw **deployen** en matrix + clients valideren.
 
@@ -99,10 +107,10 @@ Some failures happen **before** your MCP server is contacted.
 ## Validation Matrix
 
 
-| Client         | name+version | +title    | +description | +websiteUrl | +icons    | Notes |
-| -------------- | ------------ | --------- | ------------ | ----------- | --------- | ----- |
-| Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ pending    | ⏳ pending   | ⏳ pending | Preview: `description`+`title` aan per 2026-04-14 — nog te bevestigen in Desktop |
-| Le Chat        | ✅ baseline   | ⏳ in test | ⏳ in test    | ⏳ pending   | ⏳ pending | Preview OAuth OK (Neon `preview/develop`); MCP connect zonder fout; **UI toont omschrijving soms niet** ondanks `serverInfo` — clientgedrag; zie *Le Chat* |
+| Client         | name+version | +title    | +description | +websiteUrl | +icons    | Notes                                                                                                                                                      |
+| -------------- | ------------ | --------- | ------------ | ----------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ pending    | ⏳ in test   | ⏳ pending | Preview: `description`+`title`+`websiteUrl` aan per 2026-04-14 — nog te bevestigen in Desktop                                                             |
+| Le Chat        | ✅ baseline   | ⏳ in test | ⏳ in test    | ⏳ in test   | ⏳ pending | Preview OAuth OK (Neon `preview/develop`); `websiteUrl` = `NEXT_PUBLIC_BASE_URL`; UI kan velden nog verbergen — zie *Le Chat*                              |
 
 
 ## Validation Checklist per step
@@ -112,3 +120,4 @@ Some failures happen **before** your MCP server is contacted.
 3. `tools/list` and one representative `tools/call` succeed.
 4. Reconnect after token refresh still succeeds.
 5. No client-side parsing errors in logs/UI.
+
