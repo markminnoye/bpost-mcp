@@ -76,6 +76,7 @@ function normalizeMappedPriority(mapped: Record<string, unknown>): Record<string
     normalized.priority = trimmed.toUpperCase()
   }
 
+  // Non-string values are intentionally left untouched so ItemSchema can reject them explicitly.
   return normalized
 }
 
@@ -227,8 +228,9 @@ const handler = createMcpHandler(
           const codeToRun = `(function(row){ ${scriptContent}\n return row; })(row)`
           const result = vm.runInNewContext(codeToRun, sandbox, { timeout: 1000 })
           const candidateMapped = typeof result === 'object' ? result : sandbox.row
+          const normalizedMapped = normalizeMappedPriority(candidateMapped as Record<string, unknown>)
 
-          const validationResult = ItemSchema.safeParse(candidateMapped)
+          const validationResult = ItemSchema.safeParse(normalizedMapped)
           if (validationResult.success) {
             row.mapped = validationResult.data
             row.validationErrors = undefined
