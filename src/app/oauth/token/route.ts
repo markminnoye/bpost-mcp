@@ -7,7 +7,7 @@ import { oauthAuthorizationCodes, oauthRefreshTokens } from '@/lib/db/schema';
 import { signAccessToken } from '@/lib/oauth/jwt';
 import { verifyPkceS256 } from '@/lib/oauth/pkce';
 import { hashToken } from '@/lib/crypto';
-import { oauthResourcesMatchForTokenFromBase } from '@/lib/oauth/resource-url';
+import { oauthResourceMatchesAuthCodeAtTokenEndpoint } from '@/lib/oauth/resource-url';
 
 function errorResponse(error: string, description: string, status = 400) {
   return NextResponse.json({ error, error_description: description }, { status });
@@ -50,7 +50,7 @@ async function handleAuthorizationCode(params: URLSearchParams, issuerBase: stri
   if (authCode.redirectUri !== redirectUri) {
     return errorResponse('invalid_grant', 'Redirect URI mismatch');
   }
-  if (authCode.resource && !oauthResourcesMatchForTokenFromBase(issuerBase, authCode.resource, resource)) {
+  if (authCode.resource && !oauthResourceMatchesAuthCodeAtTokenEndpoint(issuerBase, authCode.resource, resource)) {
     return errorResponse('invalid_grant', 'Resource mismatch');
   }
 

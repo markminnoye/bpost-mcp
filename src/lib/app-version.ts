@@ -6,8 +6,20 @@ export const APP_VERSION: string = packageJson.version
 /** Stable MCP product name for initialize / support. */
 export const MCP_SERVER_DISPLAY_NAME = 'bpost-emasspost'
 
+/** Human-readable title for MCP host UIs (Le Chat, Claude, etc.). */
+export const MCP_SERVER_DISPLAY_TITLE = 'BPost e-MassPost'
+
+/** Public path to the MCP server icon (served from `public/`). Prefer HTTPS `src` in `icons` for client compatibility. */
+export const MCP_SERVER_ICON_PUBLIC_PATH = '/mcp-server-icon.svg'
+
 /** User-facing description for the MCP server. */
 export const MCP_SERVER_DESCRIPTION = 'BPost e-MassPost connector — valideer adressen en maak zendingen aan.'
+
+export type McpServerIconDescriptor = {
+  src: string
+  mimeType: 'image/svg+xml'
+  sizes: string
+}
 
 /** Base64 encoded SVG icon for the MCP server, ensuring it works independently of deployment URLs. */
 const svgIcon = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -23,3 +35,23 @@ const svgIcon = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
     </g>
 </svg>`
 export const MCP_SERVER_ICON_URL = `data:image/svg+xml;base64,${Buffer.from(svgIcon).toString('base64')}`
+
+/**
+ * Icons for `initialize` serverInfo. Puts an HTTPS URL first so strict clients
+ * (e.g. some MCP UIs) that skip `data:` URIs still render the logo.
+ */
+export function buildMcpServerIcons(publicBaseUrl: string): McpServerIconDescriptor[] {
+  const origin = publicBaseUrl.replace(/\/$/, '')
+  return [
+    {
+      src: `${origin}${MCP_SERVER_ICON_PUBLIC_PATH}`,
+      mimeType: 'image/svg+xml',
+      sizes: 'any',
+    },
+    {
+      src: MCP_SERVER_ICON_URL,
+      mimeType: 'image/svg+xml',
+      sizes: '32x32',
+    },
+  ]
+}

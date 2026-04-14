@@ -56,3 +56,22 @@ export function oauthResourcesMatchForToken(
 ): boolean {
   return oauthResourcesMatchForTokenFromBase(env.NEXT_PUBLIC_BASE_URL, stored, fromTokenRequest)
 }
+
+/**
+ * Authorization may run on the canonical Host (e.g. custom domain) while
+ * `POST /oauth/token` uses another public URL (e.g. `*.vercel.app`). Resource
+ * binding must still succeed when both map to the same app — try the incoming
+ * request origin first, then {@link env.NEXT_PUBLIC_BASE_URL} (set the latter to
+ * your canonical URL in Vercel Production).
+ */
+export function oauthResourceMatchesAuthCodeAtTokenEndpoint(
+  tokenRequestBase: string,
+  stored: string | null | undefined,
+  fromTokenRequest: string | null | undefined,
+): boolean {
+  if (!stored) return true
+  const req = tokenRequestBase.replace(/\/$/, '')
+  const configured = env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '')
+  const bases = req === configured ? [req] : [req, configured]
+  return bases.some((b) => oauthResourcesMatchForTokenFromBase(b, stored, fromTokenRequest))
+}
