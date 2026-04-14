@@ -1,6 +1,6 @@
 {
   "name": "bpost-mcp",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -30,7 +30,9 @@
     "papaparse": "^5.5.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
     "redis": "^5.11.0",
+    "remark-gfm": "^4.0.1",
     "vercel": "^50.43.0",
     "zod": "^4.3.6"
   },

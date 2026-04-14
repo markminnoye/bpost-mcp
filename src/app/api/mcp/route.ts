@@ -23,8 +23,12 @@ import { reportIssueToGithub } from '@/lib/github/report-issue'
 import { MCP_SERVER_INSTRUCTIONS } from '@/lib/mcp/server-instructions'
 import {
   APP_VERSION,
+  buildMcpServerIcons,
+  MCP_SERVER_DESCRIPTION,
   MCP_SERVER_DISPLAY_NAME,
+  MCP_SERVER_DISPLAY_TITLE,
 } from '@/lib/app-version'
+import { buildMcpServerInfo } from '@/lib/mcp/server-info'
 import fs from 'fs/promises'
 import path from 'path'
 import vm from 'vm'
@@ -818,9 +822,9 @@ const handler = createMcpHandler(
         }),
         outputSchema: CheckBatchOutputSchema,
         annotations: {
-          readOnlyHint: true,
+          readOnlyHint: false,
           destructiveHint: false,
-          idempotentHint: true,
+          idempotentHint: false,
           openWorldHint: true,
         },
       },
@@ -1298,11 +1302,19 @@ const handler = createMcpHandler(
     )
   },
   {
-    // Keep initialize payload minimal for broad MCP client compatibility.
-    serverInfo: {
+    // Default remains minimal; optional fields are enabled via feature flags per rollout.
+    serverInfo: buildMcpServerInfo({
       name: MCP_SERVER_DISPLAY_NAME,
       version: APP_VERSION,
-    },
+      title: MCP_SERVER_DISPLAY_TITLE,
+      description: MCP_SERVER_DESCRIPTION,
+      websiteUrl: env.NEXT_PUBLIC_BASE_URL,
+      icons: buildMcpServerIcons(env.NEXT_PUBLIC_BASE_URL),
+      enableTitle: env.MCP_SERVERINFO_ENABLE_TITLE,
+      enableDescription: env.MCP_SERVERINFO_ENABLE_DESCRIPTION,
+      enableWebsiteUrl: env.MCP_SERVERINFO_ENABLE_WEBSITE_URL,
+      enableIcons: env.MCP_SERVERINFO_ENABLE_ICONS,
+    }),
     instructions: MCP_SERVER_INSTRUCTIONS,
   },
   { basePath: '/api' },

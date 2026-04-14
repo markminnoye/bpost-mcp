@@ -1,8 +1,11 @@
 import { readFile } from 'fs/promises'
 import path from 'path'
 import Image from 'next/image'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type { ToolRegistry } from '@/lib/mcp/tool-registry-types'
 import { JsonToggle } from '@/app/reference/JsonToggle'
+import { ReferenceIndex, type SectionEntry } from '@/app/reference/ReferenceIndex'
 
 export const dynamic = 'force-static'
 
@@ -59,9 +62,17 @@ export function renderReferencePage(registry: ToolRegistry) {
   const hasPrompts = registry.prompts.length > 0
   const hasTools = registry.tools.length > 0
 
+  const indexEntries: SectionEntry[] = [
+    { id: 'server-info', label: 'Server info' },
+    { id: 'instructions', label: 'Instructions' },
+    { id: 'tools', label: `Tools (${registry.tools.length})` },
+    ...(hasResources ? [{ id: 'resources', label: `Resources (${registry.resources.length})` }] : []),
+    ...(hasPrompts ? [{ id: 'prompts', label: `Prompts (${registry.prompts.length})` }] : []),
+  ]
+
   return (
     <main className="bp-shell">
-      <header className="bp-section bp-reference-header">
+      <header id="server-info" className="bp-section bp-reference-header">
         {registry.serverInfo.iconUrl ? (
           <Image src={registry.serverInfo.iconUrl} alt="" width={32} height={32} className="bp-reference-icon" unoptimized />
         ) : null}
@@ -79,16 +90,23 @@ export function renderReferencePage(registry: ToolRegistry) {
         </div>
       </header>
 
-      <section className="bp-section bp-card">
-        <div className="bp-reference-label">[SYSTEM_HINT]</div>
+      <ReferenceIndex entries={indexEntries} />
+
+      <section id="instructions" className="bp-section bp-card">
         <h2 className="bp-section-title">System instructions</h2>
         <details className="bp-reference-details">
           <summary>Show full MCP server instructions</summary>
-          <pre className="bp-reference-pre">{registry.instructions || 'No instructions found.'}</pre>
+          {registry.instructions ? (
+            <div className="bp-reference-block bp-reference-markdown bp-prose">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{registry.instructions}</ReactMarkdown>
+            </div>
+          ) : (
+            <p className="bp-empty-hint">No instructions found.</p>
+          )}
         </details>
       </section>
 
-      <section className="bp-section">
+      <section id="tools" className="bp-section">
         <h2 className="bp-section-title">Tools ({registry.tools.length})</h2>
         {!hasTools ? (
           <p className="bp-empty-hint">No tools found in the extracted registry.</p>
@@ -96,12 +114,16 @@ export function renderReferencePage(registry: ToolRegistry) {
           <div className="bp-reference-grid">
             {registry.tools.map((tool) => (
               <article key={tool.name} className="bp-card bp-reference-card">
-                <div className="bp-reference-label">[TOOL_DESC]</div>
                 <h3 className="bp-subtitle bp-reference-card-title">{tool.name}</h3>
-                <p className="bp-prose">{tool.description || 'No description available.'}</p>
+                {tool.description ? (
+                  <div className="bp-reference-markdown bp-prose">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{tool.description}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="bp-empty-hint">No description available.</p>
+                )}
                 {renderAnnotationBadges(tool.annotations)}
                 <div className="bp-reference-params">
-                  <div className="bp-reference-label">[PARAM_DESC]</div>
                   <JsonToggle parameters={tool.parameters} rawSchema={tool.rawSchema} />
                 </div>
               </article>
@@ -111,13 +133,19 @@ export function renderReferencePage(registry: ToolRegistry) {
       </section>
 
       {hasResources ? (
-        <section className="bp-section">
+        <section id="resources" className="bp-section">
           <h2 className="bp-section-title">Resources ({registry.resources.length})</h2>
           <div className="bp-reference-grid">
             {registry.resources.map((resource) => (
               <article key={resource.name} className="bp-card bp-reference-card">
                 <h3 className="bp-subtitle bp-reference-card-title">{resource.name}</h3>
-                <p className="bp-prose">{resource.description || 'No description available.'}</p>
+                {resource.description ? (
+                  <div className="bp-reference-markdown bp-prose">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{resource.description}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="bp-empty-hint">No description available.</p>
+                )}
                 <pre className="bp-reference-pre">{JSON.stringify(resource, null, 2)}</pre>
               </article>
             ))}
@@ -126,13 +154,19 @@ export function renderReferencePage(registry: ToolRegistry) {
       ) : null}
 
       {hasPrompts ? (
-        <section className="bp-section">
+        <section id="prompts" className="bp-section">
           <h2 className="bp-section-title">Prompts ({registry.prompts.length})</h2>
           <div className="bp-reference-grid">
             {registry.prompts.map((prompt) => (
               <article key={prompt.name} className="bp-card bp-reference-card">
                 <h3 className="bp-subtitle bp-reference-card-title">{prompt.name}</h3>
-                <p className="bp-prose">{prompt.description || 'No description available.'}</p>
+                {prompt.description ? (
+                  <div className="bp-reference-markdown bp-prose">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{prompt.description}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="bp-empty-hint">No description available.</p>
+                )}
                 <pre className="bp-reference-pre">{JSON.stringify(prompt, null, 2)}</pre>
               </article>
             ))}

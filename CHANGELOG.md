@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.3.0] - 2026-04-14
+
 ### Samenvatting
 
 **Nieuw**
@@ -26,21 +30,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Metadata-extractie ondersteunt nu ook `argsSchema` en uitgebreidere argument-afleiding, zodat prompt-parameters consistenter in de transparantie-output terechtkomen.
 - Tool-contracten zijn verder gehard met output schema's en annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) op kritieke batch-tools.
 - **Issue [#25](https://github.com/markminnoye/bpost-mcp/issues/25) Standards Upgrade:** sprint 1 en sprint 2 lopen nog; release blijft in uitvoering met focus op compatibiliteit en gefaseerde metadata-hardening.
+- Sprint 3 metadata-rollout werkt nu in fases via feature flags: `title`, `description`, `websiteUrl` en `icons` kunnen per omgeving veilig aan/uit zonder de default minimale `serverInfo` te breken.
+- De referentiepagina (`/reference`) is visueel strakker gemaakt door overbodige systeemlabels te verwijderen en beschikt nu over een zwevende index-balk met "scroll spy" functionaliteit.
+- Schema-weergave voor tools toont nu de correct geformatteerde Zod-broncode in plaats van een onleesbare JSON-string.
 
 **Oplossingen**
 
 - Extra regressietests valideren nu `structuredContent`-pariteit, resources/prompts listing en annotations-extractie om regressies in MCP contract discoverability te voorkomen.
+- `check_batch` annotations zijn gecorrigeerd (`readOnlyHint: false`, `idempotentHint: false`) zodat tool-semantiek overeenkomt met de effectieve state-mutaties.
 
 ### Changed
 
 - Registered MCP resources (`mapping_glossary`, `mode_priority_matrix`, `common_error_guidance`) and prompts (`batch_onboarding_flow`, `batch_error_triage_fix_loop`, `submit_preflight_confirmation`) in the main MCP route.
 - Improved metadata extraction for prompt arguments by supporting both `arguments` and `argsSchema` and deriving parameter metadata from richer initializer shapes.
 - Added explicit output schemas for key tools to align runtime responses with machine-readable contracts.
+- Introduced feature-flagged MCP `serverInfo` enrichment (`title`, `description`, `websiteUrl`, `icons`) with a safe-by-default minimal payload.
+- Removed internal system labels (`[TOOL_DESC]`, `[PARAM_DESC]`, etc.) from the `/reference` page for a cleaner, more compact layout.
+- Replaced the static `ReferenceIndex` with an `IntersectionObserver`-based client component for "scroll spy" navigation.
+- Improved the schema preview (`JsonToggle`) to render the unescaped Zod source string instead of a stringified JSON representation.
 
 ### Fixed
 
 - Ensured `get_service_info` tool responses include `structuredContent` parity with textual JSON payload.
 - Added stronger test coverage to prevent regressions in tools/resources/prompts discovery and annotation propagation.
+- Added regression coverage for server info composition so phased metadata rollout remains deterministic.
+- Fixed a CSS bug where `position: sticky` on the reference index was broken by `overflow: hidden` on the root body element.
 
 ---
 
@@ -431,7 +445,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-tenant Dashboard (`/dashboard`): manage BPost credentials and API tokens per tenant.
 - Credential encryption: AES-256-GCM for BPost passwords at rest.
 - Auth.js v5 integration: Google OAuth login for dashboard access.
-- API token management: generate/revoke `bpost_`* bearer tokens for M2M clients (Langflow, n8n).
+- API token management: generate/revoke `bpost`_* bearer tokens for M2M clients (Langflow, n8n).
 - Audit logging: credential changes and MCP calls logged to `audit_log` table.
 - KV batch pipeline: bulk batch announcement support with Vercel KV.
 

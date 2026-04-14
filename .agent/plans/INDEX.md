@@ -61,6 +61,15 @@ All implementation plans, design specs, and architecture decisions live here.
 
 ---
 
+## Phase 2 — Transparency & Reviewability
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Issue #15: MCP Knowledge Transparency Page](2026-04-14-issue15-transparency-page.md) | ✅ | Static `/reference` page + build-time MCP metadata extraction |
+| [Reference Page: Floating Index UI](2026-04-14-floating-index.md) | ✅ | Sticky UI bar with scroll spy & compact tool cards |
+
+---
+
 ## Superpowers — Afgeronde plannen
 
 Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stonden oorspronkelijk in `docs/superpowers/plans/`.
@@ -85,8 +94,6 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 
 | Plan | Status | Notes |
 |---|---|---|
-| [Main Release Vandaag](2026-04-13-main-release-readiness.md) | 🔄 | Scope lock + validatie voor productiedeploy |
-| [Stap 3 Validatie Checklist](2026-04-13-step3-validatie-checklist.md) | 🔄 | Test assets + functionele regressie + manueel sign-off |
 
 ---
 

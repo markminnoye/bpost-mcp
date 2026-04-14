@@ -33,6 +33,10 @@ vi.mock('@/lib/batch/submit-batch', () => ({
   }),
 }))
 
+vi.mock('@/lib/batch/check-batch', () => ({
+  checkBatch: vi.fn(),
+}))
+
 vi.mock('@/lib/kv/client', () => ({
   getBatchState: vi.fn(),
   saveBatchState: vi.fn(),
@@ -64,6 +68,7 @@ import { verifyToken } from '@/lib/oauth/verify-token'
 import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
 import { getTenantPreferences } from '@/lib/tenant/get-preferences'
 import { submitBatch } from '@/lib/batch/submit-batch'
+import { checkBatch } from '@/lib/batch/check-batch'
 import { getBatchState, saveBatchState } from '@/lib/kv/client'
 
 /** Parse the first JSON object from an SSE response body (data: <json> lines). */
@@ -107,6 +112,45 @@ describe('MCP route auth via withMcpAuth', () => {
     })
     const res = await POST(req)
     expect(res.status).toBe(401)
+  })
+
+  it('initialize keeps serverInfo minimal by default for client compatibility', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: { name: 'vitest-client', version: '1.0.0' },
+        },
+      }),
+    })
+
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const serverInfo = (body?.result as any)?.serverInfo as Record<string, unknown>
+
+    expect(serverInfo).toEqual(expect.objectContaining({
+      name: 'bpost-emasspost',
+    }))
+    expect(typeof serverInfo?.version).toBe('string')
+    expect(serverInfo).not.toHaveProperty('title')
+    expect(serverInfo).not.toHaveProperty('description')
+    expect(serverInfo).not.toHaveProperty('websiteUrl')
+    expect(serverInfo).not.toHaveProperty('icons')
   })
 
   it('get_service_info returns JSON with service name and package version', async () => {
@@ -199,6 +243,7 @@ describe('MCP route auth via withMcpAuth', () => {
 
     const submitReadyBatch = tools.find((tool) => tool.name === 'submit_ready_batch')
     const getRawHeaders = tools.find((tool) => tool.name === 'get_raw_headers')
+    const checkBatchTool = tools.find((tool) => tool.name === 'check_batch')
     expect(submitReadyBatch?.annotations).toEqual(expect.objectContaining({
       readOnlyHint: false,
       destructiveHint: true,
@@ -210,6 +255,12 @@ describe('MCP route auth via withMcpAuth', () => {
       destructiveHint: false,
       idempotentHint: true,
       openWorldHint: false,
+    }))
+    expect(checkBatchTool?.annotations).toEqual(expect.objectContaining({
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
     }))
   })
 
@@ -395,6 +446,7 @@ describe('get_raw_headers', () => {
     const result = JSON.parse((body?.result as any)?.content?.[0]?.text ?? '{}')
     expect(result.errorCount).toBeUndefined()
     expect(result.totalRows).toBe(1)
+    expect((body?.result as any)?.structuredContent).toEqual(result)
   })
 
   it('includes errorCount when status is MAPPED', async () => {
@@ -424,6 +476,89 @@ describe('get_raw_headers', () => {
     const result = JSON.parse((body?.result as any)?.content?.[0]?.text ?? '{}')
     expect(result.errorCount).toBe(1)
     expect(result.totalRows).toBe(2)
+    expect((body?.result as any)?.structuredContent).toEqual(result)
+  })
+})
+
+describe('structured content contracts', () => {
+  it('get_batch_errors returns structuredContent for empty-error state', async () => {
+    const mockState = {
+      batchId: 'b-errors', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: ['name'],
+      rows: [{ index: 0, raw: { name: 'x' }, mapped: { seq: 1 } }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'get_batch_errors', arguments: { batchId: 'b-errors', limit: 5 } },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const parsed = JSON.parse((body?.result as any)?.content?.[0]?.text ?? '{}')
+    expect(parsed.totalErrors).toBe(0)
+    expect((body?.result as any)?.structuredContent).toEqual(parsed)
+  })
+
+  it('check_batch returns structuredContent summary payload on success', async () => {
+    const mockState = {
+      batchId: 'b-check', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: ['name'],
+      rows: [{ index: 0, raw: { name: 'x' }, mapped: { seq: 1 } }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(getCredentialsByTenantId).mockResolvedValue({
+      bpostUsername: 'test-user',
+      bpostPassword: 'test-pass',
+      customerNumber: '12345',
+      accountId: '999',
+      barcodeCustomerId: '54321',
+    } as any)
+    vi.mocked(checkBatch).mockResolvedValue({
+      success: true,
+      checkedCount: 1,
+      bpostResponse: {
+        MailingResponse: {
+          MailingCheck: [{
+            Replies: {
+              Reply: [{ seq: 1, Status: { code: 'WARNING', description: 'Ambiguous address' } }],
+            },
+          }],
+        },
+      },
+    } as any)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'check_batch', arguments: { batchId: 'b-check' } },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const structured = (body?.result as any)?.structuredContent
+    expect(structured).toEqual(expect.objectContaining({
+      checkedCount: 1,
+      okCount: 0,
+      warningCount: 1,
+      errorCount: 0,
+      mode: 'T',
+    }))
   })
 })
 

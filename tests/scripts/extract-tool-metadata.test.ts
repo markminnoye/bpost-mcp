@@ -53,7 +53,6 @@ describe('extract-tool-metadata', () => {
     expect(createFixScript).toBeDefined()
     expect(createFixScript?.parameters.map((parameter) => parameter.type)).toEqual(['string', 'string', 'string'])
   })
-
   it('extracts annotations for selected hardened tools', async () => {
     const registry = await buildRegistry()
     const submitReadyBatch = registry.tools.find((tool) => tool.name === 'submit_ready_batch')
