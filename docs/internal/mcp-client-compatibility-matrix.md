@@ -22,6 +22,19 @@ Track which `initialize.serverInfo` shape is safe across supported MCP clients, 
 
 Use preview deployments to enable one flag group at a time and validate clients before promoting to production defaults.
 
+## Actuele preview-configuratie (`develop` → `preview.bpost.sonicrocket.io`)
+
+Operatorstand **2026-04-14** (na env-wijziging steeds **opnieuw deployen** zodat de build de flags meeneemt):
+
+| Variable | Preview (`develop`) |
+| -------- | ------------------- |
+| `MCP_SERVERINFO_ENABLE_DESCRIPTION` | `true` |
+| `MCP_SERVERINFO_ENABLE_TITLE` | `true` |
+| `MCP_SERVERINFO_ENABLE_WEBSITE_URL` | `false` (of unset) |
+| `MCP_SERVERINFO_ENABLE_ICONS` | `false` (of unset) |
+
+Verwacht in `initialize.serverInfo` op die host: `name`, `version`, `title` (= `MCP_SERVER_DISPLAY_TITLE` in code), `description` (= `MCP_SERVER_DESCRIPTION`). Nog **geen** `websiteUrl` / `icons`.
+
 ## Preview vs production (zelfde Git-commit)
 
 Als **productie** met commit `X` werkt maar een **Preview** met dezelfde `X` niet, zit het verschil vrijwel altijd in **host + Vercel-env + IdP**, niet in de broncode.
@@ -33,38 +46,43 @@ Als **productie** met commit `X` werkt maar een **Preview** met dezelfde `X` nie
 5. **OAuth-fout `redirect_uri not registered`** — Komt uit jullie `/oauth/authorize` validatie tegen het geregistreerde MCP-client-record (DB of client-metadata), niet uit Le Chat’s “integration create”.
 6. **Nog steeds `integrations.create` + TRPC internal error in Le Chat** — Raakt je server niet; zie de sectie *Le Chat (Mistral)* hieronder.
 
-## Rollout step 1 — `serverInfo.description` only (current focus)
+## Rollout step 1 — `serverInfo.description` (strict single-flag test)
 
-**Goal:** prove that adding only `description` does not break Claude Desktop or Le Chat, before enabling `title`, `websiteUrl`, or `icons`.
+**Goal:** alleen `description` aanzetten, rest uit — ideaal om clientbreuk te isoleren.
 
-### Preview environment variables
+Strikt (alleen stap 1):
 
-On a **preview** deployment, set exactly:
-
-
-| Variable                            | Value              |
-| ----------------------------------- | ------------------ |
-| `MCP_SERVERINFO_ENABLE_DESCRIPTION` | `true`             |
-| `MCP_SERVERINFO_ENABLE_TITLE`       | `false` (or unset) |
+| Variable | Value |
+| -------- | ----- |
+| `MCP_SERVERINFO_ENABLE_DESCRIPTION` | `true` |
+| `MCP_SERVERINFO_ENABLE_TITLE` | `false` (or unset) |
 | `MCP_SERVERINFO_ENABLE_WEBSITE_URL` | `false` (or unset) |
-| `MCP_SERVERINFO_ENABLE_ICONS`       | `false` (or unset) |
+| `MCP_SERVERINFO_ENABLE_ICONS` | `false` (or unset) |
 
+**Opmerking:** op preview hebben we **titel + beschrijving samen** gezet omdat Le Chat de beschrijving in de UI nog niet toonde; zie **Actuele preview-configuratie** hierboven.
 
-### Expected `initialize.serverInfo` shape
+## Rollout step 2 — `serverInfo.websiteUrl` (volgende focus)
 
-- `name` (string)
-- `version` (string)
-- `description` (string) — must match `MCP_SERVER_DESCRIPTION` in code
+**Goal:** `websiteUrl` toevoegen (`MCP_SERVERINFO_ENABLE_WEBSITE_URL=true`), met `title` / `description` nog steeds naar keuze aan op preview voor vergelijking.
 
-Must **not** be present unless a flag is on:
+Strikt (alleen `websiteUrl` bijkomen, andere optionele flags volgens huidige preview-beslissing):
 
-- `title`
-- `websiteUrl`
-- `icons`
+| Variable | Value |
+| -------- | ----- |
+| `MCP_SERVERINFO_ENABLE_WEBSITE_URL` | `true` |
+
+Daarna opnieuw **deployen** en matrix + clients valideren.
+
+### Expected `initialize.serverInfo` shape (stap 2)
+
+- Bestaande velden blijven zoals na stap 1
+- **Extra:** `websiteUrl` — komt overeen met `NEXT_PUBLIC_BASE_URL` in de deployment
+
+Nog **geen** `icons` tenzij `MCP_SERVERINFO_ENABLE_ICONS=true`.
 
 ### After validation
 
-Update the matrix row for each client: set **+description** to ✅ or ❌ and add a short note (date, preview URL, symptom if fail).
+Werk de matrix bij per client; noteer datum en host (bv. `preview.bpost.sonicrocket.io`).
 
 ## Le Chat (Mistral) — integration registration vs MCP payload
 
@@ -81,10 +99,10 @@ Some failures happen **before** your MCP server is contacted.
 ## Validation Matrix
 
 
-| Client         | name+version | +title    | +description | +websiteUrl | +icons    | Notes                                                                                                        |
-| -------------- | ------------ | --------- | ------------ | ----------- | --------- | ------------------------------------------------------------------------------------------------------------ |
-| Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ in test    | ⏳ pending   | ⏳ pending | Validate connect + tool call + reconnect                                                                     |
-| Le Chat        | ✅ baseline   | ⏳ pending | ⏳ in test    | ⏳ pending   | ⏳ pending | Preview OAuth OK na Neon `preview/develop` reset; platformfouten `integrations.create` mogelijk; zie secties |
+| Client         | name+version | +title    | +description | +websiteUrl | +icons    | Notes |
+| -------------- | ------------ | --------- | ------------ | ----------- | --------- | ----- |
+| Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ pending    | ⏳ pending   | ⏳ pending | Preview: `description`+`title` aan per 2026-04-14 — nog te bevestigen in Desktop |
+| Le Chat        | ✅ baseline   | ⏳ in test | ⏳ in test    | ⏳ pending   | ⏳ pending | Preview OAuth OK (Neon `preview/develop`); MCP connect zonder fout; **UI toont omschrijving soms niet** ondanks `serverInfo` — clientgedrag; zie *Le Chat* |
 
 
 ## Validation Checklist per step
