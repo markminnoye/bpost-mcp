@@ -81,9 +81,9 @@ Some failures happen **before** your MCP server is contacted.
 ## Validation Matrix
 
 
-| Client         | name+version | +title    | +description | +websiteUrl | +icons    | Notes                                                                     |
-| -------------- | ------------ | --------- | ------------ | ----------- | --------- | ------------------------------------------------------------------------- |
-| Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ in test    | ⏳ pending   | ⏳ pending | Validate connect + tool call + reconnect                                  |
+| Client         | name+version | +title    | +description | +websiteUrl | +icons    | Notes                                                                                                        |
+| -------------- | ------------ | --------- | ------------ | ----------- | --------- | ------------------------------------------------------------------------------------------------------------ |
+| Claude Desktop | ✅ baseline   | ⏳ pending | ⏳ in test    | ⏳ pending   | ⏳ pending | Validate connect + tool call + reconnect                                                                     |
 | Le Chat        | ✅ baseline   | ⏳ pending | ⏳ in test    | ⏳ pending   | ⏳ pending | Preview OAuth OK na Neon `preview/develop` reset; platformfouten `integrations.create` mogelijk; zie secties |
 
 

@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Docs:** Corrected markdown for the `NEXT_PUBLIC_BASE_URL` bullet in the MCP client compatibility matrix.
+
 ### Changed
 
 - **Docs:** MCP client compatibility matrix documents rollout step 1 (`serverInfo.description` only), expected `initialize` shape, Le Chat `integrations.create` platform errors, and preview-vs-production troubleshooting (OAuth / `NEXT_PUBLIC_BASE_URL` / Google redirect URIs / Neon preview-branch schema drift such as missing `oauth_clients`).
