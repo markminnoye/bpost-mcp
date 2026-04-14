@@ -93,8 +93,6 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 
 | Plan | Status | Notes |
 |---|---|---|
-| [Main Release Vandaag](2026-04-13-main-release-readiness.md) | 🔄 | Scope lock + validatie voor productiedeploy |
-| [Stap 3 Validatie Checklist](2026-04-13-step3-validatie-checklist.md) | 🔄 | Test assets + functionele regressie + manueel sign-off |
 
 ---
 
