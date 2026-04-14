@@ -15,7 +15,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nog geen items voor de volgende release._
+### Samenvatting
+
+**Nieuw**
+
+- Issue [#15](https://github.com/markminnoye/bpost-mcp/issues/15) vervolgstap in MCP-transparantie: resources en prompts zijn nu expliciet registreerbaar en zichtbaar via metadata-extractie en MCP list endpoints.
+
+**Aanpassingen**
+
+- Metadata-extractie ondersteunt nu ook `argsSchema` en uitgebreidere argument-afleiding, zodat prompt-parameters consistenter in de transparantie-output terechtkomen.
+- Tool-contracten zijn verder gehard met output schema's en annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) op kritieke batch-tools.
+- **Issue [#25](https://github.com/markminnoye/bpost-mcp/issues/25) Standards Upgrade:** sprint 1 en sprint 2 lopen nog; release blijft in uitvoering met focus op compatibiliteit en gefaseerde metadata-hardening.
+
+**Oplossingen**
+
+- Extra regressietests valideren nu `structuredContent`-pariteit, resources/prompts listing en annotations-extractie om regressies in MCP contract discoverability te voorkomen.
+
+### Changed
+
+- Registered MCP resources (`mapping_glossary`, `mode_priority_matrix`, `common_error_guidance`) and prompts (`batch_onboarding_flow`, `batch_error_triage_fix_loop`, `submit_preflight_confirmation`) in the main MCP route.
+- Improved metadata extraction for prompt arguments by supporting both `arguments` and `argsSchema` and deriving parameter metadata from richer initializer shapes.
+- Added explicit output schemas for key tools to align runtime responses with machine-readable contracts.
+
+### Fixed
+
+- Ensured `get_service_info` tool responses include `structuredContent` parity with textual JSON payload.
+- Added stronger test coverage to prevent regressions in tools/resources/prompts discovery and annotation propagation.
 
 ---
 
@@ -368,7 +393,7 @@ _Nog geen items voor de volgende release._
 - JWT support: HS256 access tokens (1h) via `jose`; refresh tokens (90d, stateful in DB).
 - PKCE S256 enforcement mandatory for all authorization code flows.
 - Client ID Metadata Documents as preferred client resolution per MCP spec.
-- Unified token verification: OAuth JWT and legacy `bpost_`* M2M tokens both accepted at MCP boundary.
+- Unified token verification: OAuth JWT and legacy `bpost`_* M2M tokens both accepted at MCP boundary.
 - 3 new DB tables: `oauth_clients`, `oauth_authorization_codes`, `oauth_refresh_tokens`.
 - Dashboard "Claude / MCP Clients" section showing MCP URL for Claude Desktop.
 - Favicons & PWA: PNG icons, `apple-touch-icon.png`, `site.webmanifest`.

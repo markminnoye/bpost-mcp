@@ -130,6 +130,7 @@ describe('MCP route auth via withMcpAuth', () => {
     const parsed = JSON.parse(text)
     expect(parsed.service).toBe('bpost-emasspost')
     expect(parsed.version).toMatch(/^\d+\.\d+\.\d+/)
+    expect((body?.result as any)?.structuredContent).toEqual(parsed)
   })
 
   it('tools/list descriptions stay agent-oriented and avoid manual user delegation wording', async () => {
@@ -167,6 +168,111 @@ describe('MCP route auth via withMcpAuth', () => {
         expect(description).not.toContain(hint)
       }
     }
+  })
+
+  it('tools/list exposes annotations for hardened tools', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/list',
+        params: {},
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const tools = ((body?.result as any)?.tools ?? []) as Array<{
+      name: string
+      annotations?: Record<string, boolean>
+    }>
+
+    const submitReadyBatch = tools.find((tool) => tool.name === 'submit_ready_batch')
+    const getRawHeaders = tools.find((tool) => tool.name === 'get_raw_headers')
+    expect(submitReadyBatch?.annotations).toEqual(expect.objectContaining({
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    }))
+    expect(getRawHeaders?.annotations).toEqual(expect.objectContaining({
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    }))
+  })
+
+  it('resources/list returns sprint resources for authenticated requests', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'resources/list',
+        params: {},
+      }),
+    })
+
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const resources = ((body?.result as any)?.resources ?? []) as Array<{ name: string }>
+    const names = resources.map((resource) => resource.name)
+
+    expect(names).toContain('mapping_glossary')
+    expect(names).toContain('mode_priority_matrix')
+    expect(names).toContain('common_error_guidance')
+  })
+
+  it('prompts/list returns sprint prompts for authenticated requests', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'prompts/list',
+        params: {},
+      }),
+    })
+
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const prompts = ((body?.result as any)?.prompts ?? []) as Array<{ name: string }>
+    const names = prompts.map((prompt) => prompt.name)
+
+    expect(names).toContain('batch_onboarding_flow')
+    expect(names).toContain('batch_error_triage_fix_loop')
+    expect(names).toContain('submit_preflight_confirmation')
   })
 })
 
