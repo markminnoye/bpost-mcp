@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Samenvatting
+
+**Aanpassingen**
+
+- MCP `initialize.serverInfo` bevat altijd alle metadata (`title`, `description`, `websiteUrl`, `icons`); de omgevingsvariabelen `MCP_SERVERINFO_ENABLE_*` zijn verwijderd (geen gefaseerde rollout meer).
+- Interne compatibiliteitsmatrix bijgewerkt voor dit gedrag; troubleshooting voor preview/productie en Le Chat blijft staan.
+
+**Oplossingen**
+
+- `serverInfo.icons[].sizes` volgt het MCP-schema als **string array** (strikt clients zoals Claude Desktop).
+- Markdown in de matrix rond `NEXT_PUBLIC_BASE_URL` gecorrigeerd.
+
 ### Fixed
 
 - **MCP:** `serverInfo.icons[].sizes` is now a **string array** per MCP spec (2025-11-25 `Icon` schema), not a single string — avoids strict clients (e.g. Claude Desktop) rejecting `initialize` after icons rollout.
@@ -22,10 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Docs:** MCP client compatibility matrix documents rollout step 1 (`serverInfo.description` only), expected `initialize` shape, Le Chat `integrations.create` platform errors, and preview-vs-production troubleshooting (OAuth / `NEXT_PUBLIC_BASE_URL` / Google redirect URIs / Neon preview-branch schema drift such as missing `oauth_clients`).
-- **Docs:** MCP compatibility matrix — actuele preview-flags (`description`+`title` op `develop`), rollout stap 2 (`websiteUrl`), bijgewerkte validatietabel en Le Chat UI-caveat.
-- **Docs:** Matrix — preview `develop` met `MCP_SERVERINFO_ENABLE_WEBSITE_URL=true` + verwachte `serverInfo.websiteUrl`; validatiekolom `+websiteUrl` op *in test*.
-- **Docs:** Matrix — preview `develop` met `MCP_SERVERINFO_ENABLE_ICONS=true`, rollout stap 3 (`icons`), volledige `serverInfo` op preview; Le Chat-notitie (UI vs payload).
+- **MCP:** `initialize.serverInfo` is always the full metadata block (`title`, `description`, `websiteUrl`, `icons`); removed `MCP_SERVERINFO_ENABLE_*` env feature flags.
+- **Docs:** MCP client compatibility matrix rewritten for always-on `serverInfo` (no rollout/flag tables); kept preview vs production troubleshooting, Neon `oauth_clients` drift, Google redirect URIs, and Le Chat `integrations.create` platform-error note.
 
 ---
 
