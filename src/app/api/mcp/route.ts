@@ -818,9 +818,9 @@ const handler = createMcpHandler(
         }),
         outputSchema: CheckBatchOutputSchema,
         annotations: {
-          readOnlyHint: true,
+          readOnlyHint: false,
           destructiveHint: false,
-          idempotentHint: true,
+          idempotentHint: false,
           openWorldHint: true,
         },
       },

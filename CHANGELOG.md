@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Oplossingen**
 
 - Extra regressietests valideren nu `structuredContent`-pariteit, resources/prompts listing en annotations-extractie om regressies in MCP contract discoverability te voorkomen.
+- `check_batch` annotations zijn gecorrigeerd (`readOnlyHint: false`, `idempotentHint: false`) zodat tool-semantiek overeenkomt met de effectieve state-mutaties.
 
 ### Changed
 
@@ -43,6 +44,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added stronger test coverage to prevent regressions in tools/resources/prompts discovery and annotation propagation.
 
 ---
+
+## [0.2.3] - 2026-04-14
+
+### Samenvatting
+
+**Nieuw**
+
 - Issue [#15](https://github.com/markminnoye/bpost-mcp/issues/15): nieuwe publieke transparantiepagina op `/reference` die build-time automatisch toont welke MCP-kennis de AI ontvangt (server-info, system instructions, tools, parameters, en later ook resources/prompts).
 - Dashboard bevat nu een directe link naar de transparantiepagina, zodat stakeholders die sneller kunnen terugvinden.
 
