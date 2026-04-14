@@ -29,8 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Metadata-extractie ondersteunt nu ook `argsSchema` en uitgebreidere argument-afleiding, zodat prompt-parameters consistenter in de transparantie-output terechtkomen.
 - Tool-contracten zijn verder gehard met output schema's en annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) op kritieke batch-tools.
-- **Issue [#25](https://github.com/markminnoye/bpost-mcp/issues/25) Standards Upgrade:** sprint 1 en sprint 2 lopen nog; release blijft in uitvoering met focus op compatibiliteit en gefaseerde metadata-hardening.
-- Sprint 3 metadata-rollout werkt nu in fases via feature flags: `title`, `description`, `websiteUrl` en `icons` kunnen per omgeving veilig aan/uit zonder de default minimale `serverInfo` te breken.
+- **Issue [#25](https://github.com/markminnoye/bpost-mcp/issues/25) Standards Upgrade:** verdere compatibiliteitsverbeteringen en gefaseerde metadata-rollout (`title`, `description`, `websiteUrl`, `icons`) via feature flags in uitvoering.
 - De referentiepagina (`/reference`) is visueel strakker gemaakt door overbodige systeemlabels te verwijderen en beschikt nu over een zwevende index-balk met "scroll spy" functionaliteit.
 - Schema-weergave voor tools toont nu de correct geformatteerde Zod-broncode in plaats van een onleesbare JSON-string.
 
