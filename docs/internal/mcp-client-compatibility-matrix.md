@@ -35,7 +35,7 @@ Operatorstand **2026-04-14** / **2026-04-15** (na env-wijziging steeds **opnieuw
 | `MCP_SERVERINFO_ENABLE_ICONS`       | `true`              |
 
 
-Verwacht in `initialize.serverInfo`: `name`, `version`, `title`, `description`, `websiteUrl` (= `NEXT_PUBLIC_BASE_URL`), **`icons`** (array: HTTPS `…/mcp-server-icon.svg` + `data:image/svg+xml;base64,…` — zie `buildMcpServerIcons` in `src/lib/app-version.ts`).
+Verwacht in `initialize.serverInfo`: `name`, `version`, `title`, `description`, `websiteUrl` (= `NEXT_PUBLIC_BASE_URL`), **`icons`** (array van `{ src, mimeType?, sizes? }`; per MCP 2025-11-25 is **`sizes` een string-array**, bv. `["any"]` of `["32x32"]` — zie `buildMcpServerIcons` in `src/lib/app-version.ts`).
 
 ## Preview vs production (zelfde Git-commit)
 

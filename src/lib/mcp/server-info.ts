@@ -4,7 +4,7 @@ export type McpServerInfo = {
   title?: string
   description?: string
   websiteUrl?: string
-  icons?: Array<{ src: string; mimeType: string; sizes: string }>
+  icons?: Array<{ src: string; mimeType: string; sizes: string[] }>
 }
 
 type BuildMcpServerInfoInput = {
@@ -13,7 +13,7 @@ type BuildMcpServerInfoInput = {
   title: string
   description: string
   websiteUrl: string
-  icons: Array<{ src: string; mimeType: string; sizes: string }>
+  icons: Array<{ src: string; mimeType: string; sizes: string[] }>
   enableTitle: boolean
   enableDescription: boolean
   enableWebsiteUrl: boolean

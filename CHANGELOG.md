@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **MCP:** `serverInfo.icons[].sizes` is now a **string array** per MCP spec (2025-11-25 `Icon` schema), not a single string — avoids strict clients (e.g. Claude Desktop) rejecting `initialize` after icons rollout.
 - **Docs:** Corrected markdown for the `NEXT_PUBLIC_BASE_URL` bullet in the MCP client compatibility matrix.
 
 ### Changed

@@ -8,7 +8,7 @@ describe('buildMcpServerInfo', () => {
     title: 'BPost e-MassPost',
     description: 'BPost e-MassPost connector',
     websiteUrl: 'https://bpost.example',
-    icons: [{ src: 'https://bpost.example/mcp-server-icon.svg', mimeType: 'image/svg+xml', sizes: 'any' }],
+    icons: [{ src: 'https://bpost.example/mcp-server-icon.svg', mimeType: 'image/svg+xml', sizes: ['any'] }],
   }
 
   it('returns minimal server info when all optional flags are disabled', () => {
