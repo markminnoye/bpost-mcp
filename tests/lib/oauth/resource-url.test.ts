@@ -34,4 +34,26 @@ describe('oauth resource URL helpers', () => {
       false,
     )
   })
+
+  it('oauthResourceMatchesAuthCodeAtTokenEndpoint: token host differs from canonical env but stored resource matches env', async () => {
+    const {
+      oauthResourceMatchesAuthCodeAtTokenEndpoint,
+      oauthResourcesMatchForTokenFromBase,
+    } = await import('@/lib/oauth/resource-url')
+    const stored = `${BASE}/api/mcp`
+    const tokenRequestBase = 'https://bpost-abc123-preview.vercel.app'
+    expect(oauthResourcesMatchForTokenFromBase(tokenRequestBase, stored, null)).toBe(false)
+    expect(oauthResourceMatchesAuthCodeAtTokenEndpoint(tokenRequestBase, stored, null)).toBe(true)
+  })
+
+  it('oauthResourceMatchesAuthCodeAtTokenEndpoint rejects unrelated stored resource', async () => {
+    const { oauthResourceMatchesAuthCodeAtTokenEndpoint } = await import('@/lib/oauth/resource-url')
+    expect(
+      oauthResourceMatchesAuthCodeAtTokenEndpoint(
+        'https://bpost-xyz.vercel.app',
+        'https://attacker.example/api/mcp',
+        null,
+      ),
+    ).toBe(false)
+  })
 })

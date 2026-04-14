@@ -19,6 +19,41 @@ _Nog geen items voor de volgende release._
 
 ---
 
+## [0.2.2] - 2026-04-14
+
+### Samenvatting
+
+**Nieuw**
+
+- Issue [#29](https://github.com/markminnoye/bpost-mcp/issues/29) documenteert de MCP-client compatibiliteitsaanpak voor issue [#25](https://github.com/markminnoye/bpost-mcp/issues/25), inclusief rollout-plan per metadata-veld.
+
+**Oplossingen**
+
+- MCP connectie werkt opnieuw stabiel in Claude Desktop én Le Chat met de recente repo-updates door terug te keren naar een minimale `serverInfo` payload (`name`, `version`) in `initialize`.
+- OAuth token-uitwisseling accepteert nu ook host-varianten op het token-endpoint (bijvoorbeeld canonical host vs. deployment-host) via normalisatie met fallback naar `NEXT_PUBLIC_BASE_URL`.
+
+**Aanpassingen**
+
+- `serverInfo`-uitbreidingen (`description`, `title`, `websiteUrl`, `icons`) zijn tijdelijk uit productie gehouden om clientcompatibiliteit te garanderen; herintroductie volgt gefaseerd in een aparte sprint.
+- Extra regressietests toegevoegd voor resource-matching en MCP server-info helpers.
+
+### Added
+
+- Helper `oauthResourceMatchesAuthCodeAtTokenEndpoint()` voor robuuste OAuth resource matching bij hostverschillen tussen authorize en token stap.
+- Documented follow-up issue for metadata rollout and client compatibility matrix: [#29](https://github.com/markminnoye/bpost-mcp/issues/29).
+
+### Changed
+
+- `src/app/api/mcp/route.ts` serves a minimal `serverInfo` shape (`name`, `version`) for broad client compatibility.
+- `src/lib/oauth/resource-url.ts` now supports token-endpoint matching across request host and configured base URL.
+
+### Fixed
+
+- Resolved MCP client authorization/connect failures caused by optional `serverInfo` metadata fields in certain clients.
+- Prevented false `invalid_grant` resource mismatch cases when OAuth authorize and token requests use equivalent but different app hosts.
+
+---
+
 ## [0.2.1] - 2026-04-14
 
 ### Samenvatting
