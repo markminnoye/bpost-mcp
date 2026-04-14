@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Docs:** MCP client compatibility matrix documents rollout step 1 (`serverInfo.description` only), expected `initialize` shape, and Le Chat symptom when `integrations.create` returns a Mistral-side TRPC internal error (blocks integration setup before MCP is called).
+
 ---
 
 ## [0.3.0] - 2026-04-14
@@ -504,3 +508,4 @@ Eerste release: projectstructuur met Vercel, TypeScript en Zod. BPost e-MassPost
 - Integrated `e-masspost-skills` library as a git submodule.
 - Migrated legacy BPost documentation to the Skills Library format.
 - Added Mermaid diagrams for technical protocol flows.
+
