@@ -56,6 +56,7 @@ export async function submitBatch(
     const mapped = row.mapped as Record<string, unknown>
     return {
       ...mapped,
+      // Defensive fallback for legacy/inconsistent state; mapping flow should already normalize to NP/P.
       priority: mapped.priority ?? params.priority,
     }
   })

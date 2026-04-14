@@ -219,6 +219,50 @@ describe('apply_row_fix data pollution', () => {
     // Verify validationErrors were updated on the failure path
     expect(savedArg.rows[0].validationErrors.length).toBeGreaterThan(0)
   })
+
+  it('applies priority defaulting/normalization rules before validating patched rows', async () => {
+    vi.mocked(saveBatchState).mockClear()
+
+    const mockState = {
+      batchId: 'b-row-fix-priority', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: [],
+      rows: [{
+        index: 0,
+        raw: {},
+        mapped: {
+          seq: 1,
+          Comps: { Comp: [{ code: '1', value: 'Janssen' }] },
+        },
+      }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'apply_row_fix', arguments: { batchId: 'b-row-fix-priority', rowIndex: 0, correctedData: { priority: ' np ' } } },
+      }),
+    })
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+
+    const savedArg = vi.mocked(saveBatchState).mock.calls[0][0] as any
+    expect(savedArg.rows[0].mapped.priority).toBe('NP')
+    expect(savedArg.rows[0].validationErrors).toBeUndefined()
+  })
 })
 
 describe('get_raw_headers', () => {
@@ -509,7 +553,8 @@ describe('Self-Learning Tools', () => {
     const body = await parseSseBody(res)
     expect((body?.result as any)?.isError).toBeFalsy()
 
-    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    const saveCalls = vi.mocked(saveBatchState).mock.calls
+    const savedState = saveCalls[saveCalls.length - 1]?.[0] as any
     expect(savedState?.rows[0]?.mapped?.priority).toBe('P')
   })
 
@@ -544,7 +589,8 @@ describe('Self-Learning Tools', () => {
     const res = await POST(req)
     const body = await parseSseBody(res)
     expect((body?.result as any)?.isError).toBeFalsy()
-    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    const saveCalls = vi.mocked(saveBatchState).mock.calls
+    const savedState = saveCalls[saveCalls.length - 1]?.[0] as any
     expect(savedState?.rows[0]?.mapped?.priority).toBe('P')
   })
 
@@ -728,6 +774,92 @@ describe('apply_mapping_rules alias translation', () => {
     const res = await POST(req)
     const body = await parseSseBody(res)
     expect((body?.result as any)?.isError).toBeFalsy()
+  })
+})
+
+describe('apply_mapping_rules priority normalization and defaulting', () => {
+  const makeRequest = (batchId: string, mapping: Record<string, string>) =>
+    new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'apply_mapping_rules', arguments: { batchId, mapping } },
+      }),
+    })
+
+  beforeEach(() => {
+    vi.mocked(saveBatchState).mockClear()
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+  })
+
+  it('defaults to NP when priority is not mapped', async () => {
+    vi.mocked(getBatchState).mockResolvedValue({
+      batchId: 'b-pri-default', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['Naam'],
+      rows: [{ index: 0, raw: { Naam: 'Janssen' } }],
+      createdAt: '2026-01-01',
+    } as any)
+
+    const res = await POST(makeRequest('b-pri-default', { Naam: 'Comps.1' }))
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+
+    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    expect(savedState.rows[0].mapped.priority).toBe('NP')
+    expect(savedState.rows[0].validationErrors).toBeUndefined()
+  })
+
+  it('normalizes priority with trim+uppercase (\" np \" -> \"NP\")', async () => {
+    vi.mocked(getBatchState).mockResolvedValue({
+      batchId: 'b-pri-trim', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['Naam', 'Prioriteit'],
+      rows: [{ index: 0, raw: { Naam: 'Janssen', Prioriteit: ' np ' } }],
+      createdAt: '2026-01-01',
+    } as any)
+
+    const res = await POST(makeRequest('b-pri-trim', { Naam: 'Comps.1', Prioriteit: 'priority' }))
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+
+    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    expect(savedState.rows[0].mapped.priority).toBe('NP')
+  })
+
+  it('normalizes lowercase p to P', async () => {
+    vi.mocked(getBatchState).mockResolvedValue({
+      batchId: 'b-pri-p', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['Naam', 'Prioriteit'],
+      rows: [{ index: 0, raw: { Naam: 'Janssen', Prioriteit: 'p' } }],
+      createdAt: '2026-01-01',
+    } as any)
+
+    const res = await POST(makeRequest('b-pri-p', { Naam: 'Comps.1', Prioriteit: 'priority' }))
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+
+    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    expect(savedState.rows[0].mapped.priority).toBe('P')
+  })
+
+  it('keeps invalid values as validation errors', async () => {
+    vi.mocked(getBatchState).mockResolvedValue({
+      batchId: 'b-pri-invalid', tenantId: 'tenant_a', status: 'UNMAPPED' as const,
+      headers: ['Naam', 'Prioriteit'],
+      rows: [{ index: 0, raw: { Naam: 'Janssen', Prioriteit: 'X' } }],
+      createdAt: '2026-01-01',
+    } as any)
+
+    const res = await POST(makeRequest('b-pri-invalid', { Naam: 'Comps.1', Prioriteit: 'priority' }))
+    const body = await parseSseBody(res)
+    expect((body?.result as any)?.isError).toBeFalsy()
+
+    const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
+    expect(savedState.rows[0].mapped.priority).toBe('X')
+    expect(savedState.rows[0].validationErrors?.length).toBeGreaterThan(0)
   })
 })
 
