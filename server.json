@@ -3,7 +3,7 @@
   "name": "io.github.markminnoye/bpost-emasspost",
   "title": "BPost e-MassPost",
   "description": "BPost e-MassPost connector — valideer adressen en maak zendingen aan.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "websiteUrl": "https://bpost.sonicrocket.be",
   "repository": {
     "url": "https://github.com/markminnoye/bpost-mcp",

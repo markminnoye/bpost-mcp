@@ -4,7 +4,7 @@ import { buildMcpServerInfo } from '@/lib/mcp/server-info'
 describe('buildMcpServerInfo', () => {
   const input = {
     name: 'bpost-emasspost',
-    version: '0.3.0',
+    version: '0.4.0',
     title: 'BPost e-MassPost',
     description: 'BPost e-MassPost connector',
     websiteUrl: 'https://bpost.example',
