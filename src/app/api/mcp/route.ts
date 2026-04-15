@@ -837,6 +837,11 @@ const handler = createMcpHandler(
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
         if (state.status !== 'MAPPED') return { isError: true, content: [{ type: 'text' as const, text: `Batch ${input.batchId} is not in MAPPED state. Current status: ${state.status}. Map the batch first using apply_mapping_rules.` }] }
 
+        const zodErrorRows = state.rows.filter(r => r.validationErrors && r.validationErrors.length > 0)
+        if (zodErrorRows.length > 0) {
+          return { isError: true, content: [{ type: 'text' as const, text: `Cannot check batch: ${zodErrorRows.length} row(s) still have validation errors. Fix them with apply_row_fix first, then retry check_batch.` }] }
+        }
+
         const credentials = await resolveCredentials(tenantId)
 
         const now = new Date()
@@ -969,15 +974,51 @@ const handler = createMcpHandler(
         const row = state.rows.find(r => r.index === input.rowIndex)
         if (!row) return { isError: true, content: [{ type: 'text' as const, text: 'Row not found' }] }
 
-        const candidateMapped = normalizeMappedPriority({ ...row.mapped, ...input.correctedData })
-        const validationResult = ItemSchema.safeParse(candidateMapped)
-        if (validationResult.success) {
-          row.mapped = validationResult.data   // only Zod-validated output written to row.mapped
-          row.validationErrors = undefined
-        } else {
-          // On failure: only update validationErrors — row.mapped stays as it was
-          row.validationErrors = validationResult.error.issues
+        // Resolve aliases (e.g. "language" → "lang", "street" → "Comps.3") before merging.
+        const resolvedDirect: Record<string, unknown> = {}
+        const resolvedComps: Array<{ code: string; value: string }> = []
+        for (const [key, value] of Object.entries(input.correctedData)) {
+          const resolved = resolveMappingTarget(key)
+          if (resolved.startsWith('Comps.')) {
+            const code = resolved.slice('Comps.'.length)
+            if (value !== undefined && value !== null) {
+              resolvedComps.push({ code, value: String(value) })
+            }
+          } else {
+            resolvedDirect[resolved] = value
+          }
         }
+
+        let mergedMapped: Record<string, unknown> = { ...(row.mapped as Record<string, unknown>), ...resolvedDirect }
+
+        if (resolvedComps.length > 0) {
+          const existingComps = (mergedMapped.Comps as { Comp: Array<{ code: string; value: string }> } | undefined)?.Comp ?? []
+          const updatedComps = [...existingComps]
+          for (const comp of resolvedComps) {
+            const idx = updatedComps.findIndex(c => c.code === comp.code)
+            if (comp.value === '') {
+              if (idx >= 0) updatedComps.splice(idx, 1)
+            } else if (idx >= 0) {
+              updatedComps[idx] = comp
+            } else {
+              updatedComps.push(comp)
+            }
+          }
+          updatedComps.sort((a, b) => Number(a.code) - Number(b.code))
+          if (updatedComps.length > 0) {
+            mergedMapped = { ...mergedMapped, Comps: { Comp: updatedComps } }
+          } else {
+            mergedMapped = { ...mergedMapped }
+            delete mergedMapped.Comps
+          }
+        }
+
+        const candidateMapped = normalizeMappedPriority(mergedMapped)
+        const validationResult = ItemSchema.safeParse(candidateMapped)
+        // On success: persist Zod-parsed output. On failure: persist merged candidate so partial
+        // fixes (e.g. Comps patches) accumulate instead of being discarded.
+        row.mapped = validationResult.success ? validationResult.data : candidateMapped
+        row.validationErrors = validationResult.success ? undefined : validationResult.error.issues
         try {
           await saveBatchState(state)
         } catch (err) {

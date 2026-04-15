@@ -17,6 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Samenvatting
 
+**Oplossingen**
+
+- `apply_row_fix` herkent nu vriendelijke aliasnamen (bv. `language`, `street`) naast interne veldnamen (`lang`, `Comps.3`). Eerder werd de gecorrigeerde waarde genegeerd als een agent een alias gebruikte, waardoor de validatiefout bleef staan. Comps-velden worden bovendien correct samengevoegd in de bestaande `Comps.Comp`-array ([#33](https://github.com/markminnoye/bpost-mcp/issues/33)).
+- `check_batch` weigert nu een BPost-verzoek te sturen als er nog rijen zijn met Zod-validatiefouten, en geeft een duidelijke melding terug. Voorheen stuurde de tool ongeldige data naar BPost, waardoor BPost een onbegrijpelijke `HTTP_404 Unknown error` terugstuurde ([#33](https://github.com/markminnoye/bpost-mcp/issues/33)).
+- `apply_row_fix` bewaart nu de samengevoegde rij (merged candidate) wanneer Zod nog faalt, zodat geldige tussentijdse fixes (bv. een straat in `Comps`) niet meer verloren gaan. Een lege string voor een Comps-alias wist dat component. Regressietests dekken dit en het vroege afbreken van `check_batch` bij rij-validatiefouten.
+
+### Fixed
+
+- **MCP `apply_row_fix`:** Resolves alias field names (e.g. `language → lang`, `street → Comps.3`) via `resolveMappingTarget()` before merging into the mapped row. Comps-field aliases patch the existing `Comps.Comp` array correctly. Agents using internal names are unaffected. ([#33](https://github.com/markminnoye/bpost-mcp/issues/33))
+- **MCP `check_batch`:** Refuses to call BPost when any row still has Zod validation errors; returns a clear actionable error message instead of forwarding invalid data and receiving an opaque `HTTP_404 Unknown error`. ([#33](https://github.com/markminnoye/bpost-mcp/issues/33))
+- **MCP `apply_row_fix`:** On Zod validation failure, persists the normalized merged candidate (not only `validationErrors`) so partial corrections accumulate; empty string for a Comps-mapped alias removes that `Comp` entry (and drops `Comps` when none remain).
+- **Tests:** MCP route coverage for `check_batch` early exit when rows still have Zod errors, partial-merge persistence, and Comps clearing via empty string.
+
 **Aanpassingen**
 
 - MCP `initialize.serverInfo` bevat altijd alle metadata (`title`, `description`, `websiteUrl`, `icons`); de omgevingsvariabelen `MCP_SERVERINFO_ENABLE_*` zijn verwijderd (geen gefaseerde rollout meer).

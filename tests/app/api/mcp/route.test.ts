@@ -334,7 +334,7 @@ describe('MCP route auth via withMcpAuth', () => {
 })
 
 describe('apply_row_fix data pollution', () => {
-  it('does not persist unvalidated correctedData to row.mapped on validation failure', async () => {
+  it('persists merged candidate on validation failure (not Zod-parsed output) and records issues', async () => {
     vi.mocked(saveBatchState).mockClear()
     vi.mocked(getBatchState).mockClear()
 
@@ -367,20 +367,87 @@ describe('apply_row_fix data pollution', () => {
     // Verify the request reached the tool (200 means MCP protocol was accepted)
     expect(res.status).toBe(200)
 
-    // Verify row.mapped was NOT polluted with unvalidated data.
-    // mockState is mutated in-place by the handler, so we can inspect it directly.
-    expect(mockState.rows[0].mapped).toEqual(originalMapped)
-    expect((mockState.rows[0].mapped as any)?.seq).not.toBe('INVALID')
+    // Wait for async tools/call handler (SSE may resolve before row state is updated)
+    await new Promise(resolve => setTimeout(resolve, 150))
 
-    // Also verify the persisted state (saveBatchState argument) was not polluted
-    // Wait briefly for async operations to complete
-    await new Promise(resolve => setTimeout(resolve, 100))
+    // Merged candidate is stored so iterative fixes can proceed; invalid patches remain visible until fixed.
+    expect((mockState.rows[0].mapped as any)?.seq).toBe('INVALID')
+
+    // Also verify the persisted state (saveBatchState argument)
     expect(vi.mocked(saveBatchState).mock.calls.length).toBeGreaterThan(0)
     const savedArg = vi.mocked(saveBatchState).mock.calls[0][0] as any
-    expect(savedArg.rows[0].mapped).toEqual(originalMapped)
-    expect(savedArg.rows[0].mapped.seq).not.toBe('INVALID')
-    // Verify validationErrors were updated on the failure path
+    expect(savedArg.rows[0].mapped.seq).toBe('INVALID')
     expect(savedArg.rows[0].validationErrors.length).toBeGreaterThan(0)
+  })
+
+  it('preserves valid partial updates even when row validation fails', async () => {
+    vi.mocked(saveBatchState).mockClear()
+    vi.mocked(getBatchState).mockClear()
+
+    const mockState = {
+      batchId: 'b-partial', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: [], rows: [{ index: 0, raw: {}, mapped: { seq: 1 }, validationErrors: [] }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'apply_row_fix', arguments: { batchId: 'b-partial', rowIndex: 0, correctedData: { street: 'Main St', priority: 'INVALID' } } },
+      }),
+    })
+
+    await POST(req)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    expect((mockState.rows[0].mapped as any).Comps?.Comp).toContainEqual({ code: '3', value: 'Main St' })
+    expect(mockState.rows[0].validationErrors?.length).toBeGreaterThan(0)
+  })
+
+  it('allows clearing a Comps field using an empty string', async () => {
+    vi.mocked(saveBatchState).mockClear()
+    vi.mocked(getBatchState).mockClear()
+
+    const mockState = {
+      batchId: 'b-clear-comps', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: [], rows: [{ index: 0, raw: {}, mapped: { seq: 1, Comps: { Comp: [{ code: '3', value: 'Old St' }] } }, validationErrors: [] }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(saveBatchState).mockResolvedValue(undefined)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'apply_row_fix', arguments: { batchId: 'b-clear-comps', rowIndex: 0, correctedData: { street: '' } } },
+      }),
+    })
+
+    await POST(req)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    const comps = (mockState.rows[0].mapped as any).Comps?.Comp ?? []
+    expect(comps.length).toBe(0)
   })
 
   it('applies priority defaulting/normalization rules before validating patched rows', async () => {
@@ -512,6 +579,37 @@ describe('structured content contracts', () => {
     const parsed = JSON.parse((body?.result as any)?.content?.[0]?.text ?? '{}')
     expect(parsed.totalErrors).toBe(0)
     expect((body?.result as any)?.structuredContent).toEqual(parsed)
+  })
+
+  it('check_batch rejects the request if any row has validation errors', async () => {
+    vi.mocked(getBatchState).mockClear()
+
+    const mockState = {
+      batchId: 'b-check-reject', tenantId: 'tenant_a', status: 'MAPPED' as const,
+      headers: [], rows: [{ index: 0, raw: {}, mapped: { seq: 1 }, validationErrors: [{ message: 'error' }] }],
+      createdAt: '2026-01-01',
+    }
+    vi.mocked(getBatchState).mockResolvedValue(mockState as any)
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const req = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'check_batch', arguments: { batchId: 'b-check-reject' } },
+      }),
+    })
+
+    const res = await POST(req)
+    const body = await parseSseBody(res)
+    const toolContent = ((body?.result as any)?.content ?? []) as Array<{ type: string; text: string }>
+
+    expect((body?.result as any)?.isError).toBe(true)
+    expect(toolContent[0].text).toContain('still have validation errors')
+    expect(res.status).toBe(200)
   })
 
   it('check_batch returns structuredContent summary payload on success', async () => {
