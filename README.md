@@ -4,7 +4,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that b
 
 BPost's API requires XML payloads, strict field validation, and cryptic error codes. BPost MCP translates between JSON-native AI agents and the raw postal protocol, so agents can safely validate and submit mailings without understanding low-level HTTP/XML mechanics.
 
-**Current version:** v0.3.0 — MCP resources/prompts, full `serverInfo` metadata, and OAuth 2.0 MCP integration
+**Current version:** v0.4.0 — MCP Registry `server.json`, `/health` `/ready` `/version` probes, MCP CI, tool metadata hardening, and OAuth 2.0 MCP integration
 
 ---
 
