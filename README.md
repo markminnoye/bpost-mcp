@@ -4,13 +4,15 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that b
 
 BPost's API requires XML payloads, strict field validation, and cryptic error codes. BPost MCP translates between JSON-native AI agents and the raw postal protocol, so agents can safely validate and submit mailings without understanding low-level HTTP/XML mechanics.
 
-**Current version:** v2.0.0 — OAuth 2.0 MCP integration (full RFC 8414 / 9728 compliance)
+**Current version:** v0.3.0 — MCP resources/prompts, full `serverInfo` metadata, and OAuth 2.0 MCP integration
 
 ---
 
-## Tools
+## MCP Surface
 
-### Batch Pipeline (recommended for large mailings)
+### Tools (15)
+
+#### Batch pipeline (recommended for CSV mailings)
 
 | Tool | Description |
 |------|-------------|
@@ -22,8 +24,18 @@ BPost's API requires XML payloads, strict field validation, and cryptic error co
 | `apply_row_fix` | Patch individual rows with corrected values |
 | `check_batch` | Pre-validate addresses via BPost OptiAddress before submission |
 | `submit_ready_batch` | Submit the validated batch to BPost |
+| `apply_fix_script` | Run a saved fix script on one row, then re-validate |
 
-### Direct BPost API
+#### Protocol knowledge / operations
+
+| Tool | Description |
+|------|-------------|
+| `get_service_info` | Return service name + semantic version |
+| `add_protocol_rule` | Append a discovered protocol rule to the shared knowledge base |
+| `create_fix_script` | Save reusable TypeScript/JavaScript row-fix logic |
+| `report_issue` | Create (or prepare) a GitHub issue for protocol/server problems |
+
+#### Direct BPost API
 
 | Tool | Description |
 |------|-------------|
@@ -31,6 +43,18 @@ BPost's API requires XML payloads, strict field validation, and cryptic error co
 | `bpost_announce_mailing` | Announce a mailing batch with structured validation |
 
 All tools require a Bearer token in the `Authorization` header.
+
+### Resources (3)
+
+- `bpost://guides/mapping-glossary`
+- `bpost://guides/mode-priority-matrix`
+- `bpost://guides/common-error-guidance`
+
+### Prompts (3)
+
+- `batch_onboarding_flow`
+- `batch_error_triage_fix_loop`
+- `submit_preflight_confirmation`
 
 ---
 
@@ -47,7 +71,7 @@ Add the following to your Claude Desktop config file.
   "mcpServers": {
     "bpost": {
       "type": "http",
-      "url": "https://bpost-mcp.vercel.app/api/mcp",
+      "url": "https://bpost.sonicrocket.be/api/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
       }
@@ -57,21 +81,21 @@ Add the following to your Claude Desktop config file.
 ```
 
 Replace `<your-token>` with either:
-- An **OAuth 2.0 access token** obtained via the [dashboard](https://bpost-mcp.vercel.app/dashboard)
+- An **OAuth 2.0 access token** obtained via the [dashboard](https://bpost.sonicrocket.be/dashboard)
 - A **legacy M2M token** (`bpost_…`) generated in the dashboard for Langflow/n8n integrations
 
 ---
 
 ## Getting a Token
 
-1. Sign in at [https://bpost-mcp.vercel.app/dashboard](https://bpost-mcp.vercel.app/dashboard) with your Google account.
+1. Sign in at [https://bpost.sonicrocket.be/dashboard](https://bpost.sonicrocket.be/dashboard) with your Google account.
 2. Navigate to **API Tokens** and generate a new token.
 3. Copy the token — it is shown only once.
 
 For OAuth 2.0 clients (e.g., Claude Desktop with dynamic client registration), the authorization server metadata is available at:
 
 ```
-https://bpost-mcp.vercel.app/.well-known/oauth-authorization-server
+https://bpost.sonicrocket.be/.well-known/oauth-authorization-server
 ```
 
 PKCE (`S256`) is mandatory for all OAuth flows.
@@ -105,7 +129,8 @@ cp .env.example .env.local
 
 | Variable | Description |
 |----------|-------------|
-| `BPOST_DB_DATABASE_URL` | Neon Postgres connection string |
+| `BPOST_DB_DATABASE_URL` | Primary Neon Postgres connection string (runtime) |
+| `DATABASE_URL` | Local fallback connection string (used if `BPOST_DB_DATABASE_URL` is absent) |
 | `ENCRYPTION_KEY` | 32-byte base64 key for AES-256-GCM credential encryption |
 | `AUTH_SECRET` | NextAuth v5 secret (`openssl rand -base64 32`) |
 | `AUTH_GOOGLE_ID` | Google OAuth client ID (dashboard login) |
@@ -115,8 +140,11 @@ cp .env.example .env.local
 | `SEED_BPOST_PASSWORD` | BPost password (optional, for demo seeding) |
 | `SEED_BPOST_CUSTOMER_NUMBER` | 8-digit PRS ID (optional) |
 | `SEED_BPOST_ACCOUNT_ID` | 8-digit PBC ID (optional) |
+| `SEED_USER_EMAIL` | Demo user email for seed script (optional, defaults to `test@example.com`) |
 | `REDIS_URL` | TCP Redis connection string (auto-set by Vercel Marketplace Redis) |
-| `NEXT_PUBLIC_BASE_URL` | Base URL override (defaults to `https://bpost.sonicrocket.io`) |
+| `NEXT_PUBLIC_BASE_URL` | Canonical public base URL (recommended explicit value in Vercel) |
+| `VERCEL_URL` | Vercel-provided hostname fallback when `NEXT_PUBLIC_BASE_URL` is not set |
+| `GITHUB_TOKEN` | Optional PAT for `report_issue` tool auto-creation |
 
 Generate the encryption key and auth secret:
 
@@ -196,10 +224,11 @@ src/
 |-------|-----------|
 | Runtime | Next.js 16 (App Router) on Vercel |
 | Language | TypeScript 5 (strict) |
+| MCP transport | `mcp-handler` (`createMcpHandler` + `withMcpAuth`) |
 | Validation | Zod 4 |
 | Database | Neon Postgres via Drizzle ORM |
 | Batch state | Redis (`redis` npm client, `REDIS_URL`) |
-| Auth (dashboard) | Auth.js v5 + Google OAuth |
+| Auth (dashboard) | Auth.js v5 (`next-auth`) + Google OAuth |
 | Auth (MCP) | OAuth 2.0 + JWT (jose) |
 | XML | fast-xml-parser (ISO-8859-1) |
 | CSV | Papa Parse |
