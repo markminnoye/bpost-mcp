@@ -1,19 +1,12 @@
 import { z } from 'zod'
+import { resolvePublicBaseUrlFromEnv } from '@/lib/config/resolve-public-base-url'
 
 /**
- * Resolves the public site URL for env-backed helpers (dashboard copy, JWT fallback).
+ * Public site URL for env-backed helpers (dashboard copy, JWT fallback).
  * OAuth metadata and token signing use `getPublicOrigin(request)` so the same deployment
  * works on a custom domain even when this value is still the default deployment hostname.
  * For consistent install links and docs, set NEXT_PUBLIC_BASE_URL to your canonical URL.
  */
-function resolveNextPublicBaseUrl(): string | undefined {
-  const explicit = process.env.NEXT_PUBLIC_BASE_URL?.trim()
-  if (explicit) return explicit
-  const vercel = process.env.VERCEL_URL?.trim()
-  if (vercel) return `https://${vercel}`
-  // Local dev fallback (no Vercel env, no explicit var set)
-  return 'http://localhost:3000'
-}
 
 /**
  * Centralized environment variable validation and access.
@@ -32,6 +25,13 @@ const envSchema = z.object({
   /** TCP Redis URL for batch state (Vercel Marketplace Redis sets this automatically). */
   REDIS_URL: z.string().optional(),
 
+  /** Timeout in ms for `/ready` dependency probes (DB/Redis). */
+  READINESS_PROBE_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(1500),
+
   /** HS256 key for OAuth access tokens (must match runtime reads in `jwt.ts` for tests). */
   OAUTH_JWT_SECRET: z
     .string()
@@ -43,9 +43,10 @@ const envSchema = z.object({
 
 // Use safeParse to provide better error messages if validation fails
 const result = envSchema.safeParse({
-  NEXT_PUBLIC_BASE_URL: resolveNextPublicBaseUrl(),
+  NEXT_PUBLIC_BASE_URL: resolvePublicBaseUrlFromEnv(),
   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   REDIS_URL: process.env.REDIS_URL,
+  READINESS_PROBE_TIMEOUT_MS: process.env.READINESS_PROBE_TIMEOUT_MS,
   OAUTH_JWT_SECRET: process.env.OAUTH_JWT_SECRET,
 })
 

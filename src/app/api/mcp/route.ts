@@ -204,6 +204,45 @@ const CheckBatchOutputSchema = z.object({
   mode: z.enum(['P', 'T', 'C']),
 })
 
+/** Shared by tools that return a single human-readable outcome line (success paths). */
+const SimpleMessageOutputSchema = z.object({
+  message: z.string(),
+})
+
+const UploadBatchFileSuccessOutputSchema = z.object({
+  success: z.literal(true),
+  batchId: z.string(),
+  status: z.string(),
+  totalRows: z.number().int().nonnegative(),
+  nextStep: z.string(),
+})
+
+const GetUploadInstructionsOutputSchema = z.object({
+  upload: z.object({
+    method: z.string(),
+    url: z.string(),
+    authHeader: z.string(),
+    multipartField: z.string(),
+    acceptedFormats: z.array(z.string()),
+  }),
+  exampleCurl: z.string(),
+  responseShape: z.object({ batchId: z.string() }),
+  nextStep: z.string(),
+  note: z.string(),
+})
+
+const ApplyMappingRulesSuccessOutputSchema = z.object({
+  message: z.string(),
+  mappedRowCount: z.number().int().nonnegative(),
+})
+
+const SubmitReadyBatchSuccessOutputSchema = z.object({
+  rowsSent: z.number().int().nonnegative(),
+  skippedRows: z.number().int().nonnegative(),
+  mailingRef: z.string(),
+  bpostStatus: z.literal('OK'),
+})
+
 function jsonToolResult<T extends Record<string, unknown>>(payload: T) {
   return {
     structuredContent: payload,
@@ -382,6 +421,13 @@ const handler = createMcpHandler(
           rule: z.string().describe('The rule description, e.g. "MID-4010 means address line too long"'),
           context: z.string().describe('The context or error code this rule relates to'),
         }),
+        outputSchema: SimpleMessageOutputSchema,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -393,7 +439,7 @@ const handler = createMcpHandler(
 
         try {
           await fs.appendFile(rulesPath, entry)
-          return { content: [{ type: 'text' as const, text: `Successfully added protocol rule to knowledge base.` }] }
+          return jsonToolResult({ message: 'Successfully added protocol rule to knowledge base.' })
         } catch (err) {
           console.error('[MCP] add_protocol_rule failed:', err)
           return { isError: true, content: [{ type: 'text' as const, text: 'Failed to update learned_rules.md' }] }
@@ -415,6 +461,7 @@ const handler = createMcpHandler(
           code: z.string().describe('The executable JS/TS code snippet'),
           description: z.string().describe('Description of what the script fixes'),
         }),
+        outputSchema: SimpleMessageOutputSchema,
         annotations: {
           readOnlyHint: false,
           destructiveHint: true,
@@ -433,7 +480,7 @@ const handler = createMcpHandler(
           await fs.mkdir(scriptsDir, { recursive: true })
           const content = `/**\n * ${input.description}\n */\n\n${input.code}\n`
           await fs.writeFile(scriptPath, content)
-          return { content: [{ type: 'text' as const, text: `Successfully saved fix script: ${input.name}` }] }
+          return jsonToolResult({ message: `Successfully saved fix script: ${input.name}` })
         } catch (err) {
           console.error('[MCP] create_fix_script failed:', err)
           return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save fix script.' }] }
@@ -455,6 +502,7 @@ const handler = createMcpHandler(
             .regex(/^[a-z0-9-]+$/, 'Script name must be lowercase kebab-case (a-z, 0-9, hyphens only)')
             .describe('The name of the script to apply (without extension)'),
         }),
+        outputSchema: SimpleMessageOutputSchema,
         annotations: {
           readOnlyHint: false,
           destructiveHint: true,
@@ -499,9 +547,9 @@ const handler = createMcpHandler(
 
           await saveBatchState(state)
           if (validationResult.success) {
-            return { content: [{ type: 'text' as const, text: `Script applied successfully. Row ${input.rowIndex} is now valid.` }] }
+            return jsonToolResult({ message: `Script applied successfully. Row ${input.rowIndex} is now valid.` })
           }
-          return { content: [{ type: 'text' as const, text: `Script applied but row ${input.rowIndex} still has validation errors.` }] }
+          return jsonToolResult({ message: `Script applied but row ${input.rowIndex} still has validation errors.` })
         } catch (err) {
           console.error('[MCP] apply_fix_script failed:', err)
           return { isError: true, content: [{ type: 'text' as const, text: `Script execution failed: ${err instanceof Error ? err.message : String(err)}` }] }
@@ -519,6 +567,12 @@ const handler = createMcpHandler(
           title: z.string().describe('Short descriptive title of the issue'),
           body: z.string().describe('Detailed description, including error codes or contradictions found'),
         }),
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -557,6 +611,13 @@ const handler = createMcpHandler(
           fileName: z.string().describe('Original file name, must end with .csv'),
           fileContentBase64: z.string().describe('Full content of the CSV file encoded as base64 (must be UTF-8 bytes). If exporting from Excel, choose "CSV UTF-8".'),
         }),
+        outputSchema: UploadBatchFileSuccessOutputSchema,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -587,18 +648,13 @@ const handler = createMcpHandler(
           return { isError: true, content: [{ type: 'text' as const, text: 'Failed to store batch. Please retry.' }] }
         }
 
-        return {
-          content: [{
-            type: 'text' as const,
-            text: JSON.stringify({
-              success: true,
-              batchId: result.state.batchId,
-              status: result.state.status,
-              totalRows: result.state.rows.length,
-              nextStep: 'Call get_raw_headers with this batchId to inspect column headers.',
-            }, null, 2),
-          }],
-        }
+        return jsonToolResult({
+          success: true,
+          batchId: result.state.batchId,
+          status: result.state.status,
+          totalRows: result.state.rows.length,
+          nextStep: 'Call get_raw_headers with this batchId to inspect column headers.',
+        })
       },
     )
 
@@ -611,6 +667,13 @@ const handler = createMcpHandler(
           'Prefer upload_batch_file for agent-native uploads that avoid manual curl steps. ' +
           'Next step: get_raw_headers.',
         inputSchema: z.object({}),
+        outputSchema: GetUploadInstructionsOutputSchema,
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       async (_input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -632,12 +695,7 @@ const handler = createMcpHandler(
           nextStep: 'Call get_raw_headers with the batchId from the upload response.',
           note: 'For agent-native upload without curl, use the upload_batch_file tool instead.',
         }
-        return {
-          content: [{
-            type: 'text' as const,
-            text: JSON.stringify(payload, null, 2),
-          }],
-        }
+        return jsonToolResult(payload)
       },
     )
 
@@ -699,6 +757,13 @@ const handler = createMcpHandler(
             'Example: { "Familienaam": "lastName", "Straat": "street", "Postcode": "postalCode" }'
           ),
         }),
+        outputSchema: ApplyMappingRulesSuccessOutputSchema,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -744,7 +809,10 @@ const handler = createMcpHandler(
           return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
         }
 
-        return { content: [{ type: 'text' as const, text: `Successfully mapped ${state.rows.length} rows.` }] }
+        return jsonToolResult({
+          message: `Successfully mapped ${state.rows.length} rows.`,
+          mappedRowCount: state.rows.length,
+        })
       },
     )
 
@@ -836,6 +904,11 @@ const handler = createMcpHandler(
         const state = await getBatchState(tenantId, input.batchId)
         if (!state) return { isError: true, content: [{ type: 'text' as const, text: 'Batch not found' }] }
         if (state.status !== 'MAPPED') return { isError: true, content: [{ type: 'text' as const, text: `Batch ${input.batchId} is not in MAPPED state. Current status: ${state.status}. Map the batch first using apply_mapping_rules.` }] }
+
+        const zodErrorRows = state.rows.filter(r => r.validationErrors && r.validationErrors.length > 0)
+        if (zodErrorRows.length > 0) {
+          return { isError: true, content: [{ type: 'text' as const, text: `Cannot check batch: ${zodErrorRows.length} row(s) still have validation errors. Fix them with apply_row_fix first, then retry check_batch.` }] }
+        }
 
         const credentials = await resolveCredentials(tenantId)
 
@@ -952,6 +1025,7 @@ const handler = createMcpHandler(
           rowIndex: z.number().int().min(0),
           correctedData: z.record(z.string(), z.any()),
         }),
+        outputSchema: SimpleMessageOutputSchema,
         annotations: {
           readOnlyHint: false,
           destructiveHint: true,
@@ -969,15 +1043,51 @@ const handler = createMcpHandler(
         const row = state.rows.find(r => r.index === input.rowIndex)
         if (!row) return { isError: true, content: [{ type: 'text' as const, text: 'Row not found' }] }
 
-        const candidateMapped = normalizeMappedPriority({ ...row.mapped, ...input.correctedData })
-        const validationResult = ItemSchema.safeParse(candidateMapped)
-        if (validationResult.success) {
-          row.mapped = validationResult.data   // only Zod-validated output written to row.mapped
-          row.validationErrors = undefined
-        } else {
-          // On failure: only update validationErrors — row.mapped stays as it was
-          row.validationErrors = validationResult.error.issues
+        // Resolve aliases (e.g. "language" → "lang", "street" → "Comps.3") before merging.
+        const resolvedDirect: Record<string, unknown> = {}
+        const resolvedComps: Array<{ code: string; value: string }> = []
+        for (const [key, value] of Object.entries(input.correctedData)) {
+          const resolved = resolveMappingTarget(key)
+          if (resolved.startsWith('Comps.')) {
+            const code = resolved.slice('Comps.'.length)
+            if (value !== undefined && value !== null) {
+              resolvedComps.push({ code, value: String(value) })
+            }
+          } else {
+            resolvedDirect[resolved] = value
+          }
         }
+
+        let mergedMapped: Record<string, unknown> = { ...(row.mapped as Record<string, unknown>), ...resolvedDirect }
+
+        if (resolvedComps.length > 0) {
+          const existingComps = (mergedMapped.Comps as { Comp: Array<{ code: string; value: string }> } | undefined)?.Comp ?? []
+          const updatedComps = [...existingComps]
+          for (const comp of resolvedComps) {
+            const idx = updatedComps.findIndex(c => c.code === comp.code)
+            if (comp.value === '') {
+              if (idx >= 0) updatedComps.splice(idx, 1)
+            } else if (idx >= 0) {
+              updatedComps[idx] = comp
+            } else {
+              updatedComps.push(comp)
+            }
+          }
+          updatedComps.sort((a, b) => Number(a.code) - Number(b.code))
+          if (updatedComps.length > 0) {
+            mergedMapped = { ...mergedMapped, Comps: { Comp: updatedComps } }
+          } else {
+            mergedMapped = { ...mergedMapped }
+            delete mergedMapped.Comps
+          }
+        }
+
+        const candidateMapped = normalizeMappedPriority(mergedMapped)
+        const validationResult = ItemSchema.safeParse(candidateMapped)
+        // On success: persist Zod-parsed output. On failure: persist merged candidate so partial
+        // fixes (e.g. Comps patches) accumulate instead of being discarded.
+        row.mapped = validationResult.success ? validationResult.data : candidateMapped
+        row.validationErrors = validationResult.success ? undefined : validationResult.error.issues
         try {
           await saveBatchState(state)
         } catch (err) {
@@ -985,9 +1095,12 @@ const handler = createMcpHandler(
           return { isError: true, content: [{ type: 'text' as const, text: 'Failed to save batch state. Please retry.' }] }
         }
         if (validationResult.success) {
-          return { content: [{ type: 'text' as const, text: `Row ${input.rowIndex} patched and validated successfully.` }] }
+          return jsonToolResult({ message: `Row ${input.rowIndex} patched and validated successfully.` })
         }
-        return { content: [{ type: 'text' as const, text: `Row ${input.rowIndex} patched but still has ${validationResult.error.issues.length} validation error(s). Use get_batch_errors to review.` }] }
+        return jsonToolResult({
+          message:
+            `Row ${input.rowIndex} patched but still has ${validationResult.error.issues.length} validation error(s). Use get_batch_errors to review.`,
+        })
       },
     )
 
@@ -1021,13 +1134,14 @@ const handler = createMcpHandler(
           barcodeLength: z.enum(['7', '9', '11']).optional()
             .describe('Number of digits for bpost-generated barcodes. Only used when barcodeStrategy is "bpost-generates". Defaults to 7.'),
           genPSC: z.enum(['Y', 'N']).optional().default('N'),
-        }).refine(
+        }        ).refine(
           (data) => data.barcodeLength === undefined || data.barcodeStrategy === 'bpost-generates',
           {
             message: 'barcodeLength is only allowed when barcodeStrategy is "bpost-generates". Either set barcodeStrategy to "bpost-generates" or omit barcodeLength.',
             path: ['barcodeLength'],
           },
         ),
+        outputSchema: SubmitReadyBatchSuccessOutputSchema,
         annotations: {
           readOnlyHint: false,
           destructiveHint: true,
@@ -1182,12 +1296,12 @@ const handler = createMcpHandler(
             return { isError: true, content: [{ type: 'text' as const, text: `BPost accepted the mailing but state save failed. mailingRef: ${mailingRef}. Please contact support.` }] }
           }
 
-          return {
-            content: [{
-              type: 'text' as const,
-              text: `Mailing submitted: ${readyRows.length} rows sent, ${skippedCount} skipped (validation errors).\nmailingRef: ${mailingRef}\nBPost status: OK`,
-            }],
-          }
+          return jsonToolResult({
+            rowsSent: readyRows.length,
+            skippedRows: skippedCount,
+            mailingRef,
+            bpostStatus: 'OK',
+          })
         }
 
         // BPost error — batch stays MAPPED
@@ -1213,6 +1327,12 @@ const handler = createMcpHandler(
           'Deposits must be linked to mailings via master/slave: if deposit is master, set depositRef and leave mailingRef empty; ' +
           'if mailing is master, reference the existing mailingRef. See server instructions for linking rules.',
         inputSchema: DepositRequestSchema,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)
@@ -1262,6 +1382,12 @@ const handler = createMcpHandler(
           'For CSV files from users, use the batch pipeline instead (starting with upload_batch_file). ' +
           'If linking to a deposit: set mailingRef; if this mailing is the slave, also set depositRef to the master deposit.',
         inputSchema: MailingRequestSchema,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
       },
       async (input, extra) => {
         const tenantOrError = requireTenantId(extra)

@@ -15,6 +15,15 @@ export const MCP_SERVER_ICON_PUBLIC_PATH = '/mcp-server-icon.svg'
 /** User-facing description for the MCP server. */
 export const MCP_SERVER_DESCRIPTION = 'BPost e-MassPost connector — valideer adressen en maak zendingen aan.'
 
+/** Source repo URL for MCP Registry `server.json` and docs. */
+export const MCP_REGISTRY_GITHUB_REPO_URL = 'https://github.com/markminnoye/bpost-mcp'
+
+/**
+ * Canonical production origin for root `server.json` when `NEXT_PUBLIC_BASE_URL` and
+ * `VERCEL_URL` are unset (e.g. local `npm run build`). Matches README install URL.
+ */
+export const MCP_REGISTRY_CANONICAL_ORIGIN = 'https://bpost.sonicrocket.be'
+
 export type McpServerIconDescriptor = {
   src: string
   mimeType: 'image/svg+xml'
