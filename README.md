@@ -169,6 +169,11 @@ npm run dev        # http://localhost:3000
 
 The local MCP endpoint is at `http://localhost:3000/api/mcp`.
 
+Operational probe endpoints:
+- `http://localhost:3000/health`
+- `http://localhost:3000/ready`
+- `http://localhost:3000/version`
+
 ---
 
 ## Scripts

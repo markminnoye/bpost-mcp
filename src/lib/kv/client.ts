@@ -34,6 +34,14 @@ async function getRedis(): Promise<RedisClient> {
   }
 }
 
+/** Lightweight readiness probe for Redis connectivity. */
+export async function checkRedisConnection(): Promise<void | 'skipped'> {
+  // Redis is optional in some environments; signal explicit skip when not configured.
+  if (!env.REDIS_URL) return 'skipped'
+  const redis = await getRedis()
+  await redis.ping()
+}
+
 export type BatchStatus = 'UNMAPPED' | 'MAPPED' | 'SUBMITTED'
 
 export interface BpostValidationItem {

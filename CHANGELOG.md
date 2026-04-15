@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Issue [#31](https://github.com/markminnoye/bpost-mcp/issues/31) opgesplitst met child issue [#35](https://github.com/markminnoye/bpost-mcp/issues/35) voor standards closure van operationele probes.
 - Nieuwe operationele probe-endpoints toegevoegd: `/health`, `/ready` en `/version`, inclusief regressietests op statuscode en payload-shape.
+- `/ready` voert lichte connectiviteitsprobes uit op Neon (DB) en optioneel Redis; configureerbare timeout via `READINESS_PROBE_TIMEOUT_MS` (standaard 1500 ms). Bij falen: HTTP 503 met `not_ready` en `failures`.
 - `apply_row_fix` herkent nu vriendelijke aliasnamen (bv. `language`, `street`) naast interne veldnamen (`lang`, `Comps.3`). Eerder werd de gecorrigeerde waarde genegeerd als een agent een alias gebruikte, waardoor de validatiefout bleef staan. Comps-velden worden bovendien correct samengevoegd in de bestaande `Comps.Comp`-array ([#33](https://github.com/markminnoye/bpost-mcp/issues/33)).
 - `check_batch` weigert nu een BPost-verzoek te sturen als er nog rijen zijn met Zod-validatiefouten, en geeft een duidelijke melding terug. Voorheen stuurde de tool ongeldige data naar BPost, waardoor BPost een onbegrijpelijke `HTTP_404 Unknown error` terugstuurde ([#33](https://github.com/markminnoye/bpost-mcp/issues/33)).
 - `apply_row_fix` bewaart nu de samengevoegde rij (merged candidate) wanneer Zod nog faalt, zodat geldige tussentijdse fixes (bv. een straat in `Comps`) niet meer verloren gaan. Een lege string voor een Comps-alias wist dat component. Regressietests dekken dit en het vroege afbreken van `check_batch` bij rij-validatiefouten.
@@ -28,7 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Operations:** Added lightweight operational probe routes: `GET /health`, `GET /ready`, and `GET /version` for platform checks and diagnostics.
+- **Operations:** `/ready` probes Neon (`SELECT 1`) and Redis (`PING`) when `REDIS_URL` is set; uses `READINESS_PROBE_TIMEOUT_MS` (default 1500). Returns `503` with `not_ready` when any probe fails.
+- **Config:** `READINESS_PROBE_TIMEOUT_MS` validated in `env.ts` and documented in `.env.example`.
 - **Tests:** Added endpoint coverage for probe status codes and JSON payload shape to prevent regressions.
+- **Tests:** Coverage for readiness helpers and Redis probe behavior.
 - **MCP `apply_row_fix`:** Resolves alias field names (e.g. `language → lang`, `street → Comps.3`) via `resolveMappingTarget()` before merging into the mapped row. Comps-field aliases patch the existing `Comps.Comp` array correctly. Agents using internal names are unaffected. ([#33](https://github.com/markminnoye/bpost-mcp/issues/33))
 - **MCP `check_batch`:** Refuses to call BPost when any row still has Zod validation errors; returns a clear actionable error message instead of forwarding invalid data and receiving an opaque `HTTP_404 Unknown error`. ([#33](https://github.com/markminnoye/bpost-mcp/issues/33))
 - **MCP `apply_row_fix`:** On Zod validation failure, persists the normalized merged candidate (not only `validationErrors`) so partial corrections accumulate; empty string for a Comps-mapped alias removes that `Comp` entry (and drops `Comps` when none remain).

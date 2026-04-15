@@ -32,6 +32,13 @@ const envSchema = z.object({
   /** TCP Redis URL for batch state (Vercel Marketplace Redis sets this automatically). */
   REDIS_URL: z.string().optional(),
 
+  /** Timeout in ms for `/ready` dependency probes (DB/Redis). */
+  READINESS_PROBE_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(1500),
+
   /** HS256 key for OAuth access tokens (must match runtime reads in `jwt.ts` for tests). */
   OAUTH_JWT_SECRET: z
     .string()
@@ -46,6 +53,7 @@ const result = envSchema.safeParse({
   NEXT_PUBLIC_BASE_URL: resolveNextPublicBaseUrl(),
   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   REDIS_URL: process.env.REDIS_URL,
+  READINESS_PROBE_TIMEOUT_MS: process.env.READINESS_PROBE_TIMEOUT_MS,
   OAUTH_JWT_SECRET: process.env.OAUTH_JWT_SECRET,
 })
 
