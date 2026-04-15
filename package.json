@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "tsx scripts/extract-tool-metadata.ts",
+    "generate:server-manifest": "tsx scripts/generate-server-manifest.ts",
+    "validate:server-manifest": "tsx scripts/validate-server-manifest.ts",
+    "prebuild": "tsx scripts/extract-tool-metadata.ts && npm run generate:server-manifest",
     "build": "next build",
     "start": "next start",
     "test": "vitest run",

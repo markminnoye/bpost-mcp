@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Samenvatting
 
+**Nieuw**
+
+- GitHub Actions workflow **MCP CI** (push/PR op `main`, handmatige `workflow_dispatch`): lint, typecheck, tests, validatie van `server.json` (`npm run validate:server-manifest`). Aparte job **MCP registry publish (manual stub)** draait alleen bij handmatige workflow-run — nog geen automatische registry-publicatie (issue [#31](https://github.com/markminnoye/bpost-mcp/issues/31)).
+- Root [`server.json`](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json) toegevoegd: officieel MCP Registry-manifest (streamable HTTP naar `/api/mcp`, OAuth Bearer, metadata gelijkgestemd met `initialize.serverInfo` en package-versie). Wordt bij elke build opnieuw geschreven via `prebuild` (`scripts/generate-server-manifest.ts`; handmatig: `npm run generate:server-manifest`).
+- MCP-tools (`src/app/api/mcp/route.ts`): volledige `annotations` (read/destructive/idempotent/open-world hints) en `outputSchema` waar de output stabiel is; success-paden gebruiken `jsonToolResult` voor `structuredContent` (issue [#31](https://github.com/markminnoye/bpost-mcp/issues/31)).
+- Documentatie: plan [`.agent/plans/2026-04-15-issue31-mcp-validation-manifest-ci.md`](.agent/plans/2026-04-15-issue31-mcp-validation-manifest-ci.md) + index bijgewerkt; [`README`](README.md) en [`docs/internal/mcp-client-compatibility-matrix.md`](docs/internal/mcp-client-compatibility-matrix.md) beschrijven `server.json`, validatie en de MCP CI-workflow (issue [#31](https://github.com/markminnoye/bpost-mcp/issues/31)).
+
 **Oplossingen**
 
 - Issue [#31](https://github.com/markminnoye/bpost-mcp/issues/31) opgesplitst met child issue [#35](https://github.com/markminnoye/bpost-mcp/issues/35) voor standards closure van operationele probes.
@@ -25,6 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `apply_row_fix` herkent nu vriendelijke aliasnamen (bv. `language`, `street`) naast interne veldnamen (`lang`, `Comps.3`). Eerder werd de gecorrigeerde waarde genegeerd als een agent een alias gebruikte, waardoor de validatiefout bleef staan. Comps-velden worden bovendien correct samengevoegd in de bestaande `Comps.Comp`-array ([#33](https://github.com/markminnoye/bpost-mcp/issues/33)).
 - `check_batch` weigert nu een BPost-verzoek te sturen als er nog rijen zijn met Zod-validatiefouten, en geeft een duidelijke melding terug. Voorheen stuurde de tool ongeldige data naar BPost, waardoor BPost een onbegrijpelijke `HTTP_404 Unknown error` terugstuurde ([#33](https://github.com/markminnoye/bpost-mcp/issues/33)).
 - `apply_row_fix` bewaart nu de samengevoegde rij (merged candidate) wanneer Zod nog faalt, zodat geldige tussentijdse fixes (bv. een straat in `Comps`) niet meer verloren gaan. Een lege string voor een Comps-alias wist dat component. Regressietests dekken dit en het vroege afbreken van `check_batch` bij rij-validatiefouten.
+
+### Added
+
+- **CI:** `.github/workflows/mcp-ci.yml` runs ESLint, `tsc --noEmit`, Vitest, and `scripts/validate-server-manifest.ts` (Zod checks + version parity with `package.json`). Manual-only stub job for future MCP registry publish ([#31](https://github.com/markminnoye/bpost-mcp/issues/31)).
+- **MCP Registry:** Root `server.json` aligned with the official schema (`$schema` 2025-12-11), canonical deployment URL, `io.github.markminnoye/bpost-emasspost` name, repository link, icon URL, and remote `streamable-http` transport with documented `Authorization` header expectations ([#31](https://github.com/markminnoye/bpost-mcp/issues/31)).
+- **Build:** `server.json` is generated before `next build` (`prebuild` → `generate:server-manifest`) from `APP_VERSION`, titles/descriptions, and public origin (`NEXT_PUBLIC_BASE_URL`, else `VERCEL_URL`, else `MCP_REGISTRY_CANONICAL_ORIGIN` in `app-version.ts`). Shared URL helper `resolvePublicBaseUrlFromEnv` lives in `src/lib/config/resolve-public-base-url.ts` (also used by `env.ts`).
 
 ### Fixed
 
@@ -56,8 +69,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **MCP:** All `registerTool` definitions in `src/app/api/mcp/route.ts` now declare `annotations` where missing; `outputSchema` added for tools with stable, machine-parseable success payloads (free-form or BPost-forward tools unchanged). Success handlers aligned to `jsonToolResult` where a schema applies ([#31](https://github.com/markminnoye/bpost-mcp/issues/31)).
 - **MCP:** `initialize.serverInfo` is always the full metadata block (`title`, `description`, `websiteUrl`, `icons`); removed `MCP_SERVERINFO_ENABLE_*` env feature flags.
 - **Docs:** MCP client compatibility matrix rewritten for always-on `serverInfo` (no rollout/flag tables); kept preview vs production troubleshooting, Neon `oauth_clients` drift, Google redirect URIs, and Le Chat `integrations.create` platform-error note.
+- **Docs:** README and compatibility matrix add sections for root `server.json` (registry manifest), `npm run validate:server-manifest` / `generate:server-manifest`, and `.github/workflows/mcp-ci.yml`; issue #31 plan file and plan index updated ([#31](https://github.com/markminnoye/bpost-mcp/issues/31)).
 - **Issue [#29](https://github.com/markminnoye/bpost-mcp/issues/29):** MCP metadata compatibility work completed (full `serverInfo`, matrix, tests); phased env-flag rollout superseded — issue closed.
 
 ---

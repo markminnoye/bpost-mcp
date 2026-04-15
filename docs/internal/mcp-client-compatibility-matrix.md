@@ -21,6 +21,14 @@ There are **no feature flags**: every deployment sends the full metadata block f
 
 **MCP spec (2025-11-25):** each `Icon` uses `sizes` as a **string array** (e.g. `["any"]`, `["32x32"]`), not a single string — required for strict clients (e.g. Claude Desktop).
 
+## MCP Registry manifest (`server.json`)
+
+The repository root [`server.json`](../../server.json) follows the official MCP Registry server schema (`$schema` in the file). It complements **runtime** `initialize.serverInfo`: same branding/version *intent*, plus **`remotes`** (`streamable-http` URL ending in `/api/mcp`) and header expectations for clients that install from a registry.
+
+- **CI:** [`.github/workflows/mcp-ci.yml`](../../.github/workflows/mcp-ci.yml) runs `npm run validate:server-manifest` on every PR and on pushes to `main`.
+- **Local:** Run `npm run validate:server-manifest` before a release; it checks required fields, JSON Schema–aligned shape, `version` parity with `package.json`, and the remote URL suffix.
+- **Generation:** `npm run generate:server-manifest` (also invoked from `prebuild`) keeps the committed manifest aligned with `src/lib/app-version.ts` / deployment URL helpers — avoid one-off manual edits that drift from `package.json.version`.
+
 ## Preview vs production (zelfde Git-commit)
 
 Als **productie** met commit `X` werkt maar een **Preview** met dezelfde `X` niet, zit het verschil vrijwel altijd in **host + Vercel-env + IdP**, niet in de broncode.

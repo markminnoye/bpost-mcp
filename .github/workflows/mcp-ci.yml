@@ -1,0 +1,57 @@
+name: MCP CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: mcp-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, typecheck, tests, manifest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
+
+      - name: Validate MCP server manifest (server.json)
+        run: npm run validate:server-manifest
+
+  mcp-registry-publish-stub:
+    name: MCP registry publish (manual stub)
+    if: github.event_name == 'workflow_dispatch'
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Placeholder — no automatic registry publish
+        run: |
+          echo "Stub: MCP Registry publish is not wired yet (avoids accidental publish during release freeze)."
+          echo "When ready, add a step here to submit or sync root server.json with the chosen registry flow."

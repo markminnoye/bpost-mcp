@@ -1,0 +1,35 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.markminnoye/bpost-emasspost",
+  "title": "BPost e-MassPost",
+  "description": "BPost e-MassPost connector — valideer adressen en maak zendingen aan.",
+  "version": "0.3.0",
+  "websiteUrl": "https://bpost.sonicrocket.be",
+  "repository": {
+    "url": "https://github.com/markminnoye/bpost-mcp",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://bpost.sonicrocket.be/mcp-server-icon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "any"
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://bpost.sonicrocket.be/api/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "OAuth 2.0 bearer access token (scope mcp:tools). Obtain via dashboard sign-in and OAuth at /.well-known/oauth-authorization-server.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

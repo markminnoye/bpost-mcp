@@ -78,6 +78,14 @@ All implementation plans, design specs, and architecture decisions live here.
 
 ---
 
+## Phase 2 — MCP Registry manifest & CI (issue #31)
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Issue #31: MCP validation, manifest & CI](2026-04-15-issue31-mcp-validation-manifest-ci.md) | ✅ | Root `server.json`, `validate:server-manifest`, `mcp-ci.yml`, tool annotations / `outputSchema`; docs in README + compatibility matrix |
+
+---
+
 ## Superpowers — Afgeronde plannen
 
 Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stonden oorspronkelijk in `docs/superpowers/plans/`.

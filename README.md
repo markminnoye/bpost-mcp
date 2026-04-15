@@ -56,6 +56,16 @@ All tools require a Bearer token in the `Authorization` header.
 - `batch_error_triage_fix_loop`
 - `submit_preflight_confirmation`
 
+### MCP Registry manifest & CI
+
+The repository includes a root [`server.json`](./server.json) file that follows the [MCP Registry server schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json). It describes the remote **`streamable-http`** transport (canonical deployment URL + `/api/mcp`), required **`Authorization`** header semantics, icons, and version metadata for listings and tooling that consume registry manifests.
+
+- **Generation:** `server.json` is **regenerated** during `npm run build` (`prebuild` runs `npm run generate:server-manifest`) so `version` and public URL stay aligned with `package.json` and deployment configuration. Prefer updating [`scripts/generate-server-manifest.ts`](./scripts/generate-server-manifest.ts) (and related helpers in `src/lib/`) rather than editing the committed file in isolation.
+- **Local validation:** `npm run validate:server-manifest` — JSON parse, schema fields, **`version` must match `package.json`**, and the remote URL must end with `/api/mcp`.
+- **GitHub Actions:** [`.github/workflows/mcp-ci.yml`](./.github/workflows/mcp-ci.yml) runs on pushes to `main` and on pull requests: ESLint, `tsc --noEmit`, tests, and manifest validation. A **manual** workflow run (`workflow_dispatch`) also executes a **stub** job for a future MCP Registry publish step (no automatic publish).
+
+Runtime clients still receive live metadata via the MCP **`initialize`** response (`serverInfo`); the manifest is complementary for distribution and CI gates.
+
 ---
 
 ## Claude Desktop Configuration
@@ -189,6 +199,8 @@ npm run db:studio     # Open Drizzle Studio (visual DB editor)
 npm run seed          # Seed demo tenant
 npm run lint          # Lint
 npm run lint:fix      # Auto-fix lint errors
+npm run generate:server-manifest  # Regenerate root server.json (also runs in prebuild)
+npm run validate:server-manifest    # Validate server.json vs package.json + schema rules
 ```
 
 ---
