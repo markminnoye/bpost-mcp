@@ -411,7 +411,7 @@ describe('apply_row_fix data pollution', () => {
 
     await POST(req)
     await new Promise(resolve => setTimeout(resolve, 150))
-    expect((mockState.rows[0].mapped as any).Comps?.Comp).toContainEqual({ code: '3', value: 'Main St' })
+    expect((mockState.rows[0].mapped as any).Comps?.Comp).toContainEqual({ code: '9', value: 'Main St' })
     expect(mockState.rows[0].validationErrors?.length).toBeGreaterThan(0)
   })
 
@@ -421,7 +421,7 @@ describe('apply_row_fix data pollution', () => {
 
     const mockState = {
       batchId: 'b-clear-comps', tenantId: 'tenant_a', status: 'MAPPED' as const,
-      headers: [], rows: [{ index: 0, raw: {}, mapped: { seq: 1, Comps: { Comp: [{ code: '3', value: 'Old St' }] } }, validationErrors: [] }],
+      headers: [], rows: [{ index: 0, raw: {}, mapped: { seq: 1, Comps: { Comp: [{ code: '9', value: 'Old St' }] } }, validationErrors: [] }],
       createdAt: '2026-01-01',
     }
     vi.mocked(getBatchState).mockResolvedValue(mockState as any)
@@ -721,10 +721,10 @@ describe('apply_mapping_rules Comps dot-notation', () => {
           arguments: {
             batchId: 'b-comps',
             mapping: {
-              Naam: 'Comps.1',
-              Straat: 'Comps.3',
-              Postcode: 'Comps.8',
-              Gemeente: 'Comps.9',
+              Naam: 'Comps.4',
+              Straat: 'Comps.9',
+              Postcode: 'Comps.15',
+              Gemeente: 'Comps.16',
               Taal: 'lang',
               Prioriteit: 'priority',
             },
@@ -1098,9 +1098,10 @@ describe('apply_mapping_rules alias translation', () => {
     const savedState = vi.mocked(saveBatchState).mock.calls[0]?.[0] as any
     const row = savedState?.rows[0]
     const comps = row?.mapped?.Comps?.Comp as Array<{ code: string; value: string }>
-    expect(comps?.find((c: { code: string }) => c.code === '1')?.value).toBe('Janssen')  // lastName → Comps.1
-    expect(comps?.find((c: { code: string }) => c.code === '3')?.value).toBe('Kerkstraat') // street → Comps.3
-    expect(comps?.find((c: { code: string }) => c.code === '8')?.value).toBe('2000')      // postalCode → Comps.8
+    expect(comps?.find((c: { code: string }) => c.code === '4')?.value).toBe('Janssen')  // lastName → Comps.4
+    expect(comps?.find((c: { code: string }) => c.code === '9')?.value).toBe('Kerkstraat') // street → Comps.9
+    expect(comps?.find((c: { code: string }) => c.code === '15')?.value).toBe('2000')      // postalCode → Comps.15
+    expect(comps?.find((c: { code: string }) => c.code === '16')?.value).toBe('Antwerpen') // municipality → Comps.16
   })
 
   it('does not resolve prototype property names as alias keys', async () => {

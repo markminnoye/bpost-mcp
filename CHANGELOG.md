@@ -15,6 +15,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Samenvatting
+
+**Nieuw**
+
+- Skill-library: nieuwe skill **Address Proofing** (Mailops REST) naast Mail ID/OptiAddress, met privacyregel (geen persoonsnamen; bedrijfsnaam mag). Routing in de protocol-skill.
+
+**Oplossingen**
+
+- Vriendelijke mapping-aliases (`street`, `lastName`, `postalCode`, …) volgen nu BPost Table 46 / Address File Tool (`street` → `Comps.9`, `houseNumber` → `Comps.12`, `postalCode` → `Comps.15`, `municipality` → `Comps.16`, `lastName` → `Comps.4`).
+
+### Added
+
+- Skills submodule: `bpost-address-proofing` (validate/format REST, S42, PII deny-list). Protocol skill adds `reference/address-validation-products.md` and Comp ↔ S42 mapping. Mailops MCP client deferred (release freeze + API key).
+
+### Fixed
+
+- **MCP mapping aliases** aligned with Mail ID Table 46 / AFT column codes. Previous aliases wrote street/house/postcode/city/lastName into the wrong Comp codes (middle name, last name, building, street, greeting).
+
 ---
 
 ## [0.4.0] - 2026-04-15
