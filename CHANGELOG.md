@@ -15,6 +15,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Samenvatting
+
+**Aanpassingen**
+
+- De installatieprompt, README en het MCP-registrybestand (`server.json`) gebruiken `https://bpost.sonicrocket.app`. In `docs/install/install-prompt.md` staat `{{BASE_URL}}`; bij het serveren van de prompt wordt dat ingevuld vanuit `NEXT_PUBLIC_BASE_URL`.
+- OAuth-toegangstokens die nog op `https://bpost.sonicrocket.io` zijn uitgegeven blijven geldig via `AUTH_ACCEPTED_ISSUERS` (standaard die host). Nieuwe tokens worden ondertekend met de host van het verzoek. Op het `.app`-adres is dat de canonieke basis-URL.
+
+**Oplossingen**
+
+- `bpost.sonicrocket.be` en `bpost.sonicrocket.io` staan niet meer als huidige productiehost in de actieve config en documentatie.
+
+### Changed
+
+- Install prompt, README, `.env.example`, and the MCP registry manifest point at `https://bpost.sonicrocket.app`. The install prompt uses a `{{BASE_URL}}` placeholder filled from `NEXT_PUBLIC_BASE_URL` when served.
+- OAuth access-token verification accepts an explicit issuer/audience allowlist (`AUTH_ACCEPTED_ISSUERS`). When unset, the default is `https://bpost.sonicrocket.io`. An empty value disables extra hosts. New tokens are still signed for the request origin (`getPublicOrigin`).
+
+### Fixed
+
+- Stale canonical origin `https://bpost.sonicrocket.be` in `server.json`, `README.md`, and `MCP_REGISTRY_CANONICAL_ORIGIN`.
+
 ---
 
 ## [0.4.0] - 2026-04-15

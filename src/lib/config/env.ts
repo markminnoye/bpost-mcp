@@ -1,11 +1,17 @@
 import { z } from 'zod'
+import { parseAuthAcceptedIssuers } from '@/lib/oauth/accepted-issuers'
 import { resolvePublicBaseUrlFromEnv } from '@/lib/config/resolve-public-base-url'
 
 /**
  * Public site URL for env-backed helpers (dashboard copy, JWT fallback).
  * OAuth metadata and token signing use `getPublicOrigin(request)` so the same deployment
  * works on a custom domain even when this value is still the default deployment hostname.
- * For consistent install links and docs, set NEXT_PUBLIC_BASE_URL to your canonical URL.
+ * For consistent install links and docs, set NEXT_PUBLIC_BASE_URL to your canonical URL
+ * (production: https://bpost.sonicrocket.app).
+ *
+ * Access-token checks also allow `AUTH_ACCEPTED_ISSUERS` (default: the previous .io host).
+ * New tokens are still signed for the request origin, which is the canonical host once
+ * clients call that URL. Discovery `issuer` must stay equal to the URL the client fetched.
  */
 
 /**
@@ -14,7 +20,7 @@ import { resolvePublicBaseUrlFromEnv } from '@/lib/config/resolve-public-base-ur
  * and prevent incorrect fallback URLs.
  */
 const envSchema = z.object({
-  /** The public-facing base URL of the service (e.g. https://bpost.sonicrocket.io) */
+  /** The public-facing base URL of the service (e.g. https://bpost.sonicrocket.app) */
   NEXT_PUBLIC_BASE_URL: z
     .string()
     .url({ message: 'NEXT_PUBLIC_BASE_URL must be a valid URL. Set it in .env.local for dev, or rely on VERCEL_URL on Vercel, or set NEXT_PUBLIC_BASE_URL in the dashboard (recommended for production custom domains).' }),
@@ -32,6 +38,12 @@ const envSchema = z.object({
     .positive()
     .default(1500),
 
+  /**
+   * Extra OAuth access-token issuers and audiences (comma-separated origins).
+   * Unset keeps https://bpost.sonicrocket.io. Empty string accepts no extra hosts.
+   */
+  AUTH_ACCEPTED_ISSUERS: z.string().optional(),
+
   /** HS256 key for OAuth access tokens (must match runtime reads in `jwt.ts` for tests). */
   OAUTH_JWT_SECRET: z
     .string()
@@ -47,6 +59,7 @@ const result = envSchema.safeParse({
   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   REDIS_URL: process.env.REDIS_URL,
   READINESS_PROBE_TIMEOUT_MS: process.env.READINESS_PROBE_TIMEOUT_MS,
+  AUTH_ACCEPTED_ISSUERS: process.env.AUTH_ACCEPTED_ISSUERS,
   OAUTH_JWT_SECRET: process.env.OAUTH_JWT_SECRET,
 })
 
@@ -55,4 +68,15 @@ if (!result.success) {
   throw new Error('Invalid environment variables')
 }
 
-export const env = result.data
+let acceptedIssuers: string[]
+try {
+  acceptedIssuers = parseAuthAcceptedIssuers(result.data.AUTH_ACCEPTED_ISSUERS)
+} catch (error) {
+  console.error('❌ Invalid environment variables:', error)
+  throw new Error('Invalid environment variables')
+}
+
+export const env = {
+  ...result.data,
+  AUTH_ACCEPTED_ISSUERS: acceptedIssuers,
+}
