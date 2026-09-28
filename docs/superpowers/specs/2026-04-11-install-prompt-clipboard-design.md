@@ -6,7 +6,7 @@
 ## Beslissingen
 
 1. **`GET /api/install/prompt`** leest `docs/install/install-prompt.md` en retourneert `text/markdown; charset=utf-8`.
-2. **URL-substitutie:** alle voorkomens van `https://bpost-mcp.vercel.app` worden vervangen door `env.NEXT_PUBLIC_BASE_URL` (zonder trailing slash), zodat staging/custom domein klopt en er geen vaste prod-URL in de gekopieerde tekst staat.
+2. **URL-substitutie:** `{{BASE_URL}}` (en de oudere placeholder `https://bpost-mcp.vercel.app`) wordt vervangen door `env.NEXT_PUBLIC_BASE_URL` (zonder trailing slash), zodat preview/productie klopt en er geen vaste prod-URL in de gekopieerde tekst staat.
 3. **UI:** kleine clientcomponent op `/install` — knop “Kopieer prompt”, Vlaams, `aria-live` voor succes/fout; `fetch` + `navigator.clipboard.writeText`.
 4. **Cache:** `Cache-Control: public, max-age=300` (prompt wijzigt zelden; bij deploy vernieuwt CDN).
 

@@ -111,6 +111,7 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 | Plan | Status | Notes |
 |---|---|---|
 | [Main release sync — squash merge develop to main](2026-04-15-main-squash-merge.md) | ✅ | Squash merge uitgevoerd (`850e5f0`), daarna `main` terug gemerged in `develop` voor branch alignment |
+| [Canonical host bpost.sonicrocket.app](2026-09-28-canonical-app-host.md) | ✅ | Install prompt via `{{BASE_URL}}`, registry/README off `.be`, legacy JWT issuer allowlist for `.io` |
 
 ---
 
