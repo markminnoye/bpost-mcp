@@ -16,6 +16,8 @@ Validatie: `src/lib/config/env.ts` · resolutie: `src/core/masspost/credentials.
 | **`BPOST_TEST_MID_VERSION`** | **Bestandsversie (VVVV)** | **`Context/@version` + bestandsnaam** |
 | **`BPOST_TEST_CUSTOMER_FILE_REF`** | **Customer file reference (NNNN…)** | **`RequestProps/@customerFileRef` + bestandsnaam** |
 | `BPOST_FTP_*` | FTP/FTPS | Transport only |
+| `MASSPOST_SUGGEST_MAPPING_MODEL` | Optioneel, `provider/model` | Alleen AI-fallback voor kolomkoppen. Weg = fail-closed |
+| `AI_GATEWAY_API_KEY` | Optioneel | Vercel AI Gateway. Op Vercel kan OIDC volstaan |
 
 Legacy: `BPOST_TEST_CUSTOMER_NUMBER` wordt nog gelezen als `BPOST_TEST_CUSTOMER_ID` ontbreekt.
 
