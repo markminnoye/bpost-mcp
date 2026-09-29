@@ -30,6 +30,11 @@ coverage/
 !.claude/skills
 .cursor/*
 !.cursor/skills
+!.cursor/rules/
+!.cursor/rules/**
+!.cursor/hooks.json
+!.cursor/hooks/
+!.cursor/hooks/**
 .vercel
 *.tsbuildinfo
 next-env.d.ts

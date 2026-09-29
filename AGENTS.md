@@ -3,6 +3,8 @@
 **Stack:** Vercel (Next.js), TypeScript, Zod.
 **Goal:** MCP wrapper for BPost e-MassPost protocol for Langflow orchestration.
 
+**Build order (locked):** (1) reusable library / API in `src/core/masspost/` first — Excel → mapping → validate → XML → transport; (2) only then a thin interface on top (web now; later possibly MCP again). Do not build UI before the API surface exists. Prefer minimal code for easy maintenance.
+
 ### Documentation & Skills
 
 Uses [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-e-masspost-skills) (git submodule).
@@ -72,7 +74,7 @@ See `.agent/plans/INDEX.md` for details.
 - **Phase 1 & Phase 2 Sprint 1 & 2:** ✅ Complete.
 - **Phase 2 Sprint 3:** ✅ Complete (declarative, procedural, escalation tools; `check_batch`, `submit_ready_batch`, barcode strategy).
 - **MCP tooling: paused (28/09/2026).** No new MCP feature work — existing routes (`src/app/api/mcp`) stay as-is, untouched. Fits the existing Release Freeze; do not scope-expand MCP.
-- **New focus:** a reusable library (`src/core/masspost/`) for the bpost e-MassPost integration, with a **web interface** (not MCP) for Contrapunt. See [Bpost e-MassPost library + webapp](.agent/plans/2026-09-28-bpost-library-web-app.md) — build the library/API first, interfacing (web now, possibly MCP again later) on top of it second.
+- **New focus:** a reusable library (`src/core/masspost/`) for the bpost e-MassPost integration, with a **web interface** (not MCP) for Contrapunt. See [Bpost e-MassPost library + webapp](.agent/plans/2026-09-28-bpost-library-web-app.md). **API/library first, UI second** — never the reverse. Interfaces stay thin and replaceable.
 - **MAIL ID protocol (locked 28/09/2026):** Contrapunt default **version 2.00 (`0200`)** — live portal Status 100. Dual-support `0100`/`0102` via `midVersion`.
 - **Path (locked 29/09/2026):** send `MailingRequest` XML over **FTP**; validate addresses with **OptiAddress** (`MailingCheck`, corrections as message 7001). Do not build the local AFT skill in `.agent/plans/2026-09-26-contrapunt-aft-address-prep.md` (stub). Living plan: `.agent/plans/2026-09-28-bpost-library-web-app.md`.
 - **How to run / extend the library:** `docs/internal/masspost-library.md`.

@@ -11,7 +11,7 @@
 - **Validatie:** OptiAddress `MailingCheck` in dezelfde XML. Correcties via bericht **7001** / `compCorrection`. Niet de Address File Tool, niet de mailops REST-API, niet een lokaal BeSt-adresregister.
 - **Adresvelden:** unstructured Comp **90 / 92 / 93** (naam · straat+nummer · postcode+stad).
 - **Protocol:** MAIL ID **2.00 (`0200`)**.
-- **Volgorde:** library `src/core/masspost/` eerst, webinterface daarna. MCP blijft bevroren.
+- **Volgorde (locked):** **API/library eerst** (`src/core/masspost/` + eventuele dunne Route Handlers), **pas daarna** een interface (web nu; later eventueel opnieuw MCP). Geen UI vóór de API-surface. Minimale code, makkelijk onderhoud. MCP-productwerk blijft bevroren.
 
 Een AFT-vs-XML-meting is optioneel (`testadressen-200-aft.xls` naast `testadressen-200.xlsx`). Ze kiest het pad niet.
 
@@ -236,7 +236,8 @@ Volgorde aan onze kant, zodra de modus `C` of `P` is (500 past niet in `T`):
 1. Frank: kan hij een deposit koppelen aan `MANUAL20260929201329`?
 2. Parser voor Opti-2RS (`7001` / `compCorrection`) en Create-2RS (MID per SEQ). Het eenmalige script `scripts/apply-opti-corrections.ts` dekt alleen stap 2 van de test.
 3. FTP Connection & Security Test met Contrapunt/bpost — daarna `npm run test:transport -- --ftp`.
-4. Webinterface bovenop `src/core/masspost/` (upload, kolommapping, validatierapport).
+4. **API:** kolom-mapping suggestie (`suggestColumnMapping` — heuristics + optionele AI-fallback; privacy: headers-first). Zie Linear-issue onder *Bpost lokale automatisatie*.
+5. **Pas daarna UI:** webinterface bovenop `src/core/masspost/` (upload, mapping-editor + live preview, validatierapport) — dunne laag, geen stille aannames.
 
 ```bash
 npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx

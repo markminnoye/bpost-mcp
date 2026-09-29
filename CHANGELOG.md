@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentatie:** minimum **500 adressen** per mailing bevestigd door Contrapunt (Frank, 28/09) — commerciële regel, breder dan eerst aangenomen; zie plan `.agent/plans/2026-09-28-bpost-library-web-app.md`.
 - **Documentatie:** developer-gids `docs/internal/masspost-library.md` — alle CLI-flags (`generate:mailing-xml`, `test:transport`, `build-compare-200`), library-modules en typische workflows; gekoppeld vanuit `AGENTS.md`, `masspost-test-env.md` en `docs/samples/contrapunt/README.md`.
 - **Portaltest 500 adressen, mode T (29/09):** MailingCheck Status 100, gebouw 99,80%. Na de 7001-correcties een tweede Check (opnieuw 99,80%) en een MailingCreate (formaat Small, `genMID=7`) met Status 100 en 500 barcodes. Deposit blijft bij Frank.
+- **Build order:** API/library eerst, UI pas daarna — expliciet in `AGENTS.md` en het living plan; volgende stap kolom-mapping-suggestie (Linear SR-79), daarna pas webinterface.
+- Cursor-regel + hook: Linear-issues moeten een begrijpelijke, self-contained brief hebben (geen dunne architectuurstubs).
 
 **Oplossingen**
 
@@ -59,10 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Single-tenant bpost test-credentials in `src/lib/config/env.ts` (`BPOST_TEST_*`, `BPOST_FTP_*`), optioneel zodat de app zonder deze vars blijft opstarten.
 - `docs/internal/masspost-library.md` — developer guide for `src/core/masspost/` and CLI flags (`generate:mailing-xml`, `test:transport`, `build-compare-200`).
 - `scripts/apply-opti-corrections.ts` and `docs/samples/contrapunt/testadressen-500-corrected.xlsx` — apply OptiAddress `7001` corrections onto the first 500 fictional rows for a second MailingCheck and a MailingCreate.
+- Cursor rule + hook for **begrijpelijke Linear-issues**: `.cursor/rules/linear-issue-descriptions.mdc` and `beforeMCPExecution` gate on `save_issue` (`.cursor/hooks/`). Tracked via `.gitignore` exceptions.
 
 ### Changed
 
 - Docs path: protocol documentation moved from `docs/internal/e-masspost/skills/e-masspost-protocol/` to `docs/internal/e-masspost/docs/` (skills-repo `main`, `fc8034a`); references updated in `AGENTS.md`, docs and code comments. Submodule pointer bumped in this commit.
+- **Build order locked** in `AGENTS.md` and the living plan: API/library (`src/core/masspost/`) before any UI; next step is column-mapping suggest API (Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai)), then web UI.
 - Masspost credentials: `BPOST_TEST_CUSTOMER_ID`, optional `BPOST_TEST_BARCODE_CUSTOMER_ID`, `BPOST_TEST_MID_VERSION` (default **`0200`**, locked for Contrapunt 28/09), `BPOST_TEST_CUSTOMER_FILE_REF` (default `REFERENCE`); `MailingContextSchema.version` allows `0100` | `0102` | `0200`.
 
 ### Fixed

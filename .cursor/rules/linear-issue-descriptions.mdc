@@ -1,0 +1,36 @@
+---
+description: Linear/GitHub issues always get a clear, self-contained brief — never a thin architecture stub
+alwaysApply: true
+---
+
+# Issue descriptions: begrijpelijk en volledig
+
+When creating or updating **Linear** (or GitHub) issues for this project, write a **self-contained brief** that a teammate (or future agent) can execute without re-reading the chat.
+
+## Required sections (adapt names, keep substance)
+
+1. **Probleem** — why this exists; what breaks or is missing today (concrete paths/behaviors when known)
+2. **Doel** — outcome in plain language
+3. **Productregels / constraints** — locked decisions (API-first, privacy, MCP freeze, …)
+4. **Context / bouwstenen** — relevant existing modules, types, docs (do not redesign what already works)
+5. **User stories** or who benefits
+6. **Aanpak** — chosen option + short alternatives table when a real choice was made
+7. **Scope / fases** — what is in *this* issue vs follow-up (esp. API before UI)
+8. **Non-goals** — explicit
+9. **Acceptance criteria** — checkboxes
+10. **Referenties** — plan, docs, code paths
+11. **Decision log** (when decisions were made) and/or **implementatievolgorde**
+
+## Anti-patterns (do not ship)
+
+- Architecture-only stubs (“heuristics → AI”, API signature, AC list) without problem/why/context
+- Jargon without tying it to this repo’s files and product rules
+- Assuming the reader saw the brainstorm thread
+
+## Tone
+
+Clear Dutch (or bilingual NL+EN tables) is fine. Prefer tables and concrete examples over abstract slogans. Length is OK when it aids understanding; thin is not.
+
+## Enforcement
+
+A project hook (`.cursor/hooks.json` → `beforeMCPExecution` / `save_issue`) denies thin Linear descriptions that lack required sections. Fix the brief and retry; do not bypass by omitting `description`.
