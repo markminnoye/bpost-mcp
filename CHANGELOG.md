@@ -15,6 +15,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Samenvatting
+
+**Nieuw**
+
+- Nieuwe herbruikbare library `src/core/masspost/` voor de bpost e-MassPost-integratie: Excel-adressenlijst inlezen, kolommen mappen naar bpost's unstructured adresvelden (Comp-codes 90/92/93), valideren, en versturen naar bpost via **HTTP** en (nieuw) **FTP/FTPS**. Vervangt het eerder geplande lokaal-only Python-spoor voor Contrapunt (zie `.agent/plans/2026-09-28-bpost-library-web-app.md`); MCP-tooling staat voorlopig on hold.
+- Referentietool van Contrapunt (Frank) opgeslagen ter analyse in `docs/external/contrapunt-aft-converter/` — hun bestaande AFT-conversieaanpak (unstructured velden, SEQ-round-trip) is het uitgangspunt voor de nieuwe library.
+- Contrapunt-testexport `testadressen.xlsx` (≈789 adressen) blijft **lokaal** (gitignored: persoonsgegevens, publieke repo). Kolommapping zit in `src/core/masspost/fixtures/contrapunt-sample.ts`; `npm run test:transport` gebruikt het bestand als het lokaal aanwezig is (`--synthetic` voor één fake adres).
+- **Tekencontrole (ISO-8859-1):** bpost aanvaardt enkel Latin-1. Typografische tekens uit Excel (’ “ ” – …) worden automatisch vervangen door gewone tekens, accenten buiten Latin-1 (ő → o) worden verwijderd, en beide gevallen komen als waarschuwing in het resultaat. Tekens die niet te herstellen zijn (bv. Ł, Cyrillisch) laten de validatie mislukken met de exacte plaats, i.p.v. stil beschadigd verstuurd te worden.
+- `npm run generate:mailing-xml` — valide MailingRequest-XML uit de sample-export voor **handmatige upload** op e-MassPost (test-modus), zonder HTTP/FTP.
+- `npm run generate:mailing-xml -- --simple` — zelfde, met **1 fictief testadres** (snelle portal-test).
+
+**Aanpassingen**
+
+- Masspost bestandsnamen: **`customerFileRef` wordt genormaliseerd naar exact 10 tekens** (`REFERENCE` → `REFERENCE0` in naam én `RequestProps`) — voorkomt portaal **MPW-5009 / MID-2010** bij te korte refs.
+- Masspost generate-script: standaard **max 200 adressen** voor `mode=T` (bpost testlimiet); `--all` / `--limit N` override.
+- **OptiAddress:** `npm run generate:mailing-xml -- --opti --limit 10` bouwt `MailingCheck` (suggesties + `copyRequestItem=Y`).
+- **MailingRequest 0100/0102:** geen `expectedDeliveryDate` en geen `FileInfo` op `MailingCreate` (live 2RS **MID-2040**); die velden horen bij protocol **0200**. Round-trip fixtures in `docs/samples/contrapunt/bpost-roundtrip/`.
+- **Documentatie:** bpost-protocoldocumentatie staat nu in `docs/` van de skills-repo (submodule `docs/internal/e-masspost/`) en wordt via GitBook gepubliceerd (site Contrapunt/BPost); verwijzingen in `AGENTS.md`, docs en code bijgewerkt van `skills/e-masspost-protocol/` naar `docs/`.
+- **Documentatie:** minimum **500 adressen** per mailing bevestigd door Contrapunt (Frank, 28/09) — commerciële regel, breder dan eerst aangenomen; zie plan `.agent/plans/2026-09-28-bpost-library-web-app.md`.
+
+**Oplossingen**
+
+- **Handmatige e-MassPost-upload (test-modus) geverifieerd (28/09):** **protocol `0200` geslaagd** (`Status 100`, gegenereerd MID-nummer). Eerdere `0100`-uploads faalden op MID-2040 wanneer 0200-velden aanwezig waren; Contrapunt ondersteunt wél 2.00 — zie `docs/samples/contrapunt/bpost-roundtrip/`.
+- **Structurele fout in de XML-opbouw hersteld**: `buildXml()` (`src/lib/xml.ts`) rendeerde velden als child-elementen in plaats van als XML-attributen, in strijd met de MailingRequest/DepositRequest XSD's (die vrijwel elk scalair veld als attribuut modelleren, bv. `Context/@requestName`, `Comp/@code`). Dit trof niet enkel de nieuwe library, maar ook de bestaande `submit_ready_batch`, `check_batch` en de deposit-flows — nooit opgemerkt omdat bestaande tests `buildXml` altijd mockten. Nu automatisch en correct afgehandeld voor alle aanroepers, met regressietests (`tests/lib/xml.test.ts`).
+
+**Gekend probleem (niet opgelost, nog te onderzoeken)**
+
+- **HTTP-verzending (`src/client/bpost.ts`) werkt vermoedelijk niet voor geautomatiseerde verzending.** Live test op 28/09 toonde dat `www.bpost.be/emasspost` een echte bpost-404-pagina teruggeeft; de actuele e-MassPost-pagina redirect naar een SSO-loginportaal (`login-2.bpost.be/idhub/...`). "HTTP-modus" blijkt in bpost's eigen documentatie een *interactieve, browser-based* modus te zijn (iemand logt in en vult een webformulier in), geen machine-naar-machine API met Basic Auth. Dit treft ook de bestaande `submit_ready_batch`, `check_batch`, `bpost_announce_deposit` en `bpost_announce_mailing` — die zijn vermoedelijk nooit tegen een actuele, live bpost-omgeving getest. FTP ("unattended mode" volgens bpost's eigen terminologie) is het aannemelijke correcte kanaal voor automatisering; zie `.agent/plans/2026-09-28-bpost-library-web-app.md` §5b voor details en vervolgstappen.
+
+### Added
+
+- `src/core/masspost/` — framework-agnostic library: `excel.ts` (`.xlsx`-parsing via `exceljs`), `mapping.ts` (kolom-naar-Comp-mapping met gerapporteerde afkapping i.p.v. stil), `build-request.ts`, `validate.ts`, `credentials.ts` (single-tenant, lazy fail-fast), `transport/http.ts`, `transport/ftp.ts` (nieuw, `basic-ftp`), `pipeline.ts`.
+- `src/core/masspost/charset.ts` — `findUnsupportedChars`, `normalizeForBpost`; `mapRows` reports replaced/unsupported characters; `validateMailingRequest` rejects strings outside ISO-8859-1 (previously `Buffer.from(xml, 'latin1')` kept only the low byte, e.g. U+2019 → control char, U+2026 → `&`). Tests: `tests/core/masspost/charset.test.ts`.
+- `scripts/test-transport.ts` (`npm run test:transport [-- --ftp] [-- --synthetic] [-- --file <pad>]`) — bewijsscript; standaard `docs/samples/contrapunt/testadressen.xlsx`.
+- `docs/external/contrapunt-aft-converter/` — Contrapunt's eigen AFT-conversietool, opgeslagen ter referentie met analyse.
+- `src/core/masspost/fixtures/contrapunt-sample.ts` — Contrapunt column mapping for local transport tests. The CRM export `docs/samples/contrapunt/testadressen.xlsx` stays local (gitignored; personal data). Opti response `…231404_2RS.XML` (names and street corrections) is gitignored for the same reason; other round-trip fixtures are committed.
+- Single-tenant bpost test-credentials in `src/lib/config/env.ts` (`BPOST_TEST_*`, `BPOST_FTP_*`), optioneel zodat de app zonder deze vars blijft opstarten.
+
+### Changed
+
+- Docs path: protocol documentation moved from `docs/internal/e-masspost/skills/e-masspost-protocol/` to `docs/internal/e-masspost/docs/` (skills-repo `main`, `fc8034a`); references updated in `AGENTS.md`, docs and code comments. Submodule pointer bumped in this commit.
+- Masspost credentials: `BPOST_TEST_CUSTOMER_ID`, optional `BPOST_TEST_BARCODE_CUSTOMER_ID`, `BPOST_TEST_MID_VERSION` (default **`0200`**, locked for Contrapunt 28/09), `BPOST_TEST_CUSTOMER_FILE_REF` (default `REFERENCE`); `MailingContextSchema.version` allows `0100` | `0102` | `0200`.
+
+### Fixed
+
+- `buildXml()` now converts scalar leaf fields to XML attributes (`@_`-prefixed) before serialization, matching the MailingRequest/DepositRequest XSDs. Previously every field was rendered as a child element. Affects all callers: `submit-batch.ts`, `check-batch.ts`, `bpost_announce_deposit`, `bpost_announce_mailing`, and the new masspost library. See `tests/lib/xml.test.ts`.
+
 ---
 
 ## [0.4.0] - 2026-04-15

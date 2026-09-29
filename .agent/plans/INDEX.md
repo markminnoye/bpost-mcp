@@ -106,6 +106,20 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 
 ---
 
+## Contrapunt — Address File Tool (AFT)
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Adressen klaarmaken voor bpost](2026-09-26-contrapunt-aft-address-prep.md) | ⬜ | Superseded 28/09 — lokaal-only Python-aanpak vervangen door library+webapp hieronder. Inhoudelijke bevindingen (MID-codes, ARR, kolomdrift) blijven referentie. |
+
+## Bpost Library & Webapp (Contrapunt) — MCP in de ijskast
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Bpost e-MassPost library + webapp](2026-09-28-bpost-library-web-app.md) | ⏸️ | **Paused 28/09→29/09.** `0200` live OK (Create 1/10/50 + Opti Check). Morgen: **AFT Excel vs XML** vergelijken (Frank: AFT geeft meteen correcties); verder XML-testen + automatiseringspad. |
+
+---
+
 ## Release — Main Production
 
 | Plan | Status | Notes |

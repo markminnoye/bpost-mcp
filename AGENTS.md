@@ -7,14 +7,14 @@
 
 Uses [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-e-masspost-skills) (git submodule).
 1. **Construction:** Build Zod schemas, client code, and validation.
-2. **Distribution:** Packaged as versioned .zip skills for Claude/Gemini.
+2. **Distribution:** Packaged as versioned .zip skills for Claude/Gemini, built from the library's `docs/` folder (also published on GitBook).
 
 ### Context Routing (Read Order)
 
 1. **Vision:** `@docs/internal/vision.md` (Roadmap)
 2. **Design:** `@docs/internal/project-design.md` (Architecture)
 3. **External:** [Vercel MCP](https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel), [Claude MCP Examples](https://github.com/anthropics/claude-ai-mcp)
-4. **BPost Protocol:** `@docs/internal/e-masspost/skills/e-masspost-protocol/index.md`
+4. **BPost Protocol:** `@docs/internal/e-masspost/docs/README.md`
    - `schemas/`: Field specs & Zod rules
    - `flows/`: Business logic & sequence diagrams
    - `transport/`: HTTP/FTP protocol
@@ -70,7 +70,9 @@ When an implementation task is complete:
 See `.agent/plans/INDEX.md` for details.
 - **Phase 1 & Phase 2 Sprint 1 & 2:** ✅ Complete.
 - **Phase 2 Sprint 3:** ✅ Complete (declarative, procedural, escalation tools; `check_batch`, `submit_ready_batch`, barcode strategy).
-- **Release Freeze:** 🔄 Active — Main release to production in progress. Only blockers/fixes; no scope expansion.
+- **MCP tooling: paused (28/09/2026).** No new MCP feature work — existing routes (`src/app/api/mcp`) stay as-is, untouched. Fits the existing Release Freeze; do not scope-expand MCP.
+- **New focus:** a reusable library (`src/core/masspost/`) for the bpost e-MassPost integration, with a **web interface** (not MCP) for Contrapunt. See [Bpost e-MassPost library + webapp](.agent/plans/2026-09-28-bpost-library-web-app.md) — build the library/API first, interfacing (web now, possibly MCP again later) on top of it second.
+- **MAIL ID protocol (locked 28/09/2026):** Contrapunt default **version 2.00 (`0200`)** — live portal Status 100. Dual-support `0100`/`0102` via `midVersion`. Next session (29/09): compare **AFT Excel upload vs structured XML** (Create/Opti); see plan handoff in `.agent/plans/2026-09-28-bpost-library-web-app.md` Status: Paused.
 
 ### Available Agent Skills
 

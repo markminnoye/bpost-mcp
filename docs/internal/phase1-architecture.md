@@ -226,7 +226,7 @@ bpost-mcp/
 ├── docs/
 │   ├── internal/
 │   │   ├── e-masspost/           ← BPost protocol documentation (skills submodule)
-│   │   │   └── skills/e-masspost-protocol/
+│   │   │   └── docs/
 │   │   │       ├── resources/    ← Official BPost XSD files (source of truth)
 │   │   │       ├── schemas/      ← Human-readable field specs
 │   │   │       └── transport/    ← HTTP/FTP protocol details
@@ -259,4 +259,4 @@ bpost-mcp/
 
 The action sub-schemas are currently stubs — they accept any data. The envelope validation (Context, Header, which action type) is fully enforced, but the individual record fields inside `DepositCreate`, `MailingCreate`, etc. are not yet validated against the XSD field specs.
 
-Phase 2 will expand these stubs into full schemas, field by field, using the XSD files in `docs/internal/e-masspost/skills/e-masspost-protocol/resources/`.
+Phase 2 will expand these stubs into full schemas, field by field, using the XSD files in `docs/internal/e-masspost/docs/resources/`.
