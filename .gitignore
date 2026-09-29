@@ -37,7 +37,3 @@ next-env.d.ts
 .firecrawl/vercel-mcp-auth-docs.md
 .firecrawl/vercel-mcp-deploy.md
 .firecrawl/vercel-oauth-mcp.md
-
-# Contrapunt CRM-export en Opti-antwoord met namen/straten — niet in de publieke repo
-docs/samples/contrapunt/testadressen.xlsx
-docs/samples/contrapunt/bpost-roundtrip/MID_0200_251614_REFERENCE0_260928231404_2RS.XML

@@ -18,8 +18,6 @@ Env: `BPOST_TEST_MID_VERSION=0200`. Niet terug naar `0100` tenzij expliciet gevr
 
 1AK = bestand ontvangen; 2RS = verwerking. Code: `src/core/masspost/parse-response.ts`.
 
-`…231404_2RS.XML` (Opti, namen en straatcorrecties) staat in `.gitignore` en blijft lokaal.
-
 ## OptiAddress (MailingCheck) — 10 adressen (28/09)
 
 `MID_0200_…_231229_1AK` + `…_231404_2RS` — **Status 100**.

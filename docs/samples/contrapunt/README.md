@@ -4,7 +4,7 @@ Referentie-export om de masspost-library en `npm run test:transport` te testen (
 
 **Minimum 500 adressen:** bevestigd door Contrapunt (Frank, 28/09/2026) — geldt breed voor mailings (commercieel, geen XSD). Dit bestand voldoet; `--simple` / `--synthetic` zijn enkel voor snelle XML/bestandsnaam-tests, niet als volwaardige portal-upload.
 
-**Bron:** bijlage uit e-mail (lokaal gekopieerd op 2026-09-28). Bevat persoonsgegevens — alleen voor interne integratietests. Het `.xlsx`-bestand staat in `.gitignore` en zit niet in de publieke repo; leg het lokaal op dit pad.
+**Bron:** bijlage uit e-mail (lokaal gekopieerd op 2026-09-28). Adressen zijn fictief en mogen in de publieke repo.
 
 ## Kolommapping (→ bpost Comp 90–93)
 

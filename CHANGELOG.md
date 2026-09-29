@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nieuwe herbruikbare library `src/core/masspost/` voor de bpost e-MassPost-integratie: Excel-adressenlijst inlezen, kolommen mappen naar bpost's unstructured adresvelden (Comp-codes 90/92/93), valideren, en versturen naar bpost via **HTTP** en (nieuw) **FTP/FTPS**. Vervangt het eerder geplande lokaal-only Python-spoor voor Contrapunt (zie `.agent/plans/2026-09-28-bpost-library-web-app.md`); MCP-tooling staat voorlopig on hold.
 - Referentietool van Contrapunt (Frank) opgeslagen ter analyse in `docs/external/contrapunt-aft-converter/` — hun bestaande AFT-conversieaanpak (unstructured velden, SEQ-round-trip) is het uitgangspunt voor de nieuwe library.
-- Contrapunt-testexport `testadressen.xlsx` (≈789 adressen) blijft **lokaal** (gitignored: persoonsgegevens, publieke repo). Kolommapping zit in `src/core/masspost/fixtures/contrapunt-sample.ts`; `npm run test:transport` gebruikt het bestand als het lokaal aanwezig is (`--synthetic` voor één fake adres).
+- Contrapunt-testexport `testadressen.xlsx` (≈789 fictieve adressen) in `docs/samples/contrapunt/`; `npm run test:transport` gebruikt dit bestand standaard met de bijhorende kolommapping (`--synthetic` voor één fake adres).
 - **Tekencontrole (ISO-8859-1):** bpost aanvaardt enkel Latin-1. Typografische tekens uit Excel (’ “ ” – …) worden automatisch vervangen door gewone tekens, accenten buiten Latin-1 (ő → o) worden verwijderd, en beide gevallen komen als waarschuwing in het resultaat. Tekens die niet te herstellen zijn (bv. Ł, Cyrillisch) laten de validatie mislukken met de exacte plaats, i.p.v. stil beschadigd verstuurd te worden.
 - `npm run generate:mailing-xml` — valide MailingRequest-XML uit de sample-export voor **handmatige upload** op e-MassPost (test-modus), zonder HTTP/FTP.
 - `npm run generate:mailing-xml -- --simple` — zelfde, met **1 fictief testadres** (snelle portal-test).
@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/core/masspost/charset.ts` — `findUnsupportedChars`, `normalizeForBpost`; `mapRows` reports replaced/unsupported characters; `validateMailingRequest` rejects strings outside ISO-8859-1 (previously `Buffer.from(xml, 'latin1')` kept only the low byte, e.g. U+2019 → control char, U+2026 → `&`). Tests: `tests/core/masspost/charset.test.ts`.
 - `scripts/test-transport.ts` (`npm run test:transport [-- --ftp] [-- --synthetic] [-- --file <pad>]`) — bewijsscript; standaard `docs/samples/contrapunt/testadressen.xlsx`.
 - `docs/external/contrapunt-aft-converter/` — Contrapunt's eigen AFT-conversietool, opgeslagen ter referentie met analyse.
-- `src/core/masspost/fixtures/contrapunt-sample.ts` — Contrapunt column mapping for local transport tests. The CRM export `docs/samples/contrapunt/testadressen.xlsx` stays local (gitignored; personal data). Opti response `…231404_2RS.XML` (names and street corrections) is gitignored for the same reason; other round-trip fixtures are committed.
+- `docs/samples/contrapunt/testadressen.xlsx` + `src/core/masspost/fixtures/contrapunt-sample.ts` — Contrapunt sample export (fictional addresses) and column mapping for local transport tests. Opti response `…231404_2RS.XML` is included with the other round-trip fixtures.
 - Single-tenant bpost test-credentials in `src/lib/config/env.ts` (`BPOST_TEST_*`, `BPOST_FTP_*`), optioneel zodat de app zonder deze vars blijft opstarten.
 
 ### Changed
