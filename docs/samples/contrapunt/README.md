@@ -2,6 +2,8 @@
 
 Referentie-export om de masspost-library en `npm run test:transport` te testen (≈789 adressen, worksheet `Blad1`).
 
+**CLI & library:** [masspost-library.md](../../internal/masspost-library.md) · **Env:** [masspost-test-env.md](../../internal/masspost-test-env.md)
+
 **Minimum 500 adressen:** bevestigd door Contrapunt (Frank, 28/09/2026) — geldt breed voor mailings (commercieel, geen XSD). Dit bestand voldoet; `--simple` / `--synthetic` zijn enkel voor snelle XML/bestandsnaam-tests, niet als volwaardige portal-upload.
 
 **Bron:** bijlage uit e-mail (lokaal gekopieerd op 2026-09-28). Adressen zijn fictief en mogen in de publieke repo.
@@ -36,12 +38,24 @@ npm run test:transport
 
 # XML voor handmatige upload op e-MassPost (test-modus), zonder verzenden
 npm run generate:mailing-xml
+
 # Snelle test: 1 fictief adres, zelfde portal-ids uit .env.local
 npm run generate:mailing-xml -- --simple
-# → docs/samples/contrapunt/generated/MID_….XML
 
-# Expliciet
+# OptiAddress (MailingCheck)
+npm run generate:mailing-xml -- --opti --limit 10
+
+# Expliciet bestand
 npm run test:transport -- --file docs/samples/contrapunt/testadressen.xlsx
+npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx
+
+# Klein synthetisch enkel adres (transport-script)
+npm run test:transport -- --synthetic
+```
+
+Gegenereerde XML → `docs/samples/contrapunt/generated/MID_….XML`.
+
+Alle flags: [masspost-library.md](../../internal/masspost-library.md).
 
 ## Vergelijking AFT vs XML (200 adressen)
 
@@ -54,8 +68,10 @@ bpost test-modus behandelt maximaal **200** adressen. Deze twee bestanden zijn d
 
 De unstructured AFT-kolommen zijn dezelfde tekst als Comp 90/92/93 in die XML (spatie-samengevoegd, max 50 tekens). Niet opgevuld tot 500: dan zou AFT meer rijen hebben dan de XML.
 
-Opnieuw maken: `npx tsx scripts/build-compare-200.ts` (Python-pakket `xlwt` nodig voor het `.xls`).
+Opnieuw maken:
 
-# Klein synthetisch enkel adres
-npm run test:transport -- --synthetic
+```bash
+npx tsx scripts/build-compare-200.ts
 ```
+
+(Python-pakket `xlwt` nodig voor het `.xls`; optioneel `AFT_PYTHON=…`.)

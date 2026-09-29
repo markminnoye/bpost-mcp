@@ -1,7 +1,7 @@
 // scripts/test-transport.ts
 //
 // Proves today's milestone (28/09/2026): Excel -> validated MailingRequest XML -> sent to bpost
-// test-mode via HTTP, and via FTP. Run with:
+// test-mode via HTTP, and via FTP. Full docs: docs/internal/masspost-library.md
 //
 //   npm run test:transport                 # Contrapunt sample xlsx (default), HTTP only
 //   npm run test:transport -- --ftp        # sample + FTP

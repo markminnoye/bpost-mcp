@@ -21,6 +21,7 @@ Uses [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-e-ma
    - `errors/`: MPW/MID error codes
 5. **Raw Source:** `@docs/external/Mail-ID Data_Exchange_Technical_Guide.pdf` (Verify table data/diagrams)
 6. **Samples:** `@docs/samples/` (Use for `@tests/`)
+7. **Masspost library / CLI:** `@docs/internal/masspost-library.md` (scripts `generate:mailing-xml`, `test:transport`, module map) + `@docs/internal/masspost-test-env.md` (credentials)
 
 ### Continuous Learning
 
@@ -74,6 +75,7 @@ See `.agent/plans/INDEX.md` for details.
 - **New focus:** a reusable library (`src/core/masspost/`) for the bpost e-MassPost integration, with a **web interface** (not MCP) for Contrapunt. See [Bpost e-MassPost library + webapp](.agent/plans/2026-09-28-bpost-library-web-app.md) — build the library/API first, interfacing (web now, possibly MCP again later) on top of it second.
 - **MAIL ID protocol (locked 28/09/2026):** Contrapunt default **version 2.00 (`0200`)** — live portal Status 100. Dual-support `0100`/`0102` via `midVersion`.
 - **Path (locked 29/09/2026):** send `MailingRequest` XML over **FTP**; validate addresses with **OptiAddress** (`MailingCheck`, corrections as message 7001). Do not build the local AFT skill in `.agent/plans/2026-09-26-contrapunt-aft-address-prep.md` (stub). Living plan: `.agent/plans/2026-09-28-bpost-library-web-app.md`.
+- **How to run / extend the library:** `docs/internal/masspost-library.md`.
 
 ### Available Agent Skills
 

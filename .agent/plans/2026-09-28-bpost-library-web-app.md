@@ -205,6 +205,9 @@ Default Contrapunt: `BPOST_TEST_MID_VERSION=0200`. Live Status 100 bevestigd.
 | Create 0200, 10 / 50 adressen | Status 100, alle MID’s; 5× MID-4060 WARN |
 | Create 200 adressen | 1AK; 2RS traag/uitblijvend — later herhalen |
 | **OptiAddress `MailingCheck`**, 10 adressen | Status 100; correcties via **code 7001** + `compCorrection` (geen `<Suggestions>`-blok) |
+| **MailingCheck, 500 adressen, mode=T** (29/09, `…212439`) | 1AK + 2RS **Status 100**. Gebouw **99,80%**. 50× 7001 (correctie), 1× fout rij 93 (`MID-4070` / `7004`, geen correctietekst). Testplafond van 200 is hier niet afgedwongen. |
+| **Tweede Check, gecorrigeerde 500** (`…220522`) | Status 100, gebouw opnieuw **99,80%**. 26 correcties verdwenen. 23× 7001 herhaalt dezelfde tekst. Rij 470 nieuw voorstel `ROGGESTRAAT 4`. Rij 93 blijft de fout. |
+| **MailingCreate, gecorrigeerde 500** (`…221329`) | 1AK 22:16 + 2RS **Status 100**. 500 unieke barcodes (`MID-4030`). Gebouw **99,80%**, ontvanger 100%, presort **0%** (`genPSC=N`). 24× `MID-4060`. Rij 93: `MID-4010` én toch een barcode. |
 
 Fixtures: `docs/samples/contrapunt/bpost-roundtrip/`  
 Generate: `npm run generate:mailing-xml [-- --limit N] [-- --opti]`
@@ -218,10 +221,20 @@ Generate: `npm run generate:mailing-xml [-- --limit N] [-- --opti]`
 
 Frank ziet bij een AFT-upload meteen correcties. Dat is het gedrag van de portaal-tool, niet ons verzendkanaal. Wie het verschil wil meten: `docs/samples/contrapunt/testadressen-200-aft.xls` en `npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx` (zelfde 200 adressen).
 
+### Eerste test-flow (29/09, avond)
+
+Onze kant stopt bij de mailing. De **deposit maken we niet**. Frank checkt of hij op e-MassPost een deposit kan maken op basis van onze `mailingRef`. Kan hij dat, dan is de keten rond zonder dat wij `DepositRequest` bouwen.
+
+Volgorde aan onze kant, zodra de modus `C` of `P` is (500 past niet in `T`):
+
+1. **MailingCheck** op 500 adressen.
+2. Correcties uit 7001 toepassen, daarna opnieuw **MailingCheck** (nieuwe `mailingRef`).
+3. Alleen bij **meer dan 98%** een **MailingCreate**.
+
 ### Volgende stappen
 
-1. Parser voor Opti-2RS (`7001` / `compCorrection`) en Create-2RS (MID per SEQ), daarna samenvoegen op SEQ.
-2. Create/Opti verder op de testportal (100 en 200 adressen; 2RS van 200 kan traag zijn).
+1. Frank: kan hij een deposit koppelen aan `MANUAL20260929201329`?
+2. Parser voor Opti-2RS (`7001` / `compCorrection`) en Create-2RS (MID per SEQ). Het eenmalige script `scripts/apply-opti-corrections.ts` dekt alleen stap 2 van de test.
 3. FTP Connection & Security Test met Contrapunt/bpost — daarna `npm run test:transport -- --ftp`.
 4. Webinterface bovenop `src/core/masspost/` (upload, kolommapping, validatierapport).
 
@@ -230,7 +243,7 @@ npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.
 npm run generate:mailing-xml -- --opti --file docs/samples/contrapunt/testadressen-200.xlsx
 ```
 
-Env: `.env.local` → `BPOST_TEST_MID_VERSION=0200`. Docs: `docs/internal/masspost-test-env.md`.
+Env: `.env.local` → `BPOST_TEST_MID_VERSION=0200`. Docs: `docs/internal/masspost-test-env.md` · CLI/library: `docs/internal/masspost-library.md`.
 
 ## Naslag (uit het afgevoerde AFT-plan)
 

@@ -3,6 +3,8 @@
 Variabelen voor **`src/core/masspost/`** en scripts `npm run test:transport` / `npm run generate:mailing-xml`.  
 Validatie: `src/lib/config/env.ts` · resolutie: `src/core/masspost/credentials.ts`.
 
+**Scripts, flags en library-API:** [masspost-library.md](./masspost-library.md).
+
 ## Overzicht
 
 | Variabele | Protocol / bpost-term | Waar het landt |
@@ -119,8 +121,12 @@ EMP_0100_251614_REFERENCE_260928213828_0RQ.XML
 
 ```bash
 npm run generate:mailing-xml
+npm run generate:mailing-xml -- --opti --limit 10
+npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx
+npm run test:transport -- --ftp
 ```
 
+Volledige flag-tabel: [masspost-library.md](./masspost-library.md).  
 Output onder `docs/samples/contrapunt/generated/`; console toont `customerId`, `accountId`, `midVersion` en de bpost-bestandsnaam.
 
 **Portal code lists** (product/destination/sorting codes van de Mass Mail-site, geen account-ids): [e-masspost/reference/portal-code-lists/README.md](./e-masspost/reference/portal-code-lists/README.md).

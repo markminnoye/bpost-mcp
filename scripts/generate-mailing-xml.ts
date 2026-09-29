@@ -2,6 +2,7 @@
 //
 // Build a validated MailingRequest XML from the Contrapunt sample xlsx for manual upload
 // on https://www.bpost.be/emasspost (test mode). Does not call HTTP/FTP.
+// Full flag table: docs/internal/masspost-library.md
 // Env (MID version, file ref, ids): docs/internal/masspost-test-env.md
 //
 //   npm run generate:mailing-xml                    # MailingCreate, max 200 (mode=T)
@@ -11,6 +12,7 @@
 //   npm run generate:mailing-xml -- --opti --limit 10   # OptiAddress (MailingCheck)
 //   npm run generate:mailing-xml -- --all
 //   npm run generate:mailing-xml -- --out ./mijn-bestand.xml
+//   npm run generate:mailing-xml -- --version 0200
 //
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
