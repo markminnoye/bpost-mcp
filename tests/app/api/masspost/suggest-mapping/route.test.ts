@@ -1,5 +1,10 @@
+import type { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CONTRAPUNT_EXPORT_COLUMN_MAPPING } from '@/core/masspost/presets/contrapunt-export'
+
+vi.mock('@/lib/auth/resolve-request-auth', () => ({
+  resolveRequestAuth: vi.fn(),
+}))
 
 vi.mock('@/lib/masspost/suggest-mapping-ai', async () => {
   const actual = await vi.importActual<typeof import('@/lib/masspost/suggest-mapping-ai')>(
@@ -12,6 +17,7 @@ vi.mock('@/lib/masspost/suggest-mapping-ai', async () => {
 })
 
 import { POST } from '@/app/api/masspost/suggest-mapping/route'
+import { resolveRequestAuth } from '@/lib/auth/resolve-request-auth'
 import {
   SuggestMappingAiInvalidOutputError,
   SuggestMappingAiNotConfiguredError,
@@ -28,17 +34,36 @@ const CONTRAPUNT_HEADERS = [
   'Correspondentieadres - Plaats (Key)',
 ]
 
-function post(body: unknown): Request {
+function post(body: unknown): NextRequest {
   return new Request('http://localhost/api/masspost/suggest-mapping', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
-  })
+  }) as NextRequest
 }
 
 describe('POST /api/masspost/suggest-mapping', () => {
   beforeEach(() => {
     vi.mocked(suggestColumnMappingWithAi).mockReset()
+    vi.mocked(resolveRequestAuth).mockReset()
+    vi.mocked(resolveRequestAuth).mockResolvedValue({
+      success: true,
+      context: { tenantId: 'tenant_a', authMethod: 'oauth-bearer' },
+    })
+  })
+
+  it('returns 401 when no valid auth is provided and does not suggest a mapping', async () => {
+    vi.mocked(resolveRequestAuth).mockResolvedValue({
+      success: false,
+      error: { status: 401, reason: 'missing_auth' },
+    })
+
+    const response = await POST(post({ headers: CONTRAPUNT_HEADERS }))
+    const body = await response.json()
+
+    expect(response.status).toBe(401)
+    expect(body.error).toContain('Bearer token')
+    expect(suggestColumnMappingWithAi).not.toHaveBeenCalled()
   })
 
   it('returns the Contrapunt heuristic and does not call AI', async () => {
@@ -118,7 +143,7 @@ describe('POST /api/masspost/suggest-mapping', () => {
       new Request('http://localhost/api/masspost/suggest-mapping', {
         method: 'POST',
         body: '{',
-      }),
+      }) as NextRequest,
     )
     expect(response.status).toBe(400)
   })
