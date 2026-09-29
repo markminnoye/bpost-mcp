@@ -43,6 +43,19 @@ npm run generate:mailing-xml -- --simple
 # Expliciet
 npm run test:transport -- --file docs/samples/contrapunt/testadressen.xlsx
 
+## Vergelijking AFT vs XML (200 adressen)
+
+bpost test-modus behandelt maximaal **200** adressen. Deze twee bestanden zijn de **eerste 200 rijen** van `testadressen.xlsx` — dezelfde adressen, twee formaten:
+
+| Bestand | Upload |
+|---------|--------|
+| `testadressen-200-aft.xls` | Address File Tool (portaal). `.xls`, vaste kolommen uit `template.xls`. Enkel `SEQ`, `UNSTRUCTURED_NAME`, `UNSTRUCTURED_BUILDING_STREET_HOUSE_BOX`, `UNSTRUCTURED_POST_CODE_CITY`, `PRIORITY=NP`. |
+| `testadressen-200.xlsx` | Zelfde kolommen als de CRM-export. XML: `npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx` |
+
+De unstructured AFT-kolommen zijn dezelfde tekst als Comp 90/92/93 in die XML (spatie-samengevoegd, max 50 tekens). Niet opgevuld tot 500: dan zou AFT meer rijen hebben dan de XML.
+
+Opnieuw maken: `npx tsx scripts/build-compare-200.ts` (Python-pakket `xlwt` nodig voor het `.xls`).
+
 # Klein synthetisch enkel adres
 npm run test:transport -- --synthetic
 ```

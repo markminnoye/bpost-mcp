@@ -3,8 +3,17 @@
 *Sonic Rocket · 28 september 2026*
 
 **Vervangt:** [`2026-09-26-contrapunt-aft-address-prep.md`](2026-09-26-contrapunt-aft-address-prep.md)
-(⬜ superseded — inhoud blijft staan als referentie voor MID-codes, ARR-drempels en de
-kolomdrift-waarschuwing, die nog steeds kloppen).
+(stub sinds 29/09 — de lokale AFT-skill bouwen we niet).
+
+## Koers (vastgelegd 29/09/2026)
+
+- **Transport:** FTP/FTPS naar `filetransfer.bpost.be` (unattended). HTTP Basic Auth is geen machine-API.
+- **Validatie:** OptiAddress `MailingCheck` in dezelfde XML. Correcties via bericht **7001** / `compCorrection`. Niet de Address File Tool, niet de mailops REST-API, niet een lokaal BeSt-adresregister.
+- **Adresvelden:** unstructured Comp **90 / 92 / 93** (naam · straat+nummer · postcode+stad).
+- **Protocol:** MAIL ID **2.00 (`0200`)**.
+- **Volgorde:** library `src/core/masspost/` eerst, webinterface daarna. MCP blijft bevroren.
+
+Een AFT-vs-XML-meting is optioneel (`testadressen-200-aft.xls` naast `testadressen-200.xlsx`). Ze kiest het pad niet.
 
 ---
 
@@ -157,8 +166,8 @@ moeten slagen zonder codewijzigingen.
 
 - Webinterface: upload, kolom-mapping met live preview (Frank's UX-patroon), validatierapport,
   verzend-bevestiging.
-- Antwoordbestand inlezen + SEQ-merge naar een werkbestand (stap ③ uit het oude plan — logica
-  blijft geldig, enkel de drager verandert van lokaal Python naar deze library).
+- Antwoord inlezen + SEQ-merge naar een werkbestand: Create-2RS (MID per SEQ) en Opti-2RS
+  (`7001` / `compCorrection`). Zelfde koppeling als SEQ in een AFT-antwoord, andere drager.
 - **500-rijen-minimum (bevestigd Frank 28/09):** in library/webapp verwerken — waarschuwing onder drempel,
   optioneel gecontroleerde opvulling (Frank-patroon) vóór verzenden; `--simple` / `--synthetic` blijven
   enkel voor lokale XML/bestandsnaam-smoke tests.
@@ -179,7 +188,9 @@ moeten slagen zonder codewijzigingen.
 | ~~`buildXml()` rendeerde attributen als elementen, in strijd met de XSD's~~ | **Opgelost 28/09** — fix zit in `buildXml()` zelf, alle aanroepers (incl. bestaande `submit_ready_batch`/`check_batch`) automatisch mee gefixt. Regressietests: `tests/lib/xml.test.ts`. Zie CHANGELOG. |
 | Uuid-CVE (moderate) via `exceljs`'s transitieve `uuid`-afhankelijkheid (`npm audit`) | Niet blokkerend voor vandaag — exceljs roept `uuid` intern aan zonder aanvaller-gecontroleerde buffer-parameter. Opvolgen bij een latere `exceljs`-major of alternatief. |
 
-## Status: Paused — 28/09 avond → hervatten 29/09
+## Status: Actief — koers vast 29/09/2026
+
+Library staat. Webinterface en een geslaagde FTP-verzending nog niet. De keuze “AFT, XML+FTP of hybride” is gesloten: **XML via FTP, validatie via OptiAddress.**
 
 ### Besluit: MAIL ID protocol **2.00 (`0200`)** (+ dual-support 0100/0102 in code)
 
@@ -200,31 +211,38 @@ Generate: `npm run generate:mailing-xml [-- --limit N] [-- --opti]`
 
 **Mode-limieten:** T ≤200 · C ≤2000 · commercieel min. 500 (Frank) — apart van testlimiet.
 
-### Open vraag (Frank) — Excel/AFT vs onze XML
+### Wat MailingCreate en Opti wél teruggeven
 
-Frank: upload van **Excel via AFT** geeft **meteen** correcties.  
-Onze **structured XML**:
+- **MailingCreate** → MID-nummer + vaak **MID-4060** (WARN), geen correctietekst.
+- **MailingCheck (Opti)** → correcties als **7001** / `compCorrection`, niet als AFT-kolommen en niet als `<Suggestions>`.
 
-- **MailingCreate** → alleen MID-4060, **geen** correctietekst  
-- **MailingCheck (Opti)** → wél correcties, maar als **7001 / `compCorrection`**, niet als AFT-kolommen
+Frank ziet bij een AFT-upload meteen correcties. Dat is het gedrag van de portaal-tool, niet ons verzendkanaal. Wie het verschil wil meten: `docs/samples/contrapunt/testadressen-200-aft.xls` en `npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx` (zelfde 200 adressen).
 
-**Morgen uitzoeken:** zelfde adressenlijst (bv. 10 rijen) via (1) AFT Excel-upload en (2) onze Create/Check XML — side-by-side vergelijken (welke codes, welke velden, timing 1AK/2RS, UI vs download). Doel: verschillen documenteren en pad naar automatisering kiezen (XML+FTP vs AFT-wrapper vs hybride).
+### Volgende stappen
 
-### Volgende stappen bij hervatten (29/09)
-
-1. **AFT-vergelijking:** 10-adressen-export (of subset testadressen) via portaal AFT uploaden; response/Excel bewaren naast `…231404_2RS` (Opti) en Create-2RS.
-2. **XML verder testen:** Create 100/200; Opti met meer rijen; parser voor `7001`/`compCorrection` + SEQ-merge Create-2RS → Excel (MID-nummers).
-3. **Automatisering-ontwerp:** op basis van AFT-vs-XML-verschillen — library blijft bron van waarheid; UI/FTP daarna.
-4. FTP Connection & Security Test (Contrapunt/bpost) — parallel, niet blocker voor portal-tests.
-
-### Handoff-commando’s
+1. Parser voor Opti-2RS (`7001` / `compCorrection`) en Create-2RS (MID per SEQ), daarna samenvoegen op SEQ.
+2. Create/Opti verder op de testportal (100 en 200 adressen; 2RS van 200 kan traag zijn).
+3. FTP Connection & Security Test met Contrapunt/bpost — daarna `npm run test:transport -- --ftp`.
+4. Webinterface bovenop `src/core/masspost/` (upload, kolommapping, validatierapport).
 
 ```bash
-npm run generate:mailing-xml -- --limit 10          # Create
-npm run generate:mailing-xml -- --opti --limit 10   # OptiAddress Check
-npm run generate:mailing-xml -- --limit 50
+npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx
+npm run generate:mailing-xml -- --opti --file docs/samples/contrapunt/testadressen-200.xlsx
 ```
 
-Env: `.env.local` → `BPOST_TEST_MID_VERSION=0200`, account **65486**, barcode **00210**.  
-Docs: `docs/internal/masspost-test-env.md`, `docs/external/contrapunt-aft-converter/`.
+Env: `.env.local` → `BPOST_TEST_MID_VERSION=0200`. Docs: `docs/internal/masspost-test-env.md`.
+
+## Naslag (uit het afgevoerde AFT-plan)
+
+**ARR** (tarievengidsen 2026): ≥96% om te mogen opladen, ≥98% → 0,5% Data Quality-korting, stapelbaar met Mail ID+ (+1%). `MID-4040` geeft compliance rates mee in het antwoord. Aanname, nog te toetsen aan een echt antwoord: INFO+WARN = herkend, ERROR = niet herkend.
+
+| Categorie | Codes | Severity |
+|---|---|---|
+| Correct | `MID-4030` (MID-nummer toegekend) | INFO |
+| Aangepast | `MID-4000` `MID-4001` `MID-4060` `MID-4050` `MID-4100` `MID-4300` | WARN |
+| Niet herkend | `MID-4010` `MID-4011` `MID-4020` `MID-4070` `MID-4080` | ERROR |
+| Informatief | `MID-4040` (compliance) · `MID-4061/4062` · `MID-4090` | INFO |
+| Fataal | `MID-4200` `MID-4210` | FATAL |
+
+De mailops-API (`api.mailops.bpost.cloud`, max 100 adressen, `x-api-key`) is een ander product. Die gebruiken we niet voor deze keten.
 

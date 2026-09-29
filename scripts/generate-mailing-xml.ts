@@ -5,6 +5,7 @@
 // Env (MID version, file ref, ids): docs/internal/masspost-test-env.md
 //
 //   npm run generate:mailing-xml                    # MailingCreate, max 200 (mode=T)
+//   npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx
 //   npm run generate:mailing-xml -- --simple
 //   npm run generate:mailing-xml -- --limit 50
 //   npm run generate:mailing-xml -- --opti --limit 10   # OptiAddress (MailingCheck)
@@ -64,6 +65,16 @@ async function main() {
   const args = process.argv.slice(2)
   const useSimple = args.includes('--simple')
   const useOpti = args.includes('--opti') || args.includes('--check')
+  const fileIdx = args.indexOf('--file')
+  const filePath = fileIdx >= 0 ? args[fileIdx + 1] : undefined
+  if (fileIdx >= 0 && !filePath) {
+    console.error('❌ --file vereist een pad naar een .xlsx')
+    process.exit(1)
+  }
+  if (useSimple && filePath) {
+    console.error('❌ --simple en --file sluiten elkaar uit')
+    process.exit(1)
+  }
   const versionOverride = parseVersionOverride(args)
   const maxItems = useSimple ? undefined : parseLimit(args)
   const outIdx = args.indexOf('--out')
@@ -82,12 +93,11 @@ async function main() {
 
   const midVersion = versionOverride ?? httpCreds.midVersion
 
-  const buffer = useSimple
-    ? await buildSimpleContrapuntTestXlsxBuffer()
-    : await readFile(CONTRAPUNT_TEST_ADRESSEN_XLSX)
+  const sourcePath = filePath ? path.resolve(filePath) : CONTRAPUNT_TEST_ADRESSEN_XLSX
+  const buffer = useSimple ? await buildSimpleContrapuntTestXlsxBuffer() : await readFile(sourcePath)
   const sourceLabel = useSimple
     ? 'synthetisch testadres (1 rij, Contrapunt-kolomlayout)'
-    : CONTRAPUNT_TEST_ADRESSEN_XLSX
+    : sourcePath
 
   const now = new Date()
   const stamp = now.toISOString().replace(/[-:T]/g, '').slice(0, 14)
