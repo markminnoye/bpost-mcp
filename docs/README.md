@@ -36,10 +36,10 @@ docs/
 
 Beide: `npm run docs:build`. `npm run docs:check` faalt als `docs/library/` of `docs/service-api/openapi.yaml` achterloopt. `docs/mcp/README.md` is met de hand geschreven en hoort niet bij die check.
 
-`/api/auth/[...nextauth]` staat in de spec als externe Auth.js-route, zonder request- of response-schema. MCP staat er niet in. De officiële MCP-URL is `/mcp`; `/api/mcp` blijft een legacy-alias. De verplaatsing zit in branch `refactor/mcp-route-at-root` (aparte draft-PR).
+`/api/auth/[...nextauth]` staat in de spec als externe Auth.js-route, zonder request- of response-schema. MCP staat er niet in. De officiële MCP-URL is `/mcp`; `/api/mcp` blijft een legacy-alias. De verplaatsing zit in draft-PR #40 op branch `refactor/mcp-route-at-root`.
 
 ## GitBook
 
-Op `main` liggen de bestanden onder `docs/`. Een push naar `main` draait `.github/workflows/publish-docs.yml`: die bouwt de docs en force-pusht **alleen** deze map naar branch `docs` (de root van die branch is de inhoud van `docs/`). De action commit nooit terug naar `main` en luistert niet naar branch `docs`, dus ze triggert zichzelf niet.
+Op `develop` (de hoofdlijn) liggen de bestanden onder `docs/`. Een push naar `develop` draait `.github/workflows/publish-docs.yml`: die bouwt de docs en force-pusht **alleen** deze map naar branch `docs` (de root van die branch is de inhoud van `docs/`). De action commit nooit terug naar `develop` en luistert niet naar branch `docs`, dus ze triggert zichzelf niet.
 
 Git Sync: branch `docs`, content root `/`. Hetzelfde OpenAPI-bestand werkt in Redocly, Scalar en Mintlify. Pull requests blijven `docs:check` draaien in de gewone CI.

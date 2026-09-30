@@ -8,7 +8,7 @@ Minimal, reusable docs setup. Generated output is committed so GitBook Git Sync 
 - [x] TypeDoc Markdown → `docs/library/` (`npm run docs:code`)
 - [x] OpenAPI 3.1 → `docs/service-api/openapi.yaml` (`npm run docs:api`)
 - [x] `docs/mcp/README.md` only; MCP stays out of the service spec (official URL `/mcp`, `/api/mcp` legacy alias)
-- [x] Publish workflow force-pushes `docs/` to branch `docs` and does not commit to `main`
+- [x] Publish workflow force-pushes `docs/` to branch `docs` on push to `develop` and does not commit back to `develop`
 - [x] Rules in `AGENTS.md` and `.cursor/rules/documentation.mdc` (`CLAUDE.md` already points at `AGENTS.md`)
 - [x] ADR template + ADR 0001
 - [x] `docs/README.md` for GitBook / other readers

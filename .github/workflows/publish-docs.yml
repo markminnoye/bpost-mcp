@@ -1,10 +1,11 @@
 name: Publish docs branch
 
-# Runs only on main. The job force-pushes the docs tree to branch `docs`
-# and never commits back to main, so this workflow cannot trigger itself.
+# Runs only on develop (the default branch). The job force-pushes the docs
+# tree to branch `docs` and never commits back to develop, so this workflow
+# cannot trigger itself.
 on:
   push:
-    branches: [main]
+    branches: [develop]
 
 permissions:
   contents: write
@@ -38,7 +39,7 @@ jobs:
       - name: Force-push docs tree to branch docs
         run: |
           set -euo pipefail
-          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+          if [ "${GITHUB_REF}" != "refs/heads/develop" ]; then
             echo "Refusing to publish from ${GITHUB_REF}"
             exit 1
           fi
