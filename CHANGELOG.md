@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vergelijkingsset van **200 adressen** (bpost-testlimiet): `testadressen-200.xlsx` voor de XML-upload en `testadressen-200-aft.xls` voor de Address File Tool. Zelfde eerste 200 rijen uit `testadressen.xlsx`, unstructured velden gelijk aan Comp 90/92/93, `PRIORITY=NP`. Geen opvulling tot 500.
 - `scripts/apply-opti-corrections.ts` schrijft Opti-correcties (bericht `7001`) terug naar Excel. Resultaat van de 500-test: `docs/samples/contrapunt/testadressen-500-corrected.xlsx`.
 - Skill-library: nieuwe skill **Address Proofing** (Mailops REST) naast Mail ID/OptiAddress, met privacyregel (geen persoonsnamen; bedrijfsnaam mag). Routing in de protocol-skill.
+- Skills-submodule bijgewerkt naar `562e545` (skills PR #9): live Contrapunt **field findings**, AFT API Manual v1.7 en portal code-lists.
 
 **Aanpassingen**
 
@@ -72,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `scripts/apply-opti-corrections.ts` and `docs/samples/contrapunt/testadressen-500-corrected.xlsx` — apply OptiAddress `7001` corrections onto the first 500 fictional rows for a second MailingCheck and a MailingCreate.
 - Cursor rule + hook for **begrijpelijke Linear-issues**: `.cursor/rules/linear-issue-descriptions.mdc` and `beforeMCPExecution` gate on `save_issue` (`.cursor/hooks/`). Tracked via `.gitignore` exceptions.
 - Skills submodule: `bpost-address-proofing` (validate/format REST, S42, PII deny-list). Protocol skill adds `reference/address-validation-products.md` and Comp ↔ S42 mapping. Mailops MCP client deferred (release freeze + API key).
+- Skills submodule pointer `docs/internal/e-masspost` → `562e545` (field findings, AFT API Manual v1.7, portal code lists; skills PR #9).
 
 ### Changed
 
