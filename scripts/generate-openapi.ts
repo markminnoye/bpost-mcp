@@ -121,7 +121,7 @@ registry.registerPath({
   summary: 'OAuth protected resource metadata',
   description: 'Body is produced by mcp-handler. The schema describes that JSON; the handler is unchanged.',
   responses: {
-    200: json(ProtectedResourceMetadataSchema, '`resource` is the public origin plus `/api/mcp`.'),
+    200: json(ProtectedResourceMetadataSchema, 'OAuth protected-resource metadata (`resource` and `authorization_servers`).'),
   },
 })
 

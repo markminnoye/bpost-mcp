@@ -32,7 +32,7 @@ Claude.ai / Claude Desktop
         |
         | 1. MCP request (geen token)
         v
-/api/mcp (mcp-handler + withMcpAuth)
+/mcp (mcp-handler + withMcpAuth)
         | 401 + WWW-Authenticate
         v
 /.well-known/oauth-protected-resource
@@ -48,7 +48,7 @@ Claude.ai / Claude Desktop
 /oauth/token
         | code -> JWT + refresh token
         v
-/api/mcp (Bearer JWT)
+/mcp (Bearer JWT)
         | verifyToken -> resolveTenant -> tool execution
 ```
 
@@ -219,7 +219,7 @@ Response (201):
 
 ### MCP Route
 
-#### `GET/POST /api/mcp`
+#### `GET/POST /mcp`
 
 Migrated from `@modelcontextprotocol/sdk` to `mcp-handler`.
 
@@ -411,7 +411,7 @@ Add a third section to the existing dashboard:
 |  Claude / MCP Clients       (new)           |
 |                                             |
 |  Verbind Claude met je BPost account:       |
-|  [https://bpost-mcp.vercel.app/api/mcp]    |
+|  [https://bpost-mcp.vercel.app/mcp]        |
 |                              [Kopieer]      |
 |  Plak deze URL in Claude Desktop onder      |
 |  Settings > MCP Servers. Claude regelt      |

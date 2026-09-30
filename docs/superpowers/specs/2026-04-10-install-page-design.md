@@ -63,7 +63,7 @@ Two side-by-side cards:
 {
   "mcpServers": {
     "bpost": {
-      "url": "https://bpost-mcp.vercel.app/api/mcp"
+      "url": "https://bpost-mcp.vercel.app/mcp"
     }
   }
 }
@@ -74,7 +74,7 @@ Two side-by-side cards:
 - Explanation: Add via CLI command or config file
 - Copy-ready CLI snippet:
 ```bash
-claude mcp add bpost --url https://bpost-mcp.vercel.app/api/mcp
+claude mcp add bpost --url https://bpost-mcp.vercel.app/mcp
 ```
 - Note: Claude Code will prompt for Google login on first use.
 
@@ -92,7 +92,7 @@ claude mcp add bpost --url https://bpost-mcp.vercel.app/api/mcp
 {
   "mcpServers": {
     "bpost": {
-      "url": "https://bpost-mcp.vercel.app/api/mcp",
+      "url": "https://bpost-mcp.vercel.app/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
       }
@@ -105,7 +105,7 @@ claude mcp add bpost --url https://bpost-mcp.vercel.app/api/mcp
 **Subsection: Claude Code**
 - Copy-ready CLI snippet:
 ```bash
-claude mcp add bpost --url https://bpost-mcp.vercel.app/api/mcp --header "Authorization: Bearer <your-token>"
+claude mcp add bpost --url https://bpost-mcp.vercel.app/mcp --header "Authorization: Bearer <your-token>"
 ```
 
 ### 6. Footer

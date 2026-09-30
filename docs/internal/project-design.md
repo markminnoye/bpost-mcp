@@ -29,7 +29,7 @@
 │   ├── internal/              # Code-related documentation (like this file)
 │   └── samples/               # Mock payloads (JSON/XML) used for tests & examples
 ├── src/                       # Vercel Application Source Code
-│   ├── app/                   # Next.js / Vercel API routes (e.g., /api/mcp)
+│   ├── app/                   # Next.js routes (official MCP URL /mcp; /api/mcp is a legacy alias)
 │   ├── client/                # HTTP fetch wrappers for communicating securely with BPost
 │   └── schemas/               # Zod definitions ensuring valid letter batches
 ├── tests/                     # Unit & Integration tests for batch announcement

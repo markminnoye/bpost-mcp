@@ -90,7 +90,7 @@ sequenceDiagram
     participant Client as BpostClient
     participant BPost as BPost API
 
-    Agent->>Route: POST /api/mcp<br/>tools/call: bpost_announce_deposit { ... }
+    Agent->>Route: POST /mcp<br/>tools/call: bpost_announce_deposit { ... }
 
     Route->>Zod: validate input
     alt invalid payload
@@ -197,7 +197,7 @@ bpost-mcp/
 ├── src/
 │   ├── app/api/mcp/
 │   │   └── route.ts              ← MCP HTTP endpoint (Next.js App Router)
-│   │                               Registers tools, handles POST /api/mcp
+│   │                               Registers tools, handles POST /mcp
 │   │
 │   ├── schemas/
 │   │   ├── common.ts             ← Shared types: BooleanType, DepositContext,

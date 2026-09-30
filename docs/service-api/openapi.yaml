@@ -446,7 +446,7 @@ paths:
       description: Body is produced by mcp-handler. The schema describes that JSON; the handler is unchanged.
       responses:
         "200":
-          description: "`resource` is the public origin plus `/api/mcp`."
+          description: OAuth protected-resource metadata (`resource` and `authorization_servers`).
           content:
             application/json:
               schema:

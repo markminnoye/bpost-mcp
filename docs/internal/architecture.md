@@ -22,7 +22,7 @@ flowchart LR
     end
 
     subgraph Service["bpost-mcp (Vercel)"]
-        MCP["/api/mcp<br/>mcp-handler + withMcpAuth"]
+        MCP["/mcp<br/>legacy alias /api/mcp"]
         AS["OAuth Authorization Server<br/>/oauth/authorize<br/>/oauth/token<br/>/oauth/register"]
         DB["Neon Postgres<br/>(Drizzle ORM)"]
         R["Redis (TCP)<br/>batch pipeline state"]
@@ -54,7 +54,9 @@ flowchart LR
 
 ## System Components
 
-### 1. MCP Route (`/api/mcp`)
+### 1. MCP Route (`/mcp`)
+
+Official URL is `/mcp`. `/api/mcp` stays as a legacy alias (branch `refactor/mcp-route-at-root`).
 
 The entry point for all AI agent calls. Powered by `mcp-handler` with `withMcpAuth`.
 
@@ -83,7 +85,7 @@ After auth, BPost credential tools fetch secrets via `getCredentialsByTenantId(t
 ```mermaid
 sequenceDiagram
     participant Agent
-    participant MCP as /api/mcp (withMcpAuth)
+    participant MCP as /mcp (withMcpAuth)
     participant VT as verifyToken
     participant Tool as Tool Handler
     participant DB as Neon Postgres
@@ -124,7 +126,7 @@ A full OAuth 2.1 Authorization Server built as Next.js API routes. Enables Claud
 ```mermaid
 sequenceDiagram
     participant Claude as Claude Desktop
-    participant MCP as /api/mcp
+    participant MCP as /mcp
     participant WK as /.well-known/*
     participant Auth as /oauth/authorize
     participant Google as Google OAuth

@@ -36,7 +36,7 @@ docs/
 
 Beide: `npm run docs:build`. `npm run docs:check` faalt als `docs/library/` of `docs/service-api/openapi.yaml` achterloopt. `docs/mcp/README.md` is met de hand geschreven en hoort niet bij die check.
 
-`/api/auth/[...nextauth]` staat in de spec als externe Auth.js-route, zonder request- of response-schema. MCP (`/api/mcp`) staat er niet in.
+`/api/auth/[...nextauth]` staat in de spec als externe Auth.js-route, zonder request- of response-schema. MCP staat er niet in. De officiële MCP-URL is `/mcp`; `/api/mcp` blijft een legacy-alias. De verplaatsing zit in branch `refactor/mcp-route-at-root` (aparte draft-PR).
 
 ## GitBook
 

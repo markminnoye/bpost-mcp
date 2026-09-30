@@ -7,7 +7,7 @@ Minimal, reusable docs setup. Generated output is committed so GitBook Git Sync 
 - [x] TSDoc on public exports of `src/core/masspost/index.ts` where it was missing
 - [x] TypeDoc Markdown → `docs/library/` (`npm run docs:code`)
 - [x] OpenAPI 3.1 → `docs/service-api/openapi.yaml` (`npm run docs:api`)
-- [x] `docs/mcp/README.md` only; MCP stays out of the service spec (`/api/mcp`, no rewrite)
+- [x] `docs/mcp/README.md` only; MCP stays out of the service spec (official URL `/mcp`, `/api/mcp` legacy alias)
 - [x] Publish workflow force-pushes `docs/` to branch `docs` and does not commit to `main`
 - [x] Rules in `AGENTS.md` and `.cursor/rules/documentation.mdc` (`CLAUDE.md` already points at `AGENTS.md`)
 - [x] ADR template + ADR 0001
