@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `npm run generate:mailing-xml -- --simple` — zelfde, met **1 fictief testadres** (snelle portal-test).
 - Vergelijkingsset van **200 adressen** (bpost-testlimiet): `testadressen-200.xlsx` voor de XML-upload en `testadressen-200-aft.xls` voor de Address File Tool. Zelfde eerste 200 rijen uit `testadressen.xlsx`, unstructured velden gelijk aan Comp 90/92/93, `PRIORITY=NP`. Geen opvulling tot 500.
 - `scripts/apply-opti-corrections.ts` schrijft Opti-correcties (bericht `7001`) terug naar Excel. Resultaat van de 500-test: `docs/samples/contrapunt/testadressen-500-corrected.xlsx`.
+- Skill-library: nieuwe skill **Address Proofing** (Mailops REST) naast Mail ID/OptiAddress, met privacyregel (geen persoonsnamen; bedrijfsnaam mag). Routing in de protocol-skill.
 
 **Aanpassingen**
 
@@ -48,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Handmatige e-MassPost-upload (test-modus) geverifieerd (28/09):** **protocol `0200` geslaagd** (`Status 100`, gegenereerd MID-nummer). Eerdere `0100`-uploads faalden op MID-2040 wanneer 0200-velden aanwezig waren; Contrapunt ondersteunt wél 2.00 — zie `docs/samples/contrapunt/bpost-roundtrip/`.
 - **Structurele fout in de XML-opbouw hersteld**: `buildXml()` (`src/lib/xml.ts`) rendeerde velden als child-elementen in plaats van als XML-attributen, in strijd met de MailingRequest/DepositRequest XSD's (die vrijwel elk scalair veld als attribuut modelleren, bv. `Context/@requestName`, `Comp/@code`). Dit trof niet enkel de nieuwe library, maar ook de bestaande `submit_ready_batch`, `check_batch` en de deposit-flows — nooit opgemerkt omdat bestaande tests `buildXml` altijd mockten. Nu automatisch en correct afgehandeld voor alle aanroepers, met regressietests (`tests/lib/xml.test.ts`).
 - `bpost.sonicrocket.be` en `bpost.sonicrocket.io` staan niet meer als huidige productiehost in de actieve config en documentatie.
+- Vriendelijke mapping-aliases (`street`, `lastName`, `postalCode`, …) volgen nu BPost Table 46 / Address File Tool (`street` → `Comps.9`, `houseNumber` → `Comps.12`, `postalCode` → `Comps.15`, `municipality` → `Comps.16`, `lastName` → `Comps.4`).
 
 **Gekend probleem (niet opgelost, nog te onderzoeken)**
 
@@ -65,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/internal/masspost-library.md` — developer guide for `src/core/masspost/` and CLI flags (`generate:mailing-xml`, `test:transport`, `build-compare-200`).
 - `scripts/apply-opti-corrections.ts` and `docs/samples/contrapunt/testadressen-500-corrected.xlsx` — apply OptiAddress `7001` corrections onto the first 500 fictional rows for a second MailingCheck and a MailingCreate.
 - Cursor rule + hook for **begrijpelijke Linear-issues**: `.cursor/rules/linear-issue-descriptions.mdc` and `beforeMCPExecution` gate on `save_issue` (`.cursor/hooks/`). Tracked via `.gitignore` exceptions.
+- Skills submodule: `bpost-address-proofing` (validate/format REST, S42, PII deny-list). Protocol skill adds `reference/address-validation-products.md` and Comp ↔ S42 mapping. Mailops MCP client deferred (release freeze + API key).
 
 ### Changed
 
@@ -78,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `buildXml()` now converts scalar leaf fields to XML attributes (`@_`-prefixed) before serialization, matching the MailingRequest/DepositRequest XSDs. Previously every field was rendered as a child element. Affects all callers: `submit-batch.ts`, `check-batch.ts`, `bpost_announce_deposit`, `bpost_announce_mailing`, and the new masspost library. See `tests/lib/xml.test.ts`.
 - Stale canonical origin `https://bpost.sonicrocket.be` in `server.json`, `README.md`, and `MCP_REGISTRY_CANONICAL_ORIGIN`.
+- **MCP mapping aliases** aligned with Mail ID Table 46 / AFT column codes. Previous aliases wrote street/house/postcode/city/lastName into the wrong Comp codes (middle name, last name, building, street, greeting).
 
 
 ---
