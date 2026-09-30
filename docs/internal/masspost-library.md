@@ -9,6 +9,7 @@ Developer guide for `src/core/masspost/` and the npm scripts that drive Contrapu
 | [e-masspost protocol (GitBook source)](./e-masspost/docs/README.md) | Official field/flow/transport specs |
 | [Field findings](./e-masspost/docs/reference/field-findings.md) | Live Contrapunt observations (FTP, Opti `7001`, …) |
 | [Plan](../../.agent/plans/2026-09-28-bpost-library-web-app.md) | Product decisions & milestone status |
+| [Generated library reference](../library/) | TypeDoc pages for the public exports (`npm run docs:code`) |
 | [Samples](../samples/contrapunt/README.md) | Excel fixtures & round-trip XML |
 
 ---

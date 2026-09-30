@@ -134,6 +134,14 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 
 ---
 
+## Documentation
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Documentation standard](2026-09-30-documentation-standard.md) | ✅ | TSDoc + TypeDoc, OpenAPI 3.1 from Zod, agent rules, `docs:check` |
+
+---
+
 ## Rules for Agents
 
 1. **Before starting any multi-step task:** create a plan file here (`YYYY-MM-DD-short-name.md`) and add it to this index.

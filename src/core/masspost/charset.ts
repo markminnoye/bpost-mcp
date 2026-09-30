@@ -28,14 +28,22 @@ const EXOTIC_SPACE = /[ -   　]/g
 const ZERO_WIDTH = /[​-‍⁠﻿]/g
 
 /** True when bpost accepts the code point: HT/LF/CR, printable ASCII, and Latin-1 0xA0–0xFF.
- *  Control characters (incl. DEL and the C1 range 0x80–0x9F) are not supported. */
+ *  Control characters (incl. DEL and the C1 range 0x80–0x9F) are not supported.
+ *
+ * @param cp Unicode code point.
+ * @returns `true` for tab, LF, CR, printable ASCII, and Latin-1 0xA0–0xFF.
+ */
 export function isBpostSafeCodePoint(cp: number): boolean {
   return (
     cp === 0x09 || cp === 0x0a || cp === 0x0d || (cp >= 0x20 && cp <= 0x7e) || (cp >= 0xa0 && cp <= 0xff)
   )
 }
 
-/** Distinct characters in `text` that bpost does not accept, in order of appearance. */
+/** Distinct characters in `text` that bpost does not accept, in order of appearance.
+ *
+ * @param text Any string, before or after normalization.
+ * @returns Unique unsupported characters. Empty when every character is safe.
+ */
 export function findUnsupportedChars(text: string): string[] {
   const found = new Set<string>()
   for (const ch of text) {
@@ -44,6 +52,7 @@ export function findUnsupportedChars(text: string): string[] {
   return [...found]
 }
 
+/** Text after safe replacements, plus the distinct characters that were changed. */
 export interface NormalizedText {
   text: string
   /** Distinct characters that were replaced, e.g. `["’", "ő"]`. */
@@ -52,7 +61,14 @@ export interface NormalizedText {
 
 /** Replaces what can be replaced safely: typographic quotes/dashes/ellipsis → ASCII,
  *  exotic spaces, and accented letters outside Latin-1 (ő → o) by dropping the accent.
- *  Anything else (ł, Cyrillic, emoji…) is left untouched so that validation can report it. */
+ *  Anything else (ł, Cyrillic, emoji…) is left untouched so that validation can report it.
+ *
+ * @param text Raw address text.
+ * @returns Normalized text and the characters that were replaced. Unsupported characters stay in `text`.
+ * @example
+ * normalizeForBpost('\u2019s-Hertogenbosch')
+ * // { text: "'s-Hertogenbosch", replaced: ['\u2019'] }
+ */
 export function normalizeForBpost(text: string): NormalizedText {
   const replaced = new Set<string>()
   let out = ''

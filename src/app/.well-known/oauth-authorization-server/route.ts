@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPublicOrigin } from 'mcp-handler';
+import { AuthorizationServerMetadataSchema } from './schema';
 
 export function GET(request: Request) {
   const baseUrl = getPublicOrigin(request);
 
-  const metadata = {
+  const metadata = AuthorizationServerMetadataSchema.parse({
     issuer: baseUrl,
     authorization_endpoint: `${baseUrl}/oauth/authorize`,
     token_endpoint: `${baseUrl}/oauth/token`,
@@ -15,7 +16,7 @@ export function GET(request: Request) {
     token_endpoint_auth_methods_supported: ['client_secret_post', 'none'],
     scopes_supported: ['mcp:tools'],
     client_id_metadata_document_supported: true,
-  };
+  });
 
   return NextResponse.json(metadata, {
     headers: {

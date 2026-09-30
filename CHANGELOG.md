@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Nieuw**
 
+- Documentatiestandaard in drie mappen: `docs/library/` (TypeDoc), `docs/service-api/openapi.yaml` (OpenAPI 3.1 van de HTTP-service) en `docs/mcp/` (MCP valt buiten die spec; officiële URL is `/mcp`, `/api/mcp` blijft een legacy-alias). `npm run docs:build` genereert library en service-spec; `npm run docs:check` faalt als die output achterloopt. Push naar `develop` publiceert `docs/` naar branch `docs` zonder terug naar `develop` te committen.
 - Kolom-mapping-voorstel (`suggestColumnMapping`) op basis van Excel-kolomkoppen: Contrapunt-export blijft exact, andere layouts via NL/FR/EN-synoniemen. De caller bevestigt altijd. Optionele AI-fallback (`POST /api/masspost/suggest-mapping`) vereist dezelfde bearer-token of sessie als de andere beveiligde routes, stuurt alleen kolomkoppen naar de Vercel AI Gateway en blijft dicht zonder modelconfiguratie. Geen webinterface. Linear SR-79.
 - Nieuwe herbruikbare library `src/core/masspost/` voor de bpost e-MassPost-integratie: Excel-adressenlijst inlezen, kolommen mappen naar bpost's unstructured adresvelden (Comp-codes 90/92/93), valideren, en versturen naar bpost via **HTTP** en (nieuw) **FTP/FTPS**. Vervangt het eerder geplande lokaal-only Python-spoor voor Contrapunt (zie `.agent/plans/2026-09-28-bpost-library-web-app.md`); MCP-tooling staat voorlopig on hold.
 - Referentietool van Contrapunt (Frank) opgeslagen ter analyse in `docs/external/contrapunt-aft-converter/` — hun bestaande AFT-conversieaanpak (unstructured velden, SEQ-round-trip) is het uitgangspunt voor de nieuwe library.
@@ -34,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Aanpassingen**
 
 - De officiële MCP-URL is `/mcp` (`src/app/mcp`). De installatieprompt gebruikt `{{BASE_URL}}/mcp`. `/api/mcp` blijft werken als legacy-alias (rewrite). OAuth protected-resource metadata en nieuwe installatie-URL's gebruiken `/mcp`; bestaande `/api/mcp`-clients en oude resource-waarden blijven geldig.
+- Gegenereerde library-docs tonen `ColumnMapping` als `readonly string[]`, in lijn met de typefix op `develop`.
 
 - Masspost bestandsnamen: **`customerFileRef` wordt genormaliseerd naar exact 10 tekens** (`REFERENCE` → `REFERENCE0` in naam én `RequestProps`) — voorkomt portaal **MPW-5009 / MID-2010** bij te korte refs.
 - Masspost generate-script: standaard **max 200 adressen** voor `mode=T` (bpost testlimiet); `--all` / `--limit N` override.
@@ -61,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Documentation standard in three folders: `docs/library/` (TypeDoc), `docs/service-api/openapi.yaml` (OpenAPI 3.1 for the HTTP service), and `docs/mcp/` (MCP is outside that spec; the official URL is `/mcp`, and `/api/mcp` stays as a legacy alias). `npm run docs:build` writes the library and the service spec; `npm run docs:check` fails when that output is stale. A push to `develop` publishes `docs/` to branch `docs` and does not commit back to `develop`.
 - `suggestColumnMapping` in `src/core/masspost/suggest-mapping.ts` (preset `contrapunt-export`, NL/FR/EN synonyms, `needsAi` only when a required Comp target is incomplete or confidence is low). Optional AI fallback outside core: `src/lib/masspost/suggest-mapping-ai.ts` and `POST /api/masspost/suggest-mapping` (same bearer/session auth as the other protected routes, Vercel AI Gateway via the `ai` package, headers only, Zod-validated, fail-closed without `MASSPOST_SUGGEST_MAPPING_MODEL`). Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai).
 - `src/core/masspost/` — framework-agnostic library: `excel.ts` (`.xlsx`-parsing via `exceljs`), `mapping.ts` (kolom-naar-Comp-mapping met gerapporteerde afkapping i.p.v. stil), `build-request.ts`, `validate.ts`, `credentials.ts` (single-tenant, lazy fail-fast), `transport/http.ts`, `transport/ftp.ts` (nieuw, `basic-ftp`), `pipeline.ts`.
 - `src/core/masspost/charset.ts` — `findUnsupportedChars`, `normalizeForBpost`; `mapRows` reports replaced/unsupported characters; `validateMailingRequest` rejects strings outside ISO-8859-1 (previously `Buffer.from(xml, 'latin1')` kept only the low byte, e.g. U+2019 → control char, U+2026 → `&`). Tests: `tests/core/masspost/charset.test.ts`.
@@ -78,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Official MCP endpoint is `/mcp` (`src/app/mcp/route.ts`). The install prompt uses `{{BASE_URL}}/mcp`. `/api/mcp` stays available as a legacy rewrite to the same handler. Protected-resource metadata, `server.json`, install URLs, and OAuth resource normalization use `/mcp`; legacy `/api/mcp` resource values still match.
+- Generated library docs show `ColumnMapping` as `readonly string[]`, matching the type fix on `develop`.
 
 - Docs path: protocol documentation moved from `docs/internal/e-masspost/skills/e-masspost-protocol/` to `docs/internal/e-masspost/docs/` (skills-repo `main`, `fc8034a`); references updated in `AGENTS.md`, docs and code comments. Submodule pointer bumped in this commit.
 - **Build order locked** in `AGENTS.md` and the living plan: API/library (`src/core/masspost/`) before any UI; next step is column-mapping suggest API (Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai)), then web UI.

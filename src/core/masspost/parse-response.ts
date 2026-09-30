@@ -1,12 +1,17 @@
 import { parseXml } from '@/lib/xml'
 
+/** One message from a MailingResponse `Replies` block. */
 export interface MailingResponseMessage {
   code: string
   severity: string
   description?: string
 }
 
-/** Reads file-level Replies from a MailingResponse (2RS) XML string. */
+/** Reads file-level Replies from a MailingResponse (2RS) XML string.
+ *
+ * @param xml Response XML.
+ * @returns Messages that have a code. Missing reply blocks yield an empty array.
+ */
 export function extractMailingResponseMessages(xml: string): MailingResponseMessage[] {
   const doc = parseXml<Record<string, unknown>>(xml)
   const root = (doc.MailingResponse ?? doc) as Record<string, unknown>
@@ -37,6 +42,12 @@ export function extractMailingResponseMessages(xml: string): MailingResponseMess
   return messages
 }
 
+/**
+ * Reports whether any file-level message has severity `FATAL`.
+ *
+ * @param xml Response XML.
+ * @returns `true` when `extractMailingResponseMessages` finds a fatal message.
+ */
 export function hasFatalMailingResponse(xml: string): boolean {
   return extractMailingResponseMessages(xml).some((m) => m.severity === 'FATAL')
 }

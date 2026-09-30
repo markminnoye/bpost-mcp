@@ -8,8 +8,10 @@ import { normalizeBpostCustomerFileRef } from '@/core/masspost/file-naming'
  * credentials are read once from env and passed as plain parameters into transport functions.
  */
 
+/** Mail ID file version written in the XML context and the filename. */
 export type MidProtocolVersion = '0100' | '0102' | '0200'
 
+/** HTTP Basic Auth credentials plus the ids a MailingRequest must repeat. */
 export interface HttpCredentials {
   username: string
   password: string
@@ -25,6 +27,7 @@ export interface HttpCredentials {
   customerFileRef: string
 }
 
+/** FTP(S) login for the file drop. */
 export interface FtpCredentials {
   host: string
   username: string
@@ -32,6 +35,7 @@ export interface FtpCredentials {
   secure: boolean
 }
 
+/** Thrown when a credential read is missing required environment variables. The message lists them. */
 export class MissingCredentialsError extends Error {
   constructor(missing: string[]) {
     super(
@@ -45,7 +49,11 @@ function resolveCustomerId(): string | undefined {
   return env.BPOST_TEST_CUSTOMER_ID ?? env.BPOST_TEST_CUSTOMER_NUMBER
 }
 
-/** Resolves HTTP (Basic Auth) credentials. Fails fast, but only when actually called. */
+/** Resolves HTTP (Basic Auth) credentials. Fails fast, but only when actually called.
+ *
+ * @returns Credentials from the `BPOST_TEST_*` environment variables.
+ * @throws {MissingCredentialsError} When username, password, customer id, or account id is missing.
+ */
 export function getHttpCredentials(): HttpCredentials {
   const customerId = resolveCustomerId()
   const missing: string[] = []
@@ -66,7 +74,11 @@ export function getHttpCredentials(): HttpCredentials {
   }
 }
 
-/** Resolves FTP(S) credentials. Falls back to the HTTP login when no FTP-specific login is set. */
+/** Resolves FTP(S) credentials. Falls back to the HTTP login when no FTP-specific login is set.
+ *
+ * @returns Host, user, password, and whether to use TLS.
+ * @throws {MissingCredentialsError} When no username or password is available.
+ */
 export function getFtpCredentials(): FtpCredentials {
   const username = env.BPOST_FTP_USERNAME ?? env.BPOST_TEST_USERNAME
   const password = env.BPOST_FTP_PASSWORD ?? env.BPOST_TEST_PASSWORD

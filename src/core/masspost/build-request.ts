@@ -13,6 +13,7 @@ import type { MidProtocolVersion } from './credentials'
  */
 export const FORCE_TEST_MODE = true
 
+/** Inputs for a MailingCreate request. `mode` is ignored while `FORCE_TEST_MODE` is true. */
 export interface BuildRequestParams {
   mailingRef: string
   /** YYYY-MM-DD */
@@ -26,7 +27,12 @@ export interface BuildRequestParams {
   genPSC: 'Y' | 'N'
 }
 
-/** Turns mapped rows into `Item`s using the unstructured Comp codes (90/91/92/93). */
+/** Turns mapped rows into `Item`s using the unstructured Comp codes (90/91/92/93).
+ *
+ * @param rows Output of `mapRows`.
+ * @param priority Item priority written on every item (`NP` or `P`).
+ * @returns Items in the same order. `seq` is copied from the mapped row.
+ */
 export function rowsToItems(rows: MappedRow[], priority: 'P' | 'NP'): Item[] {
   return rows.map((row) => {
     const comps: { code: string; value?: string }[] = [
@@ -48,6 +54,7 @@ export function rowsToItems(rows: MappedRow[], priority: 'P' | 'NP'): Item[] {
   })
 }
 
+/** Inputs for an OptiAddress MailingCheck. No format and no delivery date. */
 export interface BuildCheckParams {
   mailingRef: string
   priority: 'P' | 'NP'
@@ -96,7 +103,13 @@ function headerAndContext(
   }
 }
 
-/** Assembles the full MailingRequest object (Context + Header + MailingCreate/Items). */
+/** Assembles the full MailingRequest object (Context + Header + MailingCreate/Items).
+ *
+ * @param items Items from `rowsToItems`.
+ * @param params Create parameters. Delivery date and file info are included only for protocol `0200`.
+ * @param credentials Customer and account ids, plus an optional MID version (default `0200`).
+ * @returns A plain object suitable for `validateMailingRequest`.
+ */
 export function buildMailingRequest(
   items: Item[],
   params: BuildRequestParams,
@@ -134,6 +147,11 @@ export function buildMailingRequest(
 /**
  * OptiAddress: MailingRequest with only MailingCheck (no Format/FileInfo/expectedDeliveryDate).
  * Ask for suggestions via suggestionsCount + copyRequestItem.
+ *
+ * @param items Items from `rowsToItems`. Each item gets `lang: "nl"` when language is missing.
+ * @param params Check parameters. Defaults: `copyRequestItem` Y, 5 suggestions, minimum score 60.
+ * @param credentials Customer and account ids, plus an optional MID version.
+ * @returns A MailingRequest that contains only `MailingCheck`.
  */
 export function buildMailingCheckRequest(
   items: Item[],

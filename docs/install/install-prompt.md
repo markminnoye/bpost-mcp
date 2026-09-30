@@ -141,7 +141,7 @@ Werkt het → bevestig dat de installatie geslaagd is.
 
 | Probleem | Oplossing |
 |---|---|
-| Verbindingsfout | URL controleren: `{{BASE_URL}}/mcp` (geen extra slash, geen spaties) |
+| Verbindingsfout | URL controleren: `{{BASE_URL}}/mcp` (geen extra slash, geen spaties). `{{BASE_URL}}/api/mcp` blijft als oudere alias werken. |
 | "Geen toegang" na inloggen | Google-account niet gekoppeld aan BPost → {{BASE_URL}}/dashboard |
 | "Tools laden niet" (Methode B) | Claude Desktop herstart? Wacht 30 seconden en probeer opnieuw |
 | Error 400: redirect_uri_mismatch | Technisch probleem aan serverkant → neem contact op met beheerder of gebruik het dashboard |
@@ -152,7 +152,7 @@ Bij twijfel: stel één verduidelijkende vraag, daarna de meest waarschijnlijke 
 
 ## 2. Developer / Ops — OAuth Redirect URI Fix
 
-**Context:** De BPost MCP-server draait op `{{BASE_URL}}/mcp`. Wanneer een gebruiker op "Connect" klikt, stuurt Claude een OAuth-verzoek naar Google met deze redirect URI: `https://claude.ai/api/mcp/auth_callback`. Als die URI niet in de Google Cloud Console staat, geeft Google Error 400: redirect_uri_mismatch.
+**Context:** De officiële MCP-URL is `{{BASE_URL}}/mcp`. `{{BASE_URL}}/api/mcp` blijft als legacy-alias werken. Wanneer een gebruiker op "Connect" klikt, stuurt Claude een OAuth-verzoek naar Google met deze redirect URI: `https://claude.ai/api/mcp/auth_callback`. Als die URI niet in de Google Cloud Console staat, geeft Google Error 400: redirect_uri_mismatch.
 
 **Fix:** Voeg deze twee redirect URIs toe aan de OAuth 2.0 Client in Google Cloud Console:
 
