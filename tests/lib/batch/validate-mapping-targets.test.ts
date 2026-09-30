@@ -36,5 +36,7 @@ describe('validateMappingTargets', () => {
     const result = validateMappingTargets({ A: 'Comps.999' })
     expect(result).not.toBeNull()
     expect(result!.hint).toContain('Comps.<code>')
+    expect(result!.hint).toContain('Comps.9')
+    expect(result!.hint).toContain('Comps.15')
   })
 })

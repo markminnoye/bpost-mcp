@@ -43,13 +43,20 @@ export const dynamic = 'force-dynamic'
  */
 /** Same keys as internal names are listed for documentation parity with the tool description. */
 const BPOST_ALIASES: Record<string, string> = {
-  lastName:      'Comps.1',
+  greeting:      'Comps.1',
   firstName:     'Comps.2',
-  street:        'Comps.3',
-  houseNumber:   'Comps.4',
-  box:           'Comps.5',
-  postalCode:    'Comps.8',
-  municipality:  'Comps.9',
+  middleName:    'Comps.3',
+  lastName:      'Comps.4',
+  suffix:        'Comps.5',
+  company:       'Comps.6',
+  department:    'Comps.7',
+  building:      'Comps.8',
+  street:        'Comps.9',
+  houseNumber:   'Comps.12',
+  box:           'Comps.13',
+  poBox:         'Comps.14',
+  postalCode:    'Comps.15',
+  municipality:  'Comps.16',
   language:      'lang',
   priority:      'priority',
   mailIdBarcode: 'midNum',
@@ -60,14 +67,21 @@ const MAPPING_GLOSSARY_RESOURCE_URI = 'bpost://guides/mapping-glossary'
 const MODE_PRIORITY_MATRIX_RESOURCE_URI = 'bpost://guides/mode-priority-matrix'
 const COMMON_ERROR_GUIDANCE_RESOURCE_URI = 'bpost://guides/common-error-guidance'
 
-const MAPPING_GLOSSARY_RESOURCE = `Friendly mapping targets for apply_mapping_rules:
-- lastName -> Comps.1 (recipient last name)
-- firstName -> Comps.2 (recipient first name)
-- street -> Comps.3 (street name)
-- houseNumber -> Comps.4 (house number)
-- box -> Comps.5 (box/bus number)
-- postalCode -> Comps.8 (postal code)
-- municipality -> Comps.9 (city/town)
+const MAPPING_GLOSSARY_RESOURCE = `Friendly mapping targets for apply_mapping_rules (Mail ID Table 46 / AFT):
+- greeting -> Comps.1
+- firstName -> Comps.2
+- middleName -> Comps.3
+- lastName -> Comps.4
+- suffix -> Comps.5
+- company -> Comps.6
+- department -> Comps.7
+- building -> Comps.8
+- street -> Comps.9 (street / address line 1)
+- houseNumber -> Comps.12
+- box -> Comps.13 (box/bus number)
+- poBox -> Comps.14
+- postalCode -> Comps.15
+- municipality -> Comps.16 (city/town)
 - language -> lang (nl/fr/de)
 - priority -> priority (NP default, P optional)
 - mailIdBarcode -> midNum (14-18 digits when customer-provides)
@@ -1044,7 +1058,7 @@ const handler = createMcpHandler(
         const row = state.rows.find(r => r.index === input.rowIndex)
         if (!row) return { isError: true, content: [{ type: 'text' as const, text: 'Row not found' }] }
 
-        // Resolve aliases (e.g. "language" → "lang", "street" → "Comps.3") before merging.
+        // Resolve aliases (e.g. "language" → "lang", "street" → "Comps.9") before merging.
         const resolvedDirect: Record<string, unknown> = {}
         const resolvedComps: Array<{ code: string; value: string }> = []
         for (const [key, value] of Object.entries(input.correctedData)) {

@@ -5,7 +5,7 @@ const COMPS_PREFIX = 'Comps.'
  *
  * Supports:
  * - Direct field mapping: `"Taal": "lang"` → `{ lang: "nl" }`
- * - Comps dot-notation: `"Naam": "Comps.1"` → aggregated into `{ Comps: { Comp: [{ code: "1", value: "..." }] } }`
+ * - Comps dot-notation: `"Naam": "Comps.4"` → aggregated into `{ Comps: { Comp: [{ code: "4", value: "..." }] } }`
  * - Auto-generated seq from rowIndex (1-based) unless explicitly mapped
  */
 export function applyMapping(
