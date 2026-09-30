@@ -123,6 +123,148 @@ components:
           description: CSV upload. Form field name is `file`.
       required:
         - file
+    SuggestMappingResponse:
+      type: object
+      properties:
+        mapping:
+          type: object
+          properties:
+            name:
+              type: array
+              items:
+                type: string
+            companyDepartment:
+              type: array
+              items:
+                type: string
+            streetHouseBox:
+              type: array
+              items:
+                type: string
+            postcodeCity:
+              type: array
+              items:
+                type: string
+          required:
+            - name
+            - streetHouseBox
+            - postcodeCity
+        confidence:
+          type: string
+          enum:
+            - high
+            - medium
+            - low
+        rationale:
+          type: object
+          additionalProperties:
+            type: string
+          description: Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93`.
+        unmatchedHeaders:
+          type: array
+          items:
+            type: string
+        needsAi:
+          type: boolean
+        source:
+          type: string
+          enum:
+            - heuristic
+            - ai
+      required:
+        - mapping
+        - confidence
+        - rationale
+        - unmatchedHeaders
+        - needsAi
+        - source
+    SuggestMappingError:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          enum:
+            - ai_not_configured
+            - ai_invalid_output
+            - ai_failed
+        suggestion:
+          type: object
+          properties:
+            mapping:
+              type: object
+              properties:
+                name:
+                  type: array
+                  items:
+                    type: string
+                companyDepartment:
+                  type: array
+                  items:
+                    type: string
+                streetHouseBox:
+                  type: array
+                  items:
+                    type: string
+                postcodeCity:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - name
+                - streetHouseBox
+                - postcodeCity
+            confidence:
+              type: string
+              enum:
+                - high
+                - medium
+                - low
+            rationale:
+              type: object
+              additionalProperties:
+                type: string
+              description: Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93`.
+            unmatchedHeaders:
+              type: array
+              items:
+                type: string
+            needsAi:
+              type: boolean
+          required:
+            - mapping
+            - confidence
+            - rationale
+            - unmatchedHeaders
+            - needsAi
+      required:
+        - error
+    SuggestMappingRequest:
+      type: object
+      properties:
+        headers:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 100
+        presetId:
+          type: string
+          enum:
+            - contrapunt-export
+        localeHints:
+          type: array
+          items:
+            type: string
+            enum:
+              - nl
+              - fr
+              - en
+          maxItems: 3
+      required:
+        - headers
+      additionalProperties: false
     AuthorizationServerMetadata:
       type: object
       properties:
@@ -425,6 +567,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UploadBatchError"
+  /api/masspost/suggest-mapping:
+    post:
+      summary: Suggest a column mapping
+      description: Requires a bearer token or a signed-in session. Tries the heuristic first; the AI fallback runs only when the heuristic needs it (`source` tells which one answered).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuggestMappingRequest"
+      responses:
+        "200":
+          description: Suggested mapping.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestMappingResponse"
+        "400":
+          description: Invalid JSON, invalid body, or no usable headers.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestMappingError"
+        "401":
+          description: Missing or invalid authentication.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestMappingError"
+        "403":
+          description: Account has no tenant.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestMappingError"
+        "422":
+          description: AI chose a column that is not in the file (`ai_invalid_output`). Heuristic `suggestion` included.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestMappingError"
+        "502":
+          description: AI call failed (`ai_failed`). Heuristic `suggestion` included.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestMappingError"
+        "503":
+          description: AI fallback not configured (`ai_not_configured`). Heuristic `suggestion` included.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestMappingError"
   /.well-known/oauth-authorization-server:
     get:
       summary: OAuth authorization server metadata
