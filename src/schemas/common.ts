@@ -21,7 +21,7 @@ export const MailingContextSchema = z.object({
   dataset: z.literal('M037_MID'),
   sender: z.number().int().positive(),
   receiver: z.literal('MID'),
-  version: z.literal('0200'),
+  version: z.enum(['0100', '0102', '0200']),
 })
 export type MailingContext = z.infer<typeof MailingContextSchema>
 

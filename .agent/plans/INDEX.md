@@ -106,6 +106,15 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 
 ---
 
+## Bpost Library & Webapp (Contrapunt) — MCP in de ijskast
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Adressen klaarmaken voor bpost](2026-09-26-contrapunt-aft-address-prep.md) | ⬜ | Stub. Lokale AFT-skill afgevoerd 29/09. |
+| [Bpost e-MassPost library + webapp](2026-09-28-bpost-library-web-app.md) | 🔄 | **Koers 29/09:** XML via **FTP**, validatie via **OptiAddress** (`MailingCheck` / 7001). Library staat; web UI en live FTP nog niet. |
+
+---
+
 ## Release — Main Production
 
 | Plan | Status | Notes |

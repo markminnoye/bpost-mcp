@@ -3,24 +3,27 @@
 **Stack:** Vercel (Next.js), TypeScript, Zod.
 **Goal:** MCP wrapper for BPost e-MassPost protocol for Langflow orchestration.
 
+**Build order (locked):** (1) reusable library / API in `src/core/masspost/` first — Excel → mapping → validate → XML → transport; (2) only then a thin interface on top (web now; later possibly MCP again). Do not build UI before the API surface exists. Prefer minimal code for easy maintenance.
+
 ### Documentation & Skills
 
 Uses [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-e-masspost-skills) (git submodule).
 1. **Construction:** Build Zod schemas, client code, and validation.
-2. **Distribution:** Packaged as versioned .zip skills for Claude/Gemini.
+2. **Distribution:** Packaged as versioned .zip skills for Claude/Gemini, built from the library's `docs/` folder (also published on GitBook).
 
 ### Context Routing (Read Order)
 
 1. **Vision:** `@docs/internal/vision.md` (Roadmap)
 2. **Design:** `@docs/internal/project-design.md` (Architecture)
 3. **External:** [Vercel MCP](https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel), [Claude MCP Examples](https://github.com/anthropics/claude-ai-mcp)
-4. **BPost Protocol:** `@docs/internal/e-masspost/skills/e-masspost-protocol/index.md`
+4. **BPost Protocol:** `@docs/internal/e-masspost/docs/README.md`
    - `schemas/`: Field specs & Zod rules
    - `flows/`: Business logic & sequence diagrams
    - `transport/`: HTTP/FTP protocol
    - `errors/`: MPW/MID error codes
 5. **Raw Source:** `@docs/external/Mail-ID Data_Exchange_Technical_Guide.pdf` (Verify table data/diagrams)
 6. **Samples:** `@docs/samples/` (Use for `@tests/`)
+7. **Masspost library / CLI:** `@docs/internal/masspost-library.md` (scripts `generate:mailing-xml`, `test:transport`, module map) + `@docs/internal/masspost-test-env.md` (credentials)
 
 ### Continuous Learning
 
@@ -70,7 +73,11 @@ When an implementation task is complete:
 See `.agent/plans/INDEX.md` for details.
 - **Phase 1 & Phase 2 Sprint 1 & 2:** ✅ Complete.
 - **Phase 2 Sprint 3:** ✅ Complete (declarative, procedural, escalation tools; `check_batch`, `submit_ready_batch`, barcode strategy).
-- **Release Freeze:** 🔄 Active — Main release to production in progress. Only blockers/fixes; no scope expansion.
+- **MCP tooling: paused (28/09/2026).** No new MCP feature work — existing routes (`src/app/api/mcp`) stay as-is, untouched. Fits the existing Release Freeze; do not scope-expand MCP.
+- **New focus:** a reusable library (`src/core/masspost/`) for the bpost e-MassPost integration, with a **web interface** (not MCP) for Contrapunt. See [Bpost e-MassPost library + webapp](.agent/plans/2026-09-28-bpost-library-web-app.md). **API/library first, UI second** — never the reverse. Interfaces stay thin and replaceable.
+- **MAIL ID protocol (locked 28/09/2026):** Contrapunt default **version 2.00 (`0200`)** — live portal Status 100. Dual-support `0100`/`0102` via `midVersion`.
+- **Path (locked 29/09/2026):** send `MailingRequest` XML over **FTP**; validate addresses with **OptiAddress** (`MailingCheck`, corrections as message 7001). Do not build the local AFT skill in `.agent/plans/2026-09-26-contrapunt-aft-address-prep.md` (stub). Living plan: `.agent/plans/2026-09-28-bpost-library-web-app.md`.
+- **How to run / extend the library:** `docs/internal/masspost-library.md`.
 
 ### Available Agent Skills
 
