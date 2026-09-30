@@ -1,0 +1,11 @@
+---
+description: Vlaams, niet-technische eindgebruikersteksten — enkel klantgerichte app-oppervlakken
+globs:
+  - src/app/dashboard/**/*
+  - src/app/install/**/*
+  - src/app/page.tsx
+  - src/app/layout.tsx
+alwaysApply: false
+---
+
+Bij wijzigingen in deze bestanden: volg **`.agent/prompts/customer-facing-agent.md`** (doelgroep niet-technisch, Belgisch-Nederlands/Vlaams, geen MCP- of developerjargon in zichtbare strings).

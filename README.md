@@ -81,7 +81,7 @@ Add the following to your Claude Desktop config file.
   "mcpServers": {
     "bpost": {
       "type": "http",
-      "url": "https://bpost.sonicrocket.be/api/mcp",
+      "url": "https://bpost.sonicrocket.app/api/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
       }
@@ -91,21 +91,21 @@ Add the following to your Claude Desktop config file.
 ```
 
 Replace `<your-token>` with either:
-- An **OAuth 2.0 access token** obtained via the [dashboard](https://bpost.sonicrocket.be/dashboard)
+- An **OAuth 2.0 access token** obtained via the [dashboard](https://bpost.sonicrocket.app/dashboard)
 - A **legacy M2M token** (`bpost_…`) generated in the dashboard for Langflow/n8n integrations
 
 ---
 
 ## Getting a Token
 
-1. Sign in at [https://bpost.sonicrocket.be/dashboard](https://bpost.sonicrocket.be/dashboard) with your Google account.
+1. Sign in at [https://bpost.sonicrocket.app/dashboard](https://bpost.sonicrocket.app/dashboard) with your Google account.
 2. Navigate to **API Tokens** and generate a new token.
 3. Copy the token — it is shown only once.
 
 For OAuth 2.0 clients (e.g., Claude Desktop with dynamic client registration), the authorization server metadata is available at:
 
 ```
-https://bpost.sonicrocket.be/.well-known/oauth-authorization-server
+https://bpost.sonicrocket.app/.well-known/oauth-authorization-server
 ```
 
 PKCE (`S256`) is mandatory for all OAuth flows.

@@ -115,11 +115,21 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 
 ---
 
+## Bpost Library & Webapp (Contrapunt) — MCP in de ijskast
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Adressen klaarmaken voor bpost](2026-09-26-contrapunt-aft-address-prep.md) | ⬜ | Stub. Lokale AFT-skill afgevoerd 29/09. |
+| [Bpost e-MassPost library + webapp](2026-09-28-bpost-library-web-app.md) | 🔄 | **Koers 29/09:** XML via **FTP**, validatie via **OptiAddress** (`MailingCheck` / 7001). Library staat; web UI en live FTP nog niet. |
+
+---
+
 ## Release — Main Production
 
 | Plan | Status | Notes |
 |---|---|---|
 | [Main release sync — squash merge develop to main](2026-04-15-main-squash-merge.md) | ✅ | Squash merge uitgevoerd (`850e5f0`), daarna `main` terug gemerged in `develop` voor branch alignment |
+| [Canonical host bpost.sonicrocket.app](2026-09-28-canonical-app-host.md) | ✅ | Install prompt via `{{BASE_URL}}`, registry/README off `.be`, legacy JWT issuer allowlist for `.io` |
 
 ---
 

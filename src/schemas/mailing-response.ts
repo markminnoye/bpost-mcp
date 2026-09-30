@@ -9,7 +9,7 @@ export const MailingContextResponseSchema = z.object({
   dataset: z.literal('M037_MID'),
   sender: z.literal('MID'),
   receiver: z.number().int().positive(),
-  version: z.literal('0100'),
+  version: z.enum(['0100', '0102', '0200']),
 })
 
 // ── Header ────────────────────────────────────────────────────────────────────

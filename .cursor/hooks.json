@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeMCPExecution": [
+      {
+        "command": ".cursor/hooks/linear-issue-brief.sh",
+        "matcher": "save_issue",
+        "failClosed": false,
+        "timeout": 15
+      }
+    ]
+  }
+}
