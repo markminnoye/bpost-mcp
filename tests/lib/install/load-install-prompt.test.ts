@@ -21,10 +21,10 @@ describe('getInstallPromptMarkdown', () => {
 
   it('replaces {{BASE_URL}} with NEXT_PUBLIC_BASE_URL (no trailing slash)', async () => {
     readFile.mockResolvedValue(
-      'npx {{BASE_URL}}/api/mcp\n{{BASE_URL}}/dashboard\n',
+      'npx {{BASE_URL}}/mcp\n{{BASE_URL}}/dashboard\n',
     )
     const out = await getInstallPromptMarkdown()
-    expect(out).toContain('https://client.example/api/mcp')
+    expect(out).toContain('https://client.example/mcp')
     expect(out).toContain('https://client.example/dashboard')
     expect(out).not.toContain('{{BASE_URL}}')
   })

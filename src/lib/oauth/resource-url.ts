@@ -1,9 +1,10 @@
 import { env } from '@/lib/config/env'
+import { MCP_CANONICAL_PATH, MCP_LEGACY_PATH } from '@/lib/mcp/paths'
 
 /** Canonical MCP resource URL for a given public site origin (no trailing slash on base). */
 export function mcpProtectedResourceUrlFromBase(publicBase: string): string {
   const base = publicBase.replace(/\/$/, '')
-  return `${base}/api/mcp`
+  return `${base}${MCP_CANONICAL_PATH}`
 }
 
 /** Canonical protected resource URL using configured env (dashboard / static copy). */
@@ -13,7 +14,7 @@ export function mcpProtectedResourceUrl(): string {
 
 /**
  * Map OAuth `resource` values from clients/metadata to a single canonical form
- * for this app (origin and `/api/mcp` are treated as the same resource).
+ * for this app. Origin, `/api`, legacy `/api/mcp`, and `/mcp` are the same resource.
  */
 export function normalizeOAuthResourceParamFromBase(
   publicBase: string,
@@ -21,9 +22,16 @@ export function normalizeOAuthResourceParamFromBase(
 ): string | null {
   if (!resource) return null
   const base = publicBase.replace(/\/$/, '')
-  const canonical = `${base}/api/mcp`
+  const canonical = `${base}${MCP_CANONICAL_PATH}`
   const t = resource.replace(/\/$/, '')
-  if (t === base || t === `${base}/api` || t === canonical) return canonical
+  if (
+    t === base ||
+    t === `${base}/api` ||
+    t === `${base}${MCP_LEGACY_PATH}` ||
+    t === canonical
+  ) {
+    return canonical
+  }
   return t
 }
 
@@ -33,8 +41,8 @@ export function normalizeOAuthResourceParam(resource: string | null | undefined)
 
 /**
  * RFC 8707-style resource binding at the token endpoint. Accepts equivalent
- * origin vs `/api/mcp` forms; if the token request omits `resource` but the
- * auth code was bound to our canonical MCP URL, treat as a match (client interop).
+ * origin, legacy `/api/mcp`, and canonical `/mcp` forms; if the token request
+ * omits `resource` but the auth code was bound to our MCP URL, treat as a match.
  */
 export function oauthResourcesMatchForTokenFromBase(
   publicBase: string,

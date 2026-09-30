@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Nieuw**
 
 - Documentatiestandaard in drie mappen: `docs/library/` (TypeDoc), `docs/service-api/openapi.yaml` (OpenAPI 3.1 van de HTTP-service) en `docs/mcp/` (MCP valt buiten die spec; officiële URL is `/mcp`, `/api/mcp` blijft een legacy-alias). `npm run docs:build` genereert library en service-spec; `npm run docs:check` faalt als die output achterloopt. Push naar `develop` publiceert `docs/` naar branch `docs` zonder terug naar `develop` te committen.
+- Kolom-mapping-voorstel (`suggestColumnMapping`) op basis van Excel-kolomkoppen: Contrapunt-export blijft exact, andere layouts via NL/FR/EN-synoniemen. De caller bevestigt altijd. Optionele AI-fallback (`POST /api/masspost/suggest-mapping`) vereist dezelfde bearer-token of sessie als de andere beveiligde routes, stuurt alleen kolomkoppen naar de Vercel AI Gateway en blijft dicht zonder modelconfiguratie. Geen webinterface. Linear SR-79.
 - Nieuwe herbruikbare library `src/core/masspost/` voor de bpost e-MassPost-integratie: Excel-adressenlijst inlezen, kolommen mappen naar bpost's unstructured adresvelden (Comp-codes 90/92/93), valideren, en versturen naar bpost via **HTTP** en (nieuw) **FTP/FTPS**. Vervangt het eerder geplande lokaal-only Python-spoor voor Contrapunt (zie `.agent/plans/2026-09-28-bpost-library-web-app.md`); MCP-tooling staat voorlopig on hold.
 - Referentietool van Contrapunt (Frank) opgeslagen ter analyse in `docs/external/contrapunt-aft-converter/` — hun bestaande AFT-conversieaanpak (unstructured velden, SEQ-round-trip) is het uitgangspunt voor de nieuwe library.
 - Contrapunt-testexport `testadressen.xlsx` (≈789 fictieve adressen) in `docs/samples/contrapunt/`; `npm run test:transport` gebruikt dit bestand standaard met de bijhorende kolommapping (`--synthetic` voor één fake adres).
@@ -28,15 +29,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `npm run generate:mailing-xml -- --simple` — zelfde, met **1 fictief testadres** (snelle portal-test).
 - Vergelijkingsset van **200 adressen** (bpost-testlimiet): `testadressen-200.xlsx` voor de XML-upload en `testadressen-200-aft.xls` voor de Address File Tool. Zelfde eerste 200 rijen uit `testadressen.xlsx`, unstructured velden gelijk aan Comp 90/92/93, `PRIORITY=NP`. Geen opvulling tot 500.
 - `scripts/apply-opti-corrections.ts` schrijft Opti-correcties (bericht `7001`) terug naar Excel. Resultaat van de 500-test: `docs/samples/contrapunt/testadressen-500-corrected.xlsx`.
+- Skill-library: nieuwe skill **Address Proofing** (Mailops REST) naast Mail ID/OptiAddress, met privacyregel (geen persoonsnamen; bedrijfsnaam mag). Routing in de protocol-skill.
+- Skills-submodule bijgewerkt naar `562e545` (skills PR #9): live Contrapunt **field findings**, AFT API Manual v1.7 en portal code-lists.
 
 **Aanpassingen**
 
-- Install-prompt en interne docs noemen `/mcp` als officiële MCP-URL. `/api/mcp` blijft de legacy-alias; de routeverplaatsing zit in draft-PR [#40](https://github.com/markminnoye/bpost-mcp/pull/40) (`refactor/mcp-route-at-root`).
+- De officiële MCP-URL is `/mcp` (`src/app/mcp`). De installatieprompt gebruikt `{{BASE_URL}}/mcp`. `/api/mcp` blijft werken als legacy-alias (rewrite). OAuth protected-resource metadata en nieuwe installatie-URL's gebruiken `/mcp`; bestaande `/api/mcp`-clients en oude resource-waarden blijven geldig.
 - Gegenereerde library-docs tonen `ColumnMapping` als `readonly string[]`, in lijn met de typefix op `develop`.
+
 - Masspost bestandsnamen: **`customerFileRef` wordt genormaliseerd naar exact 10 tekens** (`REFERENCE` → `REFERENCE0` in naam én `RequestProps`) — voorkomt portaal **MPW-5009 / MID-2010** bij te korte refs.
 - Masspost generate-script: standaard **max 200 adressen** voor `mode=T` (bpost testlimiet); `--all` / `--limit N` override.
 - **OptiAddress:** `npm run generate:mailing-xml -- --opti --limit 10` bouwt `MailingCheck` (suggesties + `copyRequestItem=Y`).
-- **MailingRequest 0100/0102:** geen `expectedDeliveryDate` en geen `FileInfo` op `MailingCreate` (live 2RS **MID-2040**); die velden horen bij protocol **0200**. Round-trip fixtures in `docs/samples/contrapunt/bpost-roundtrip/`.
+- **MailingRequest 0100/0102:** geen `expectedDeliveryDate` en geen `FileInfo` op `MailingCreate` (live 2RS **MID-2040**); die velden horen bij protocol **0200**. Round-trip fixtures in `docs/samples/contrapunt/bpost-roundtrip/` (uitgebreid met Opti ACK/2RS van 29/09 en leesbare formatting van eerdere 2RS-bestanden).
 - **Documentatie:** bpost-protocoldocumentatie staat nu in `docs/` van de skills-repo (submodule `docs/internal/e-masspost/`) en wordt via GitBook gepubliceerd (site Contrapunt/BPost); verwijzingen in `AGENTS.md`, docs en code bijgewerkt van `skills/e-masspost-protocol/` naar `docs/`.
 - **Documentatie:** minimum **500 adressen** per mailing bevestigd door Contrapunt (Frank, 28/09) — commerciële regel, breder dan eerst aangenomen; zie plan `.agent/plans/2026-09-28-bpost-library-web-app.md`.
 - **Documentatie:** developer-gids `docs/internal/masspost-library.md` — alle CLI-flags (`generate:mailing-xml`, `test:transport`, `build-compare-200`), library-modules en typische workflows; gekoppeld vanuit `AGENTS.md`, `masspost-test-env.md` en `docs/samples/contrapunt/README.md`.
@@ -51,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Handmatige e-MassPost-upload (test-modus) geverifieerd (28/09):** **protocol `0200` geslaagd** (`Status 100`, gegenereerd MID-nummer). Eerdere `0100`-uploads faalden op MID-2040 wanneer 0200-velden aanwezig waren; Contrapunt ondersteunt wél 2.00 — zie `docs/samples/contrapunt/bpost-roundtrip/`.
 - **Structurele fout in de XML-opbouw hersteld**: `buildXml()` (`src/lib/xml.ts`) rendeerde velden als child-elementen in plaats van als XML-attributen, in strijd met de MailingRequest/DepositRequest XSD's (die vrijwel elk scalair veld als attribuut modelleren, bv. `Context/@requestName`, `Comp/@code`). Dit trof niet enkel de nieuwe library, maar ook de bestaande `submit_ready_batch`, `check_batch` en de deposit-flows — nooit opgemerkt omdat bestaande tests `buildXml` altijd mockten. Nu automatisch en correct afgehandeld voor alle aanroepers, met regressietests (`tests/lib/xml.test.ts`).
 - `bpost.sonicrocket.be` en `bpost.sonicrocket.io` staan niet meer als huidige productiehost in de actieve config en documentatie.
+- Vriendelijke mapping-aliases (`street`, `lastName`, `postalCode`, …) volgen nu BPost Table 46 / Address File Tool (`street` → `Comps.9`, `houseNumber` → `Comps.12`, `postalCode` → `Comps.15`, `municipality` → `Comps.16`, `lastName` → `Comps.4`).
 
 **Gekend probleem (niet opgelost, nog te onderzoeken)**
 
@@ -59,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Documentation standard in three folders: `docs/library/` (TypeDoc), `docs/service-api/openapi.yaml` (OpenAPI 3.1 for the HTTP service), and `docs/mcp/` (MCP is outside that spec; the official URL is `/mcp`, and `/api/mcp` stays as a legacy alias). `npm run docs:build` writes the library and the service spec; `npm run docs:check` fails when that output is stale. A push to `develop` publishes `docs/` to branch `docs` and does not commit back to `develop`.
+- `suggestColumnMapping` in `src/core/masspost/suggest-mapping.ts` (preset `contrapunt-export`, NL/FR/EN synonyms, `needsAi` only when a required Comp target is incomplete or confidence is low). Optional AI fallback outside core: `src/lib/masspost/suggest-mapping-ai.ts` and `POST /api/masspost/suggest-mapping` (same bearer/session auth as the other protected routes, Vercel AI Gateway via the `ai` package, headers only, Zod-validated, fail-closed without `MASSPOST_SUGGEST_MAPPING_MODEL`). Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai).
 - `src/core/masspost/` — framework-agnostic library: `excel.ts` (`.xlsx`-parsing via `exceljs`), `mapping.ts` (kolom-naar-Comp-mapping met gerapporteerde afkapping i.p.v. stil), `build-request.ts`, `validate.ts`, `credentials.ts` (single-tenant, lazy fail-fast), `transport/http.ts`, `transport/ftp.ts` (nieuw, `basic-ftp`), `pipeline.ts`.
 - `src/core/masspost/charset.ts` — `findUnsupportedChars`, `normalizeForBpost`; `mapRows` reports replaced/unsupported characters; `validateMailingRequest` rejects strings outside ISO-8859-1 (previously `Buffer.from(xml, 'latin1')` kept only the low byte, e.g. U+2019 → control char, U+2026 → `&`). Tests: `tests/core/masspost/charset.test.ts`.
 - `scripts/test-transport.ts` (`npm run test:transport [-- --ftp] [-- --synthetic] [-- --file <pad>]`) — bewijsscript; standaard `docs/samples/contrapunt/testadressen.xlsx`.
@@ -69,11 +75,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/internal/masspost-library.md` — developer guide for `src/core/masspost/` and CLI flags (`generate:mailing-xml`, `test:transport`, `build-compare-200`).
 - `scripts/apply-opti-corrections.ts` and `docs/samples/contrapunt/testadressen-500-corrected.xlsx` — apply OptiAddress `7001` corrections onto the first 500 fictional rows for a second MailingCheck and a MailingCreate.
 - Cursor rule + hook for **begrijpelijke Linear-issues**: `.cursor/rules/linear-issue-descriptions.mdc` and `beforeMCPExecution` gate on `save_issue` (`.cursor/hooks/`). Tracked via `.gitignore` exceptions.
+- Skills submodule: `bpost-address-proofing` (validate/format REST, S42, PII deny-list). Protocol skill adds `reference/address-validation-products.md` and Comp ↔ S42 mapping. Mailops MCP client deferred (release freeze + API key).
+- Skills submodule pointer `docs/internal/e-masspost` → `562e545` (field findings, AFT API Manual v1.7, portal code lists; skills PR #9).
 
 ### Changed
 
-- Install prompt and internal docs name `/mcp` as the official MCP URL. `/api/mcp` stays the legacy alias; the route move is draft PR [#40](https://github.com/markminnoye/bpost-mcp/pull/40) (`refactor/mcp-route-at-root`).
+- Official MCP endpoint is `/mcp` (`src/app/mcp/route.ts`). The install prompt uses `{{BASE_URL}}/mcp`. `/api/mcp` stays available as a legacy rewrite to the same handler. Protected-resource metadata, `server.json`, install URLs, and OAuth resource normalization use `/mcp`; legacy `/api/mcp` resource values still match.
 - Generated library docs show `ColumnMapping` as `readonly string[]`, matching the type fix on `develop`.
+
 - Docs path: protocol documentation moved from `docs/internal/e-masspost/skills/e-masspost-protocol/` to `docs/internal/e-masspost/docs/` (skills-repo `main`, `fc8034a`); references updated in `AGENTS.md`, docs and code comments. Submodule pointer bumped in this commit.
 - **Build order locked** in `AGENTS.md` and the living plan: API/library (`src/core/masspost/`) before any UI; next step is column-mapping suggest API (Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai)), then web UI.
 - Masspost credentials: `BPOST_TEST_CUSTOMER_ID`, optional `BPOST_TEST_BARCODE_CUSTOMER_ID`, `BPOST_TEST_MID_VERSION` (default **`0200`**, locked for Contrapunt 28/09), `BPOST_TEST_CUSTOMER_FILE_REF` (default `REFERENCE`); `MailingContextSchema.version` allows `0100` | `0102` | `0200`.
@@ -84,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `buildXml()` now converts scalar leaf fields to XML attributes (`@_`-prefixed) before serialization, matching the MailingRequest/DepositRequest XSDs. Previously every field was rendered as a child element. Affects all callers: `submit-batch.ts`, `check-batch.ts`, `bpost_announce_deposit`, `bpost_announce_mailing`, and the new masspost library. See `tests/lib/xml.test.ts`.
 - Stale canonical origin `https://bpost.sonicrocket.be` in `server.json`, `README.md`, and `MCP_REGISTRY_CANONICAL_ORIGIN`.
+- **MCP mapping aliases** aligned with Mail ID Table 46 / AFT column codes. Previous aliases wrote street/house/postcode/city/lastName into the wrong Comp codes (middle name, last name, building, street, greeting).
 
 
 ---

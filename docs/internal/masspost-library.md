@@ -149,6 +149,8 @@ Not wired as an npm script on purpose (Python side dependency).
 |--------|------|
 | `excel.ts` | Parse `.xlsx` → `{ headers, rows }` (`exceljs`) |
 | `mapping.ts` | Column mapping → unstructured Comp **90/91/92/93**; max **50** chars; reports truncation & charset fixes |
+| `suggest-mapping.ts` | `suggestColumnMapping` — header heuristics / Contrapunt preset. No cell values, no AI |
+| `presets/contrapunt-export.ts` | `CONTRAPUNT_EXPORT_COLUMN_MAPPING` (re-exported by the fixture) |
 | `charset.ts` | `normalizeForBpost` / `findUnsupportedChars` (ISO-8859-1) |
 | `build-request.ts` | `rowsToItems`, `buildMailingRequest`, `buildMailingCheckRequest`; `FORCE_TEST_MODE` |
 | `validate.ts` | Zod validate with per-field issues (`midVersion`-aware) |
@@ -192,6 +194,31 @@ type ColumnMapping = {
 ```
 
 Source columns are joined with a space. Unsupported characters that cannot be normalized fail validation.
+
+### Suggest a mapping
+
+`suggestColumnMapping` proposes a `ColumnMapping` from **column titles only**. It does not read rows and it does not call `mapRows` or the pipeline. The caller confirms the proposal before any XML build.
+
+```ts
+import { suggestColumnMapping } from '@/core/masspost'
+
+const suggestion = suggestColumnMapping({
+  headers, // string[] from parseExcelAddresses
+  presetId: 'contrapunt-export', // optional; also detected from the titles themselves
+  localeHints: ['nl'], // optional: nl | fr | en, tie-break only
+})
+
+// suggestion.mapping, confidence: 'high' | 'medium' | 'low'
+// suggestion.rationale — per Comp 90 / 91 / 92 / 93
+// suggestion.unmatchedHeaders
+// suggestion.needsAi — true only when a required target is missing or confidence is low
+```
+
+Contrapunt export titles (including an extra `Land` column) return exactly `CONTRAPUNT_EXPORT_COLUMN_MAPPING`, `confidence: 'high'`, `needsAi: false`. `Land` stays unmatched. Other layouts use NL/FR/EN synonyms. A preset id never invents columns that are not in `headers`.
+
+Optional AI fallback, outside core: `POST /api/masspost/suggest-mapping` requires the same bearer token or session cookie as the other protected routes (`resolveRequestAuth`). It runs the heuristic first. Only when `needsAi` is true does `src/lib/masspost/suggest-mapping-ai.ts` call the Vercel AI Gateway (`ai` package, `provider/model` string). The model sees the system note for Comp 90–93 plus a JSON object `{ headers, localeHints }` — **not** the sheet. The response is Zod-parsed and every chosen column must be one of the headers, each used at most once. Without `MASSPOST_SUGGEST_MAPPING_MODEL` the route answers **503** `ai_not_configured` and still returns the local `suggestion` for a human to confirm. Nothing is applied to `convertExcelToMailingRequest` automatically.
+
+Masked sample cells are intentionally not sent (later). Do not post `rows` in the JSON body; the schema rejects unknown keys.
 
 ### Transport
 
@@ -247,7 +274,7 @@ npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.
 npm test -- tests/core/masspost
 ```
 
-Coverage includes excel, mapping, charset, build-request, pipeline, credentials, file-naming, parse-response, compare-sample.
+Coverage includes excel, mapping, suggest-mapping, charset, build-request, pipeline, credentials, file-naming, parse-response, compare-sample. The suggest route is covered with a mocked AI call (`tests/app/api/masspost/suggest-mapping/`).
 
 ---
 

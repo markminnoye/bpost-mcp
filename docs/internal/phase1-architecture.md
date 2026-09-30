@@ -195,9 +195,10 @@ This lets an AI workflow decide whether to retry automatically or escalate to th
 bpost-mcp/
 │
 ├── src/
-│   ├── app/api/mcp/
+│   ├── app/mcp/
 │   │   └── route.ts              ← MCP HTTP endpoint (Next.js App Router)
 │   │                               Registers tools, handles POST /mcp
+│   │                               (/api/mcp is a legacy alias)
 │   │
 │   ├── schemas/
 │   │   ├── common.ts             ← Shared types: BooleanType, DepositContext,

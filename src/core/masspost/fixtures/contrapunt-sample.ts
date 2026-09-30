@@ -1,7 +1,8 @@
 // src/core/masspost/fixtures/contrapunt-sample.ts
 import ExcelJS from 'exceljs'
 import path from 'node:path'
-import type { ColumnMapping } from '../mapping'
+
+export { CONTRAPUNT_EXPORT_COLUMN_MAPPING } from '../presets/contrapunt-export'
 
 /** Repo-local copy of Contrapunt's test export (see docs/samples/contrapunt/README.md). */
 export const CONTRAPUNT_TEST_ADRESSEN_XLSX = path.join(
@@ -23,20 +24,6 @@ export const CONTRAPUNT_AFT_200_XLS = path.join(
   process.cwd(),
   'docs/samples/contrapunt/testadressen-200-aft.xls',
 )
-
-/** Column headers as in the Contrapunt / CRM export (Blad1). */
-export const CONTRAPUNT_EXPORT_COLUMN_MAPPING: ColumnMapping = {
-  name: ['Roepnaam', 'Familienaam'],
-  streetHouseBox: [
-    'Correspondentieadres - Straat (Key)',
-    'Correspondentieadres - Huisnummer (Key)',
-    'Correspondentieadres - aanv. huisnr. (Key)',
-  ],
-  postcodeCity: [
-    'Correspondentieadres - Postcode (Key)',
-    'Correspondentieadres - Plaats (Key)',
-  ],
-}
 
 /** One fake address (Contrapunt column layout) for quick portal upload tests. */
 export async function buildSimpleContrapuntTestXlsxBuffer(): Promise<Buffer> {

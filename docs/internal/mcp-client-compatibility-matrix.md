@@ -23,7 +23,7 @@ There are **no feature flags**: every deployment sends the full metadata block f
 
 ## MCP Registry manifest (`server.json`)
 
-The repository root [`server.json`](../../server.json) follows the official MCP Registry server schema (`$schema` in the file). It complements **runtime** `initialize.serverInfo`: same branding/version *intent*, plus **`remotes`** (streamable HTTP). The official URL is `/mcp`; `/api/mcp` stays as a legacy alias. Header expectations are for clients that install from a registry.
+The repository root [`server.json`](../../server.json) follows the official MCP Registry server schema (`$schema` in the file). It complements **runtime** `initialize.serverInfo`: same branding/version *intent*, plus **`remotes`** (`streamable-http` URL path `/mcp`; `/api/mcp` is a legacy alias) and header expectations for clients that install from a registry.
 
 - **CI:** [`.github/workflows/mcp-ci.yml`](../../.github/workflows/mcp-ci.yml) runs `npm run validate:server-manifest` on every PR and on pushes to `main`.
 - **Local:** Run `npm run validate:server-manifest` before a release; it checks required fields, JSON Schema–aligned shape, `version` parity with `package.json`, and the remote URL suffix.
