@@ -158,11 +158,11 @@ describe('suggestColumnMapping', () => {
     const fixtureBefore = structuredClone(CONTRAPUNT_EXPORT_COLUMN_MAPPING)
 
     const result = suggestColumnMapping(payload)
-    result.mapping.name.push('Extra')
 
     expect(payload).toEqual(snapshot)
     expect(headers).toEqual(CONTRAPUNT_HEADERS)
     expect(CONTRAPUNT_EXPORT_COLUMN_MAPPING).toEqual(fixtureBefore)
+    expect(result.mapping.name).not.toBe(CONTRAPUNT_EXPORT_COLUMN_MAPPING.name)
   })
 
   it('leaves parsed sheet rows unchanged when the suggestion is later passed to mapRows', async () => {
