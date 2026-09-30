@@ -12,8 +12,9 @@ import { randomBytes } from 'crypto'
 import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
 import { AlphaServiceBanner } from '@/components/customer/AlphaServiceBanner'
 import { env } from '@/lib/config/env'
+import { MCP_CANONICAL_PATH } from '@/lib/mcp/paths'
 
-const MCP_URL = `${env.NEXT_PUBLIC_BASE_URL}/api/mcp`
+const MCP_URL = `${env.NEXT_PUBLIC_BASE_URL}${MCP_CANONICAL_PATH}`
 
 interface Props {
   searchParams: Promise<{ token?: string }>
@@ -356,6 +357,9 @@ export default async function DashboardPage({ searchParams }: Props) {
           </p>
           <div style={{ marginBottom: '1.5rem' }}>
             <CopyCodeBlock code={MCP_URL} copyLabel="Server-URL kopiëren" />
+            <p className="bp-prose" style={{ marginTop: '0.75rem' }}>
+              Een oudere link die eindigt op /api/mcp blijft werken. Voor een nieuwe koppeling gebruik je de URL hierboven.
+            </p>
           </div>
 
           <h3 className="bp-subtitle" style={{ marginTop: '1.5rem' }}>Authenticatie</h3>

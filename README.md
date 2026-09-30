@@ -58,10 +58,10 @@ All tools require a Bearer token in the `Authorization` header.
 
 ### MCP Registry manifest & CI
 
-The repository includes a root [`server.json`](./server.json) file that follows the [MCP Registry server schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json). It describes the remote **`streamable-http`** transport (canonical deployment URL + `/api/mcp`), required **`Authorization`** header semantics, icons, and version metadata for listings and tooling that consume registry manifests.
+The repository includes a root [`server.json`](./server.json) file that follows the [MCP Registry server schema](https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json). It describes the remote **`streamable-http`** transport (canonical deployment URL + `/mcp`), required **`Authorization`** header semantics, icons, and version metadata for listings and tooling that consume registry manifests. `/api/mcp` remains a legacy alias of the same endpoint.
 
 - **Generation:** `server.json` is **regenerated** during `npm run build` (`prebuild` runs `npm run generate:server-manifest`) so `version` and public URL stay aligned with `package.json` and deployment configuration. Prefer updating [`scripts/generate-server-manifest.ts`](./scripts/generate-server-manifest.ts) (and related helpers in `src/lib/`) rather than editing the committed file in isolation.
-- **Local validation:** `npm run validate:server-manifest` — JSON parse, schema fields, **`version` must match `package.json`**, and the remote URL must end with `/api/mcp`.
+- **Local validation:** `npm run validate:server-manifest` — JSON parse, schema fields, **`version` must match `package.json`**, and the remote URL path must be `/mcp` (not the legacy `/api/mcp` alias).
 - **GitHub Actions:** [`.github/workflows/mcp-ci.yml`](./.github/workflows/mcp-ci.yml) runs on pushes to `main` and on pull requests: ESLint, `tsc --noEmit`, tests, and manifest validation. A **manual** workflow run (`workflow_dispatch`) also executes a **stub** job for a future MCP Registry publish step (no automatic publish).
 
 Runtime clients still receive live metadata via the MCP **`initialize`** response (`serverInfo`); the manifest is complementary for distribution and CI gates.
@@ -81,7 +81,7 @@ Add the following to your Claude Desktop config file.
   "mcpServers": {
     "bpost": {
       "type": "http",
-      "url": "https://bpost.sonicrocket.app/api/mcp",
+      "url": "https://bpost.sonicrocket.app/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
       }
@@ -177,7 +177,7 @@ npm run seed       # Seed a demo tenant (requires SEED_BPOST_* vars)
 npm run dev        # http://localhost:3000
 ```
 
-The local MCP endpoint is at `http://localhost:3000/api/mcp`.
+The local MCP endpoint is at `http://localhost:3000/mcp`. `http://localhost:3000/api/mcp` is a legacy alias (rewrite to `/mcp`).
 
 Operational probe endpoints:
 - `http://localhost:3000/health`
@@ -209,7 +209,7 @@ npm run validate:server-manifest    # Validate server.json vs package.json + sch
 
 ```
 src/
-├── app/api/mcp/           # MCP endpoint (mcp-handler + withMcpAuth)
+├── app/mcp/               # Official MCP endpoint /mcp (legacy alias /api/mcp)
 ├── app/api/batches/upload # Out-of-band file upload
 ├── app/oauth/             # OAuth 2.0 authorization server
 ├── app/dashboard/         # Credential & token management UI
@@ -219,6 +219,7 @@ src/
 ├── lib/
 │   ├── db/                # Drizzle ORM schema & client (Neon Postgres)
 │   ├── kv/                # Redis batch state (24-hour TTL)
+│   ├── mcp/               # MCP paths, server info, instructions
 │   ├── oauth/             # JWT, PKCE, client registration
 │   ├── tenant/            # Per-tenant credential resolution
 │   ├── auth/              # Token extraction & verification

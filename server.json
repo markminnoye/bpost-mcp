@@ -21,7 +21,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://bpost.sonicrocket.app/api/mcp",
+      "url": "https://bpost.sonicrocket.app/mcp",
       "headers": [
         {
           "name": "Authorization",

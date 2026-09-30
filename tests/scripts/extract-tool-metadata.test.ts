@@ -6,7 +6,7 @@ import { buildRegistry } from '../../scripts/extract-tool-metadata'
 describe('extract-tool-metadata', () => {
   it('builds registry with all registered tools', async () => {
     const registry = await buildRegistry()
-    const routeSource = readFileSync(path.join(process.cwd(), 'src/app/api/mcp/route.ts'), 'utf8')
+    const routeSource = readFileSync(path.join(process.cwd(), 'src/app/mcp/route.ts'), 'utf8')
     const registerToolCount = (routeSource.match(/registerTool\(/g) ?? []).length
 
     expect(registry.serverInfo.name).toBeTruthy()

@@ -1,4 +1,4 @@
-// tests/app/api/mcp/route.test.ts
+// tests/app/mcp/route.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock verifyToken — withMcpAuth calls this to authenticate requests
@@ -63,7 +63,7 @@ vi.mock('@/lib/config/env', () => ({
 // Mock global fetch for report_issue
 global.fetch = vi.fn()
 
-import { GET, POST, DELETE } from '@/app/api/mcp/route'
+import { GET, POST, DELETE } from '@/app/mcp/route'
 import { verifyToken } from '@/lib/oauth/verify-token'
 import { getCredentialsByTenantId } from '@/lib/tenant/get-credentials'
 import { getTenantPreferences } from '@/lib/tenant/get-preferences'
@@ -98,7 +98,7 @@ describe('MCP route auth via withMcpAuth', () => {
   it('returns 401 when no Authorization header is provided', async () => {
     vi.mocked(verifyToken).mockResolvedValue(undefined)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -109,7 +109,7 @@ describe('MCP route auth via withMcpAuth', () => {
   it('returns 401 when verifyToken returns undefined', async () => {
     vi.mocked(verifyToken).mockResolvedValue(undefined)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer invalid_token',
@@ -126,7 +126,7 @@ describe('MCP route auth via withMcpAuth', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -165,7 +165,7 @@ describe('MCP route auth via withMcpAuth', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -189,7 +189,7 @@ describe('MCP route auth via withMcpAuth', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -226,7 +226,7 @@ describe('MCP route auth via withMcpAuth', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -276,7 +276,7 @@ describe('MCP route auth via withMcpAuth', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -307,7 +307,7 @@ describe('MCP route auth via withMcpAuth', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -351,7 +351,7 @@ describe('apply_row_fix data pollution', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -396,7 +396,7 @@ describe('apply_row_fix data pollution', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -431,7 +431,7 @@ describe('apply_row_fix data pollution', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -473,7 +473,7 @@ describe('apply_row_fix data pollution', () => {
       extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid',
@@ -506,7 +506,7 @@ describe('get_raw_headers', () => {
     vi.mocked(verifyToken).mockResolvedValue({
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -536,7 +536,7 @@ describe('get_raw_headers', () => {
     vi.mocked(verifyToken).mockResolvedValue({
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -566,7 +566,7 @@ describe('structured content contracts', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -594,7 +594,7 @@ describe('structured content contracts', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -645,7 +645,7 @@ describe('structured content contracts', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -679,7 +679,7 @@ describe('apply_mapping_rules reset', () => {
     vi.mocked(verifyToken).mockResolvedValue({
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -711,7 +711,7 @@ describe('apply_mapping_rules Comps dot-notation', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -752,7 +752,7 @@ describe('apply_mapping_rules Comps dot-notation', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -783,7 +783,7 @@ describe('Self-Learning Tools', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -805,7 +805,7 @@ describe('Self-Learning Tools', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -823,7 +823,7 @@ describe('Self-Learning Tools', () => {
     vi.mocked(verifyToken).mockResolvedValue({
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -840,7 +840,7 @@ describe('Self-Learning Tools', () => {
     vi.mocked(verifyToken).mockResolvedValue({
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -857,7 +857,7 @@ describe('Self-Learning Tools', () => {
     vi.mocked(verifyToken).mockResolvedValue({
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -890,7 +890,7 @@ describe('Self-Learning Tools', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -927,7 +927,7 @@ describe('Self-Learning Tools', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -963,7 +963,7 @@ describe('Self-Learning Tools', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -990,7 +990,7 @@ describe('Self-Learning Tools', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -1024,7 +1024,7 @@ describe('Self-Learning Tools', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -1067,7 +1067,7 @@ describe('apply_mapping_rules alias translation', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -1116,7 +1116,7 @@ describe('apply_mapping_rules alias translation', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -1147,7 +1147,7 @@ describe('apply_mapping_rules alias translation', () => {
       token: 'tok', clientId: 'c', scopes: ['mcp:tools'], extra: { tenantId: 'tenant_a' },
     } as any)
 
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -1167,7 +1167,7 @@ describe('apply_mapping_rules alias translation', () => {
 
 describe('apply_mapping_rules priority normalization and defaulting', () => {
   const makeRequest = (batchId: string, mapping: Record<string, string>) =>
-    new Request('http://localhost:3000/api/mcp', {
+    new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -1272,7 +1272,7 @@ describe('apply_mapping_rules priority normalization and defaulting', () => {
 
 describe('submit_ready_batch barcodeStrategy', () => {
   const makeSubmitRequest = (args: Record<string, unknown>) =>
-    new Request('http://localhost:3000/api/mcp', {
+    new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: { Authorization: 'Bearer valid', 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
       body: JSON.stringify({
@@ -1425,7 +1425,7 @@ describe('submit_ready_batch barcodeStrategy', () => {
 // ── upload_batch_file ──────────────────────────────────────────────────────────
 
 function makeUploadRequest(args: Record<string, unknown>) {
-  return new Request('http://localhost:3000/api/mcp', {
+  return new Request('http://localhost:3000/mcp', {
     method: 'POST',
     headers: {
       Authorization: 'Bearer valid',
@@ -1550,5 +1550,60 @@ describe('upload_batch_file MCP tool', () => {
       fileContentBase64: toBase64(VALID_CSV),
     }))
     expect(res.status).toBe(401)
+  })
+})
+
+describe('legacy /api/mcp alias matches /mcp', () => {
+  const initializeBody = JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'initialize',
+    params: {
+      protocolVersion: '2024-11-05',
+      capabilities: {},
+      clientInfo: { name: 'vitest-client', version: '1.0.0' },
+    },
+  })
+
+  function mcpRequest(path: '/mcp' | '/api/mcp', init?: RequestInit) {
+    return new Request(`http://localhost:3000${path}`, init)
+  }
+
+  it('returns the same 401 and WWW-Authenticate on both paths', async () => {
+    vi.mocked(verifyToken).mockResolvedValue(undefined)
+    const headers = { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' }
+    const canonical = await POST(mcpRequest('/mcp', { method: 'POST', headers, body: initializeBody }))
+    const legacy = await POST(mcpRequest('/api/mcp', { method: 'POST', headers, body: initializeBody }))
+
+    expect(legacy.status).toBe(canonical.status)
+    expect(legacy.status).toBe(401)
+    expect(legacy.headers.get('WWW-Authenticate')).toBe(canonical.headers.get('WWW-Authenticate'))
+    const www = canonical.headers.get('WWW-Authenticate') ?? ''
+    expect(www).toContain('resource_metadata="http://localhost:3000/.well-known/oauth-protected-resource"')
+    expect(await legacy.text()).toBe(await canonical.text())
+  })
+
+  it('streams the same initialize payload on both paths', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      token: 'tok', clientId: 'c', scopes: ['mcp:tools'],
+      extra: { tenantId: 'tenant_a' },
+    } as any)
+
+    const headers = {
+      Authorization: 'Bearer valid',
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+    }
+    const canonical = await POST(mcpRequest('/mcp', { method: 'POST', headers, body: initializeBody }))
+    const legacy = await POST(mcpRequest('/api/mcp', { method: 'POST', headers, body: initializeBody }))
+
+    expect(legacy.status).toBe(canonical.status)
+    expect(legacy.headers.get('content-type')).toBe(canonical.headers.get('content-type'))
+    const canonicalBody = await parseSseBody(canonical)
+    const legacyBody = await parseSseBody(legacy)
+    expect(legacyBody).toEqual(canonicalBody)
+    expect((canonicalBody.result as { serverInfo?: { name?: string } } | undefined)?.serverInfo?.name).toBe(
+      'bpost-emasspost',
+    )
   })
 })

@@ -22,7 +22,7 @@ flowchart LR
     end
 
     subgraph Service["bpost-mcp (Vercel)"]
-        MCP["/api/mcp<br/>mcp-handler + withMcpAuth"]
+        MCP["/mcp<br/>mcp-handler + withMcpAuth<br/>legacy alias /api/mcp"]
         AS["OAuth Authorization Server<br/>/oauth/authorize<br/>/oauth/token<br/>/oauth/register"]
         DB["Neon Postgres<br/>(Drizzle ORM)"]
         R["Redis (TCP)<br/>batch pipeline state"]
@@ -54,9 +54,9 @@ flowchart LR
 
 ## System Components
 
-### 1. MCP Route (`/api/mcp`)
+### 1. MCP Route (`/mcp`)
 
-The entry point for all AI agent calls. Powered by `mcp-handler` with `withMcpAuth`.
+The entry point for all AI agent calls. Powered by `mcp-handler` with `withMcpAuth`. The route module lives at `src/app/mcp/route.ts`. `/api/mcp` is a legacy alias (rewrite in `next.config.ts`) and answers the same way, including streaming and bearer auth. OAuth protected-resource metadata advertises `/mcp`.
 
 - Accepts GET, POST, DELETE (SSE and JSON transport)
 - `withMcpAuth` validates the Bearer token before any tool executes
@@ -83,7 +83,7 @@ After auth, BPost credential tools fetch secrets via `getCredentialsByTenantId(t
 ```mermaid
 sequenceDiagram
     participant Agent
-    participant MCP as /api/mcp (withMcpAuth)
+    participant MCP as /mcp (withMcpAuth)
     participant VT as verifyToken
     participant Tool as Tool Handler
     participant DB as Neon Postgres
@@ -124,7 +124,7 @@ A full OAuth 2.1 Authorization Server built as Next.js API routes. Enables Claud
 ```mermaid
 sequenceDiagram
     participant Claude as Claude Desktop
-    participant MCP as /api/mcp
+    participant MCP as /mcp
     participant WK as /.well-known/*
     participant Auth as /oauth/authorize
     participant Google as Google OAuth
@@ -355,7 +355,7 @@ bpost-mcp/
 | DCR rate limiting | `src/app/oauth/register/route.ts` | Max registrations/IP/hour — TODO / partial |
 | Expired auth code cleanup | `oauth_authorization_codes` | No cron job yet — rows accumulate |
 <<<<<<< HEAD
-| `submit_ready_batch` → BPost | `src/app/api/mcp/route.ts` | Stub only; real XML mailing dispatch for batched rows TBD |
+| `submit_ready_batch` → BPost | `src/app/mcp/route.ts` | Stub only; real XML mailing dispatch for batched rows TBD |
 =======
 | `check_batch` (OptiAddress) | Issue #13 | Pre-validate addresses via MailingCheck before MailingCreate |
 >>>>>>> develop
