@@ -1,6 +1,5 @@
 // src/app/api/masspost/suggest-mapping/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { suggestColumnMapping } from '@/core/masspost/suggest-mapping'
 import type { ColumnMapping } from '@/core/masspost/mapping'
 import type { SuggestColumnMappingResult } from '@/core/masspost/suggest-mapping'
@@ -10,6 +9,7 @@ import {
   SuggestMappingAiNotConfiguredError,
   suggestColumnMappingWithAi,
 } from '@/lib/masspost/suggest-mapping-ai'
+import { SuggestMappingRequestSchema } from './schema'
 
 const suggestMappingAuthPolicy: AuthPolicy = {
   allowBearer: true,
@@ -18,14 +18,6 @@ const suggestMappingAuthPolicy: AuthPolicy = {
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-
-const requestSchema = z
-  .object({
-    headers: z.array(z.string()).min(1).max(100),
-    presetId: z.literal('contrapunt-export').optional(),
-    localeHints: z.array(z.enum(['nl', 'fr', 'en'])).max(3).optional(),
-  })
-  .strict()
 
 function aiSuggestion(headers: readonly string[], mapping: ColumnMapping): SuggestColumnMappingResult {
   const used = new Set([
@@ -71,7 +63,7 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Ongeldige JSON.' }, { status: 400 })
   }
 
-  const parsed = requestSchema.safeParse(body)
+  const parsed = SuggestMappingRequestSchema.safeParse(body)
   if (!parsed.success) {
     return Response.json({ error: 'Ongeldige invoer.' }, { status: 400 })
   }

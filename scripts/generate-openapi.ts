@@ -15,6 +15,7 @@ import { stringify } from 'yaml'
 import { z, type ZodType } from 'zod'
 import { UploadBatchCreatedSchema, UploadBatchErrorSchema, UploadBatchRequestSchema } from '../src/app/api/batches/upload/schema'
 import { InstallPromptBodySchema, InstallPromptMissingSchema } from '../src/app/api/install/prompt/schema'
+import { SuggestMappingErrorSchema, SuggestMappingRequestSchema, SuggestMappingResponseSchema } from '../src/app/api/masspost/suggest-mapping/schema'
 import { HealthResponseSchema } from '../src/app/health/schema'
 import { ReadyResponseSchema } from '../src/app/ready/schema'
 import { VersionResponseSchema } from '../src/app/version/schema'
@@ -96,6 +97,29 @@ registry.registerPath({
     403: json(UploadBatchErrorSchema, 'Account has no tenant.'),
     413: json(UploadBatchErrorSchema, 'Too many rows.'),
     500: json(UploadBatchErrorSchema, 'Unexpected failure. `details` may be set.'),
+  },
+})
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/masspost/suggest-mapping',
+  summary: 'Suggest a column mapping',
+  description:
+    'Requires a bearer token or a signed-in session. Tries the heuristic first; the AI fallback runs only when the heuristic needs it (`source` tells which one answered).',
+  request: {
+    body: {
+      required: true,
+      content: { 'application/json': { schema: SuggestMappingRequestSchema } },
+    },
+  },
+  responses: {
+    200: json(SuggestMappingResponseSchema, 'Suggested mapping.'),
+    400: json(SuggestMappingErrorSchema, 'Invalid JSON, invalid body, or no usable headers.'),
+    401: json(SuggestMappingErrorSchema, 'Missing or invalid authentication.'),
+    403: json(SuggestMappingErrorSchema, 'Account has no tenant.'),
+    422: json(SuggestMappingErrorSchema, 'AI chose a column that is not in the file (`ai_invalid_output`). Heuristic `suggestion` included.'),
+    502: json(SuggestMappingErrorSchema, 'AI call failed (`ai_failed`). Heuristic `suggestion` included.'),
+    503: json(SuggestMappingErrorSchema, 'AI fallback not configured (`ai_not_configured`). Heuristic `suggestion` included.'),
   },
 })
 
