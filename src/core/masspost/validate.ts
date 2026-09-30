@@ -26,7 +26,8 @@ export function mailingRequestSchemaForVersion(midVersion: MidProtocolVersion = 
   })
   return mailingRequestWithActionRefine(
     MailingRequestSchema.safeExtend({
-      MailingCreate: z.array(createSchema).optional(),
+      // narrower create schema (0100/0102 omit 0200-only fields); safeExtend's type can't express that
+      MailingCreate: z.array(createSchema).optional() as never,
     }) as z.ZodType<MailingRequest>,
   )
 }

@@ -33,7 +33,7 @@ export interface ConvertResult {
 function stripEmptyDepositType(data: NonNullable<ValidationResult['data']>) {
   for (const action of [...(data.MailingCreate ?? []), ...(data.MailingCheck ?? [])]) {
     if (!action.depositIdentifier) {
-      delete action.depositIdentifierType
+      delete (action as { depositIdentifierType?: unknown }).depositIdentifierType
     }
   }
 }

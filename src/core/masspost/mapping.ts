@@ -26,10 +26,10 @@ export type UnstructuredTarget = keyof typeof UNSTRUCTURED_COMP_CODES
 export const UNSTRUCTURED_MAX_LENGTH = 50
 
 export interface ColumnMapping {
-  name: string[]
-  companyDepartment?: string[]
-  streetHouseBox: string[]
-  postcodeCity: string[]
+  name: readonly string[]
+  companyDepartment?: readonly string[]
+  streetHouseBox: readonly string[]
+  postcodeCity: readonly string[]
 }
 
 export interface MappedField {
@@ -64,7 +64,7 @@ export interface MappingResult {
   warnings: MappingWarning[]
 }
 
-function joinColumns(row: Record<string, unknown>, columns: string[]): string {
+function joinColumns(row: Record<string, unknown>, columns: readonly string[]): string {
   return columns
     .map((c) => String(row[c] ?? '').trim())
     .filter((v) => v !== '')
