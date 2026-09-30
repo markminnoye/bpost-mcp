@@ -21,7 +21,7 @@ function extractToolDescriptionsFromRoute(routeSource: string): string[] {
 
 describe('tool description consistency guardrails', () => {
   it('avoids legacy manual-upload wording across code and docs', () => {
-    const routeSource = readRepoFile('src/app/api/mcp/route.ts')
+    const routeSource = readRepoFile('src/app/mcp/route.ts')
     const readme = readRepoFile('README.md')
     const instructions = readRepoFile('src/lib/mcp/server-instructions.ts')
 
@@ -39,7 +39,7 @@ describe('tool description consistency guardrails', () => {
   })
 
   it('enforces description policy across all registered tools', () => {
-    const routeSource = readRepoFile('src/app/api/mcp/route.ts')
+    const routeSource = readRepoFile('src/app/mcp/route.ts')
     const descriptions = extractToolDescriptionsFromRoute(routeSource)
 
     // Sanity check: keep this close to the number of registerTool calls.

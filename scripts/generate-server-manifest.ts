@@ -13,6 +13,7 @@ import {
   MCP_SERVER_DISPLAY_TITLE,
   MCP_SERVER_ICON_PUBLIC_PATH,
 } from '../src/lib/app-version'
+import { MCP_CANONICAL_PATH } from '../src/lib/mcp/paths'
 
 const ROOT = process.cwd()
 const OUTPUT = path.join(ROOT, 'server.json')
@@ -53,7 +54,7 @@ async function main(): Promise<void> {
     remotes: [
       {
         type: 'streamable-http',
-        url: `${origin}/api/mcp`,
+        url: `${origin}${MCP_CANONICAL_PATH}`,
         headers: [
           {
             name: 'Authorization',

@@ -38,23 +38,23 @@ describe('applyMapping', () => {
       Gemeente: 'Antwerpen',
     }
     const mapping = {
-      Familienaam: 'Comps.1',
+      Familienaam: 'Comps.4',
       Voornaam: 'Comps.2',
-      Straatnaam: 'Comps.3',
-      Huisnummer: 'Comps.4',
-      Postcode: 'Comps.8',
-      Gemeente: 'Comps.9',
+      Straatnaam: 'Comps.9',
+      Huisnummer: 'Comps.12',
+      Postcode: 'Comps.15',
+      Gemeente: 'Comps.16',
     }
     const result = applyMapping(raw, mapping, 1)
 
     expect(result.Comps).toEqual({
       Comp: [
-        { code: '1', value: 'Janssen' },
         { code: '2', value: 'Jan' },
-        { code: '3', value: 'Kerkstraat' },
-        { code: '4', value: '10' },
-        { code: '8', value: '2000' },
-        { code: '9', value: 'Antwerpen' },
+        { code: '4', value: 'Janssen' },
+        { code: '9', value: 'Kerkstraat' },
+        { code: '12', value: '10' },
+        { code: '15', value: '2000' },
+        { code: '16', value: 'Antwerpen' },
       ],
     })
   })
@@ -70,11 +70,11 @@ describe('applyMapping', () => {
 
   it('skips Comps entries with empty/undefined values', () => {
     const raw = { Naam: 'Jan', Bus: '' }
-    const mapping = { Naam: 'Comps.1', Bus: 'Comps.5' }
+    const mapping = { Naam: 'Comps.4', Bus: 'Comps.13' }
     const result = applyMapping(raw, mapping, 1) as { Comps: { Comp: Array<{ code: string; value: string }> } }
 
     expect(result.Comps.Comp).toHaveLength(1)
-    expect(result.Comps.Comp[0]).toEqual({ code: '1', value: 'Jan' })
+    expect(result.Comps.Comp[0]).toEqual({ code: '4', value: 'Jan' })
   })
 
   it('combines flat fields and Comps in one mapping', () => {
@@ -82,8 +82,8 @@ describe('applyMapping', () => {
     const mapping = {
       Taal: 'lang',
       Prioriteit: 'priority',
-      Naam: 'Comps.1',
-      Straat: 'Comps.3',
+      Naam: 'Comps.4',
+      Straat: 'Comps.9',
     }
     const result = applyMapping(raw, mapping, 1) as { seq: number; lang: string; priority: string; Comps: { Comp: Array<{ code: string; value: string }> } }
 
@@ -91,8 +91,8 @@ describe('applyMapping', () => {
     expect(result.lang).toBe('nl')
     expect(result.priority).toBe('NP')
     expect(result.Comps.Comp).toEqual([
-      { code: '1', value: 'Jan' },
-      { code: '3', value: 'Kerkstraat' },
+      { code: '4', value: 'Jan' },
+      { code: '9', value: 'Kerkstraat' },
     ])
   })
 })

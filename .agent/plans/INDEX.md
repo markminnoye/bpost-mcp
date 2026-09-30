@@ -86,6 +86,15 @@ All implementation plans, design specs, and architecture decisions live here.
 
 ---
 
+## Address Proofing (Mailops REST)
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Address Proofing skill-integratie](2026-09-24-address-proofing-skill.md) | ✅ | Separate skill + protocol routing; Comp aliases → Table 46 |
+| [Address Proofing MCP client](2026-09-24-address-proofing-mcp.md) | ⏳ | After freeze + API key; server-side PII strip; complement to `check_batch` |
+
+---
+
 ## Superpowers — Afgeronde plannen
 
 Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stonden oorspronkelijk in `docs/superpowers/plans/`.
