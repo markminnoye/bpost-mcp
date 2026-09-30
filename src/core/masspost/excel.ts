@@ -1,11 +1,13 @@
 // src/core/masspost/excel.ts
 import ExcelJS from 'exceljs'
 
+/** First worksheet of an address workbook: header titles and one record per data row. */
 export interface ParsedExcel {
   headers: string[]
   rows: Record<string, unknown>[]
 }
 
+/** Thrown when the workbook cannot be read, has no sheet, or has no header row. */
 export class ExcelParseError extends Error {
   constructor(message: string) {
     super(message)
@@ -21,6 +23,11 @@ export class ExcelParseError extends Error {
  * see docs/external/contrapunt-aft-converter/README.md point 1: Contrapunt's own tool maps
  * source columns straight into unstructured bpost fields, which is also this library's
  * default strategy (src/core/masspost/mapping.ts).
+ *
+ * @param input Workbook bytes (`Buffer` or `ArrayBuffer`).
+ * @returns Column titles from row 1 and the non-empty data rows.
+ * @example
+ * const { headers, rows } = await parseExcelAddresses(fileBuffer)
  */
 export async function parseExcelAddresses(input: Buffer | ArrayBuffer): Promise<ParsedExcel> {
   const workbook = new ExcelJS.Workbook()

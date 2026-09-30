@@ -1,0 +1,15 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/core/masspost/index.ts"],
+  "tsconfig": "tsconfig.json",
+  "out": "docs/api-reference/library",
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "disableSources": true,
+  "skipErrorChecking": true,
+  "cleanOutputDir": true,
+  "hideGenerator": true
+}

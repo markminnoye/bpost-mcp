@@ -3,11 +3,13 @@ import { Client } from 'basic-ftp'
 import { Readable } from 'node:stream'
 import type { FtpCredentials } from '../credentials'
 
+/** Remote name and size after a successful FTP upload. */
 export interface FtpUploadResult {
   remoteFileName: string
   bytesSent: number
 }
 
+/** Thrown when the file name is rejected or the FTP session fails. */
 export class FtpTransportError extends Error {
   constructor(message: string, public readonly cause?: unknown) {
     super(message)
@@ -22,6 +24,12 @@ export class FtpTransportError extends Error {
  *
  * basic-ftp uses passive mode and binary transfers by default, matching bpost's required
  * FTP client configuration (Table 4 in the protocol doc).
+ *
+ * @param xml MailingRequest XML. Encoded as ISO-8859-1 before upload.
+ * @param fileName Final remote name. Must end in `.xml` or `.txt`. Uploaded as `.TMP`, then renamed.
+ * @param credentials FTP host and login.
+ * @returns The final remote file name and the number of bytes sent.
+ * @throws {FtpTransportError} On a bad file name or a failed transfer.
  */
 export async function sendXmlViaFtp(
   xml: string,

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Nieuw**
 
+- Documentatiestandaard: TSDoc op publieke exports, TypeDoc-markdown (`npm run docs:code`) en OpenAPI 3.1 uit de Zod-schema's die een route effectief parset (`npm run docs:api`). `npm run docs:build` genereert beide; `npm run docs:check` faalt als `docs/api-reference/` achterloopt. Werkwijze en GitBook-inlezen staan in `AGENTS.md` en `docs/README.md`.
 - Nieuwe herbruikbare library `src/core/masspost/` voor de bpost e-MassPost-integratie: Excel-adressenlijst inlezen, kolommen mappen naar bpost's unstructured adresvelden (Comp-codes 90/92/93), valideren, en versturen naar bpost via **HTTP** en (nieuw) **FTP/FTPS**. Vervangt het eerder geplande lokaal-only Python-spoor voor Contrapunt (zie `.agent/plans/2026-09-28-bpost-library-web-app.md`); MCP-tooling staat voorlopig on hold.
 - Referentietool van Contrapunt (Frank) opgeslagen ter analyse in `docs/external/contrapunt-aft-converter/` — hun bestaande AFT-conversieaanpak (unstructured velden, SEQ-round-trip) is het uitgangspunt voor de nieuwe library.
 - Contrapunt-testexport `testadressen.xlsx` (≈789 fictieve adressen) in `docs/samples/contrapunt/`; `npm run test:transport` gebruikt dit bestand standaard met de bijhorende kolommapping (`--synthetic` voor één fake adres).
@@ -55,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Documentation standard: TSDoc on public exports, TypeDoc Markdown (`npm run docs:code`), and OpenAPI 3.1 generated from Zod schemas that a route handler actually parses (`npm run docs:api`). `npm run docs:build` writes both; `npm run docs:check` fails when `docs/api-reference/` is stale. See `AGENTS.md` and `docs/README.md`.
 - `src/core/masspost/` — framework-agnostic library: `excel.ts` (`.xlsx`-parsing via `exceljs`), `mapping.ts` (kolom-naar-Comp-mapping met gerapporteerde afkapping i.p.v. stil), `build-request.ts`, `validate.ts`, `credentials.ts` (single-tenant, lazy fail-fast), `transport/http.ts`, `transport/ftp.ts` (nieuw, `basic-ftp`), `pipeline.ts`.
 - `src/core/masspost/charset.ts` — `findUnsupportedChars`, `normalizeForBpost`; `mapRows` reports replaced/unsupported characters; `validateMailingRequest` rejects strings outside ISO-8859-1 (previously `Buffer.from(xml, 'latin1')` kept only the low byte, e.g. U+2019 → control char, U+2026 → `&`). Tests: `tests/core/masspost/charset.test.ts`.
 - `scripts/test-transport.ts` (`npm run test:transport [-- --ftp] [-- --synthetic] [-- --file <pad>]`) — bewijsscript; standaard `docs/samples/contrapunt/testadressen.xlsx`.

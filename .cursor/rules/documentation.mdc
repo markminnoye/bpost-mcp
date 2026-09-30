@@ -1,0 +1,11 @@
+---
+description: TSDoc on public exports; Zod contract before a new HTTP route
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+alwaysApply: false
+---
+
+Genereer TSDoc-commentaar voor alle geëxporteerde functies (en publieke types). Formaat: JSDoc-stijl met @param, @returns en @example waar nuttig.
+
+Nieuwe HTTP-route: laat het Zod-contract eerst goedkeuren, implementeer daarna, en registreer dat schema in de OpenAPI-generator. Beslissingen die je later niet zomaar terugdraait: korte ADR in `docs/adr/` (kopieer `template.md`). Na een wijziging aan publieke exports of route-schema's: `npm run docs:build`.

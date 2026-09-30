@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server';
 import { randomBytes, createHash } from 'crypto';
-import { z } from 'zod';
 import { db } from '@/lib/db/client';
 import { oauthClients } from '@/lib/db/schema';
-
-const RegisterRequestSchema = z.object({
-  client_name: z.string().optional(),
-  redirect_uris: z.array(z.string().url()).min(1),
-  grant_types: z.array(z.string()).optional().default(['authorization_code', 'refresh_token']),
-  response_types: z.array(z.string()).optional().default(['code']),
-});
+import { RegisterRequestSchema } from './schema';
 
 export async function POST(request: Request) {
   try {
