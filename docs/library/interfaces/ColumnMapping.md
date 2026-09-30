@@ -12,22 +12,22 @@ Source-column titles that feed each unstructured address block.
 
 ### companyDepartment?
 
-> `optional` **companyDepartment?**: `string`[]
+> `optional` **companyDepartment?**: readonly `string`[]
 
 ***
 
 ### name
 
-> **name**: `string`[]
+> **name**: readonly `string`[]
 
 ***
 
 ### postcodeCity
 
-> **postcodeCity**: `string`[]
+> **postcodeCity**: readonly `string`[]
 
 ***
 
 ### streetHouseBox
 
-> **streetHouseBox**: `string`[]
+> **streetHouseBox**: readonly `string`[]

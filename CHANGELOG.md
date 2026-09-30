@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Aanpassingen**
 
 - Install-prompt en interne docs noemen `/mcp` als officiële MCP-URL. `/api/mcp` blijft de legacy-alias; de routeverplaatsing zit in draft-PR [#40](https://github.com/markminnoye/bpost-mcp/pull/40) (`refactor/mcp-route-at-root`).
+- Gegenereerde library-docs tonen `ColumnMapping` als `readonly string[]`, in lijn met de typefix op `develop`.
 - Masspost bestandsnamen: **`customerFileRef` wordt genormaliseerd naar exact 10 tekens** (`REFERENCE` → `REFERENCE0` in naam én `RequestProps`) — voorkomt portaal **MPW-5009 / MID-2010** bij te korte refs.
 - Masspost generate-script: standaard **max 200 adressen** voor `mode=T` (bpost testlimiet); `--all` / `--limit N` override.
 - **OptiAddress:** `npm run generate:mailing-xml -- --opti --limit 10` bouwt `MailingCheck` (suggesties + `copyRequestItem=Y`).
@@ -72,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Install prompt and internal docs name `/mcp` as the official MCP URL. `/api/mcp` stays the legacy alias; the route move is draft PR [#40](https://github.com/markminnoye/bpost-mcp/pull/40) (`refactor/mcp-route-at-root`).
+- Generated library docs show `ColumnMapping` as `readonly string[]`, matching the type fix on `develop`.
 - Docs path: protocol documentation moved from `docs/internal/e-masspost/skills/e-masspost-protocol/` to `docs/internal/e-masspost/docs/` (skills-repo `main`, `fc8034a`); references updated in `AGENTS.md`, docs and code comments. Submodule pointer bumped in this commit.
 - **Build order locked** in `AGENTS.md` and the living plan: API/library (`src/core/masspost/`) before any UI; next step is column-mapping suggest API (Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai)), then web UI.
 - Masspost credentials: `BPOST_TEST_CUSTOMER_ID`, optional `BPOST_TEST_BARCODE_CUSTOMER_ID`, `BPOST_TEST_MID_VERSION` (default **`0200`**, locked for Contrapunt 28/09), `BPOST_TEST_CUSTOMER_FILE_REF` (default `REFERENCE`); `MailingContextSchema.version` allows `0100` | `0102` | `0200`.
