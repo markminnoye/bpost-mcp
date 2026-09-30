@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Oplossingen**
 
-- De installatieprompt noemt de oudere koppel-URL `/api/mcp` niet meer. Die alias blijft in `docs/mcp/README.md` en `docs/README.md`.
+- Verouderde MCP-pad-documentatie opgeschoond: installatieprompt noemt `/api/mcp` niet meer; `docs/mcp/README.md`, `docs/README.md` en `AGENTS.md` beweren niet meer dat PR #40 nog open is of dat `server.json` naar `/api/mcp` wijst. Canonieke URL is `/mcp`; `/api/mcp` blijft legacy-alias.
 - **Handmatige e-MassPost-upload (test-modus) geverifieerd (28/09):** **protocol `0200` geslaagd** (`Status 100`, gegenereerd MID-nummer). Eerdere `0100`-uploads faalden op MID-2040 wanneer 0200-velden aanwezig waren; Contrapunt ondersteunt wél 2.00 — zie `docs/samples/contrapunt/bpost-roundtrip/`.
 - **Structurele fout in de XML-opbouw hersteld**: `buildXml()` (`src/lib/xml.ts`) rendeerde velden als child-elementen in plaats van als XML-attributen, in strijd met de MailingRequest/DepositRequest XSD's (die vrijwel elk scalair veld als attribuut modelleren, bv. `Context/@requestName`, `Comp/@code`). Dit trof niet enkel de nieuwe library, maar ook de bestaande `submit_ready_batch`, `check_batch` en de deposit-flows — nooit opgemerkt omdat bestaande tests `buildXml` altijd mockten. Nu automatisch en correct afgehandeld voor alle aanroepers, met regressietests (`tests/lib/xml.test.ts`).
 - `bpost.sonicrocket.be` en `bpost.sonicrocket.io` staan niet meer als huidige productiehost in de actieve config en documentatie.
@@ -94,7 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- The install prompt no longer mentions the legacy connector URL `/api/mcp`. That alias stays in `docs/mcp/README.md` and `docs/README.md`.
+- Stale MCP path docs cleaned up: install prompt no longer mentions `/api/mcp`; `docs/mcp/README.md`, `docs/README.md`, and `AGENTS.md` no longer claim PR #40 is open or that `server.json` still points at `/api/mcp`. Canonical URL is `/mcp`; `/api/mcp` remains the legacy alias.
 - `buildXml()` now converts scalar leaf fields to XML attributes (`@_`-prefixed) before serialization, matching the MailingRequest/DepositRequest XSDs. Previously every field was rendered as a child element. Affects all callers: `submit-batch.ts`, `check-batch.ts`, `bpost_announce_deposit`, `bpost_announce_mailing`, and the new masspost library. See `tests/lib/xml.test.ts`.
 - Stale canonical origin `https://bpost.sonicrocket.be` in `server.json`, `README.md`, and `MCP_REGISTRY_CANONICAL_ORIGIN`.
 - **MCP mapping aliases** aligned with Mail ID Table 46 / AFT column codes. Previous aliases wrote street/house/postcode/city/lastName into the wrong Comp codes (middle name, last name, building, street, greeting).
