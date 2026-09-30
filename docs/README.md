@@ -1,34 +1,45 @@
 # Documentatie
 
-Deze map is de bron voor GitBook via Git Sync, en voor andere readers (Mintlify, Redocly, Scalar). Er is hier geen aparte docs-site geconfigureerd.
+Drie referentie-mappen, plus de overige projectdocs. GitBook (Git Sync) of Mintlify, Redocly en Scalar lezen deze bestanden. Er is geen aparte docs-app.
 
-## Inlezen
+## Mappen
 
-1. Koppel de Git-repository met Git Sync.
-2. Zet de content root van de space op `docs/` (of sync de repo en wijs de space naar die map).
-3. Markdown-pagina's worden gewone pagina's, inclusief `docs/adr/` en `docs/api-reference/library/`.
-4. Voeg `docs/api-reference/openapi.yaml` toe als OpenAPI-referentie. Hetzelfde bestand is OpenAPI 3.1 en werkt ook in Redocly, Scalar en Mintlify.
+```
+docs/
+├── README.md                 deze pagina
+├── service-api/
+│   └── openapi.yaml          OpenAPI 3.1 van de HTTP-service
+├── library/                  TypeDoc-markdown van src/core/masspost
+│   ├── README.md
+│   ├── classes/
+│   ├── functions/
+│   ├── interfaces/
+│   ├── type-aliases/
+│   └── variables/
+├── mcp/
+│   └── README.md             MCP valt buiten de service-spec
+├── adr/                      korte beslissingen
+├── install/
+├── internal/
+├── samples/
+└── superpowers/
+```
 
-## Wat gegenereerd is
+`docs/service-api/` is de HTTP-service (health, upload, OAuth, install-prompt, …). `docs/library/` is de masspost-library. `docs/mcp/` is alleen de notitie dat MCP niet in die spec zit. De map `docs/api-reference/` bestaat niet meer.
 
-| Pad | Bron | Vernieuwen |
-|-----|------|------------|
-| `api-reference/library/` | TSDoc op de publieke library-entry, via TypeDoc | `npm run docs:code` |
-| `api-reference/openapi.yaml` | Zod-schema's die een route-handler effectief parset | `npm run docs:api` |
+## Vernieuwen
 
-Beide: `npm run docs:build`. Commit het resultaat. `npm run docs:check` faalt als die map niet meer klopt met de bron.
+| Pad | Bron | Script |
+|-----|------|--------|
+| `library/` | TSDoc op de publieke library-entry | `npm run docs:code` |
+| `service-api/openapi.yaml` | Zod-schema's van de HTTP-routes | `npm run docs:api` |
 
-## OpenAPI dekt alleen routes met een Zod-schema
+Beide: `npm run docs:build`. `npm run docs:check` faalt als `docs/library/` of `docs/service-api/openapi.yaml` achterloopt. `docs/mcp/README.md` is met de hand geschreven en hoort niet bij die check.
 
-`POST /oauth/register` staat in de spec (`RegisterRequestSchema`). Deze routes hebben geen Zod-schema en zijn daarom niet gegenereerd:
+`/api/auth/[...nextauth]` staat in de spec als externe Auth.js-route, zonder request- of response-schema. MCP (`/api/mcp`) staat er niet in.
 
-- `POST /api/batches/upload` (multipart)
-- `GET /api/install/prompt` (Markdown-body)
-- `GET` en `POST /api/auth/[...nextauth]` (NextAuth)
-- `GET /health`, `GET /ready`, `GET /version`
-- `GET /.well-known/oauth-authorization-server`
-- `GET /.well-known/oauth-protected-resource`
-- `GET /oauth/authorize`
-- `POST /oauth/token`
+## GitBook
 
-`/api/mcp` hoort niet in deze spec. Een nieuwe route krijgt eerst een goedgekeurd Zod-contract, daarna een `registerPath` in `scripts/generate-openapi.ts`.
+Op `main` liggen de bestanden onder `docs/`. Een push naar `main` draait `.github/workflows/publish-docs.yml`: die bouwt de docs en force-pusht **alleen** deze map naar branch `docs` (de root van die branch is de inhoud van `docs/`). De action commit nooit terug naar `main` en luistert niet naar branch `docs`, dus ze triggert zichzelf niet.
+
+Git Sync: branch `docs`, content root `/`. Hetzelfde OpenAPI-bestand werkt in Redocly, Scalar en Mintlify. Pull requests blijven `docs:check` draaien in de gewone CI.

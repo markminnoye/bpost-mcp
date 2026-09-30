@@ -40,10 +40,11 @@ Request amendments to this file or the submodule when discovering new BPost API 
 Genereer TSDoc-commentaar voor alle geëxporteerde functies (en publieke types). Formaat: JSDoc-stijl met @param, @returns en @example waar nuttig.
 
 - Nieuwe HTTP-route: eerst het Zod-contract laten goedkeuren, daarna implementeren. Registreer dat schema in `scripts/generate-openapi.ts` en draai `npm run docs:build`.
-- Alleen schema's die de handler effectief parset komen in `docs/api-reference/openapi.yaml`. Geen tweede, handgeschreven contract.
-- Publieke code-documentatie volgt de library-entry (hier `src/core/masspost/index.ts`) naar `docs/api-reference/library/`. De TypeDoc-config noemt alleen die entry; geen projectspecifieke logica.
+- Service-OpenAPI staat in `docs/service-api/openapi.yaml`. Een schema dat de handler niet parset, mag de request/response alleen beschrijven als inhaken het gedrag zou wijzigen.
+- Publieke code-documentatie volgt de library-entry (hier `src/core/masspost/index.ts`) naar `docs/library/`. De TypeDoc-config noemt alleen die entry.
+- `docs/mcp/` is geen spec. MCP blijft buiten de service-OpenAPI. Het publieke pad is `/api/mcp` (geen rewrite vanaf `/mcp`).
 - Beslissingen die je later niet zomaar terugdraait: korte ADR in `docs/adr/`, gekopieerd van `docs/adr/template.md`.
-- `npm run docs:check` faalt als de gegenereerde map achterloopt. MCP-routes horen niet in de OpenAPI-spec.
+- `npm run docs:check` faalt als `docs/library/` of `docs/service-api/openapi.yaml` achterloopt. Push naar `main` publiceert de `docs/`-map naar branch `docs` en commit niet terug naar `main`.
 - Inlezen in GitBook of een andere reader: `docs/README.md`.
 
 ### Environment & Configuration

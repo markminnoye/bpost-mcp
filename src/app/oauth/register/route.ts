@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { randomBytes, createHash } from 'crypto';
 import { db } from '@/lib/db/client';
 import { oauthClients } from '@/lib/db/schema';
-import { RegisterRequestSchema } from './schema';
+import { OAuthErrorSchema } from '../error-schema';
+import { RegisterRequestSchema, RegisterResponseSchema } from './schema';
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,10 @@ export async function POST(request: Request) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'invalid_client_metadata', error_description: parsed.error.message },
+        OAuthErrorSchema.parse({
+          error: 'invalid_client_metadata',
+          error_description: parsed.error.message,
+        }),
         { status: 400 },
       );
     }
@@ -35,19 +39,22 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      {
+      RegisterResponseSchema.parse({
         client_id: rawClientId,
         client_secret: rawClientSecret,
         client_name: client_name ?? null,
         redirect_uris,
         grant_types,
         response_types,
-      },
+      }),
       { status: 201 },
     );
   } catch {
     return NextResponse.json(
-      { error: 'server_error', error_description: 'Registration failed' },
+      OAuthErrorSchema.parse({
+        error: 'server_error',
+        error_description: 'Registration failed',
+      }),
       { status: 500 },
     );
   }

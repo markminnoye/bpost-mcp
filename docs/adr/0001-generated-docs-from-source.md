@@ -10,8 +10,8 @@ Code comments and HTTP contracts drift when they are written twice. The docs sho
 
 ## Decision
 
-- Public exports are documented with TSDoc. TypeDoc writes Markdown from the library entry point.
-- HTTP contracts are Zod schemas the handler already parses. OpenAPI 3.1 is generated from those schemas only.
+- Public exports are documented with TSDoc. TypeDoc writes Markdown to `docs/library/`.
+- The HTTP service is OpenAPI 3.1 in `docs/service-api/openapi.yaml`, generated from Zod schemas. MCP stays in `docs/mcp/` and is not part of that spec.
 - A new route is specified (Zod contract) and approved before it is implemented.
 - Generated files are committed. A check fails when they do not match the source.
 - Decisions that are awkward to reverse go in `docs/adr/`, copied from `template.md`.

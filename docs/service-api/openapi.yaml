@@ -1,0 +1,602 @@
+openapi: 3.1.0
+info:
+  title: HTTP service
+  version: 0.4.0
+  description: HTTP routes of this service. The MCP endpoint is not part of this document; see docs/mcp/README.md.
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+        service:
+          type: string
+        version:
+          type: string
+      required:
+        - status
+        - service
+        - version
+    VersionResponse:
+      type: object
+      properties:
+        service:
+          type: string
+        version:
+          type: string
+      required:
+        - service
+        - version
+    ReadyResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ready
+            - not_ready
+        service:
+          type: string
+        version:
+          type: string
+        checks:
+          type: object
+          properties:
+            app:
+              type: string
+              enum:
+                - ok
+            db:
+              type: string
+              enum:
+                - ok
+                - error
+                - skipped
+            redis:
+              type: string
+              enum:
+                - ok
+                - error
+                - skipped
+          required:
+            - app
+            - db
+            - redis
+        failures:
+          type: array
+          items:
+            type: string
+      required:
+        - status
+        - service
+        - version
+        - checks
+    InstallPromptBody:
+      type: string
+      description: Install assistant prompt as Markdown.
+    InstallPromptMissing:
+      type: string
+      enum:
+        - Install prompt could not be loaded.
+    UploadBatchCreated:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum:
+            - true
+        message:
+          type: string
+        batchId:
+          type: string
+        status:
+          type: string
+        totalRows:
+          type: integer
+        nextStep:
+          type: string
+      required:
+        - success
+        - message
+        - batchId
+        - status
+        - totalRows
+        - nextStep
+    UploadBatchError:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+      required:
+        - error
+    UploadBatchRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: CSV upload. Form field name is `file`.
+      required:
+        - file
+    AuthorizationServerMetadata:
+      type: object
+      properties:
+        issuer:
+          type: string
+          format: uri
+        authorization_endpoint:
+          type: string
+          format: uri
+        token_endpoint:
+          type: string
+          format: uri
+        registration_endpoint:
+          type: string
+          format: uri
+        response_types_supported:
+          type: array
+          items:
+            type: string
+            enum:
+              - code
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+            enum:
+              - authorization_code
+              - refresh_token
+        code_challenge_methods_supported:
+          type: array
+          items:
+            type: string
+            enum:
+              - S256
+        token_endpoint_auth_methods_supported:
+          type: array
+          items:
+            type: string
+            enum:
+              - client_secret_post
+              - none
+        scopes_supported:
+          type: array
+          items:
+            type: string
+            enum:
+              - mcp:tools
+        client_id_metadata_document_supported:
+          type: boolean
+          enum:
+            - true
+      required:
+        - issuer
+        - authorization_endpoint
+        - token_endpoint
+        - registration_endpoint
+        - response_types_supported
+        - grant_types_supported
+        - code_challenge_methods_supported
+        - token_endpoint_auth_methods_supported
+        - scopes_supported
+        - client_id_metadata_document_supported
+    ProtectedResourceMetadata:
+      type: object
+      properties:
+        resource:
+          type: string
+          format: uri
+        authorization_servers:
+          type: array
+          items:
+            type: string
+            format: uri
+      required:
+        - resource
+        - authorization_servers
+    RegisterResponse:
+      type: object
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        client_name:
+          type:
+            - string
+            - "null"
+        redirect_uris:
+          type: array
+          items:
+            type: string
+            format: uri
+        grant_types:
+          type: array
+          items:
+            type: string
+        response_types:
+          type: array
+          items:
+            type: string
+      required:
+        - client_id
+        - client_secret
+        - client_name
+        - redirect_uris
+        - grant_types
+        - response_types
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string
+        error_description:
+          type: string
+      required:
+        - error
+        - error_description
+    RegisterRequest:
+      type: object
+      properties:
+        client_name:
+          type: string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+            format: uri
+          minItems: 1
+        grant_types:
+          type: array
+          items:
+            type: string
+          default:
+            - authorization_code
+            - refresh_token
+        response_types:
+          type: array
+          items:
+            type: string
+          default:
+            - code
+      required:
+        - redirect_uris
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          enum:
+            - Bearer
+        expires_in:
+          type: number
+          enum:
+            - 3600
+        refresh_token:
+          type: string
+      required:
+        - access_token
+        - token_type
+        - expires_in
+        - refresh_token
+    TokenRequest:
+      oneOf:
+        - type: object
+          properties:
+            grant_type:
+              type: string
+              enum:
+                - authorization_code
+            code:
+              type: string
+            redirect_uri:
+              type: string
+            client_id:
+              type: string
+            code_verifier:
+              type: string
+            resource:
+              type: string
+          required:
+            - grant_type
+            - code
+            - redirect_uri
+            - client_id
+            - code_verifier
+        - type: object
+          properties:
+            grant_type:
+              type: string
+              enum:
+                - refresh_token
+            refresh_token:
+              type: string
+            client_id:
+              type: string
+          required:
+            - grant_type
+            - refresh_token
+            - client_id
+  parameters: {}
+paths:
+  /health:
+    get:
+      summary: Liveness
+      responses:
+        "200":
+          description: Process is up.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /version:
+    get:
+      summary: Build version
+      responses:
+        "200":
+          description: Service name and version.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VersionResponse"
+  /ready:
+    get:
+      summary: Readiness
+      responses:
+        "200":
+          description: Dependencies are ready. `failures` is omitted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyResponse"
+        "503":
+          description: A dependency failed. `failures` lists the names.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyResponse"
+  /api/install/prompt:
+    get:
+      summary: Install assistant prompt
+      responses:
+        "200":
+          description: Markdown prompt.
+          content:
+            text/markdown:
+              schema:
+                $ref: "#/components/schemas/InstallPromptBody"
+        "404":
+          description: Prompt file could not be read.
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/InstallPromptMissing"
+  /api/batches/upload:
+    post:
+      summary: Upload a CSV batch
+      description: Requires a bearer token or a signed-in session. The handler reads multipart form data itself; these schemas describe that contract.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadBatchRequest"
+      responses:
+        "201":
+          description: CSV stored.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadBatchCreated"
+        "400":
+          description: Missing file, unsupported format, parse error, or empty file.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadBatchError"
+        "401":
+          description: Missing or invalid authentication.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadBatchError"
+        "403":
+          description: Account has no tenant.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadBatchError"
+        "413":
+          description: Too many rows.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadBatchError"
+        "500":
+          description: Unexpected failure. `details` may be set.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadBatchError"
+  /.well-known/oauth-authorization-server:
+    get:
+      summary: OAuth authorization server metadata
+      responses:
+        "200":
+          description: Metadata. URLs use the request host.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationServerMetadata"
+    options:
+      summary: CORS preflight for authorization server metadata
+      responses:
+        "204":
+          description: No body. CORS headers only.
+  /.well-known/oauth-protected-resource:
+    get:
+      summary: OAuth protected resource metadata
+      description: Body is produced by mcp-handler. The schema describes that JSON; the handler is unchanged.
+      responses:
+        "200":
+          description: "`resource` is the public origin plus `/api/mcp`."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProtectedResourceMetadata"
+    options:
+      summary: CORS preflight for protected resource metadata
+      responses:
+        "200":
+          description: No body. CORS headers only.
+  /oauth/register:
+    post:
+      summary: Register an OAuth client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Client registered. `client_secret` is returned only in this response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          description: Body failed RegisterRequestSchema (`invalid_client_metadata`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+        "500":
+          description: Registration failed (`server_error`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+  /oauth/authorize:
+    get:
+      summary: Start the authorization code flow
+      description: Query is described by AuthorizeQuerySchema. The handler still validates by hand, then redirects (302) or returns an OAuth error JSON (400).
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - code
+          required: true
+          name: response_type
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: client_id
+          in: query
+        - schema:
+            type: string
+            format: uri
+          required: true
+          name: redirect_uri
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: code_challenge
+          in: query
+        - schema:
+            type: string
+            enum:
+              - S256
+          required: false
+          name: code_challenge_method
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: scope
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: state
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: resource
+          in: query
+      responses:
+        "302":
+          description: Redirect to the client, to sign-in, or to the dashboard.
+        "400":
+          description: Invalid or missing authorization request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+  /oauth/token:
+    post:
+      summary: Exchange a code or refresh token
+      description: Body must be `application/x-www-form-urlencoded`. The handler still reads URLSearchParams itself.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: Access token and rotated refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "400":
+          description: Bad content type, missing fields, or unsupported grant.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+  /api/auth/{path}:
+    get:
+      summary: Auth.js (external)
+      description: Implemented by Auth.js (NextAuth) at `/api/auth/[...nextauth]`. Request and response are not a Zod contract of this service, so they are not described here.
+      parameters:
+        - schema:
+            type: string
+            description: Auth.js catch-all, for example `signin` or `callback/google`.
+          required: true
+          description: Auth.js catch-all, for example `signin` or `callback/google`.
+          name: path
+          in: path
+      responses:
+        "200":
+          description: Auth.js response (HTML, redirect, or JSON). Not described here.
+        "302":
+          description: Auth.js redirect.
+    post:
+      summary: Auth.js (external)
+      description: Implemented by Auth.js (NextAuth). Excluded from our schemas because the catch-all is owned by that library.
+      parameters:
+        - schema:
+            type: string
+            description: Auth.js catch-all, for example `signin` or `callback/google`.
+          required: true
+          description: Auth.js catch-all, for example `signin` or `callback/google`.
+          name: path
+          in: path
+      responses:
+        "200":
+          description: Auth.js response. Not described here.
+        "302":
+          description: Auth.js redirect.
+webhooks: {}
