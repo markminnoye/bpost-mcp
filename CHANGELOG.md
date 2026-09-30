@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Aanpassingen**
 
+- De officiële MCP-URL is `/mcp` (`src/app/mcp`). De installatieprompt gebruikt `{{BASE_URL}}/mcp`. `/api/mcp` blijft werken als legacy-alias (rewrite). OAuth protected-resource metadata en nieuwe installatie-URL's gebruiken `/mcp`; bestaande `/api/mcp`-clients en oude resource-waarden blijven geldig.
+
 - Masspost bestandsnamen: **`customerFileRef` wordt genormaliseerd naar exact 10 tekens** (`REFERENCE` → `REFERENCE0` in naam én `RequestProps`) — voorkomt portaal **MPW-5009 / MID-2010** bij te korte refs.
 - Masspost generate-script: standaard **max 200 adressen** voor `mode=T` (bpost testlimiet); `--all` / `--limit N` override.
 - **OptiAddress:** `npm run generate:mailing-xml -- --opti --limit 10` bouwt `MailingCheck` (suggesties + `copyRequestItem=Y`).
@@ -67,6 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cursor rule + hook for **begrijpelijke Linear-issues**: `.cursor/rules/linear-issue-descriptions.mdc` and `beforeMCPExecution` gate on `save_issue` (`.cursor/hooks/`). Tracked via `.gitignore` exceptions.
 
 ### Changed
+
+- Official MCP endpoint is `/mcp` (`src/app/mcp/route.ts`). The install prompt uses `{{BASE_URL}}/mcp`. `/api/mcp` stays available as a legacy rewrite to the same handler. Protected-resource metadata, `server.json`, install URLs, and OAuth resource normalization use `/mcp`; legacy `/api/mcp` resource values still match.
 
 - Docs path: protocol documentation moved from `docs/internal/e-masspost/skills/e-masspost-protocol/` to `docs/internal/e-masspost/docs/` (skills-repo `main`, `fc8034a`); references updated in `AGENTS.md`, docs and code comments. Submodule pointer bumped in this commit.
 - **Build order locked** in `AGENTS.md` and the living plan: API/library (`src/core/masspost/`) before any UI; next step is column-mapping suggest API (Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai)), then web UI.

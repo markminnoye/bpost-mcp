@@ -6,6 +6,7 @@ import { readFileSync } from 'fs'
 import path from 'path'
 import { z } from 'zod'
 import packageJson from '../package.json'
+import { MCP_CANONICAL_PATH } from '../src/lib/mcp/paths'
 
 const manifestSchema = z.object({
   $schema: z.string().url(),
@@ -66,9 +67,11 @@ function main(): void {
     )
   }
 
-  const mcpUrl = manifest.remotes[0].url.replace(/\/$/, '')
-  if (!mcpUrl.endsWith('/api/mcp')) {
-    throw new Error(`remotes[0].url must end with /api/mcp, got ${manifest.remotes[0].url}`)
+  const mcpPath = new URL(manifest.remotes[0].url).pathname.replace(/\/$/, '')
+  if (mcpPath !== MCP_CANONICAL_PATH) {
+    throw new Error(
+      `remotes[0].url path must be ${MCP_CANONICAL_PATH} (legacy /api/mcp is an alias, not the registry URL), got ${manifest.remotes[0].url}`,
+    )
   }
 
   console.log(`Validated ${path.relative(root, file)} (version=${manifest.version})`)

@@ -1,4 +1,4 @@
-// src/app/api/mcp/route.ts
+// src/app/mcp/route.ts — public path /mcp. /api/mcp is a legacy rewrite (next.config.ts).
 import { createMcpHandler, withMcpAuth } from 'mcp-handler'
 import { DepositRequestSchema } from '@/schemas/deposit-request'
 import { MailingRequestSchema, ItemSchema } from '@/schemas/mailing-request'
@@ -17,6 +17,7 @@ import { applyMapping } from '@/lib/batch/apply-mapping'
 import { validateMappingTargets } from '@/lib/batch/validate-mapping-targets'
 import { submitBatch } from '@/lib/batch/submit-batch'
 import { checkBatch } from '@/lib/batch/check-batch'
+import { MCP_CANONICAL_PATH, MCP_LEGACY_PATH } from '@/lib/mcp/paths'
 import { requireTenantId } from '@/lib/mcp/require-tenant'
 import { env } from '@/lib/config/env'
 import { reportIssueToGithub } from '@/lib/github/report-issue'
@@ -1439,13 +1440,38 @@ const handler = createMcpHandler(
     }),
     instructions: MCP_SERVER_INSTRUCTIONS,
   },
-  { basePath: '/api' },
+  // Empty base path: streamable HTTP is `/mcp`, not `/api/mcp`.
+  { basePath: '' },
 )
 
-const authHandler = withMcpAuth(handler, verifyToken, {
-  required: true,
-  resourceMetadataPath: '/.well-known/oauth-protected-resource',
-  requiredScopes: ['mcp:tools'],
-})
+/**
+ * mcp-handler only serves the canonical pathname. A rewrite may still present
+ * the legacy URL on `request.url`, so map that path before the handler runs.
+ */
+function toCanonicalMcpRequest(req: Request): Request {
+  const url = new URL(req.url)
+  const path = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, '') : url.pathname
+  if (path !== MCP_LEGACY_PATH) return req
+  url.pathname = MCP_CANONICAL_PATH
+  const init: RequestInit & { duplex?: 'half' } = {
+    method: req.method,
+    headers: req.headers,
+    duplex: 'half',
+  }
+  if (req.method !== 'GET' && req.method !== 'HEAD' && req.body) {
+    init.body = req.body
+  }
+  return new Request(url, init)
+}
+
+const authHandler = withMcpAuth(
+  (req) => handler(toCanonicalMcpRequest(req)),
+  verifyToken,
+  {
+    required: true,
+    resourceMetadataPath: '/.well-known/oauth-protected-resource',
+    requiredScopes: ['mcp:tools'],
+  },
+)
 
 export { authHandler as GET, authHandler as POST, authHandler as DELETE }

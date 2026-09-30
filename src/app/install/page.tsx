@@ -1,9 +1,10 @@
 import { env } from '@/lib/config/env'
+import { MCP_CANONICAL_PATH } from '@/lib/mcp/paths'
 import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
 import { AlphaServiceBanner } from '@/components/customer/AlphaServiceBanner'
 
 const BASE_URL = env.NEXT_PUBLIC_BASE_URL
-const MCP_URL = `${BASE_URL}/api/mcp`
+const MCP_URL = `${BASE_URL}${MCP_CANONICAL_PATH}`
 
 export const metadata = {
   title: 'Installatie — MCP-service voor BPost e-MassPost (alfa)',
@@ -43,6 +44,9 @@ export default function InstallPage() {
           Service URL
         </h2>
         <CopyCodeBlock code={MCP_URL} copyLabel="URL kopiëren" />
+        <p className="bp-prose">
+          Een oudere link die eindigt op /api/mcp blijft werken. Voor een nieuwe koppeling gebruik je de URL hierboven.
+        </p>
       </section>
 
       <section className="bp-section">
