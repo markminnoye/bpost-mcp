@@ -45,6 +45,7 @@ jobs:
           fi
           TARGET_REF="refs/heads/docs"
           OUT="$(mktemp -d)"
+          # Whole docs tree, including gitbook-docs.yaml. No include filter.
           cp -a docs/. "${OUT}/"
           git -C "${OUT}" init -b docs
           git -C "${OUT}" config user.name "github-actions[bot]"

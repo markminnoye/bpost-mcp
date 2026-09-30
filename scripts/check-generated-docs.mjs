@@ -1,7 +1,7 @@
 /**
  * Fails when generated service or library docs do not match a fresh `docs:build`.
  * Run after `npm run docs:build`.
- * Hand-written pages (docs/mcp, docs/README.md) are not part of this check.
+ * Hand-written pages (docs/mcp, docs/README.md, docs/gitbook-docs.yaml) are not part of this check.
  */
 import { execFileSync } from 'node:child_process'
 

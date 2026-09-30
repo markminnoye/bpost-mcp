@@ -7,6 +7,7 @@ Drie referentie-mappen, plus de overige projectdocs. GitBook (Git Sync) of Mintl
 ```
 docs/
 ├── README.md                 deze pagina
+├── gitbook-docs.yaml         Git Sync-siteconfig (root van branch docs)
 ├── service-api/
 │   └── openapi.yaml          OpenAPI 3.1 van de HTTP-service
 ├── library/                  TypeDoc-markdown van src/core/masspost
@@ -40,6 +41,8 @@ Beide: `npm run docs:build`. `npm run docs:check` faalt als `docs/library/` of `
 
 ## GitBook
 
-Op `develop` (de hoofdlijn) liggen de bestanden onder `docs/`. Een push naar `develop` draait `.github/workflows/publish-docs.yml`: die bouwt de docs en force-pusht **alleen** deze map naar branch `docs` (de root van die branch is de inhoud van `docs/`). De action commit nooit terug naar `develop` en luistert niet naar branch `docs`, dus ze triggert zichzelf niet.
+Op `develop` (de hoofdlijn) liggen de bestanden onder `docs/`. Een push naar `develop` draait `.github/workflows/publish-docs.yml`: die bouwt de docs en force-pusht **alleen** deze map naar branch `docs` (de root van die branch is de inhoud van `docs/`). De kopie is `cp -a docs/.` gevolgd door `git add -A`, zonder include-filter, dus `docs/gitbook-docs.yaml` komt op branch `docs` te staan als `gitbook-docs.yaml`. De action commit nooit terug naar `develop` en luistert niet naar branch `docs`, dus ze triggert zichzelf niet.
 
-Git Sync: branch `docs`, content root `/`. Hetzelfde OpenAPI-bestand werkt in Redocly, Scalar en Mintlify. Pull requests blijven `docs:check` draaien in de gewone CI.
+Git Sync (site bpost e-Masspost, repo `markminnoye/bpost-mcp`): branch `docs`, project directory `/`, richting GitHub naar GitBook. In `gitbook-docs.yaml` is `path: docs` het sitepad van de space. `content.directory: ./` is de inhoud van die project directory, dus de root van branch `docs`. Er is geen section-wrapper: één space staat op het hoogste niveau. `docs:check` volgt alleen `docs/library/` en `docs/service-api/openapi.yaml`; `gitbook-docs.yaml` is met de hand geschreven.
+
+Hetzelfde OpenAPI-bestand werkt in Redocly, Scalar en Mintlify. Pull requests blijven `docs:check` draaien in de gewone CI.
