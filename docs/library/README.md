@@ -27,11 +27,16 @@
 - [MappingWarning](interfaces/MappingWarning.md)
 - [NormalizedText](interfaces/NormalizedText.md)
 - [ParsedExcel](interfaces/ParsedExcel.md)
+- [SuggestColumnMappingInput](interfaces/SuggestColumnMappingInput.md)
+- [SuggestColumnMappingResult](interfaces/SuggestColumnMappingResult.md)
 - [ValidationIssue](interfaces/ValidationIssue.md)
 - [ValidationResult](interfaces/ValidationResult.md)
 
 ## Type Aliases
 
+- [MappingConfidence](type-aliases/MappingConfidence.md)
+- [MappingLocale](type-aliases/MappingLocale.md)
+- [MappingPresetId](type-aliases/MappingPresetId.md)
 - [MidProtocolVersion](type-aliases/MidProtocolVersion.md)
 - [UnstructuredTarget](type-aliases/UnstructuredTarget.md)
 
@@ -60,4 +65,5 @@
 - [rowsToItems](functions/rowsToItems.md)
 - [sendMailingRequestViaHttp](functions/sendMailingRequestViaHttp.md)
 - [sendXmlViaFtp](functions/sendXmlViaFtp.md)
+- [suggestColumnMapping](functions/suggestColumnMapping.md)
 - [validateMailingRequest](functions/validateMailingRequest.md)

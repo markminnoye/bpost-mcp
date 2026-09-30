@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Aanpassingen**
 
 - De officiële MCP-URL is `/mcp` (`src/app/mcp`). De installatieprompt gebruikt `{{BASE_URL}}/mcp`. `/api/mcp` blijft werken als legacy-alias (rewrite). OAuth protected-resource metadata en nieuwe installatie-URL's gebruiken `/mcp`; bestaande `/api/mcp`-clients en oude resource-waarden blijven geldig.
-- Gegenereerde library-docs tonen `ColumnMapping` als `readonly string[]`, in lijn met de typefix op `develop`.
+- Gegenereerde library-docs tonen `ColumnMapping` als `readonly string[]`, in lijn met de typefix op `develop`, en bevatten `suggestColumnMapping` (SR-79).
 
 - Masspost bestandsnamen: **`customerFileRef` wordt genormaliseerd naar exact 10 tekens** (`REFERENCE` → `REFERENCE0` in naam én `RequestProps`) — voorkomt portaal **MPW-5009 / MID-2010** bij te korte refs.
 - Masspost generate-script: standaard **max 200 adressen** voor `mode=T` (bpost testlimiet); `--all` / `--limit N` override.
@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Oplossingen**
 
+- De installatieprompt noemt de oudere koppel-URL `/api/mcp` niet meer. Die alias blijft in `docs/mcp/README.md` en `docs/README.md`.
 - **Handmatige e-MassPost-upload (test-modus) geverifieerd (28/09):** **protocol `0200` geslaagd** (`Status 100`, gegenereerd MID-nummer). Eerdere `0100`-uploads faalden op MID-2040 wanneer 0200-velden aanwezig waren; Contrapunt ondersteunt wél 2.00 — zie `docs/samples/contrapunt/bpost-roundtrip/`.
 - **Structurele fout in de XML-opbouw hersteld**: `buildXml()` (`src/lib/xml.ts`) rendeerde velden als child-elementen in plaats van als XML-attributen, in strijd met de MailingRequest/DepositRequest XSD's (die vrijwel elk scalair veld als attribuut modelleren, bv. `Context/@requestName`, `Comp/@code`). Dit trof niet enkel de nieuwe library, maar ook de bestaande `submit_ready_batch`, `check_batch` en de deposit-flows — nooit opgemerkt omdat bestaande tests `buildXml` altijd mockten. Nu automatisch en correct afgehandeld voor alle aanroepers, met regressietests (`tests/lib/xml.test.ts`).
 - `bpost.sonicrocket.be` en `bpost.sonicrocket.io` staan niet meer als huidige productiehost in de actieve config en documentatie.
@@ -81,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Official MCP endpoint is `/mcp` (`src/app/mcp/route.ts`). The install prompt uses `{{BASE_URL}}/mcp`. `/api/mcp` stays available as a legacy rewrite to the same handler. Protected-resource metadata, `server.json`, install URLs, and OAuth resource normalization use `/mcp`; legacy `/api/mcp` resource values still match.
-- Generated library docs show `ColumnMapping` as `readonly string[]`, matching the type fix on `develop`.
+- Generated library docs show `ColumnMapping` as `readonly string[]`, matching the type fix on `develop`, and include `suggestColumnMapping` (SR-79).
 
 - Docs path: protocol documentation moved from `docs/internal/e-masspost/skills/e-masspost-protocol/` to `docs/internal/e-masspost/docs/` (skills-repo `main`, `fc8034a`); references updated in `AGENTS.md`, docs and code comments. Submodule pointer bumped in this commit.
 - **Build order locked** in `AGENTS.md` and the living plan: API/library (`src/core/masspost/`) before any UI; next step is column-mapping suggest API (Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai)), then web UI.
@@ -91,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The install prompt no longer mentions the legacy connector URL `/api/mcp`. That alias stays in `docs/mcp/README.md` and `docs/README.md`.
 - `buildXml()` now converts scalar leaf fields to XML attributes (`@_`-prefixed) before serialization, matching the MailingRequest/DepositRequest XSDs. Previously every field was rendered as a child element. Affects all callers: `submit-batch.ts`, `check-batch.ts`, `bpost_announce_deposit`, `bpost_announce_mailing`, and the new masspost library. See `tests/lib/xml.test.ts`.
 - Stale canonical origin `https://bpost.sonicrocket.be` in `server.json`, `README.md`, and `MCP_REGISTRY_CANONICAL_ORIGIN`.
 - **MCP mapping aliases** aligned with Mail ID Table 46 / AFT column codes. Previous aliases wrote street/house/postcode/city/lastName into the wrong Comp codes (middle name, last name, building, street, greeting).
