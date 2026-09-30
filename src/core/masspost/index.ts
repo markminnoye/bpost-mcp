@@ -5,6 +5,7 @@
 
 export * from './excel'
 export * from './mapping'
+export * from './suggest-mapping'
 export * from './build-request'
 export * from './validate'
 export * from './charset'

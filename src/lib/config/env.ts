@@ -87,6 +87,14 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v !== 'false'),
+
+  /**
+   * Optional Vercel AI Gateway model (`provider/model`) for column-mapping fallback.
+   * Unset or invalid → that path fails closed. The app still boots without it.
+   */
+  MASSPOST_SUGGEST_MAPPING_MODEL: z.string().optional(),
+  /** Optional AI Gateway key. On Vercel, OIDC can authenticate when this is unset. */
+  AI_GATEWAY_API_KEY: z.string().optional(),
 })
 
 // Use safeParse to provide better error messages if validation fails
@@ -109,6 +117,8 @@ const result = envSchema.safeParse({
   BPOST_FTP_USERNAME: process.env.BPOST_FTP_USERNAME,
   BPOST_FTP_PASSWORD: process.env.BPOST_FTP_PASSWORD,
   BPOST_FTP_SECURE: process.env.BPOST_FTP_SECURE,
+  MASSPOST_SUGGEST_MAPPING_MODEL: process.env.MASSPOST_SUGGEST_MAPPING_MODEL,
+  AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY,
 })
 
 if (!result.success) {
