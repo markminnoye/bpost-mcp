@@ -21,7 +21,7 @@ Uses [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-e-ma
    - `flows/`: Business logic & sequence diagrams
    - `transport/`: HTTP/FTP protocol
    - `errors/`: MPW/MID error codes
-5. **Raw Source:** `@docs/external/Mail-ID Data_Exchange_Technical_Guide.pdf` (Verify table data/diagrams)
+5. **Raw Source:** `@docs/internal/e-masspost/reference/Mail-ID Data_Exchange_Technical_Guide.pdf` (Verify table data/diagrams; the markdown docs omit some tables, e.g. Table 73 status codes 100/998/999)
 6. **Samples:** `@docs/samples/` (Use for `@tests/`)
 7. **Masspost library / CLI:** `@docs/internal/masspost-library.md` (scripts `generate:mailing-xml`, `test:transport`, module map) + `@docs/internal/masspost-test-env.md` (credentials)
 

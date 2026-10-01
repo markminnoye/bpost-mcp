@@ -66,8 +66,12 @@ Requires: `BPOST_TEST_USERNAME`, `PASSWORD`, `CUSTOMER_ID`, `ACCOUNT_ID` (and re
 | `--file <pad.xlsx>` | Use that workbook instead (Contrapunt column layout). Mutually exclusive with `--simple`. |
 | `--simple` | One synthetic Contrapunt-layout row (quick portal smoke). No `--limit` / `--all`. |
 | `--opti` / `--check` | Build **MailingCheck** (OptiAddress) instead of MailingCreate. Sets `copyRequestItem=Y`, `suggestionsCount=5`, `suggestionsMinScore=60`. |
+| `--delete <mailingRef>` | Build **MailingDelete** for that mailing. No Excel. Corrects a mailing: delete it, then create a new one under a **new** `mailingRef` (barcodes change; only the latest are valid). Never delete a mailing someone still needs (e.g. one a deposit is attached to). |
+| `--reuse <sourceMailingRef> --deposit <depositRef> [--ref <newRef>]` | Build **MailingReuse**: a new mailing on an existing list. `--deposit` is required by the XSD. `--ref` defaults to `REUSE<timestamp>`. bpost answers `MID-3061` (source unknown) or `MID-3062` (source created manually). No Excel. |
 | `--limit N` | Cap mapped rows (positive integer). Default **200** when neither `--all` nor `--simple`. |
 | `--all` | No row cap (warns if Create exceeds 200 under `mode=T`). |
+| `--mode T\|C\|P` | Header `mode` of the file. Default **T**. `C` (certification, limit ≤ 2000) and `P` (**production**) lift the library's `FORCE_TEST_MODE` guard for this file only (`allowNonTestMode`). Default row cap follows the mode (T 200, C 2000). Works with Create, `--opti`, `--delete` and `--reuse`. The script sends nothing. |
+| `--confirm-production` | Required with `--mode P`, together with an explicit `--limit N`, `--all` or `--simple`. Prints a production warning. |
 | `--version 0100\|0102\|0200` | Override `BPOST_TEST_MID_VERSION` for this run. |
 | `--out <pad.xml>` | Write to this path. Portal upload must still use the **canonical bpost filename** printed in the console (or omit `--out`). |
 
@@ -107,19 +111,24 @@ Script: `scripts/test-transport.ts`
 | `--file <pad.xlsx>` | Custom workbook (uses Contrapunt column mapping). |
 | `--synthetic` | One fake address (`Naam`/`Straat`/… columns), not the Contrapunt export layout. |
 | `--ftp` | Also upload via FTPS to `\requests` (`.TMP` rename). Needs `BPOST_FTP_*` or falls back to test username/password. |
+| `--ftp-only` | Skip HTTP; run FTP (implies FTP). Use with `--debug` for onboarding. |
+| `--debug` | With FTP: egress IP, DNS, TCP/:21, AUTH TLS cert probe, openssl chain, full control-channel transcript. Writes `docs/samples/contrapunt/generated/ftp-debug-*.md` (no passwords) for bpost. |
 
 ```bash
 npm run test:transport
 npm run test:transport -- --synthetic
 npm run test:transport -- --file docs/samples/contrapunt/testadressen-200.xlsx
 npm run test:transport -- --ftp
+npm run test:transport -- --ftp-only --debug --synthetic
 ```
 
 Notes:
 
 - Always forces `mode=T`. Uses `genMID=N` (unlike `generate:mailing-xml`).
+- FTP uses the **canonical** bpost filename (`MID_VVVV_…_0RQ.XML`), not a free-form name.
 - HTTP is expected to fail against the live portal (SSO / 404) — useful to confirm credentials resolution and XML build.
 - FTP proves upload only; reading `\responses` is a separate step (not automated yet).
+- bpost rate-limits outbound FTP to **max 1 connection initiation / 5 minutes** — do not loop `--ftp` during Connection & Security Test.
 
 ---
 

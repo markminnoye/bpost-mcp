@@ -17,6 +17,7 @@
 * [Library](library.md)
 * [Kolom-mapping](kolom-mapping.md)
 * [Comp-codes](comp-codes.md)
+* [Schaal en limieten](schaal-en-limieten.md)
 * [Referentie](library/README.md)
 
 ## Beheer

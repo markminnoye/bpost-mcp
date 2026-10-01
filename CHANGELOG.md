@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tekencontrole (ISO-8859-1):** bpost aanvaardt enkel Latin-1. Typografische tekens uit Excel (’ “ ” – …) worden automatisch vervangen door gewone tekens, accenten buiten Latin-1 (ő → o) worden verwijderd, en beide gevallen komen als waarschuwing in het resultaat. Tekens die niet te herstellen zijn (bv. Ł, Cyrillisch) laten de validatie mislukken met de exacte plaats, i.p.v. stil beschadigd verstuurd te worden.
 - `npm run generate:mailing-xml` — valide MailingRequest-XML uit de sample-export voor **handmatige upload** op e-MassPost (test-modus), zonder HTTP/FTP.
 - `npm run generate:mailing-xml -- --simple` — zelfde, met **1 fictief testadres** (snelle portal-test).
+- **`--mode T|C|P` voor `generate:mailing-xml`** (Mark, 01/10/2026): bestanden voor protocoltests in Certification (`C`) en Production (`P`) via de uploadtool. Alleen het script heft de `FORCE_TEST_MODE`-rem op voor dat ene bestand (`allowNonTestMode`), de library blijft standaard op `T` en routes mogen dit nooit gebruiken. `P` vraagt `--confirm-production` en een expliciete `--limit`, `--all` of `--simple`. Het script verstuurt niets.
+- **MailingDelete en MailingReuse** in de library (`buildMailingDeleteRequest`, `buildMailingReuseRequest`) en als vlaggen van het generate-script (`--delete <ref>`, `--reuse <bron> --deposit <ref>`). Bedoeld voor de protocoltests via de uploadtool; ze versturen zelf niets. Delete is bpost's herstelpad voor een aangemaakte mailing, Reuse maakt een nieuwe mailing op een bestaande lijst.
+- Plan **Masspost: volledige API, dan de website** (`.agent/plans/2026-10-01-masspost-api-and-web.md`): fases voor FTP-spike, protocoltests, toegang, opslag in Postgres, routes onder `src/app/api/masspost/` en daarna login, index en wizard.
 - Vergelijkingsset van **200 adressen** (bpost-testlimiet): `testadressen-200.xlsx` voor de XML-upload en `testadressen-200-aft.xls` voor de Address File Tool. Zelfde eerste 200 rijen uit `testadressen.xlsx`, unstructured velden gelijk aan Comp 90/92/93, `PRIORITY=NP`. Geen opvulling tot 500.
 - `scripts/apply-opti-corrections.ts` schrijft Opti-correcties (bericht `7001`) terug naar Excel. Resultaat van de 500-test: `docs/samples/contrapunt/testadressen-500-corrected.xlsx`.
 - Skill-library: nieuwe skill **Address Proofing** (Mailops REST) naast Mail ID/OptiAddress, met privacyregel (geen persoonsnamen; bedrijfsnaam mag). Routing in de protocol-skill.
@@ -37,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Aanpassingen**
 
+- `npm run test:transport -- --ftp --debug` (of `--ftp-only --debug`): volledige FTP-diagnostiek voor Connection & Security Test — egress-IP, DNS, TCP/:21, AUTH TLS-certificaatprobe, openssl-chain, control-channel transcript — plus rapport zonder wachtwoorden in `docs/samples/contrapunt/generated/ftp-debug-*.md`. FTP gebruikt nu de canonieke `MID_…_0RQ.XML`-bestandsnaam.
+- Nieuwe ontwikkelaarspagina **Schaal en limieten** (`docs/ontwikkelaars/schaal-en-limieten.md`): wat bewezen is met bpost (maximaal 500 adressen), wat we lokaal gemeten hebben (tot 600.000 rijen, met piekgeheugen en tijd) en wat bpost zelf documenteert. Voorlopig: gemeten op één machine, nog niet op Vercel. `library.md` zegt niet langer dat `FORCE_TEST_MODE` een certificatieregel is.
+- `AGENTS.md`: het pad naar de technische gids (PDF) stond fout (`docs/external/…`). De gids staat in `docs/internal/e-masspost/reference/`. Erbij: de markdown-docs laten sommige tabellen weg, zoals Table 73 met de statuscodes 100/998/999.
 - Vercel deployt nog alleen `main` en `develop` (`vercel.json`, `git.deploymentEnabled`). Feature-branches en de publicatiebranch `docs` krijgen geen deploy meer; die faalden toch (`missing_pages_app`, mislukte Neon-provisioning). De publish-workflow zet daarvoor een `vercel.json` in de `docs`-branch.
 - `vercel.json`: regio `fra1`, function-timeouts (`/mcp` 300s, upload 120s, masspost 60s) en basis security-headers. Legacy MCP-pad blijft via `next.config.ts` (`/api/mcp` → `/mcp`), niet gedupliceerd in `vercel.json`.
 - Dashboard en klant-docs: **geen apart PRS-nummer** meer naast Klantnummer. Bij bpost is Customer Id = PRS-ID; dat is ons veld `customerNumber`. De ongebruikte DB-kolom `prs_number` is verwijderd.
@@ -58,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Oplossingen**
 
+- **FTPS naar bpost: certificaatfout opgelost.** `filetransfer.bpost.be` stuurt het tussencertificaat (GEANT TLS RSA 1) niet mee, waardoor de verbinding stopte met "unable to verify the first certificate" nog vóór het inloggen. De library voegt dat tussencertificaat nu zelf toe aan de vertrouwde certificaten van Node (`src/core/masspost/transport/bpost-ca.ts`). Het is ondertekend door een root die Node al vertrouwt, dus er komt geen nieuwe root bij. Gecontroleerd met een handshake tegen de live server zonder in te loggen. Het inloggen zelf (`530 Login incorrect`) is een apart punt met bpost.
 - `docs/gitbook-docs.yaml` was ongeldig voor GitBook (`site.structure.0`): secties gebruiken `children` in plaats van `spaces`, en elke `key` moet uniek zijn. Daardoor is de tabbladstructuur nooit gepubliceerd; de site bleef op de oude inhoud van 30/09.
 - Verouderde MCP-pad-documentatie opgeschoond: installatieprompt noemt `/api/mcp` niet meer; `docs/mcp/README.md`, `docs/README.md` en `AGENTS.md` beweren niet meer dat PR #40 nog open is of dat `server.json` naar `/api/mcp` wijst. Canonieke URL is `/mcp`; `/api/mcp` blijft legacy-alias.
 - **Handmatige e-MassPost-upload (test-modus) geverifieerd (28/09):** **protocol `0200` geslaagd** (`Status 100`, gegenereerd MID-nummer). Eerdere `0100`-uploads faalden op MID-2040 wanneer 0200-velden aanwezig waren; Contrapunt ondersteunt wél 2.00 — zie `docs/samples/contrapunt/bpost-roundtrip/`.
@@ -67,10 +74,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Gekend probleem (niet opgelost, nog te onderzoeken)**
 
+- **`extractMailingResponseMessages` (`src/core/masspost/parse-response.ts`, via `parseXml`) mislukt op echte antwoorden van bpost vanaf ongeveer 250 adressen** met "Entity expansion limit exceeded: 1002 > 1000". Elk adres heeft vier `&quot;` in zijn XPath en `fast-xml-parser` stopt standaard bij 1000 vervangingen. Bewezen op het echte antwoord van 500 adressen van 29/09 (2002 vervangingen). Er is geen schade, want de functie draait in geen enkele echte flow (alleen tests en de HTTP-client die niet werkt), maar de parser voor antwoorden per adres moet dit meenemen en streamend werken. Zie `docs/ontwikkelaars/schaal-en-limieten.md`.
 - **HTTP-verzending (`src/client/bpost.ts`) werkt vermoedelijk niet voor geautomatiseerde verzending.** Live test op 28/09 toonde dat `www.bpost.be/emasspost` een echte bpost-404-pagina teruggeeft; de actuele e-MassPost-pagina redirect naar een SSO-loginportaal (`login-2.bpost.be/idhub/...`). "HTTP-modus" blijkt in bpost's eigen documentatie een *interactieve, browser-based* modus te zijn (iemand logt in en vult een webformulier in), geen machine-naar-machine API met Basic Auth. Dit treft ook de bestaande `submit_ready_batch`, `check_batch`, `bpost_announce_deposit` en `bpost_announce_mailing` — die zijn vermoedelijk nooit tegen een actuele, live bpost-omgeving getest. FTP ("unattended mode" volgens bpost's eigen terminologie) is het aannemelijke correcte kanaal voor automatisering; zie `.agent/plans/2026-09-28-bpost-library-web-app.md` §5b voor details en vervolgstappen.
 
 ### Added
 
+- `--mode T|C|P` on `generate:mailing-xml` for protocol tests through the portal upload tool. Only the script lifts the `FORCE_TEST_MODE` guard, per file, via `allowNonTestMode` on the builder params; the library default stays `T` and routes must never set it. `P` needs `--confirm-production` plus an explicit `--limit`, `--all` or `--simple`. Nothing is sent.
+- `buildMailingDeleteRequest` and `buildMailingReuseRequest` (`src/core/masspost/build-request.ts`), plus `--delete <mailingRef>` and `--reuse <sourceMailingRef> --deposit <depositRef> [--ref]` on `generate:mailing-xml`. For protocol tests through the portal upload tool; nothing is sent by the script. Tests in `tests/core/masspost/build-request.test.ts`.
+- Plan `.agent/plans/2026-10-01-masspost-api-and-web.md` (HTTP API first, then login, index and wizard), registered in `INDEX.md`.
 - Docs: four GitBook tabs (`docs/documentatie/`, `docs/ontwikkelaars/`, protocol submodule, `docs/changelog/`), ADR 0003 (supersedes 0002). Generated output moved to `docs/ontwikkelaars/library/` and `docs/ontwikkelaars/api/openapi.yaml`. OpenAPI: `SuggestMappingRequest/Response/Error` in `src/app/api/masspost/suggest-mapping/schema.ts` (the route now imports the request schema from it).
 - `docs/gitbook-docs.yaml` for GitBook Git Sync (site bpost e-Masspost). The publish workflow copies it unchanged to the root of branch `docs`.
 - Documentation standard in three folders: `docs/library/` (TypeDoc), `docs/service-api/openapi.yaml` (OpenAPI 3.1 for the HTTP service), and `docs/mcp/` (MCP is outside that spec; the official URL is `/mcp`, and `/api/mcp` stays as a legacy alias). `npm run docs:build` writes the library and the service spec; `npm run docs:check` fails when that output is stale. A push to `develop` publishes `docs/` to branch `docs` and does not commit back to `develop`.
@@ -90,6 +101,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- New developer page **Schaal en limieten** (`docs/ontwikkelaars/schaal-en-limieten.md`): proven with bpost (up to 500 addresses), measured locally (up to 600,000 rows, peak memory and time) and documented by bpost. Provisional: one machine, not yet on Vercel. `library.md` no longer calls `FORCE_TEST_MODE` a certification rule.
+- `AGENTS.md`: corrected the path to the Technical Guide PDF (`docs/external/…` → `docs/internal/e-masspost/reference/`) and noted that the markdown docs omit some tables, e.g. Table 73 (status codes 100/998/999).
+- `npm run test:transport -- --ftp --debug` / `--ftp-only`: FTP diagnostics for bpost Connection & Security Test (egress IP, DNS, TCP/:21, AUTH TLS cert probe, openssl chain, control transcript) and a password-free report under `docs/samples/contrapunt/generated/ftp-debug-*.md`. FTP uploads now use the canonical `MID_…_0RQ.XML` filename.
 - `vercel.json` with `git.deploymentEnabled` (`**: false`, `main` and `develop`: true); the publish-docs workflow writes a `vercel.json` with deployments disabled onto branch `docs`.
 - `vercel.json`: pin `fra1`, set function `maxDuration` for MCP/upload/masspost routes, add baseline security headers. Legacy `/api/mcp` → `/mcp` stays in `next.config.ts` (not duplicated).
 - Dashboard / credentials: removed the redundant optional **PRS-nummer** field. bpost Customer Id *is* the PRS-ID; it maps to `customerNumber` (`Context/@sender`, `Header/@customerId`). Dropped unused column `bpost_credentials.prs_number` (migration `0004_drop_prs_number`).
@@ -104,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- FTPS to bpost: `filetransfer.bpost.be` omits its intermediate certificate (GEANT TLS RSA 1), so Node stopped with "unable to verify the first certificate" before login. `sendXmlViaFtp` now adds that intermediate to Node's default roots (`src/core/masspost/transport/bpost-ca.ts`, SHA-256 pinned in a test). It is signed by HARICA TLS RSA Root CA 2021, which Node already trusts. Verified with a TLS handshake against the live server, no login.
 - `docs/gitbook-docs.yaml` was invalid for GitBook (`site.structure.0`): sections use `children` instead of `spaces`, and every `key` must be unique across the file. As a result the tab structure was never published.
 
 - Stale MCP path docs cleaned up: install prompt no longer mentions `/api/mcp`; `docs/mcp/README.md`, `docs/README.md`, and `AGENTS.md` no longer claim PR #40 is open or that `server.json` still points at `/api/mcp`. Canonical URL is `/mcp`; `/api/mcp` remains the legacy alias.

@@ -6,4 +6,6 @@
 - **Gebruik en scripts** (`generate:mailing-xml`, `test:transport`): `docs/internal/masspost-library.md` in de repo.
 - **Kolomkoppeling**: [Kolom-mapping](kolom-mapping.md).
 
-Een tijdelijke beveiliging in `build-request.ts` (`FORCE_TEST_MODE = true`) zet elk verzoek op `mode="T"` tot Contrapunt gecertificeerd is.
+Een voorzorgsmaatregel in `build-request.ts` (`FORCE_TEST_MODE = true`) zet elk verzoek standaard op `mode="T"`, zodat er niets per ongeluk naar productie gaat. Contrapunt is al gecertificeerd en bpost aanvaardde een Create in productie, dus het is geen certificatieregel. Alleen `scripts/generate-mailing-xml.ts` mag die beveiliging per bestand opheffen (`--mode C|P`). Routes en de webapp mogen dat niet.
+
+Hoeveel adressen de library aankan: [Schaal en limieten](schaal-en-limieten.md).

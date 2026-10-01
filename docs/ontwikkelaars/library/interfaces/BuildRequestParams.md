@@ -6,9 +6,17 @@
 
 # Interface: BuildRequestParams
 
-Inputs for a MailingCreate request. `mode` is ignored while `FORCE_TEST_MODE` is true.
+Inputs for a MailingCreate request. `mode` is ignored while `FORCE_TEST_MODE` is true, unless `allowNonTestMode` is set.
 
 ## Properties
+
+### allowNonTestMode?
+
+> `optional` **allowNonTestMode?**: `boolean`
+
+CLI-only escape hatch for the FORCE_TEST_MODE guard. Never set it from a route.
+
+***
 
 ### customerFileRef
 

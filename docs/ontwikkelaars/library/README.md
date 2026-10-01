@@ -13,11 +13,14 @@
 ## Interfaces
 
 - [BuildCheckParams](interfaces/BuildCheckParams.md)
+- [BuildDeleteParams](interfaces/BuildDeleteParams.md)
 - [BuildRequestParams](interfaces/BuildRequestParams.md)
+- [BuildReuseParams](interfaces/BuildReuseParams.md)
 - [ColumnMapping](interfaces/ColumnMapping.md)
 - [ConvertOptions](interfaces/ConvertOptions.md)
 - [ConvertResult](interfaces/ConvertResult.md)
 - [FtpCredentials](interfaces/FtpCredentials.md)
+- [FtpUploadOptions](interfaces/FtpUploadOptions.md)
 - [FtpUploadResult](interfaces/FtpUploadResult.md)
 - [HttpCredentials](interfaces/HttpCredentials.md)
 - [MailingResponseMessage](interfaces/MailingResponseMessage.md)
@@ -49,7 +52,9 @@
 ## Functions
 
 - [buildMailingCheckRequest](functions/buildMailingCheckRequest.md)
+- [buildMailingDeleteRequest](functions/buildMailingDeleteRequest.md)
 - [buildMailingRequest](functions/buildMailingRequest.md)
+- [buildMailingReuseRequest](functions/buildMailingReuseRequest.md)
 - [convertExcelToMailingCheck](functions/convertExcelToMailingCheck.md)
 - [convertExcelToMailingRequest](functions/convertExcelToMailingRequest.md)
 - [extractMailingResponseMessages](functions/extractMailingResponseMessages.md)

@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mapRows, type ColumnMapping } from '@/core/masspost/mapping'
-import { rowsToItems, buildMailingRequest, buildMailingCheckRequest, FORCE_TEST_MODE } from '@/core/masspost/build-request'
+import {
+  rowsToItems,
+  buildMailingRequest,
+  buildMailingCheckRequest,
+  buildMailingDeleteRequest,
+  buildMailingReuseRequest,
+  FORCE_TEST_MODE,
+} from '@/core/masspost/build-request'
 import { validateMailingRequest } from '@/core/masspost/validate'
 import { buildXml } from '@/lib/xml'
 
@@ -124,10 +131,82 @@ describe('rowsToItems + buildMailingRequest', () => {
   })
 
 
+  describe('MailingDelete', () => {
+    const deleteParams = { mailingRef: 'MANUALTEST1', mode: 'T' as const, customerFileRef: 'REFERENCE0' }
+
+    it('builds a MailingRequest with only MailingDelete that passes validation (0200)', () => {
+      const request = buildMailingDeleteRequest(deleteParams, { ...credentials, midVersion: '0200' })
+      const { valid, data, issues } = validateMailingRequest(request, '0200')
+
+      expect(issues).toEqual([])
+      expect(valid).toBe(true)
+      const xml = buildXml({ MailingRequest: data })
+      expect(xml).toContain('<MailingDelete')
+      expect(xml).toContain('mailingRef="MANUALTEST1"')
+      expect(xml).toContain('seq="1"')
+      expect(xml).not.toContain('MailingCreate')
+      expect(xml).not.toContain('MailingCheck')
+      expect(xml).not.toContain('Items')
+    })
+
+    it('also validates for protocol 0100', () => {
+      const request = buildMailingDeleteRequest(deleteParams, credentials)
+      expect(validateMailingRequest(request, '0100').valid).toBe(true)
+    })
+
+    it('rejects a mailingRef longer than 20 characters', () => {
+      const request = buildMailingDeleteRequest(
+        { ...deleteParams, mailingRef: 'X'.repeat(21) },
+        credentials,
+      )
+      expect(validateMailingRequest(request, '0100').valid).toBe(false)
+    })
+  })
+
+  describe('MailingReuse', () => {
+    const reuseParams = {
+      mailingRef: 'REUSETEST1',
+      sourceMailingRef: 'MANUALTEST1',
+      depositIdentifier: 'DEPOSIT1',
+      mode: 'T' as const,
+      customerFileRef: 'REFERENCE0',
+    }
+
+    it('builds a MailingRequest with only MailingReuse that passes validation (0200)', () => {
+      const request = buildMailingReuseRequest(reuseParams, { ...credentials, midVersion: '0200' })
+      const { valid, data, issues } = validateMailingRequest(request, '0200')
+
+      expect(issues).toEqual([])
+      expect(valid).toBe(true)
+      const xml = buildXml({ MailingRequest: data })
+      expect(xml).toContain('<MailingReuse')
+      expect(xml).toContain('mailingRef="REUSETEST1"')
+      expect(xml).toContain('sourceMailingRef="MANUALTEST1"')
+      expect(xml).toContain('depositIdentifier="DEPOSIT1"')
+      expect(xml).toContain('depositIdentifierType="depositRef"')
+      expect(xml).not.toContain('MailingCreate')
+    })
+
+    it('supports a temporary deposit number as identifier type', () => {
+      const request = buildMailingReuseRequest(
+        { ...reuseParams, depositIdentifierType: 'tmpDepositNr' },
+        credentials,
+      )
+      const { valid, data } = validateMailingRequest(request, '0100')
+      expect(valid).toBe(true)
+      expect(buildXml({ MailingRequest: data })).toContain('depositIdentifierType="tmpDepositNr"')
+    })
+
+    it('rejects a request without a deposit identifier (required by the XSD)', () => {
+      const request = buildMailingReuseRequest({ ...reuseParams, depositIdentifier: '' }, credentials)
+      expect(validateMailingRequest(request, '0100').valid).toBe(false)
+    })
+  })
+
   describe('FORCE_TEST_MODE safety guard', () => {
     afterEach(() => vi.restoreAllMocks())
 
-    it('is on (Contrapunt is not yet certified for Production/Certification)', () => {
+    it('is on by default, so nothing reaches Production or Certification by accident', () => {
       expect(FORCE_TEST_MODE).toBe(true)
     })
 
@@ -140,6 +219,54 @@ describe('rowsToItems + buildMailingRequest', () => {
 
       const certificationRequest = buildMailingRequest(items, { ...params, mode: 'C' }, credentials)
       expect(certificationRequest.Header.mode).toBe('T')
+    })
+
+    it('honors the requested mode on every action when allowNonTestMode is set (CLI only)', () => {
+      const { rows } = mapRows([{ Naam: 'Jan', Adres: 'Straat 1', Postcode: '1000 Brussel' }], mapping)
+      const items = rowsToItems(rows, params.priority)
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const base = { mode: 'C' as const, customerFileRef: 'REFERENCE0', allowNonTestMode: true }
+
+      expect(
+        buildMailingRequest(items, { ...params, mode: 'C', allowNonTestMode: true }, credentials).Header.mode,
+      ).toBe('C')
+      expect(
+        buildMailingCheckRequest(items, { ...base, mailingRef: 'CHK1', priority: 'NP' }, credentials).Header.mode,
+      ).toBe('C')
+      expect(
+        buildMailingDeleteRequest({ ...base, mailingRef: 'DEL1' }, credentials).Header.mode,
+      ).toBe('C')
+      expect(
+        buildMailingReuseRequest(
+          { ...base, mailingRef: 'REU1', sourceMailingRef: 'SRC1', depositIdentifier: 'DEP1' },
+          credentials,
+        ).Header.mode,
+      ).toBe('C')
+      expect(
+        buildMailingCheckRequest(items, { ...base, mode: 'P', mailingRef: 'CHK2', priority: 'NP' }, credentials)
+          .Header.mode,
+      ).toBe('P')
+      expect(warnSpy).not.toHaveBeenCalled()
+    })
+
+    it('keeps forcing Test for a request that did not set allowNonTestMode', () => {
+      const { rows } = mapRows([{ Naam: 'Jan', Adres: 'Straat 1', Postcode: '1000 Brussel' }], mapping)
+      const items = rowsToItems(rows, params.priority)
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      expect(
+        buildMailingCheckRequest(
+          items,
+          { mailingRef: 'CHK1', priority: 'NP', mode: 'P', customerFileRef: 'REFERENCE0' },
+          credentials,
+        ).Header.mode,
+      ).toBe('T')
+      expect(
+        buildMailingDeleteRequest(
+          { mailingRef: 'DEL1', mode: 'P', customerFileRef: 'REFERENCE0', allowNonTestMode: false },
+          credentials,
+        ).Header.mode,
+      ).toBe('T')
     })
 
     it('warns loudly (not silently) when overriding a non-Test mode request', () => {

@@ -6,7 +6,7 @@
 
 # Function: sendXmlViaFtp()
 
-> **sendXmlViaFtp**(`xml`, `fileName`, `credentials`): `Promise`\<[`FtpUploadResult`](../interfaces/FtpUploadResult.md)\>
+> **sendXmlViaFtp**(`xml`, `fileName`, `credentials`, `options?`): `Promise`\<[`FtpUploadResult`](../interfaces/FtpUploadResult.md)\>
 
 Uploads a MailingRequest XML to bpost's FTP(S) `\requests` folder, following bpost's
 documented .TMP-then-rename procedure so partial uploads are never picked up mid-transfer.
@@ -34,6 +34,12 @@ Final remote name. Must end in `.xml` or `.txt`. Uploaded as `.TMP`, then rename
 [`FtpCredentials`](../interfaces/FtpCredentials.md)
 
 FTP host and login.
+
+### options?
+
+[`FtpUploadOptions`](../interfaces/FtpUploadOptions.md) = `{}`
+
+Optional debug transcript for onboarding / Connection & Security Test.
 
 ## Returns
 

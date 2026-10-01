@@ -10,6 +10,14 @@ Inputs for an OptiAddress MailingCheck. No format and no delivery date.
 
 ## Properties
 
+### allowNonTestMode?
+
+> `optional` **allowNonTestMode?**: `boolean`
+
+CLI-only escape hatch for the FORCE_TEST_MODE guard. Never set it from a route.
+
+***
+
 ### copyRequestItem?
 
 > `optional` **copyRequestItem?**: `"N"` \| `"Y"`

@@ -5,6 +5,9 @@
 **Vervangt:** [`2026-09-26-contrapunt-aft-address-prep.md`](2026-09-26-contrapunt-aft-address-prep.md)
 (stub sinds 29/09 — de lokale AFT-skill bouwen we niet).
 
+**Vervolg (01/10/2026):** de volgende stappen (API-routes, opslag, toegang, website) staan in
+[`2026-10-01-masspost-api-and-web.md`](2026-10-01-masspost-api-and-web.md). Dit plan blijft de bron voor de library en de live testresultaten.
+
 ## Koers (vastgelegd 29/09/2026)
 
 - **Transport:** FTP/FTPS naar `filetransfer.bpost.be` (unattended). HTTP Basic Auth is geen machine-API.
