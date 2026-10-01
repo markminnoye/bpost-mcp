@@ -1,52 +1,102 @@
 "use client"
 
-import { useState } from "react"
-import { Ban, Check, ChevronDown, Search } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import {
+  Archive,
+  ArrowUpDown,
+  CalendarCheck2,
+  Check,
+  ChevronDown,
+  CircleHelp,
+  Command,
+  FileSpreadsheet,
+  Filter,
+  FlaskConical,
+  FolderOpen,
+  Gauge,
+  Grid2X2,
+  Inbox,
+  LayoutList,
+  Menu,
+  MoreHorizontal,
+  PackageCheck,
+  Plus,
+  Search,
+  Settings,
+  SlidersHorizontal,
+  Sparkles,
+  Tag,
+  Upload,
+  X,
+  Zap,
+} from "lucide-react"
 
-const initialRows = [
-  { id: 1, recipient: "Liesbeth Vermeulen", excel: "Dorpsstraat 14, 9000 Gent", problem: "Busnummer ontbreekt", suggestion: "Dorpsstraat 14 bus 2, 9000 Gent (99% match)", type: "warning" },
-  { id: 2, recipient: "Jan De Smet", excel: "Kerkstrat 8, 2000 Antwerpen", problem: "Spelfout straatnaam", suggestion: "Kerkstraat 8, 2000 Antwerpen (98% match)", type: "warning" },
-  { id: 3, recipient: "Marie Peeters", excel: "Rue de l'Eglise 21, 1000 Brussel", problem: "Adres niet gevonden", suggestion: "Rue de l'Église 21, 1000 Bruxelles (92% match)", type: "error" },
-  { id: 4, recipient: "Tom Van Acker", excel: "Mechelsesteenweg 112, 2018 Antwerpen", problem: "Busnummer ontbreekt", suggestion: "Mechelsesteenweg 112 bus 4, 2018 Antwerpen (97% match)", type: "warning" },
-  { id: 5, recipient: "Sofie Willems", excel: "Leuvensesteenweg 44, 1930 Zaventem", problem: "Adres niet gevonden", suggestion: "Leuvensesteenweg 44, 1930 Zaventem (89% match)", type: "error" },
-  { id: 6, recipient: "Koen Jacobs", excel: "Stationsplein 3, 9000 Gent", problem: "Spelfout straatnaam", suggestion: "Stationsplein 3, 9000 Gent (99% match)", type: "warning" },
-  { id: 7, recipient: "Nathalie Maes", excel: "Veldstraat 76, 8000 Brugge", problem: "Busnummer ontbreekt", suggestion: "Veldstraat 76 bus 1, 8000 Brugge (96% match)", type: "warning" },
+const mailings = [
+  { id: "CP-2026-08", title: "Voorjaarsbrochure 2026", status: "Aangemaakt", group: "lopend", quality: 93.4, recipients: "789 adressen", mode: "Prod", format: "C5", date: "15 okt", priority: true },
+  { id: "ML-140642", title: "Ledenblad Nr. 4", status: "Aangemaakt", group: "lopend", quality: 97.2, recipients: "1.246 adressen", mode: "Prod", format: "C4", date: "28 sep", priority: false },
+  { id: "CP-2026-07", title: "Concertuitnodigingen", status: "Verzonden", group: "lopend", quality: 99.8, recipients: "342 adressen", mode: "Test", format: "C5", date: "22 sep", priority: true },
+  { id: "CP-2026-05", title: "Zomerprogramma 2026", status: "Voorbij", group: "verlopen", quality: 99.6, recipients: "2.104 adressen", mode: "Prod", format: "C4", date: "08 sep", priority: false },
+  { id: "ML-139891", title: "Nieuwsbrief juni", status: "Voorbij", group: "verlopen", quality: 98.9, recipients: "654 adressen", mode: "Prod", format: "C5", date: "30 aug", priority: false },
+  { id: "CP-2026-03", title: "Donateursmailing voorjaar", status: "Voorbij", group: "verlopen", quality: 95.8, recipients: "516 adressen", mode: "Prod", format: "C5", date: "14 aug", priority: true },
+  { id: "ML-139440", title: "Uitnodiging algemene vergadering", status: "Voorbij", group: "verlopen", quality: 99.2, recipients: "188 adressen", mode: "Test", format: "C5", date: "01 aug", priority: false },
 ]
 
+function IconButton({ label, children, onClick }: { label: string; children: React.ReactNode; onClick?: () => void }) {
+  return <button aria-label={label} onClick={onClick} className="icon-button">{children}</button>
+}
+
+function PriorityIcon({ active }: { active: boolean }) {
+  return <span className={`priority-bars ${active ? "is-priority" : ""}`} aria-label={active ? "Prioriteit" : "Geen prioriteit"}><i /><i /><i /></span>
+}
+
+function StatusIcon({ status }: { status: string }) {
+  if (status === "Verzonden") return <span className="status-icon status-sent"><Check /></span>
+  if (status === "Voorbij") return <span className="status-icon status-past"><CalendarCheck2 /></span>
+  return <span className="status-icon status-created"><span /></span>
+}
+
+function Quality({ value }: { value: number }) {
+  const tone = value < 96 ? "quality-bad" : value < 98 ? "quality-warn" : "quality-good"
+  return <span className={`quality ${tone}`}>{value.toFixed(1)}%</span>
+}
+
+function MailingRow({ mailing }: { mailing: typeof mailings[number] }) {
+  return <div className="mailing-row">
+    <div className="row-main"><PriorityIcon active={mailing.priority} /><span className="mailing-id">{mailing.id}</span><StatusIcon status={mailing.status} /><span className="mailing-title">{mailing.title}</span></div>
+    <div className="row-meta"><span className="pill pill-client"><Sparkles /> Contrapunt</span><span className="pill">{mailing.recipients}</span><span className="pill pill-mode"><span className={mailing.mode === "Prod" ? "mode-dot prod" : "mode-dot test"} />{mailing.mode}</span><span className="pill">{mailing.format}</span><Quality value={mailing.quality} /><span className="mailing-date">{mailing.date}</span><IconButton label={`Opties voor ${mailing.title}`}><MoreHorizontal /></IconButton></div>
+  </div>
+}
+
+function Group({ title, count, rows, collapsed, onToggle }: { title: string; count: number; rows: typeof mailings; collapsed: boolean; onToggle: () => void }) {
+  return <section className="mailing-group"><div className="group-header"><button className="group-toggle" onClick={onToggle}><ChevronDown className={collapsed ? "rotate-[-90deg]" : ""} /><span>{title}</span><span className="count-badge">{count}</span></button><button className="add-button" aria-label={`Mailing toevoegen aan ${title}`}><Plus /></button></div>{!collapsed && <div className="group-rows">{rows.map((mailing) => <MailingRow key={mailing.id} mailing={mailing} />)}</div>}</section>
+}
+
+function NewMailingModal({ onClose }: { onClose: () => void }) {
+  const [created, setCreated] = useState(false)
+  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><section className="new-mailing-modal" role="dialog" aria-modal="true" aria-labelledby="new-mailing-title">
+    <header className="modal-header"><div className="breadcrumb"><span className="brand-mark small"><Zap /></span><span>Contrapunt</span><ChevronDown /><span className="breadcrumb-muted">Nieuwe mailing</span></div><div className="modal-actions"><IconButton label="Uitklappen"><Grid2X2 /></IconButton><IconButton label="Sluiten" onClick={onClose}><X /></IconButton></div></header>
+    <div className="modal-content"><input autoFocus className="title-input" id="new-mailing-title" placeholder="Titel van de mailing..." /><div className="upload-zone"><div className="upload-icon"><Upload /></div><strong>Sleep een adressenlijst hierheen</strong><span>of <button>selecteer een Excel-bestand</button> (.xlsx)</span><small><FileSpreadsheet /> Maximaal 10.000 adressen per mailing</small></div></div>
+    <div className="property-bar"><Property icon={<ArrowUpDown />} label="NP" /><Property icon={<PackageCheck />} label="C5" /><Property icon={<span className="language-icon">NL</span>} label="Nederlands" /><Property icon={<Sparkles />} label="Contrapunt" /><Property icon={<CalendarCheck2 />} label="Verzenddatum" /><Property icon={<FlaskConical />} label="Productie" /><Property icon={<Tag />} label="MID 7-cijfers" /><Property icon={<ArrowUpDown />} label="PSC aan" /></div>
+    <footer className="modal-footer"><label className="switch-label"><button className="switch" aria-pressed="true"><span /></button>Direct OptiAddress-validatie starten</label><button className="primary-button" onClick={() => setCreated(true)}>{created ? <><Check /> Mailing aangemaakt</> : "Mailing aanmaken"}</button></footer>
+  </section></div>
+}
+
+function Property({ icon, label }: { icon: React.ReactNode; label: string }) { return <button className="property-pill">{icon}<span>{label}</span><ChevronDown /></button> }
+
+function SearchModal({ onClose }: { onClose: () => void }) {
+  const [query, setQuery] = useState("")
+  const results = mailings.filter((mailing) => `${mailing.id} ${mailing.title}`.toLowerCase().includes(query.toLowerCase()))
+  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><section className="search-modal" role="dialog" aria-modal="true" aria-labelledby="search-title"><div className="search-input-wrap"><Search /><input autoFocus id="search-title" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek in mailings, referenties of klant..." /><kbd>ESC</kbd></div><div className="search-tabs"><span className="tab active">Alles</span><span className="tab">Lopend</span><span className="tab">Verzonden</span><span className="tab">Verlopen</span></div><div className="search-results">{results.map((mailing) => <button key={mailing.id} className="search-result"><StatusIcon status={mailing.status} /><span><strong>{mailing.title}</strong><small>{mailing.id} · {mailing.recipients}</small></span><span className="result-date">{mailing.date}</span></button>)}{!results.length && <div className="empty-search">Geen mailings gevonden</div>}</div></section></div>
+}
+
 export default function Page() {
-  const [rows, setRows] = useState(initialRows)
-  const [approved, setApproved] = useState(false)
-  const [excluded, setExcluded] = useState<number[]>([])
-
-  function exclude(id: number) { setExcluded((current) => [...current, id]) }
-  const visibleRows = rows.filter((row) => !excluded.includes(row.id))
-
-  return (
-    <main className="min-h-screen bg-slate-50 px-4 py-5 text-slate-900 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-[1440px]">
-        <header className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm sm:px-7">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
-              <div><p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Mailing</p><h1 className="mt-1 text-base font-semibold tracking-tight">Nieuwsbrief Najaar 2026</h1></div>
-              <div className="hidden h-8 w-px bg-slate-200 sm:block" />
-              <div><p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Klant</p><p className="mt-1 text-sm font-medium text-slate-700">Cultuurcentrum De Kern <span className="ml-1 rounded-md bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">Solve360</span></p></div>
-              <div className="hidden h-8 w-px bg-slate-200 sm:block" />
-              <div><p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Afgifte</p><p className="mt-1 text-sm font-medium text-slate-700">15/10/2026</p></div>
-            </div>
-            <div className="flex items-center gap-4 border-t border-slate-100 pt-4 lg:border-0 lg:pt-0"><span className="text-sm font-medium text-slate-500">789 adressen</span><span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${approved ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"}`}>{approved ? "99.4% Goedgekeurd" : "94.2% Gevalideerd"}</span></div>
-          </div>
-        </header>
-
-        <section className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] border-collapse text-left">
-              <thead><tr className="border-b border-slate-200 bg-slate-50/80"><th className="w-[21%] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.13em] text-slate-400">Ontvanger</th><th className="w-[23%] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.13em] text-slate-400">Adres in Excel</th><th className="w-[16%] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.13em] text-slate-400">Probleem</th><th className="w-[28%] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.13em] text-slate-400">bpost Oplossing</th><th className="w-[12%] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.13em] text-slate-400">Acties</th></tr></thead>
-              <tbody>{visibleRows.map((row) => <tr key={row.id} className={`border-b border-slate-100 last:border-0 ${row.type === "error" ? "bg-red-50/60" : "bg-amber-50/60"}`}><td className="px-6 py-5 text-sm font-semibold text-slate-800">{row.recipient}</td><td className="px-6 py-5 text-sm text-slate-600">{row.excel}</td><td className="px-6 py-5"><span className={`text-sm font-medium ${row.type === "error" ? "text-red-700" : "text-amber-800"}`}>{row.problem}</span></td><td className="px-6 py-5"><div className="relative"><select aria-label={`bpost oplossing voor ${row.recipient}`} defaultValue={row.suggestion} className="w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 py-2.5 pr-9 text-sm text-slate-700 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100"><option>{row.suggestion}</option><option>Adres handmatig aanpassen</option><option>Geen oplossing selecteren</option></select><ChevronDown className="pointer-events-none absolute right-3 top-3 size-4 text-slate-400" /></div></td><td className="px-6 py-5"><div className="flex items-center gap-1"><button onClick={() => alert(`Adres opzoeken: ${row.recipient}`)} className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-white hover:text-slate-900" aria-label={`Adres opzoeken voor ${row.recipient}`}><Search className="size-3.5" />Opzoeken</button><button onClick={() => exclude(row.id)} className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-2 text-xs font-semibold text-slate-500 transition hover:bg-white hover:text-red-700" aria-label={`Uitsluiten van ${row.recipient}`}><Ban className="size-3.5" />Uitsluiten</button></div></td></tr>)}</tbody>
-            </table>
-          </div>
-          <footer className="flex flex-col gap-4 border-t border-slate-200 bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm font-medium text-slate-600">{visibleRows.length} adressen vereisen aandacht</p><button onClick={() => setApproved(true)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#e30613] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c80511] focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2">{approved && <Check className="size-4" />}Correcties toepassen &amp; Herberekenen</button></footer>
-        </section>
-      </div>
-    </main>
-  )
+  const [newOpen, setNewOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [activeTab, setActiveTab] = useState("Alles")
+  const [settings, setSettings] = useState(false)
+  const currentMailings = activeTab === "Alles" ? mailings : mailings.filter((mailing) => activeTab === "Lopend" ? mailing.group === "lopend" : activeTab === "Verlopen" ? mailing.group === "verlopen" : mailing.status === activeTab)
+  useEffect(() => { const onKey = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(true) } if (event.key.toLowerCase() === "c" && !["INPUT", "TEXTAREA"].includes((event.target as HTMLElement).tagName)) setNewOpen(true); if (event.key === "Escape") { setNewOpen(false); setSearchOpen(false) } }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey) }, [])
+  const groups = useMemo(() => ({ lopend: currentMailings.filter((mailing) => mailing.group === "lopend"), verlopen: currentMailings.filter((mailing) => mailing.group === "verlopen") }), [currentMailings])
+  return <main className="linear-app"><aside className="sidebar"><div className="sidebar-head"><div className="brand-mark"><Zap /></div><span className="workspace-name">Contrapunt</span><div className="head-actions"><IconButton label="Zoeken" onClick={() => setSearchOpen(true)}><Search /></IconButton><IconButton label="Nieuwe mailing" onClick={() => setNewOpen(true)}><FileSpreadsheet /></IconButton></div></div><nav className="nav-list" aria-label="Hoofdnavigatie"><button className={!settings ? "nav-item active" : "nav-item"} onClick={() => setSettings(false)}><Inbox />Mijn mailings</button><button className={settings ? "nav-item active" : "nav-item"} onClick={() => setSettings(true)}><Settings />Instellingen</button></nav><div className="sidebar-bottom"><button className="help-button"><CircleHelp />Hulp nodig?</button><span className="version">Contrapunt · v1.0</span></div></aside><section className="main-panel"><header className="topbar"><div><div className="eyebrow">Mailings</div><h1>{settings ? "Instellingen" : "Mijn mailings"}</h1></div><div className="top-actions"><button className="shortcut-button" onClick={() => setSearchOpen(true)}><Search />Zoeken <kbd>⌘ K</kbd></button><IconButton label="Filter"><Filter /></IconButton><IconButton label="Weergave"><SlidersHorizontal /></IconButton></div></header>{settings ? <div className="settings-panel"><div className="settings-card"><Gauge /><div><h2>OptiAddress-validatie</h2><p>Adresvalidatie wordt automatisch uitgevoerd voor nieuwe mailings.</p></div><span className="setting-status">Actief</span></div><div className="settings-card"><LayoutList /><div><h2>Standaardinstellingen</h2><p>Beheer formaat, taal en verzendopties voor Contrapunt.</p></div><button className="secondary-button">Aanpassen</button></div></div> : <><div className="content-toolbar"><div className="tabs">{["Alles", "Lopend", "Verzonden", "Verlopen"].map((tab) => <button key={tab} className={`tab ${activeTab === tab ? "active" : ""}`} onClick={() => setActiveTab(tab)}>{tab}</button>)}</div><span className="result-count">{currentMailings.length} mailings</span></div><div className="mailings-container"><Group title="Lopende mailings" count={groups.lopend.length} rows={groups.lopend} collapsed={!!collapsed.lopend} onToggle={() => setCollapsed((value) => ({ ...value, lopend: !value.lopend }))} /><Group title="Verlopen mailings" count={groups.verlopen.length} rows={groups.verlopen} collapsed={!!collapsed.verlopen} onToggle={() => setCollapsed((value) => ({ ...value, verlopen: !value.verlopen }))} /></div></>}</section>{newOpen && <NewMailingModal onClose={() => setNewOpen(false)} />}{searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}</main>
 }
