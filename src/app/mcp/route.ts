@@ -35,6 +35,8 @@ import path from 'path'
 import vm from 'vm'
 
 export const dynamic = 'force-dynamic'
+/** MCP tools may wait on bpost HTTP/FTP; keep aligned with vercel.json functions.maxDuration. */
+export const maxDuration = 300
 
 /**
  * Friendly English alias → internal bpost field mapping.

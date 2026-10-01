@@ -1,10 +1,36 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["fra1"],
   "git": {
     "deploymentEnabled": {
       "**": false,
       "main": true,
       "develop": true
     }
-  }
+  },
+  "functions": {
+    "src/app/mcp/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/batches/upload/route.ts": {
+      "maxDuration": 120
+    },
+    "src/app/api/masspost/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        }
+      ]
+    }
+  ]
 }

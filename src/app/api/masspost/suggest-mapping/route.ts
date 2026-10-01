@@ -18,6 +18,7 @@ const suggestMappingAuthPolicy: AuthPolicy = {
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 function aiSuggestion(headers: readonly string[], mapping: ColumnMapping): SuggestColumnMappingResult {
   const used = new Set([

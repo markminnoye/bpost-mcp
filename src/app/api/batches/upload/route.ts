@@ -8,6 +8,8 @@ const uploadAuthPolicy: AuthPolicy = {
   allowSession: true,
 }
 
+export const maxDuration = 120
+
 export async function POST(req: NextRequest) {
   try {
     const authResult = await resolveRequestAuth(req, uploadAuthPolicy)
