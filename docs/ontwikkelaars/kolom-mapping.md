@@ -48,4 +48,4 @@ In alle drie de gevallen zit het heuristische resultaat in `suggestion`.
 
 ## Mapping in de MCP-pipeline
 
-`apply_mapping_rules` gebruikt een andere koppeling: gestructureerde velden via aliassen (`lastName`, `street`, …). Zie [Comp-codes en aliassen](comp-codes.md).
+`apply_mapping_rules` gebruikt een andere koppeling: gestructureerde velden via aliassen (`lastName`, `street`, …). Zie [Comp-codes](comp-codes.md) en de pagina Mapping-aliassen in Documentatie → MCP.

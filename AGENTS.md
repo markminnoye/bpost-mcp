@@ -40,12 +40,12 @@ Request amendments to this file or the submodule when discovering new BPost API 
 Genereer TSDoc-commentaar voor alle geëxporteerde functies (en publieke types). Formaat: JSDoc-stijl met @param, @returns en @example waar nuttig.
 
 - Nieuwe HTTP-route: eerst het Zod-contract laten goedkeuren, daarna implementeren. Registreer dat schema in `scripts/generate-openapi.ts` en draai `npm run docs:build`.
-- Service-OpenAPI staat in `docs/service-api/openapi.yaml`. Een schema dat de handler niet parset, mag de request/response alleen beschrijven als inhaken het gedrag zou wijzigen.
-- Publieke code-documentatie volgt de library-entry (hier `src/core/masspost/index.ts`) naar `docs/library/`. De TypeDoc-config noemt alleen die entry.
-- `docs/mcp/` is geen spec. MCP blijft buiten de service-OpenAPI. Officiële URL is `/mcp`; `/api/mcp` is een legacy-alias.
+- Service-OpenAPI staat in `docs/ontwikkelaars/api/openapi.yaml`. Een schema dat de handler niet parset, mag de request/response alleen beschrijven als inhaken het gedrag zou wijzigen.
+- Publieke code-documentatie volgt de library-entry (hier `src/core/masspost/index.ts`) naar `docs/ontwikkelaars/library/`. De TypeDoc-config noemt alleen die entry.
+- MCP heeft een eigen hoofdstuk in `docs/documentatie/mcp/` en is geen spec. MCP blijft buiten de service-OpenAPI. Officiële URL is `/mcp`; `/api/mcp` is een legacy-alias.
 - Beslissingen die je later niet zomaar terugdraait: korte ADR in `docs/adr/`, gekopieerd van `docs/adr/template.md`.
-- `npm run docs:check` faalt als `docs/library/` of `docs/service-api/openapi.yaml` achterloopt. Push naar `develop` publiceert de `docs/`-map naar branch `docs` en commit niet terug naar `develop`.
-- Inlezen in GitBook of een andere reader: `docs/README.md`.
+- `npm run docs:check` faalt als `docs/ontwikkelaars/library/` of `docs/ontwikkelaars/api/openapi.yaml` achterloopt. Push naar `develop` publiceert de `docs/`-map naar branch `docs` en commit niet terug naar `develop`.
+- GitBook toont vier tabbladen (Documentatie, Ontwikkelaars, Naslag bpost, Changelog), zie `docs/gitbook-docs.yaml`, ADR 0003 en `docs/README.md`. Alle technische info staat in `docs/ontwikkelaars/` en kan later in één keer geschrapt worden: verwijs er niet naar vanuit de andere tabs.
 
 ### Environment & Configuration
 

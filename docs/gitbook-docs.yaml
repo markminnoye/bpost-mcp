@@ -2,11 +2,56 @@ $schema: https://api.gitbook.com/gitbook-docs.yaml
 site:
   title: bpost e-Masspost
   structure:
-    - type: space
-      key: bpost-e-masspost
-      title: bpost e-Masspost
-      path: docs
+    - type: section
+      key: documentatie
+      title: Documentatie
+      path: documentatie
       default: true
-      content:
-        directory: ./
-        language: nl
+      spaces:
+        - type: space
+          key: documentatie
+          title: Documentatie
+          path: documentatie
+          default: true
+          content:
+            directory: ./documentatie
+            language: nl
+    - type: section
+      key: ontwikkelaars
+      title: Ontwikkelaars
+      path: ontwikkelaars
+      spaces:
+        - type: space
+          key: ontwikkelaars
+          title: Ontwikkelaars
+          path: ontwikkelaars
+          default: true
+          content:
+            directory: ./ontwikkelaars
+            language: nl
+    - type: section
+      key: naslag-bpost
+      title: Naslag bpost
+      path: naslag-bpost
+      spaces:
+        - type: space
+          key: naslag-bpost
+          title: Naslag bpost
+          path: naslag-bpost
+          default: true
+          content:
+            directory: ./internal/e-masspost/docs
+            language: nl
+    - type: section
+      key: changelog
+      title: Changelog
+      path: changelog
+      spaces:
+        - type: space
+          key: changelog
+          title: Changelog
+          path: changelog
+          default: true
+          content:
+            directory: ./changelog
+            language: nl

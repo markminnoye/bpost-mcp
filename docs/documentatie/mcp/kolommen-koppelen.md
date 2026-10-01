@@ -1,5 +1,9 @@
 # Kolommen koppelen
 
+{% hint style="warning" %}
+Alfaversie. Dit onderdeel kan nog veranderen.
+{% endhint %}
+
 bpost verwacht de adresgegevens in vaste velden. Jouw bestand heeft eigen kolomtitels, dus de assistent koppelt die aan elkaar.
 
 ## Zo gaat dat

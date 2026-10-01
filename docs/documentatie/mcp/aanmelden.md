@@ -1,4 +1,8 @@
-# Authenticatie
+# Aanmelden en tokens
+
+{% hint style="warning" %}
+Alfaversie. Dit onderdeel kan nog veranderen.
+{% endhint %}
 
 Twee manieren om de MCP-server en de beveiligde HTTP-routes aan te spreken. Beide leveren een `Authorization: Bearer <token>`-header.
 
@@ -22,9 +26,9 @@ Twee manieren om de MCP-server en de beveiligde HTTP-routes aan te spreken. Beid
 5. De client wisselt de code in bij `POST /oauth/token` (`application/x-www-form-urlencoded`, met `code_verifier`). Het antwoord bevat `access_token` (Bearer, 3600 seconden) en een `refresh_token`.
 6. Verlengen kan met `grant_type=refresh_token`. Het refresh-token wordt bij elke ronde vervangen.
 
-Toegangstokens worden ondertekend met de host van het verzoek. Tokens van een vorige host blijven geldig via `AUTH_ACCEPTED_ISSUERS`, zie [Hosting en omgevingsvariabelen](../beheer/hosting-en-omgevingsvariabelen.md).
+Toegangstokens worden ondertekend met de host van het verzoek. Tokens van een vorige host blijven geldig via `AUTH_ACCEPTED_ISSUERS`. Dat stelt de beheerder van de dienst in.
 
-De exacte velden staan in [HTTP-API](http-api.md).
+
 
 ## App-token (headless)
 

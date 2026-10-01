@@ -3,7 +3,7 @@
  *
  * Import the Zod schema the route uses, or a schema that only describes
  * request/response when wiring it into the handler would change behavior.
- * Output: docs/service-api/openapi.yaml
+ * Output: docs/ontwikkelaars/api/openapi.yaml
  *
  * Run: npm run docs:api
  */
@@ -246,11 +246,11 @@ const document = new OpenApiGeneratorV31(registry.definitions).generateDocument(
     title: 'HTTP service',
     version: pkg.version,
     description:
-      'HTTP routes of this service. The MCP endpoint is not part of this document; see docs/mcp/README.md.',
+      'HTTP routes of this service. The MCP endpoint is not part of this document; see docs/documentatie/mcp/README.md.',
   },
 })
 
-const outDir = path.join(root, 'docs/service-api')
+const outDir = path.join(root, 'docs/ontwikkelaars/api')
 mkdirSync(outDir, { recursive: true })
 const yaml = stringify(document, { lineWidth: 0 })
 writeFileSync(path.join(outDir, 'openapi.yaml'), yaml.endsWith('\n') ? yaml : `${yaml}\n`)

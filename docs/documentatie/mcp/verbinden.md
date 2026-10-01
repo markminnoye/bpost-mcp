@@ -1,10 +1,10 @@
-# Installeren
+# Verbinden
+
+{% hint style="warning" %}
+Alfaversie. Dit onderdeel kan nog veranderen.
+{% endhint %}
 
 Je koppelt de bpost-dienst één keer aan je AI-assistent. Daarna kan je gewoon vragen om een adressenlijst klaar te zetten.
-
-{% hint style="info" %}
-De dienst staat nog in een vroege alfaversie. Werk bij bpost in **testmodus** tot alles goed werkt.
-{% endhint %}
 
 ## Wat heb je nodig?
 
@@ -42,7 +42,7 @@ Vraag aan de assistent: "Help me een adresbestand voor te bereiden voor bpost." 
 
 ## Volgende stap
 
-[Adressen versturen](adressen-versturen.md)
+[Zo werkt het](zo-werkt-het.md)
 
 {% hint style="warning" %}
 Staat de dienst op een ander adres (bijvoorbeeld een testomgeving)? Vervang dan `https://bpost.sonicrocket.app` door dat adres.

@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
+          submodules: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -45,8 +46,14 @@ jobs:
           fi
           TARGET_REF="refs/heads/docs"
           OUT="$(mktemp -d)"
-          # Whole docs tree, including gitbook-docs.yaml. No include filter.
+          # Whole docs tree, including gitbook-docs.yaml, except the exclusions below.
           cp -a docs/. "${OUT}/"
+          # The protocol submodule is a tab of its own (internal/e-masspost/docs). Drop its git
+          # pointer and the large originals (PDF, HAR) that are not part of that tab.
+          rm -rf "${OUT}/internal/e-masspost/.git" "${OUT}/internal/e-masspost/reference" "${OUT}/internal/e-masspost/har"
+          # Changelog tab: the repo CHANGELOG.md, copied at publish time.
+          mkdir -p "${OUT}/changelog"
+          cp CHANGELOG.md "${OUT}/changelog/README.md"
           git -C "${OUT}" init -b docs
           git -C "${OUT}" config user.name "github-actions[bot]"
           git -C "${OUT}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"

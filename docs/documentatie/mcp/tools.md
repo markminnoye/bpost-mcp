@@ -1,6 +1,10 @@
 # MCP-tools
 
-De MCP-server staat op **`/mcp`** (streamable HTTP). `/api/mcp` blijft werken als legacy-alias. Alle tools vragen een geldig token, zie [Authenticatie](authenticatie.md). MCP zit niet in de [HTTP-API-spec](http-api.md).
+{% hint style="warning" %}
+Alfaversie. Dit onderdeel kan nog veranderen.
+{% endhint %}
+
+De MCP-server staat op **`/mcp`** (streamable HTTP). `/api/mcp` blijft werken als legacy-alias. Alle tools vragen een geldig token, zie [Aanmelden en tokens](aanmelden.md).
 
 Bron van deze pagina: de `registerTool`-aanroepen in `src/app/mcp/route.ts`. `npm run build` leest die uit naar `src/generated/tool-registry.json`.
 
@@ -56,4 +60,4 @@ Prompts: `batch_onboarding_flow`, `batch_error_triage_fix_loop`, `submit_preflig
 
 ## Mapping-doelen
 
-`apply_mapping_rules` accepteert vriendelijke namen of `Comps.<code>`. Zie [Comp-codes en aliassen](comp-codes.md).
+`apply_mapping_rules` accepteert vriendelijke namen of `Comps.<code>`. Zie [Mapping-aliassen](mapping-aliassen.md).

@@ -1,22 +1,12 @@
-# bpost e-Masspost
+# docs/
 
-Een dienst om adressenlijsten klaar te zetten, te controleren en naar bpost e-MassPost te sturen. Ze werkt via een AI-assistent (MCP), een HTTP-API en een library.
+Deze map wordt door GitBook (Git Sync, branch `docs`) gelezen als vier tabbladen. De beschrijving van de indeling, het genereren en het publiceren staat in [ontwikkelaars/beheer/documentatie.md](ontwikkelaars/beheer/documentatie.md).
 
-{% hint style="info" %}
-Alfaversie. Werk bij bpost in testmodus tot alles goed werkt.
-{% endhint %}
-
-## Waar begin je?
-
-| Ik wil… | Ga naar |
+| Map | Tab |
 |---|---|
-| de dienst aan mijn AI-assistent koppelen | [Installeren](gebruiker/installeren.md) |
-| een adressenlijst versturen | [Adressen versturen](gebruiker/adressen-versturen.md) |
-| begrijpen waarom een adres geweigerd wordt | [Fouten begrijpen](gebruiker/fouten-begrijpen.md) |
-| de MCP-tools aanroepen | [MCP-tools](integratie/mcp-tools.md) |
-| inloggen of een token gebruiken | [Authenticatie](integratie/authenticatie.md) |
-| de HTTP-routes gebruiken | [HTTP-API](integratie/http-api.md) |
-| de library in eigen code gebruiken | [Library](integratie/library.md) |
-| de dienst hosten of een release maken | [Hosting](beheer/hosting-en-omgevingsvariabelen.md) en [Releaseprocedure](beheer/release.md) |
+| `documentatie/` | Documentatie |
+| `ontwikkelaars/` | Ontwikkelaars (technisch, schrapbaar) |
+| `internal/e-masspost/docs/` | Naslag bpost (submodule) |
+| `changelog/` | Changelog (kopie van `CHANGELOG.md`) |
 
-De MCP-URL is `/mcp`. `/api/mcp` blijft werken als legacy-alias.
+Gegenereerd: `ontwikkelaars/library/` (`npm run docs:code`) en `ontwikkelaars/api/openapi.yaml` (`npm run docs:api`). Beide: `npm run docs:build`.
