@@ -3,13 +3,13 @@ site:
   title: bpost e-Masspost
   structure:
     - type: section
-      key: documentatie
+      key: section-documentatie
       title: Documentatie
       path: documentatie
       default: true
-      spaces:
+      children:
         - type: space
-          key: documentatie
+          key: space-documentatie
           title: Documentatie
           path: documentatie
           default: true
@@ -17,12 +17,12 @@ site:
             directory: ./documentatie
             language: nl
     - type: section
-      key: ontwikkelaars
+      key: section-ontwikkelaars
       title: Ontwikkelaars
       path: ontwikkelaars
-      spaces:
+      children:
         - type: space
-          key: ontwikkelaars
+          key: space-ontwikkelaars
           title: Ontwikkelaars
           path: ontwikkelaars
           default: true
@@ -30,12 +30,12 @@ site:
             directory: ./ontwikkelaars
             language: nl
     - type: section
-      key: naslag-bpost
+      key: section-naslag-bpost
       title: Naslag bpost
       path: naslag-bpost
-      spaces:
+      children:
         - type: space
-          key: naslag-bpost
+          key: space-naslag-bpost
           title: Naslag bpost
           path: naslag-bpost
           default: true
@@ -43,12 +43,12 @@ site:
             directory: ./internal/e-masspost/docs
             language: nl
     - type: section
-      key: changelog
+      key: section-changelog
       title: Changelog
       path: changelog
-      spaces:
+      children:
         - type: space
-          key: changelog
+          key: space-changelog
           title: Changelog
           path: changelog
           default: true
