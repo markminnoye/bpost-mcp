@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Aanpassingen**
 
+- Dashboard en klant-docs: **geen apart PRS-nummer** meer naast Klantnummer. Bij bpost is Customer Id = PRS-ID; dat is ons veld `customerNumber`. De ongebruikte DB-kolom `prs_number` is verwijderd.
 - De officiële MCP-URL is `/mcp` (`src/app/mcp`). De installatieprompt gebruikt `{{BASE_URL}}/mcp`. `/api/mcp` blijft werken als legacy-alias (rewrite). OAuth protected-resource metadata en nieuwe installatie-URL's gebruiken `/mcp`; bestaande `/api/mcp`-clients en oude resource-waarden blijven geldig.
 - Gegenereerde library-docs tonen `ColumnMapping` als `readonly string[]`, in lijn met de typefix op `develop`, en bevatten `suggestColumnMapping` (SR-79).
 
@@ -87,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Dashboard / credentials: removed the redundant optional **PRS-nummer** field. bpost Customer Id *is* the PRS-ID; it maps to `customerNumber` (`Context/@sender`, `Header/@customerId`). Dropped unused column `bpost_credentials.prs_number` (migration `0004_drop_prs_number`).
 - Official MCP endpoint is `/mcp` (`src/app/mcp/route.ts`). The install prompt uses `{{BASE_URL}}/mcp`. `/api/mcp` stays available as a legacy rewrite to the same handler. Protected-resource metadata, `server.json`, install URLs, and OAuth resource normalization use `/mcp`; legacy `/api/mcp` resource values still match.
 - Generated library docs show `ColumnMapping` as `readonly string[]`, matching the type fix on `develop`, and include `suggestColumnMapping` (SR-79).
 

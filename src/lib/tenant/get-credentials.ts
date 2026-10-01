@@ -6,9 +6,9 @@ import { decrypt } from '@/lib/crypto';
 export interface BpostCredentials {
   bpostUsername: string;
   bpostPassword: string;
+  /** bpost Customer Id / PRS-ID — Context/@sender and Header/@customerId. */
   customerNumber: string;
   accountId: string;
-  prsNumber?: string;
   barcodeCustomerId?: string;
 }
 
@@ -34,7 +34,6 @@ export async function getCredentialsByTenantId(
     bpostPassword: password,
     customerNumber: row.customerNumber,
     accountId: row.accountId,
-    prsNumber: row.prsNumber ?? undefined,
     barcodeCustomerId: row.barcodeCustomerId ?? undefined,
   };
 }
