@@ -1,5 +1,9 @@
 # Fouten begrijpen
 
+{% hint style="warning" %}
+Alfaversie. Dit onderdeel kan nog veranderen.
+{% endhint %}
+
 De assistent legt problemen uit in gewone taal. Hieronder zie je wat er achter de meldingen zit.
 
 ## Twee soorten controles

@@ -10,4 +10,4 @@ Genereer TSDoc-commentaar voor alle geëxporteerde functies (en publieke types).
 
 Nieuwe HTTP-route: laat het Zod-contract eerst goedkeuren, implementeer daarna, en registreer dat schema in de OpenAPI-generator. Een apart protocol (zoals MCP) hoort niet in die service-spec.
 
-Gegenereerde mappen: `docs/service-api/` (OpenAPI van de HTTP-service), `docs/library/` (TypeDoc van de publieke library-entry), `docs/mcp/` (geen spec). Beslissingen die je later niet zomaar terugdraait: korte ADR in `docs/adr/` (kopieer `template.md`). Na een wijziging aan publieke exports of route-schema's: `npm run docs:build`.
+Gegenereerde output staat in `docs/ontwikkelaars/`: `api/openapi.yaml` (OpenAPI van de HTTP-service) en `library/` (TypeDoc van de publieke library-entry). MCP heeft een eigen hoofdstuk in `docs/documentatie/mcp/` (geen spec). Verwijs vanuit de andere tabs niet naar `docs/ontwikkelaars/`. Beslissingen die je later niet zomaar terugdraait: korte ADR in `docs/adr/` (kopieer `template.md`). Na een wijziging aan publieke exports of route-schema's: `npm run docs:build`.

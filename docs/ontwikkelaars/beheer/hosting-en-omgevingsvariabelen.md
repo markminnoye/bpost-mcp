@@ -40,7 +40,7 @@ Niet alle variabelen lopen via `env.ts`. De databasevariabelen, `ENCRYPTION_KEY`
 | `READINESS_PROBE_TIMEOUT_MS` | Timeout voor `/ready` (standaard 1500) |
 | `AUTH_ACCEPTED_ISSUERS` | Extra OAuth-issuers, komma-gescheiden. Leeg laten = standaardhost; lege string = geen extra hosts |
 | `GITHUB_TOKEN` | Laat `report_issue` automatisch een issue aanmaken |
-| `MASSPOST_SUGGEST_MAPPING_MODEL`, `AI_GATEWAY_API_KEY` | AI-fallback voor [kolom-mapping](../integratie/kolom-mapping.md) |
+| `MASSPOST_SUGGEST_MAPPING_MODEL`, `AI_GATEWAY_API_KEY` | AI-fallback voor [kolom-mapping](../kolom-mapping.md) |
 | `SEED_BPOST_*` | Alleen voor `npm run seed` |
 
 ### Masspost-library (één tenant, Contrapunt)

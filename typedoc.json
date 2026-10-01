@@ -2,7 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["src/core/masspost/index.ts"],
   "tsconfig": "tsconfig.json",
-  "out": "docs/library",
+  "out": "docs/ontwikkelaars/library",
   "plugin": ["typedoc-plugin-markdown"],
   "readme": "none",
   "excludePrivate": true,

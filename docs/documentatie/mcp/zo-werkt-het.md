@@ -1,4 +1,8 @@
-# Adressen versturen
+# Zo werkt het
+
+{% hint style="warning" %}
+Alfaversie. Dit onderdeel kan nog veranderen.
+{% endhint %}
 
 Je werkt via je AI-assistent. Jij geeft het adressenbestand en de keuzes, de assistent doet het uitzoekwerk.
 

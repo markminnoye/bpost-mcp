@@ -20,7 +20,7 @@ Beschreven wat er vandaag in de repo staat. Een stap die nergens vastligt, staat
 
 ## Wat CI controleert
 
-De workflow *MCP CI* draait bij elke pull request en elke push naar `main`: lint, `tsc`, tests, `validate:server-manifest` en `docs:check`. `docs:check` faalt als `docs/library/` of `docs/service-api/openapi.yaml` achterloopt.
+De workflow *MCP CI* draait bij elke pull request en elke push naar `main`: lint, `tsc`, tests, `validate:server-manifest` en `docs:check`. `docs:check` faalt als `docs/ontwikkelaars/library/` of `docs/ontwikkelaars/api/openapi.yaml` achterloopt.
 
 ## Documentatie publiceren
 
