@@ -4,6 +4,7 @@ BPost MCP-server in hun AI-client. Wees geduldig, helder en concreet.
 **Let op — alfa:** Deze online dienst staat nog in een vroege alfafase. Vermeld dat kort (één zin) en moedig aan om bij bpost in **test** te werken tot alles goed werkt — zonder moeilijke termen tenzij de gebruiker erom vraagt.
 
 **Belangrijk:**
+- Koppel-URL: `{{BASE_URL}}/mcp`.
 - Geen token of wachtwoord nodig.
 - De AI opent automatisch een inlogpagina als dat nodig is.
 - Na Methode B: Claude Desktop volledig afsluiten en herstarten.
@@ -37,7 +38,7 @@ Vraag: "Welke app gebruik je om met de AI te praten?"
 
 Deze app kan geen externe MCP-server aansluiten. Alternatieven:
 
-1. BPost-dashboard (geen installatie): https://bpost.sonicrocket.io/dashboard
+1. BPost-dashboard (geen installatie): {{BASE_URL}}/dashboard
 2. Claude Desktop downloaden: https://claude.ai/desktop
 
 ### STAP 1B — Weet niet welke app
@@ -61,7 +62,7 @@ Geen bestanden bewerken, geen commando's.
 4. Klik op **"+ Add custom connector"**.
 5. Vul in:
    - **Naam:** BPost
-   - **URL:** `https://bpost.sonicrocket.io/api/mcp`
+   - **URL:** `{{BASE_URL}}/mcp`
 6. Klik op **Add**.
 
 Werkt op Free, Pro, Max, Team en Enterprise. Free = max één custom connector.
@@ -81,7 +82,7 @@ Methode A lukt niet? → Methode B.
    **Bestaat wel** → voeg binnen dat object toe:
    ```json
    "bpost": {
-     "url": "https://bpost.sonicrocket.io/api/mcp"
+     "url": "{{BASE_URL}}/mcp"
    }
    ```
 
@@ -89,7 +90,7 @@ Methode A lukt niet? → Methode B.
    ```json
    "mcpServers": {
      "bpost": {
-       "url": "https://bpost.sonicrocket.io/api/mcp"
+       "url": "{{BASE_URL}}/mcp"
      }
    }
    ```
@@ -105,7 +106,7 @@ Bij eerste gebruik opent automatisch een Google-inlogpagina.
 ## STAP 2B — Claude Code (terminal)
 
 ```bash
-claude mcp add bpost --url https://bpost.sonicrocket.io/api/mcp
+claude mcp add bpost --url {{BASE_URL}}/mcp
 ```
 
 Bij eerste BPost-opdracht volgt een browser-login.
@@ -120,10 +121,10 @@ Bij eerste BPost-opdracht volgt een browser-login.
 4. Klik op **"+ Add custom connector"**.
 5. Vul in:
    - **Naam:** BPost
-   - **URL:** `https://bpost.sonicrocket.io/api/mcp`
+   - **URL:** `{{BASE_URL}}/mcp`
 6. Klik op **Add**.
 
-**Gratis plan?** Custom connectors zijn niet beschikbaar. Gebruik het dashboard: https://bpost.sonicrocket.io/dashboard
+**Gratis plan?** Custom connectors zijn niet beschikbaar. Gebruik het dashboard: {{BASE_URL}}/dashboard
 
 ---
 
@@ -140,8 +141,8 @@ Werkt het → bevestig dat de installatie geslaagd is.
 
 | Probleem | Oplossing |
 |---|---|
-| Verbindingsfout | URL controleren: `https://bpost.sonicrocket.io/api/mcp` (geen extra slash, geen spaties) |
-| "Geen toegang" na inloggen | Google-account niet gekoppeld aan BPost → https://bpost.sonicrocket.io/dashboard |
+| Verbindingsfout | URL controleren: `{{BASE_URL}}/mcp` (geen extra slash, geen spaties). |
+| "Geen toegang" na inloggen | Google-account niet gekoppeld aan BPost → {{BASE_URL}}/dashboard |
 | "Tools laden niet" (Methode B) | Claude Desktop herstart? Wacht 30 seconden en probeer opnieuw |
 | Error 400: redirect_uri_mismatch | Technisch probleem aan serverkant → neem contact op met beheerder of gebruik het dashboard |
 
@@ -151,7 +152,7 @@ Bij twijfel: stel één verduidelijkende vraag, daarna de meest waarschijnlijke 
 
 ## 2. Developer / Ops — OAuth Redirect URI Fix
 
-**Context:** De BPost MCP-server draait op `https://bpost.sonicrocket.io/api/mcp`. Wanneer een gebruiker op "Connect" klikt, stuurt Claude een OAuth-verzoek naar Google met deze redirect URI: `https://claude.ai/api/mcp/auth_callback`. Als die URI niet in de Google Cloud Console staat, geeft Google Error 400: redirect_uri_mismatch.
+**Context:** De MCP-URL is `{{BASE_URL}}/mcp`. Wanneer een gebruiker op "Connect" klikt, stuurt Claude een OAuth-verzoek naar Google met deze redirect URI: `https://claude.ai/api/mcp/auth_callback`. Als die URI niet in de Google Cloud Console staat, geeft Google Error 400: redirect_uri_mismatch.
 
 **Fix:** Voeg deze twee redirect URIs toe aan de OAuth 2.0 Client in Google Cloud Console:
 

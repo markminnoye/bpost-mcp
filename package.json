@@ -17,6 +17,10 @@
     "seed": "tsx --env-file=.env.local scripts/seed-demo-tenant.ts",
     "test:transport": "tsx --env-file=.env.local scripts/test-transport.ts",
     "generate:mailing-xml": "tsx --env-file=.env.local scripts/generate-mailing-xml.ts",
+    "docs:code": "typedoc",
+    "docs:api": "tsx scripts/generate-openapi.ts",
+    "docs:build": "npm run docs:code && npm run docs:api",
+    "docs:check": "npm run docs:build && node scripts/check-generated-docs.mjs",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "check:hardcoded": "grep -r 'vercel.app' src/ --exclude-dir=node_modules | grep -v 'LEGACY_PUBLIC_ORIGIN' && exit 1 || exit 0",
@@ -25,6 +29,7 @@
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
     "@neondatabase/serverless": "^1.0.2",
+    "ai": "^7.0.122",
     "basic-ftp": "^6.2.1",
     "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",
@@ -43,6 +48,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@asteasolutions/zod-to-openapi": "^9.1.0",
     "@eslint/eslintrc": "^3.3.5",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/node": "^20",
@@ -54,8 +60,11 @@
     "eslint": "^10.2.0",
     "eslint-config-next": "^16.2.3",
     "tsx": "^4.21.0",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.13.1",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "yaml": "^2.9.1"
   }
 }

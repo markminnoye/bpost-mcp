@@ -12,7 +12,7 @@ const KNOWN_FLAT_FIELDS = new Set(Object.keys(ItemSchema.shape))
 
 const COMPS_HINT =
   'To map address columns, use Comps.<code> dot-notation. ' +
-  'Example: { "Familienaam": "Comps.1", "Voornaam": "Comps.2", "Straatnaam": "Comps.3", "Huisnummer": "Comps.4", "Bus": "Comps.5", "Postcode": "Comps.8", "Gemeente": "Comps.9" }. ' +
+  'Example: { "Familienaam": "Comps.4", "Voornaam": "Comps.2", "Straatnaam": "Comps.9", "Huisnummer": "Comps.12", "Bus": "Comps.13", "Postcode": "Comps.15", "Gemeente": "Comps.16" }. ' +
   'Valid codes: 1-19 (address components), 70-79, 90-93. See BPost e-MassPost protocol for the full code table.'
 
 export interface TargetValidationError {

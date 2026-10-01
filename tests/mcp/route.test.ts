@@ -1,7 +1,7 @@
 // tests/mcp/route.test.ts
 // NOTE: This test was the Phase 1 smoke test for the bare MCP route.
 // Phase 2 introduced bearer-token auth via withMcpAuth — the route now requires a valid token.
-// The authoritative Phase 2 route tests live in tests/app/api/mcp/route.test.ts.
+// The authoritative Phase 2 route tests live in tests/app/mcp/route.test.ts.
 //
 // This file is kept to avoid breaking the test runner glob, but all cases are
 // now covered by the new test file with proper mocking.
@@ -47,7 +47,7 @@ vi.mock('@/lib/kv/client', () => ({
   saveBatchState: vi.fn(),
 }))
 
-import { POST } from '@/app/api/mcp/route'
+import { POST } from '@/app/mcp/route'
 
 /**
  * Parse an SSE response body to extract JSON-RPC messages.
@@ -74,7 +74,7 @@ const listToolsRequest = {
 
 describe('MCP route (Phase 2 — withMcpAuth)', () => {
   it('responds to tools/list with the bpost tool names when a valid token is provided', async () => {
-    const req = new Request('http://localhost:3000/api/mcp', {
+    const req = new Request('http://localhost:3000/mcp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

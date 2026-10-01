@@ -2,29 +2,36 @@ import { describe, it, expect } from 'vitest'
 
 /** Matches vitest.config.ts test.env NEXT_PUBLIC_BASE_URL */
 const BASE = 'http://localhost:3000'
-const CANONICAL = `${BASE}/api/mcp`
+const CANONICAL = `${BASE}/mcp`
+const LEGACY = `${BASE}/api/mcp`
 
 describe('oauth resource URL helpers', () => {
-  it('mcpProtectedResourceUrl appends /api/mcp', async () => {
+  it('mcpProtectedResourceUrl appends /mcp', async () => {
     const { mcpProtectedResourceUrl } = await import('@/lib/oauth/resource-url')
     expect(mcpProtectedResourceUrl()).toBe(CANONICAL)
   })
 
-  it('normalizes origin and /api/mcp to canonical', async () => {
+  it('normalizes origin, legacy /api/mcp, and /mcp to canonical', async () => {
     const { normalizeOAuthResourceParam } = await import('@/lib/oauth/resource-url')
     expect(normalizeOAuthResourceParam(BASE)).toBe(CANONICAL)
     expect(normalizeOAuthResourceParam(`${BASE}/`)).toBe(CANONICAL)
+    expect(normalizeOAuthResourceParam(`${BASE}/api`)).toBe(CANONICAL)
+    expect(normalizeOAuthResourceParam(LEGACY)).toBe(CANONICAL)
+    expect(normalizeOAuthResourceParam(`${LEGACY}/`)).toBe(CANONICAL)
     expect(normalizeOAuthResourceParam(CANONICAL)).toBe(CANONICAL)
   })
 
   it('oauthResourcesMatchForToken accepts origin vs mcp URL', async () => {
     const { oauthResourcesMatchForToken } = await import('@/lib/oauth/resource-url')
     expect(oauthResourcesMatchForToken(BASE, CANONICAL)).toBe(true)
+    expect(oauthResourcesMatchForToken(LEGACY, CANONICAL)).toBe(true)
+    expect(oauthResourcesMatchForToken(CANONICAL, LEGACY)).toBe(true)
   })
 
-  it('oauthResourcesMatchForToken accepts missing token resource when stored is canonical', async () => {
+  it('oauthResourcesMatchForToken accepts missing token resource when stored is canonical or legacy', async () => {
     const { oauthResourcesMatchForToken } = await import('@/lib/oauth/resource-url')
     expect(oauthResourcesMatchForToken(CANONICAL, null)).toBe(true)
+    expect(oauthResourcesMatchForToken(LEGACY, null)).toBe(true)
   })
 
   it('oauthResourcesMatchForToken rejects unrelated resource', async () => {
@@ -40,7 +47,7 @@ describe('oauth resource URL helpers', () => {
       oauthResourceMatchesAuthCodeAtTokenEndpoint,
       oauthResourcesMatchForTokenFromBase,
     } = await import('@/lib/oauth/resource-url')
-    const stored = `${BASE}/api/mcp`
+    const stored = `${BASE}/mcp`
     const tokenRequestBase = 'https://bpost-abc123-preview.vercel.app'
     expect(oauthResourcesMatchForTokenFromBase(tokenRequestBase, stored, null)).toBe(false)
     expect(oauthResourceMatchesAuthCodeAtTokenEndpoint(tokenRequestBase, stored, null)).toBe(true)

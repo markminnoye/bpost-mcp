@@ -12,8 +12,9 @@ import { randomBytes } from 'crypto'
 import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
 import { AlphaServiceBanner } from '@/components/customer/AlphaServiceBanner'
 import { env } from '@/lib/config/env'
+import { MCP_CANONICAL_PATH } from '@/lib/mcp/paths'
 
-const MCP_URL = `${env.NEXT_PUBLIC_BASE_URL}/api/mcp`
+const MCP_URL = `${env.NEXT_PUBLIC_BASE_URL}${MCP_CANONICAL_PATH}`
 
 interface Props {
   searchParams: Promise<{ token?: string }>
@@ -73,7 +74,6 @@ export default async function DashboardPage({ searchParams }: Props) {
     const password = passwordRaw.trim()
     const customerNumber = formData.get('customerNumber') as string
     const accountId = formData.get('accountId') as string
-    const prsNumber = (formData.get('prsNumber') as string) || null
     const barcodeCustomerId = (formData.get('barcodeCustomerId') as string) || null
     const encKey = process.env.ENCRYPTION_KEY!
 
@@ -84,7 +84,6 @@ export default async function DashboardPage({ searchParams }: Props) {
     const numericOnly = /^\d{1,8}$/
     if (!numericOnly.test(customerNumber)) throw new Error('Klantnummer: enkel 1 tot 8 cijfers.')
     if (!numericOnly.test(accountId)) throw new Error('Account-ID: enkel 1 tot 8 cijfers.')
-    if (prsNumber && !numericOnly.test(prsNumber)) throw new Error('PRS-nummer: enkel 1 tot 8 cijfers.')
     if (barcodeCustomerId && !/^\d{5}$/.test(barcodeCustomerId)) throw new Error('Barcode-klant-ID: exact 5 cijfers.')
 
     const [existingCred] = await db
@@ -98,7 +97,6 @@ export default async function DashboardPage({ searchParams }: Props) {
         username,
         customerNumber,
         accountId,
-        prsNumber,
         barcodeCustomerId,
         updatedAt: new Date(),
       }
@@ -130,7 +128,6 @@ export default async function DashboardPage({ searchParams }: Props) {
         passwordIv: iv,
         customerNumber,
         accountId,
-        prsNumber,
         barcodeCustomerId,
       })
     }
@@ -247,17 +244,10 @@ export default async function DashboardPage({ searchParams }: Props) {
                 />
               </label>
             </div>
-            <label className="bp-label">
-              PRS-nummer (optioneel)
-              <input
-                name="prsNumber"
-                className="bp-input"
-                defaultValue={existingCreds?.prsNumber ?? ''}
-                pattern="\d{1,8}"
-                maxLength={8}
-                title="1 tot 8 cijfers"
-              />
-            </label>
+            <p className="bp-muted-note" style={{ marginTop: '-0.35rem', marginBottom: '0.5rem' }}>
+              Het klantnummer vind je in e-MassPost onder Customer Gegevens als{' '}
+              <strong>Customer Id</strong>. Dat is hetzelfde nummer dat bpost soms PRS noemt.
+            </p>
             <label className="bp-label">
               Barcode-klant-ID (optioneel)
               <input
@@ -356,6 +346,9 @@ export default async function DashboardPage({ searchParams }: Props) {
           </p>
           <div style={{ marginBottom: '1.5rem' }}>
             <CopyCodeBlock code={MCP_URL} copyLabel="Server-URL kopiëren" />
+            <p className="bp-prose" style={{ marginTop: '0.75rem' }}>
+              Een oudere link die eindigt op /api/mcp blijft werken. Voor een nieuwe koppeling gebruik je de URL hierboven.
+            </p>
           </div>
 
           <h3 className="bp-subtitle" style={{ marginTop: '1.5rem' }}>Authenticatie</h3>

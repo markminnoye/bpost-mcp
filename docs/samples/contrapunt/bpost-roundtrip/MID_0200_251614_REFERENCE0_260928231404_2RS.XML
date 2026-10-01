@@ -1,1 +1,138 @@
-<?xml version='1.0' encoding='ISO-8859-1'?><MailingResponse><Context requestName="MailingResponse" dataset="M037_MID" sender="MID" receiver="251614" version="0200"/><Header customerId="251614"><Files><RequestProps fileName="MID_0200_251614_REFERENCE0_260928231229_0RQ.XML" customerFileRef="REFERENCE0"/></Files></Header><MailingCheck seq="1" mailingRef="OPTI20260928211229"><Status code="100"/><DistributionInformation/><Replies><Reply seq="1"><XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]</XPath><Messages><Message code="MID-4040" severity="INFO"><MessageContents><MessageContent key="compliancyRateAtBuildingLevel" value="100.00%"/><MessageContent key="presortingCodeCompliancyRate" value="0.00%"/></MessageContents></Message></Messages></Reply><Reply seq="2"><XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;1&quot;]</XPath><Locations><Location tagName="Item" attributeName="seq" attributeValue="1"/></Locations><Messages><Message code="MID-4060" severity="WARN"/><Message code="7001" severity="WARN"><MessageContents><MessageContent key="compCode" value="92"/><MessageContent key="compCorrection" value="MOLENBEEKSESTRAAT 184 BUS 35"/></MessageContents></Message></Messages><RequestItem seq="1" lang="nl" priority="NP"><Comps><Comp code="90" value="Anna Vanderstappen"/><Comp code="92" value="Molenbeeksestraat 184 35"/><Comp code="93" value="1020 Brussel"/></Comps></RequestItem></Reply><Reply seq="3"><XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;2&quot;]</XPath><Locations><Location tagName="Item" attributeName="seq" attributeValue="2"/></Locations><Messages><Message code="MID-4060" severity="WARN"/><Message code="7001" severity="WARN"><MessageContents><MessageContent key="compCode" value="92"/><MessageContent key="compCorrection" value="PAGODENLAAN 21 BUS 5"/></MessageContents></Message></Messages><RequestItem seq="2" lang="nl" priority="NP"><Comps><Comp code="90" value="Anna Vanderstappen"/><Comp code="92" value="Pagodenlaan 21 5"/><Comp code="93" value="1020 Brussel"/></Comps></RequestItem></Reply><Reply seq="4"><XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;3&quot;]</XPath><Locations><Location tagName="Item" attributeName="seq" attributeValue="3"/></Locations><Messages><Message code="MID-4060" severity="WARN"/><Message code="7001" severity="WARN"><MessageContents><MessageContent key="compCode" value="92"/><MessageContent key="compCorrection" value="STEYLSSTRAAT 92"/></MessageContents></Message></Messages><RequestItem seq="3" lang="nl" priority="NP"><Comps><Comp code="90" value="Anna Vanderstappen"/><Comp code="92" value="Steylsstraat 92"/><Comp code="93" value="1020 Brussel"/></Comps></RequestItem></Reply><Reply seq="5"><XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;4&quot;]</XPath><Locations><Location tagName="Item" attributeName="seq" attributeValue="4"/></Locations><Messages><Message code="MID-4060" severity="WARN"/><Message code="7001" severity="WARN"><MessageContents><MessageContent key="compCode" value="92"/><MessageContent key="compCorrection" value="BROGNIEZSTRAAT 179"/></MessageContents></Message></Messages><RequestItem seq="4" lang="nl" priority="NP"><Comps><Comp code="90" value="Anna Vanderstappen"/><Comp code="92" value="Brogniezstraat 179"/><Comp code="93" value="1070 Anderlecht"/></Comps></RequestItem></Reply><Reply seq="6"><XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;5&quot;]</XPath><Locations><Location tagName="Item" attributeName="seq" attributeValue="5"/></Locations><Messages><Message code="MID-4060" severity="WARN"/><Message code="7001" severity="WARN"><MessageContents><MessageContent key="compCode" value="92"/><MessageContent key="compCorrection" value="HENDRIK CONSCIENCELAAN 162"/></MessageContents></Message></Messages><RequestItem seq="5" lang="nl" priority="NP"><Comps><Comp code="90" value="Anna Vanderstappen"/><Comp code="92" value="Hendrik Consciencelaan 162"/><Comp code="93" value="1140 Evere"/></Comps></RequestItem></Reply></Replies></MailingCheck></MailingResponse>
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<MailingResponse>
+  <Context requestName="MailingResponse" dataset="M037_MID" sender="MID" receiver="251614"
+    version="0200" />
+  <Header customerId="251614">
+    <Files>
+      <RequestProps fileName="MID_0200_251614_REFERENCE0_260928231229_0RQ.XML"
+        customerFileRef="REFERENCE0" />
+    </Files>
+  </Header>
+  <MailingCheck seq="1" mailingRef="OPTI20260928211229">
+    <Status code="100" />
+    <DistributionInformation />
+    <Replies>
+      <Reply seq="1">
+        <XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]</XPath>
+        <Messages>
+          <Message code="MID-4040" severity="INFO">
+            <MessageContents>
+              <MessageContent key="compliancyRateAtBuildingLevel" value="100.00%" />
+              <MessageContent key="presortingCodeCompliancyRate" value="0.00%" />
+            </MessageContents>
+          </Message>
+        </Messages>
+      </Reply>
+      <Reply seq="2">
+        <XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;1&quot;]</XPath>
+        <Locations>
+          <Location tagName="Item" attributeName="seq" attributeValue="1" />
+        </Locations>
+        <Messages>
+          <Message code="MID-4060" severity="WARN" />
+          <Message code="7001" severity="WARN">
+            <MessageContents>
+              <MessageContent key="compCode" value="92" />
+              <MessageContent key="compCorrection" value="MOLENBEEKSESTRAAT 184 BUS 35" />
+            </MessageContents>
+          </Message>
+        </Messages>
+        <RequestItem seq="1" lang="nl" priority="NP">
+          <Comps>
+            <Comp code="90" value="Anna Vanderstappen" />
+            <Comp code="92" value="Molenbeeksestraat 184 35" />
+            <Comp code="93" value="1020 Brussel" />
+          </Comps>
+        </RequestItem>
+      </Reply>
+      <Reply seq="3">
+        <XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;2&quot;]</XPath>
+        <Locations>
+          <Location tagName="Item" attributeName="seq" attributeValue="2" />
+        </Locations>
+        <Messages>
+          <Message code="MID-4060" severity="WARN" />
+          <Message code="7001" severity="WARN">
+            <MessageContents>
+              <MessageContent key="compCode" value="92" />
+              <MessageContent key="compCorrection" value="PAGODENLAAN 21 BUS 5" />
+            </MessageContents>
+          </Message>
+        </Messages>
+        <RequestItem seq="2" lang="nl" priority="NP">
+          <Comps>
+            <Comp code="90" value="Anna Vanderstappen" />
+            <Comp code="92" value="Pagodenlaan 21 5" />
+            <Comp code="93" value="1020 Brussel" />
+          </Comps>
+        </RequestItem>
+      </Reply>
+      <Reply seq="4">
+        <XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;3&quot;]</XPath>
+        <Locations>
+          <Location tagName="Item" attributeName="seq" attributeValue="3" />
+        </Locations>
+        <Messages>
+          <Message code="MID-4060" severity="WARN" />
+          <Message code="7001" severity="WARN">
+            <MessageContents>
+              <MessageContent key="compCode" value="92" />
+              <MessageContent key="compCorrection" value="STEYLSSTRAAT 92" />
+            </MessageContents>
+          </Message>
+        </Messages>
+        <RequestItem seq="3" lang="nl" priority="NP">
+          <Comps>
+            <Comp code="90" value="Anna Vanderstappen" />
+            <Comp code="92" value="Steylsstraat 92" />
+            <Comp code="93" value="1020 Brussel" />
+          </Comps>
+        </RequestItem>
+      </Reply>
+      <Reply seq="5">
+        <XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;4&quot;]</XPath>
+        <Locations>
+          <Location tagName="Item" attributeName="seq" attributeValue="4" />
+        </Locations>
+        <Messages>
+          <Message code="MID-4060" severity="WARN" />
+          <Message code="7001" severity="WARN">
+            <MessageContents>
+              <MessageContent key="compCode" value="92" />
+              <MessageContent key="compCorrection" value="BROGNIEZSTRAAT 179" />
+            </MessageContents>
+          </Message>
+        </Messages>
+        <RequestItem seq="4" lang="nl" priority="NP">
+          <Comps>
+            <Comp code="90" value="Anna Vanderstappen" />
+            <Comp code="92" value="Brogniezstraat 179" />
+            <Comp code="93" value="1070 Anderlecht" />
+          </Comps>
+        </RequestItem>
+      </Reply>
+      <Reply seq="6">
+        <XPath>/MailingRequest/MailingCheck[@seq=&quot;1&quot;]/Items/Item[@seq=&quot;5&quot;]</XPath>
+        <Locations>
+          <Location tagName="Item" attributeName="seq" attributeValue="5" />
+        </Locations>
+        <Messages>
+          <Message code="MID-4060" severity="WARN" />
+          <Message code="7001" severity="WARN">
+            <MessageContents>
+              <MessageContent key="compCode" value="92" />
+              <MessageContent key="compCorrection" value="HENDRIK CONSCIENCELAAN 162" />
+            </MessageContents>
+          </Message>
+        </Messages>
+        <RequestItem seq="5" lang="nl" priority="NP">
+          <Comps>
+            <Comp code="90" value="Anna Vanderstappen" />
+            <Comp code="92" value="Hendrik Consciencelaan 162" />
+            <Comp code="93" value="1140 Evere" />
+          </Comps>
+        </RequestItem>
+      </Reply>
+    </Replies>
+  </MailingCheck>
+</MailingResponse>

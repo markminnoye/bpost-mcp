@@ -236,7 +236,7 @@ Volgorde aan onze kant, zodra de modus `C` of `P` is (500 past niet in `T`):
 1. Frank: kan hij een deposit koppelen aan `MANUAL20260929201329`?
 2. Parser voor Opti-2RS (`7001` / `compCorrection`) en Create-2RS (MID per SEQ). Het eenmalige script `scripts/apply-opti-corrections.ts` dekt alleen stap 2 van de test.
 3. FTP Connection & Security Test met Contrapunt/bpost — daarna `npm run test:transport -- --ftp`.
-4. **API:** kolom-mapping suggestie (`suggestColumnMapping` — heuristics + optionele AI-fallback; privacy: headers-first). Zie Linear-issue onder *Bpost lokale automatisatie*.
+4. [x] **API:** kolom-mapping suggestie (`suggestColumnMapping` — heuristics + optionele AI-fallback; privacy: headers-first). Linear [SR-79](https://linear.app/sonicrocket/issue/SR-79/api-kolom-mapping-suggestie-heuristics-optionele-ai). De caller bevestigt; geen UI in deze stap.
 5. **Pas daarna UI:** webinterface bovenop `src/core/masspost/` (upload, mapping-editor + live preview, validatierapport) — dunne laag, geen stille aannames.
 
 ```bash

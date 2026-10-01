@@ -17,7 +17,7 @@ interface RegisterCall {
 }
 
 const ROOT = process.cwd()
-const ROUTE_PATH = path.join(ROOT, 'src/app/api/mcp/route.ts')
+const ROUTE_PATH = path.join(ROOT, 'src/app/mcp/route.ts')
 const APP_VERSION_PATH = path.join(ROOT, 'src/lib/app-version.ts')
 const INSTRUCTIONS_PATH = path.join(ROOT, 'src/lib/mcp/server-instructions.ts')
 const PACKAGE_JSON_PATH = path.join(ROOT, 'package.json')

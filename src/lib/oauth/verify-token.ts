@@ -3,13 +3,16 @@
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import { getPublicOrigin } from 'mcp-handler';
 import { env } from '@/lib/config/env';
+import { buildIssuerAllowlist } from './accepted-issuers';
 import { verifyAccessToken } from './jwt';
 import { resolveTenant } from '@/lib/tenant/resolve';
 
 function jwtAllowedIssuerBases(request: Request): string[] {
-  const o = getPublicOrigin(request).replace(/\/$/, '');
-  const e = env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
-  return o === e ? [o] : [...new Set([o, e])];
+  return buildIssuerAllowlist(
+    getPublicOrigin(request),
+    env.NEXT_PUBLIC_BASE_URL,
+    env.AUTH_ACCEPTED_ISSUERS,
+  );
 }
 
 function isJwt(token: string): boolean {

@@ -8,9 +8,9 @@ export interface TenantContext {
   tenantId: string
   bpostUsername: string
   bpostPassword: string
+  /** bpost Customer Id / PRS-ID — Context/@sender and Header/@customerId. */
   customerNumber: string
   accountId: string
-  prsNumber?: string
 }
 
 export async function resolveTenant(bearerToken: string): Promise<TenantContext | null> {
@@ -25,7 +25,6 @@ export async function resolveTenant(bearerToken: string): Promise<TenantContext 
       passwordIv: bpostCredentials.passwordIv,
       customerNumber: bpostCredentials.customerNumber,
       accountId: bpostCredentials.accountId,
-      prsNumber: bpostCredentials.prsNumber,
     })
     .from(apiTokens)
     .innerJoin(bpostCredentials, eq(bpostCredentials.tenantId, apiTokens.tenantId))
@@ -50,6 +49,5 @@ export async function resolveTenant(bearerToken: string): Promise<TenantContext 
     bpostPassword: password,
     customerNumber: row.customerNumber,
     accountId: row.accountId,
-    prsNumber: row.prsNumber ?? undefined,
   }
 }

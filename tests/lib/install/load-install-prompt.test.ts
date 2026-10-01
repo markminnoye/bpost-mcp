@@ -19,13 +19,19 @@ describe('getInstallPromptMarkdown', () => {
     readFile.mockReset()
   })
 
-  it('replaces legacy public host with NEXT_PUBLIC_BASE_URL (no trailing slash)', async () => {
+  it('replaces {{BASE_URL}} with NEXT_PUBLIC_BASE_URL (no trailing slash)', async () => {
     readFile.mockResolvedValue(
-      'npx https://bpost-mcp.vercel.app/api/mcp\nhttps://bpost-mcp.vercel.app/dashboard\n',
+      'npx {{BASE_URL}}/mcp\n{{BASE_URL}}/dashboard\n',
     )
     const out = await getInstallPromptMarkdown()
-    expect(out).toContain('https://client.example/api/mcp')
+    expect(out).toContain('https://client.example/mcp')
     expect(out).toContain('https://client.example/dashboard')
-    expect(out).not.toContain('bpost-mcp.vercel.app')
+    expect(out).not.toContain('{{BASE_URL}}')
+  })
+
+  it('still rewrites the older vercel.app placeholder', async () => {
+    readFile.mockResolvedValue('https://bpost-mcp.vercel.app/api/mcp\n')
+    const out = await getInstallPromptMarkdown()
+    expect(out).toBe('https://client.example/api/mcp\n')
   })
 })

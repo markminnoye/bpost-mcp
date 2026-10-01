@@ -18,6 +18,7 @@ export const UNSTRUCTURED_COMP_CODES = {
   postcodeCity: '93',
 } as const
 
+/** Unstructured block a source column is mapped onto (`name`, `streetHouseBox`, …). */
 export type UnstructuredTarget = keyof typeof UNSTRUCTURED_COMP_CODES
 
 /** Official max length for the unstructured Comp fields (AFT columns U-X). Contrapunt's own
@@ -25,13 +26,15 @@ export type UnstructuredTarget = keyof typeof UNSTRUCTURED_COMP_CODES
  *  instead of silently cutting text off. */
 export const UNSTRUCTURED_MAX_LENGTH = 50
 
+/** Source-column titles that feed each unstructured address block. */
 export interface ColumnMapping {
-  name: string[]
-  companyDepartment?: string[]
-  streetHouseBox: string[]
-  postcodeCity: string[]
+  name: readonly string[]
+  companyDepartment?: readonly string[]
+  streetHouseBox: readonly string[]
+  postcodeCity: readonly string[]
 }
 
+/** One unstructured field after join, length cap, and character normalization. */
 export interface MappedField {
   value: string
   truncated: boolean
@@ -42,6 +45,7 @@ export interface MappedField {
   unsupportedChars: string[]
 }
 
+/** One address after column mapping. `seq` starts at 1. */
 export interface MappedRow {
   seq: number
   source: Record<string, unknown>
@@ -53,18 +57,20 @@ export interface MappedRow {
   }
 }
 
+/** A truncation, empty required field, or character issue on one row. */
 export interface MappingWarning {
   seq: number
   field: UnstructuredTarget
   message: string
 }
 
+/** Mapped rows plus every warning. Rows are not dropped because of a warning. */
 export interface MappingResult {
   rows: MappedRow[]
   warnings: MappingWarning[]
 }
 
-function joinColumns(row: Record<string, unknown>, columns: string[]): string {
+function joinColumns(row: Record<string, unknown>, columns: readonly string[]): string {
   return columns
     .map((c) => String(row[c] ?? '').trim())
     .filter((v) => v !== '')
@@ -90,7 +96,18 @@ function sanitize(raw: string): MappedField {
 }
 
 /** Maps parsed Excel rows onto the unstructured Comp fields, reporting every truncation and
- *  every empty required field instead of silently accepting or cutting them. */
+ *  every empty required field instead of silently accepting or cutting them.
+ *
+ * @param rows Records keyed by the Excel header, as returned by `parseExcelAddresses`.
+ * @param mapping Source columns for the name, street, and postcode blocks.
+ * @returns Mapped rows and warnings, in input order.
+ * @example
+ * const { rows, warnings } = mapRows(parsed.rows, {
+ *   name: ['Naam'],
+ *   streetHouseBox: ['Straat'],
+ *   postcodeCity: ['Postcode', 'Gemeente'],
+ * })
+ */
 export function mapRows(rows: Record<string, unknown>[], mapping: ColumnMapping): MappingResult {
   const mappedRows: MappedRow[] = []
   const warnings: MappingWarning[] = []

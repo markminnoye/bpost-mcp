@@ -17,7 +17,11 @@ const mailingRequestWithActionRefine = (schema: z.ZodType<MailingRequest>) =>
     { message: 'At least one mailing action (Create/Check/Delete/Reuse) is required' },
   )
 
-/** XSD in repo is 0200-shaped; Contrapunt uses 0100 — no expectedDeliveryDate, no FileInfo on MailingCreate. */
+/** XSD in repo is 0200-shaped; Contrapunt uses 0100 — no expectedDeliveryDate, no FileInfo on MailingCreate.
+ *
+ * @param midVersion Protocol version. `0100` and `0102` omit those two create fields. Default `0100`.
+ * @returns A Zod schema that still requires at least one mailing action.
+ */
 export function mailingRequestSchemaForVersion(midVersion: MidProtocolVersion = '0100') {
   if (midVersion === '0200') return MailingRequestSchema
   const createSchema = MailingCreateSchema.omit({
@@ -26,16 +30,19 @@ export function mailingRequestSchemaForVersion(midVersion: MidProtocolVersion = 
   })
   return mailingRequestWithActionRefine(
     MailingRequestSchema.safeExtend({
-      MailingCreate: z.array(createSchema).optional(),
+      // narrower create schema (0100/0102 omit 0200-only fields); safeExtend's type can't express that
+      MailingCreate: z.array(createSchema).optional() as never,
     }) as z.ZodType<MailingRequest>,
   )
 }
 
+/** One schema or character-set failure. `path` uses dot-separated segments. */
 export interface ValidationIssue {
   path: string
   message: string
 }
 
+/** Outcome of `validateMailingRequest`. `data` is set only when `valid` is true. */
 export interface ValidationResult {
   valid: boolean
   data?: MailingRequest
@@ -63,7 +70,15 @@ function findCharsetIssues(value: unknown, path: string[] = []): ValidationIssue
 }
 
 /** Validates a candidate MailingRequest object against the same Zod schema (XSD-derived
- *  field lengths, patterns, enums) used to build outgoing requests elsewhere in this repo. */
+ *  field lengths, patterns, enums) used to build outgoing requests elsewhere in this repo.
+ *
+ * @param candidate Object from the build functions, or any unknown payload.
+ * @param midVersion Protocol version passed to `mailingRequestSchemaForVersion`. Default `0100`.
+ * @returns `valid: true` and the parsed request, or `valid: false` and the issues. Does not throw.
+ * @example
+ * const result = validateMailingRequest(request, '0200')
+ * if (!result.valid) console.log(result.issues)
+ */
 export function validateMailingRequest(
   candidate: unknown,
   midVersion: MidProtocolVersion = '0100',

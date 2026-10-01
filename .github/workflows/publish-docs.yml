@@ -1,0 +1,71 @@
+name: Publish docs branch
+
+# Runs only on develop (the default branch). The job force-pushes the docs
+# tree to branch `docs` and never commits back to develop, so this workflow
+# cannot trigger itself.
+on:
+  push:
+    branches: [develop]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-docs
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish docs/ to branch docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build docs
+        run: npm run docs:build
+
+      - name: Force-push docs tree to branch docs
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF}" != "refs/heads/develop" ]; then
+            echo "Refusing to publish from ${GITHUB_REF}"
+            exit 1
+          fi
+          TARGET_REF="refs/heads/docs"
+          OUT="$(mktemp -d)"
+          # Whole docs tree, including gitbook-docs.yaml, except the exclusions below.
+          cp -a docs/. "${OUT}/"
+          # The protocol submodule is a tab of its own (internal/e-masspost/docs). Drop its git
+          # pointer and the large originals (PDF, HAR) that are not part of that tab.
+          rm -rf "${OUT}/internal/e-masspost/.git" "${OUT}/internal/e-masspost/reference" "${OUT}/internal/e-masspost/har"
+          # Changelog tab: the repo CHANGELOG.md, copied at publish time.
+          mkdir -p "${OUT}/changelog"
+          cp CHANGELOG.md "${OUT}/changelog/README.md"
+          git -C "${OUT}" init -b docs
+          git -C "${OUT}" config user.name "github-actions[bot]"
+          git -C "${OUT}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "${OUT}" add -A
+          git -C "${OUT}" commit -m "docs: publish from ${GITHUB_SHA}"
+          config_dump="$(git config --local --get-regexp '^http\..*\.extraheader$' || true)"
+          if [ -n "${config_dump}" ]; then
+            while IFS= read -r line; do
+              key="${line%% *}"
+              value="${line#* }"
+              git -C "${OUT}" config "${key}" "${value}"
+            done <<< "${config_dump}"
+          fi
+          git -C "${OUT}" remote add origin "$(git remote get-url origin)"
+          git -C "${OUT}" push --force origin "HEAD:${TARGET_REF}"

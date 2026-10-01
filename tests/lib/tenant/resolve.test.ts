@@ -57,7 +57,8 @@ describe('resolveTenant', () => {
         username: 'demo-user',
         passwordEncrypted: ciphertext,
         passwordIv: iv,
-        prsNumber: null,
+        customerNumber: '251614',
+        accountId: '65486',
       },
     ])
     makeUpdateChain()
@@ -68,7 +69,8 @@ describe('resolveTenant', () => {
     expect(ctx!.tenantId).toBe(TENANT_ID)
     expect(ctx!.bpostUsername).toBe('demo-user')
     expect(ctx!.bpostPassword).toBe('secret-pass')
-    expect(ctx!.prsNumber).toBeUndefined()
+    expect(ctx!.customerNumber).toBe('251614')
+    expect(ctx!.accountId).toBe('65486')
   })
 
   it('returns null for an unknown token hash', async () => {

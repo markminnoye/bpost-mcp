@@ -22,7 +22,7 @@ export const MCP_REGISTRY_GITHUB_REPO_URL = 'https://github.com/markminnoye/bpos
  * Canonical production origin for root `server.json` when `NEXT_PUBLIC_BASE_URL` and
  * `VERCEL_URL` are unset (e.g. local `npm run build`). Matches README install URL.
  */
-export const MCP_REGISTRY_CANONICAL_ORIGIN = 'https://bpost.sonicrocket.be'
+export const MCP_REGISTRY_CANONICAL_ORIGIN = 'https://bpost.sonicrocket.app'
 
 export type McpServerIconDescriptor = {
   src: string

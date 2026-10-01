@@ -86,6 +86,15 @@ All implementation plans, design specs, and architecture decisions live here.
 
 ---
 
+## Address Proofing (Mailops REST)
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Address Proofing skill-integratie](2026-09-24-address-proofing-skill.md) | ✅ | Separate skill + protocol routing; Comp aliases → Table 46 |
+| [Address Proofing MCP client](2026-09-24-address-proofing-mcp.md) | ⏳ | After freeze + API key; server-side PII strip; complement to `check_batch` |
+
+---
+
 ## Superpowers — Afgeronde plannen
 
 Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stonden oorspronkelijk in `docs/superpowers/plans/`.
@@ -112,6 +121,7 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 |---|---|---|
 | [Adressen klaarmaken voor bpost](2026-09-26-contrapunt-aft-address-prep.md) | ⬜ | Stub. Lokale AFT-skill afgevoerd 29/09. |
 | [Bpost e-MassPost library + webapp](2026-09-28-bpost-library-web-app.md) | 🔄 | **Koers 29/09:** XML via **FTP**, validatie via **OptiAddress** (`MailingCheck` / 7001). Library staat; web UI en live FTP nog niet. |
+| [SR-79 kolom-mapping suggestie](2026-09-29-sr-79-column-mapping-suggest.md) | ✅ | API: heuristics + optionele AI. Geen UI. Caller bevestigt. |
 
 ---
 
@@ -120,6 +130,15 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 | Plan | Status | Notes |
 |---|---|---|
 | [Main release sync — squash merge develop to main](2026-04-15-main-squash-merge.md) | ✅ | Squash merge uitgevoerd (`850e5f0`), daarna `main` terug gemerged in `develop` voor branch alignment |
+| [Canonical host bpost.sonicrocket.app](2026-09-28-canonical-app-host.md) | ✅ | Install prompt via `{{BASE_URL}}`, registry/README off `.be`, legacy JWT issuer allowlist for `.io` |
+
+---
+
+## Documentation
+
+| Plan | Status | Notes |
+|---|---|---|
+| [Documentation standard](2026-09-30-documentation-standard.md) | ✅ | TSDoc + TypeDoc, OpenAPI 3.1 from Zod, agent rules, `docs:check` |
 
 ---
 

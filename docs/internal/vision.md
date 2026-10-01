@@ -74,12 +74,12 @@ Om in Fase 3 succesvol over te stappen naar platformen zoals **n8n, Zapier of Ma
 
 ### 4.4 Beveiliging & Credentials (Cruciaal Ontwerpprincipe voor Fase 2)
 
-In Fase 2 gaat onze gehoste tool communiceren met de bpost servers namens de klant. Hier zijn klant-specifieke authenticatiegegevens (API-keys, login, PRS-nummer) mee gemoeid. **Het risico:** Een LLM mag _nooit_ direct toegang hebben tot deze sleutels. **De Oplossing: "Credential Abstraction" (De Blinde Agent)** De backend-architectuur moet als een schild fungeren tussen de AI en de bpost-servers:
+In Fase 2 gaat onze gehoste tool communiceren met de bpost servers namens de klant. Hier zijn klant-specifieke authenticatiegegevens (API-keys, login, Customer Id / PRS) mee gemoeid. **Het risico:** Een LLM mag _nooit_ direct toegang hebben tot deze sleutels. **De Oplossing: "Credential Abstraction" (De Blinde Agent)** De backend-architectuur moet als een schild fungeren tussen de AI en de bpost-servers:
 
 1. De AI krijgt **geen parameters** voor credentials in zijn tools.
 2. Zodra de AI een tool aanroept (bijv. `validate_address`), vangt onze API dit verzoek op.
 3. Onze backend herkent welke gebruiker het verzoek deed op basis van een veilige login sessie (bijv. een bearer token in de MCP configuratie).
-4. De backend haalt zélf de juiste bpost API-key en het PRS nummer veilig uit een versleutelde database (Vault).
+4. De backend haalt zélf de juiste bpost API-key en het Customer Id (PRS) veilig uit een versleutelde database (Vault).
 5. De backend bouwt het HTTP request naar bpost en stuurt enkel het functionele resultaat terug naar de AI.
 
 ### 4.5 Privacy & GDPR (AVG) Compliantie
