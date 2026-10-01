@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Aanpassingen**
 
+- Vercel deployt nog alleen `main` en `develop` (`vercel.json`, `git.deploymentEnabled`). Feature-branches en de publicatiebranch `docs` krijgen geen deploy meer; die faalden toch (`missing_pages_app`, mislukte Neon-provisioning). De publish-workflow zet daarvoor een `vercel.json` in de `docs`-branch.
 - De officiële MCP-URL is `/mcp` (`src/app/mcp`). De installatieprompt gebruikt `{{BASE_URL}}/mcp`. `/api/mcp` blijft werken als legacy-alias (rewrite). OAuth protected-resource metadata en nieuwe installatie-URL's gebruiken `/mcp`; bestaande `/api/mcp`-clients en oude resource-waarden blijven geldig.
 - Gegenereerde library-docs tonen `ColumnMapping` als `readonly string[]`, in lijn met de typefix op `develop`, en bevatten `suggestColumnMapping` (SR-79).
 
@@ -86,6 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skills submodule pointer `docs/internal/e-masspost` → `562e545` (field findings, AFT API Manual v1.7, portal code lists; skills PR #9).
 
 ### Changed
+
+- `vercel.json` with `git.deploymentEnabled` (`**: false`, `main` and `develop`: true); the publish-docs workflow writes a `vercel.json` with deployments disabled onto branch `docs`.
 
 - Official MCP endpoint is `/mcp` (`src/app/mcp/route.ts`). The install prompt uses `{{BASE_URL}}/mcp`. `/api/mcp` stays available as a legacy rewrite to the same handler. Protected-resource metadata, `server.json`, install URLs, and OAuth resource normalization use `/mcp`; legacy `/api/mcp` resource values still match.
 - Generated library docs show `ColumnMapping` as `readonly string[]`, matching the type fix on `develop`, and include `suggestColumnMapping` (SR-79).

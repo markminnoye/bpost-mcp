@@ -54,6 +54,8 @@ jobs:
           # Changelog tab: the repo CHANGELOG.md, copied at publish time.
           mkdir -p "${OUT}/changelog"
           cp CHANGELOG.md "${OUT}/changelog/README.md"
+          # Branch docs holds Markdown only; keep Vercel from trying to deploy it.
+          printf '{\n  "git": { "deploymentEnabled": false }\n}\n' > "${OUT}/vercel.json"
           git -C "${OUT}" init -b docs
           git -C "${OUT}" config user.name "github-actions[bot]"
           git -C "${OUT}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"

@@ -2,7 +2,7 @@
 
 ## Hosting
 
-De dienst draait als Next.js-app op Vercel. Een push naar `main` deployt automatisch. Voor een handmatige deploy:
+De dienst draait als Next.js-app op Vercel. Een push naar `main` deployt automatisch. Vercel deployt alleen `main` en `develop` (`vercel.json`, `git.deploymentEnabled`); feature-branches en de publicatiebranch `docs` krijgen geen deploy. Een branch die van vóór deze regel dateert, heeft de regel pas na een merge van `develop`. Voor een handmatige deploy:
 
 ```bash
 vercel          # preview
