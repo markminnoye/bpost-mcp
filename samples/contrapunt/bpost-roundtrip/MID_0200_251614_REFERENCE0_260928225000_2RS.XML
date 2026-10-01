@@ -1,0 +1,161 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<MailingResponse>
+	<Context requestName="MailingResponse" dataset="M037_MID" sender="MID" receiver="251614" version="0200"/>
+	<Header customerId="251614">
+		<Files>
+			<RequestProps fileName="MID_0200_251614_REFERENCE0_260928224851_0RQ.XML" customerFileRef="REFERENCE0"/>
+		</Files>
+	</Header>
+	<MailingCreate seq="1" mailingRef="MANUAL20260928204851">
+		<Status code="100"/>
+		<Replies>
+			<Reply seq="1">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]</XPath>
+				<Messages>
+					<Message code="MID-4040" severity="INFO">
+						<MessageContents>
+							<MessageContent key="compliancyRateAtBuildingLevel" value="100.00%"/>
+							<MessageContent key="presortingCodeCompliancyRate" value="0.00%"/>
+							<MessageContent key="addressesWithRecipientCompliancyRate" value="100.00 % "/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="2">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="1"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="1"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4060" severity="WARN"/>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814209"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="3">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="2"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="2"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4060" severity="WARN"/>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814208"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="4">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="3"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="3"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4060" severity="WARN"/>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814201"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="5">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="4"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="4"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4060" severity="WARN"/>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814200"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="6">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="5"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="5"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4060" severity="WARN"/>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814203"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="7">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="6"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="6"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814207"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="8">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="7"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="7"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814202"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="9">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="8"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="8"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814204"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="10">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="9"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="9"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814206"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+			<Reply seq="11">
+				<XPath>/MailingRequest/MailingCreate[@seq="1"]/Items/Item[@seq="10"]</XPath>
+				<Locations>
+					<Location tagName="Item" attributeName="seq" attributeValue="10"/>
+				</Locations>
+				<Messages>
+					<Message code="MID-4030" severity="INFO">
+						<MessageContents>
+							<MessageContent key="midNum" value="90002109814205"/>
+						</MessageContents>
+					</Message>
+				</Messages>
+			</Reply>
+		</Replies>
+	</MailingCreate>
+</MailingResponse>
