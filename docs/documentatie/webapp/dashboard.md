@@ -14,9 +14,8 @@ De gegevens waarmee de dienst namens jou met bpost praat. Ze gelden alleen voor 
 |---|---|---|
 | Gebruikersnaam | Ja | |
 | Wachtwoord (BPost) | Bij de eerste keer | Laat het leeg om je bestaande wachtwoord te houden |
-| Klantnummer | Ja | 1 tot 8 cijfers |
+| Klantnummer | Ja | 1 tot 8 cijfers. In e-MassPost heet dit **Customer Id** (bpost noemt het zelfde nummer soms PRS) |
 | Account-ID | Ja | 1 tot 8 cijfers |
-| PRS-nummer | Nee | 1 tot 8 cijfers |
 | Barcode-klant-ID | Nee | Exact 5 cijfers. Je krijgt die van bpost als je deelneemt aan Mail ID. Alleen nodig als de dienst barcodes voor je laat aanmaken |
 
 Klik op **Gegevens bewaren**.

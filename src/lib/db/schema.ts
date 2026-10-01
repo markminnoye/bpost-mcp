@@ -15,9 +15,10 @@ export const bpostCredentials = pgTable('bpost_credentials', {
   username: text('username').notNull(),
   passwordEncrypted: text('password_encrypted').notNull(),
   passwordIv: text('password_iv').notNull(),
+  /** bpost Customer Id / PRS-ID — Context/@sender and Header/@customerId (same value). */
   customerNumber: text('customer_number').notNull(),
+  /** PBC Account Id — Header/@accountId. */
   accountId: text('account_id').notNull(),
-  prsNumber: text('prs_number'),
   barcodeCustomerId: text('barcode_customer_id'),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })

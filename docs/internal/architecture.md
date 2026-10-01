@@ -160,7 +160,7 @@ Tenants own BPost credentials and API tokens. Dashboard users (`user` rows from 
 flowchart TD
     T["tenants<br/>id, name"]
     U["user (Auth.js)<br/>id, email, tenantId"]
-    C["bpost_credentials<br/>tenantId, username<br/>passwordEncrypted (AES-256-GCM)<br/>passwordIv, customerNumber, accountId, prsNumber"]
+    C["bpost_credentials<br/>tenantId, username<br/>passwordEncrypted (AES-256-GCM)<br/>passwordIv, customerNumber, accountId"]
     AT["api_tokens<br/>tenantId, tokenHash<br/>label, createdAt, revokedAt"]
     AL["audit_log<br/>tenantId, tool, action, status"]
     OC["oauth_clients<br/>clientId, clientSecret (SHA-256)<br/>redirectUris, grantTypes"]
