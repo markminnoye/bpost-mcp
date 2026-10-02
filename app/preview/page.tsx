@@ -46,16 +46,14 @@ function IconButton({ label, children, onClick }: { label: string; children: Rea
   return <button aria-label={label} onClick={onClick} className="icon-button">{children}</button>
 }
 
-function QualityStatusIcon({ value }: { value: number }) {
-  const tone = value < 96 ? "bad" : value < 98 ? "warn" : "good"
-  const color = tone === "bad" ? "#DC2626" : tone === "warn" ? "#F97316" : "#16A34A"
-  return <svg className="quality-status-icon" viewBox="0 0 20 20" role="img" aria-label={`Gecontroleerd ${value.toFixed(1)} procent`}><circle cx="10" cy="10" r="8" fill="none" stroke={color} strokeWidth="1.5" /><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill={color} /></svg>
+function PriorityIcon({ active }: { active: boolean }) {
+  return <span className={`priority-bars ${active ? "is-priority" : ""}`} aria-label={active ? "Prioriteit" : "Geen prioriteit"}><i /><i /><i /></span>
 }
 
 function StatusIcon({ status }: { status: string }) {
-  if (status === "Verzonden") return <svg className="status-icon status-sent" viewBox="0 0 20 20" role="img" aria-label="Ingediend"><circle cx="10" cy="10" r="9" fill="#16A34A" /><path d="M6.3 10.3 L8.8 12.7 L13.8 7.6" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-  if (status === "Voorbij") return <svg className="status-icon status-past" viewBox="0 0 20 20" role="img" aria-label="Afgerond"><circle cx="10" cy="10" r="9" fill="#52525B" /><path d="M6.3 10.3 L8.8 12.7 L13.8 7.6" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-  return <svg className="status-icon status-created" viewBox="0 0 20 20" role="img" aria-label="Opgeladen"><circle cx="10" cy="10" r="8" fill="none" stroke="#71717A" strokeWidth="1.5" /></svg>
+  if (status === "Verzonden") return <span className="status-icon status-sent"><Check /></span>
+  if (status === "Voorbij") return <span className="status-icon status-past"><CalendarCheck2 /></span>
+  return <span className="status-icon status-created"><span /></span>
 }
 
 function Quality({ value }: { value: number }) {
@@ -65,7 +63,7 @@ function Quality({ value }: { value: number }) {
 
 function MailingRow({ mailing }: { mailing: typeof mailings[number] }) {
   return <div className="mailing-row">
-    <div className="row-main"><QualityStatusIcon value={mailing.quality} /><span className="mailing-id">{mailing.id}</span><StatusIcon status={mailing.status} /><span className="mailing-title">{mailing.title}</span></div>
+    <div className="row-main"><PriorityIcon active={mailing.priority} /><span className="mailing-id">{mailing.id}</span><StatusIcon status={mailing.status} /><span className="mailing-title">{mailing.title}</span></div>
     <div className="row-meta"><span className="pill pill-client"><Sparkles /> Contrapunt</span><span className="pill">{mailing.recipients}</span><span className="pill pill-mode"><span className={mailing.mode === "Prod" ? "mode-dot prod" : "mode-dot test"} />{mailing.mode}</span><span className="pill">{mailing.format}</span><Quality value={mailing.quality} /><span className="mailing-date">{mailing.date}</span><IconButton label={`Opties voor ${mailing.title}`}><MoreHorizontal /></IconButton></div>
   </div>
 }
