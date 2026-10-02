@@ -96,7 +96,7 @@ export default function Page() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [activeTab, setActiveTab] = useState("Alles")
   const [settings, setSettings] = useState(false)
-  const [lightMode, setLightMode] = useState(false)
+  const [lightMode, setLightMode] = useState(true)
   const currentMailings = activeTab === "Alles" ? mailings : mailings.filter((mailing) => activeTab === "Lopend" ? mailing.group === "lopend" : activeTab === "Verlopen" ? mailing.group === "verlopen" : mailing.status === activeTab)
   useEffect(() => { const onKey = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(true) } if (event.key.toLowerCase() === "c" && !["INPUT", "TEXTAREA"].includes((event.target as HTMLElement).tagName)) setNewOpen(true); if (event.key === "Escape") { setNewOpen(false); setSearchOpen(false) } }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey) }, [])
   const groups = useMemo(() => ({ lopend: currentMailings.filter((mailing) => mailing.group === "lopend"), verlopen: currentMailings.filter((mailing) => mailing.group === "verlopen") }), [currentMailings])
