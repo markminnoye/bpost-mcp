@@ -50,10 +50,6 @@ function PriorityIcon({ active }: { active: boolean }) {
   return <span className={`priority-bars ${active ? "is-priority" : ""}`} aria-label={active ? "Prioriteit" : "Geen prioriteit"}><i /><i /><i /></span>
 }
 
-function StatusIcon() {
- return <span className="status-icon status-created" aria-label="Opgeladen"><span /></span>
-}
-
 function Quality({ value }: { value: number }) {
   const tone = value < 96 ? "quality-bad" : value < 98 ? "quality-warn" : "quality-good"
   return <span className={`quality ${tone}`}>{value.toFixed(1)}%</span>
@@ -61,7 +57,7 @@ function Quality({ value }: { value: number }) {
 
 function MailingRow({ mailing }: { mailing: typeof mailings[number] }) {
   return <div className="mailing-row">
-    <div className="row-main"><PriorityIcon active={mailing.priority} /><span className="mailing-id">{mailing.id}</span><StatusIcon /><span className="mailing-title">{mailing.title}</span></div>
+    <div className="row-main"><PriorityIcon active={mailing.priority} /><span className="mailing-id">{mailing.id}</span><span className="mailing-title">{mailing.title}</span></div>
     <div className="row-meta"><span className="pill pill-client"><Sparkles /> Contrapunt</span><span className="pill">{mailing.recipients}</span><span className="pill pill-mode"><span className={mailing.mode === "Prod" ? "mode-dot prod" : "mode-dot test"} />{mailing.mode}</span><span className="pill">{mailing.format}</span><Quality value={mailing.quality} /><span className="mailing-date">{mailing.date}</span><IconButton label={`Opties voor ${mailing.title}`}><MoreHorizontal /></IconButton></div>
   </div>
 }
