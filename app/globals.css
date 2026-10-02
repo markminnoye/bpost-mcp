@@ -21,7 +21,7 @@ button { cursor: pointer; }
 .nav-item { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; border-radius: 7px; background: transparent; color: #92959d; padding: 8px 10px; text-align: left; transition: .15s ease; }
 .nav-item svg { width: 15px; height: 15px; }
 .nav-item:hover { color: #e8e8e8; background: #15171b; }
-.nav-item.active { color: #f2f2f2; background: #202125; box-shadow: inset 2px 0 #e30613; }
+.nav-item.active { color: #f2f2f2; background: #202125; }
 .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 17px; padding: 0 9px 2px; color: #656872; }
 .help-button { display: flex; align-items: center; gap: 9px; border: 0; padding: 0; background: transparent; color: inherit; font-size: 12px; text-align: left; }
 .help-button svg { width: 15px; height: 15px; }.version { color: #4c4f57; font-size: 11px; }
