@@ -50,10 +50,8 @@ function PriorityIcon({ active }: { active: boolean }) {
   return <span className={`priority-bars ${active ? "is-priority" : ""}`} aria-label={active ? "Prioriteit" : "Geen prioriteit"}><i /><i /><i /></span>
 }
 
-function StatusIcon({ status }: { status: string }) {
-  if (status === "Verzonden") return <span className="status-icon status-sent"><Check /></span>
-  if (status === "Voorbij") return <span className="status-icon status-past"><CalendarCheck2 /></span>
-  return <span className="status-icon status-created"><span /></span>
+function StatusIcon() {
+ return <span className="status-icon status-created" aria-label="Opgeladen"><span /></span>
 }
 
 function Quality({ value }: { value: number }) {
@@ -63,7 +61,7 @@ function Quality({ value }: { value: number }) {
 
 function MailingRow({ mailing }: { mailing: typeof mailings[number] }) {
   return <div className="mailing-row">
-    <div className="row-main"><PriorityIcon active={mailing.priority} /><span className="mailing-id">{mailing.id}</span><StatusIcon status={mailing.status} /><span className="mailing-title">{mailing.title}</span></div>
+    <div className="row-main"><PriorityIcon active={mailing.priority} /><span className="mailing-id">{mailing.id}</span><StatusIcon /><span className="mailing-title">{mailing.title}</span></div>
     <div className="row-meta"><span className="pill pill-client"><Sparkles /> Contrapunt</span><span className="pill">{mailing.recipients}</span><span className="pill pill-mode"><span className={mailing.mode === "Prod" ? "mode-dot prod" : "mode-dot test"} />{mailing.mode}</span><span className="pill">{mailing.format}</span><Quality value={mailing.quality} /><span className="mailing-date">{mailing.date}</span><IconButton label={`Opties voor ${mailing.title}`}><MoreHorizontal /></IconButton></div>
   </div>
 }
@@ -87,7 +85,7 @@ function Property({ icon, label }: { icon: React.ReactNode; label: string }) { r
 function SearchModal({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("")
   const results = mailings.filter((mailing) => `${mailing.id} ${mailing.title}`.toLowerCase().includes(query.toLowerCase()))
-  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><section className="search-modal" role="dialog" aria-modal="true" aria-labelledby="search-title"><div className="search-input-wrap"><Search /><input autoFocus id="search-title" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek in mailings, referenties of klant..." /><kbd>ESC</kbd></div><div className="search-tabs"><span className="tab active">Alles</span><span className="tab">Lopend</span><span className="tab">Verzonden</span><span className="tab">Verlopen</span></div><div className="search-results">{results.map((mailing) => <button key={mailing.id} className="search-result"><StatusIcon status={mailing.status} /><span><strong>{mailing.title}</strong><small>{mailing.id} · {mailing.recipients}</small></span><span className="result-date">{mailing.date}</span></button>)}{!results.length && <div className="empty-search">Geen mailings gevonden</div>}</div></section></div>
+  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><section className="search-modal" role="dialog" aria-modal="true" aria-labelledby="search-title"><div className="search-input-wrap"><Search /><input autoFocus id="search-title" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek in mailings, referenties of klant..." /><kbd>ESC</kbd></div><div className="search-tabs"><span className="tab active">Alles</span><span className="tab">Lopend</span><span className="tab">Verzonden</span><span className="tab">Verlopen</span></div><div className="search-results">{results.map((mailing) => <button key={mailing.id} className="search-result"><StatusIcon /><span><strong>{mailing.title}</strong><small>{mailing.id} · {mailing.recipients}</small></span><span className="result-date">{mailing.date}</span></button>)}{!results.length && <div className="empty-search">Geen mailings gevonden</div>}</div></section></div>
 }
 
 export default function Page() {
