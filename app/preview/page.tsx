@@ -33,9 +33,18 @@ import {
 } from "lucide-react"
 
 const mailings = [
-  { id: "CP-2026-08", title: "Voorjaarsbrochure 2026", status: "Aangemaakt", group: "lopend", quality: 93.4, recipients: "789 adressen", mode: "Prod", format: "C5", date: "15 okt", priority: true },
-  { id: "ML-140642", title: "Ledenblad Nr. 4", status: "Aangemaakt", group: "lopend", quality: 97.2, recipients: "1.246 adressen", mode: "Prod", format: "C4", date: "28 sep", priority: false },
-  { id: "CP-2026-07", title: "Concertuitnodigingen", status: "Verzonden", group: "lopend", quality: 99.8, recipients: "342 adressen", mode: "Test", format: "C5", date: "22 sep", priority: true },
+  { id: "CP-2026-08", title: "Voorjaarsbrochure 2026", status: "Opgeladen", group: "lopend", quality: 93.4, recipients: "789 adressen", mode: "Prod", format: "C5", date: "15 okt", priority: true },
+  { id: "ML-140642", title: "Ledenblad Nr. 4", status: "Gekoppeld", group: "lopend", quality: 97.2, recipients: "1.246 adressen", mode: "Prod", format: "C4", date: "28 sep", priority: false },
+  { id: "CP-2026-07", title: "Concertuitnodigingen", status: "Geverifieerd", group: "lopend", quality: 99.8, recipients: "342 adressen", mode: "Test", format: "C5", date: "22 sep", priority: true },
+  { id: "CP-2026-06", title: "Najaarsoverzicht leden", status: "Gecontroleerd", group: "lopend", quality: 99.8, recipients: "1.580 adressen", mode: "Prod", format: "C4", date: "19 sep", priority: false },
+  { id: "ML-140118", title: "Uitnodiging klantendag", status: "Ingediend", group: "lopend", quality: 99.8, recipients: "428 adressen", mode: "Prod", format: "C5", date: "16 sep", priority: false },
+  { id: "CP-2026-04", title: "Campagne eindejaar", status: "Ingediend , (actie nodig)", group: "lopend", quality: 97.2, recipients: "3.210 adressen", mode: "Prod", format: "C4", date: "12 sep", priority: true },
+  { id: "ML-139998", title: "Programma winterlezingen", status: "Afgerond", group: "lopend", quality: 99.8, recipients: "876 adressen", mode: "Test", format: "C5", date: "09 sep", priority: false },
+  { id: "CP-2026-02", title: "Najaarsmailing cultuur", status: "Ingetrokken", group: "lopend", quality: 93.4, recipients: "264 adressen", mode: "Prod", format: "C5", date: "05 sep", priority: false },
+  { id: "ML-139772", title: "Save the date symposium", status: "Gecontroleerd", group: "lopend", quality: 99.8, recipients: "612 adressen", mode: "Prod", format: "C5", date: "02 sep", priority: false },
+  { id: "CP-2026-01", title: "Jaarverslag verzending", status: "Geverifieerd", group: "lopend", quality: 97.2, recipients: "1.104 adressen", mode: "Prod", format: "C4", date: "29 aug", priority: false },
+  { id: "ML-139640", title: "Nieuwsbrief zomer", status: "Ingediend", group: "lopend", quality: 99.8, recipients: "942 adressen", mode: "Test", format: "C5", date: "26 aug", priority: false },
+  { id: "ML-139891", title: "Nieuwsbrief juni", status: "Voorbij", group: "verlopen", quality: 98.9, recipients: "654 adressen", mode: "Prod", format: "C5", date: "30 aug", priority: false },
   { id: "CP-2026-05", title: "Zomerprogramma 2026", status: "Voorbij", group: "verlopen", quality: 99.6, recipients: "2.104 adressen", mode: "Prod", format: "C4", date: "08 sep", priority: false },
   { id: "ML-139891", title: "Nieuwsbrief juni", status: "Voorbij", group: "verlopen", quality: 98.9, recipients: "654 adressen", mode: "Prod", format: "C5", date: "30 aug", priority: false },
   { id: "CP-2026-03", title: "Donateursmailing voorjaar", status: "Voorbij", group: "verlopen", quality: 95.8, recipients: "516 adressen", mode: "Prod", format: "C5", date: "14 aug", priority: true },
@@ -47,9 +56,8 @@ function IconButton({ label, children, onClick }: { label: string; children: Rea
 }
 
 function StatusIcon({ status }: { status: string }) {
-  if (status === "Verzonden") return <span className="status-icon status-sent" role="img" aria-label="Verzonden"><Check /></span>
-  if (status === "Voorbij") return <span className="status-icon status-past" role="img" aria-label="Voorbij"><Check /></span>
-  return <span className="status-icon status-created" role="img" aria-label="Aangemaakt"><span /></span>
+  const statusClass = status.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+  return <span className={`status-icon status-${statusClass}`} role="img" aria-label={status}><span /></span>
 }
 
 function Quality({ value }: { value: number }) {
@@ -83,7 +91,7 @@ function Property({ icon, label }: { icon: React.ReactNode; label: string }) { r
 function SearchModal({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("")
   const results = mailings.filter((mailing) => `${mailing.id} ${mailing.title}`.toLowerCase().includes(query.toLowerCase()))
-  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><section className="search-modal" role="dialog" aria-modal="true" aria-labelledby="search-title"><div className="search-input-wrap"><Search /><input autoFocus id="search-title" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek in mailings, referenties of klant..." /><kbd>ESC</kbd></div><div className="search-tabs"><span className="tab active">Alles</span><span className="tab">Lopend</span><span className="tab">Verzonden</span><span className="tab">Verlopen</span></div><div className="search-results">{results.map((mailing) => <button key={mailing.id} className="search-result"><StatusIcon /><span><strong>{mailing.title}</strong><small>{mailing.id} · {mailing.recipients}</small></span><span className="result-date">{mailing.date}</span></button>)}{!results.length && <div className="empty-search">Geen mailings gevonden</div>}</div></section></div>
+  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><section className="search-modal" role="dialog" aria-modal="true" aria-labelledby="search-title"><div className="search-input-wrap"><Search /><input autoFocus id="search-title" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek in mailings, referenties of klant..." /><kbd>ESC</kbd></div><div className="search-tabs"><span className="tab active">Alles</span><span className="tab">Lopend</span><span className="tab">Verzonden</span><span className="tab">Verlopen</span></div><div className="search-results">{results.map((mailing) => <button key={mailing.id} className="search-result"><StatusIcon status={mailing.status} /><span><strong>{mailing.title}</strong><small>{mailing.id} · {mailing.recipients}</small></span><span className="result-date">{mailing.date}</span></button>)}{!results.length && <div className="empty-search">Geen mailings gevonden</div>}</div></section></div>
 }
 
 export default function Page() {

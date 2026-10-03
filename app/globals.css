@@ -90,3 +90,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid #e30613; outline-
 .light-mode ::-webkit-scrollbar-track { background: #f1f1f3; }
 .light-mode ::-webkit-scrollbar-thumb { border-color: #f1f1f3; background: #c9c9ce; }
 @media (max-width: 640px) { .theme-toggle { font-size: 0; } }
+.status-opgeladen { color: #71717a; border: 1.5px solid currentColor; border-radius: 50%; background: transparent; }
+.status-gekoppeld { color: #d69e00; border: 1.5px solid currentColor; border-radius: 50%; background: conic-gradient(currentColor 0 270deg, transparent 270deg); }
+.status-geverifieerd, .status-gecontroleerd { color: #16a34a; border: 1.5px solid currentColor; border-radius: 50%; background: conic-gradient(currentColor 0 270deg, transparent 270deg); }
+.status-ingediend { color: #16a34a; border: 0; border-radius: 50%; background: currentColor; }
+.status-ingediend-actie-nodig { color: #f97316; border: 0; border-radius: 50%; background: currentColor; }
+.status-afgerond { color: #71717a; border: 0; border-radius: 50%; background: currentColor; }
+.status-ingetrokken { color: #dc2626; border: 0; border-radius: 50%; background: currentColor; }
+.status-opgeladen::after, .status-gekoppeld::after, .status-geverifieerd::after, .status-gecontroleerd::after { content: ""; display: block; width: 3px; height: 3px; margin: 3px; border-radius: 50%; background: currentColor; }
+.status-ingediend::after, .status-afgerond::after { content: "✓"; display: block; color: #fff; font-size: 10px; line-height: 13px; text-align: center; }
+.status-ingediend-actie-nodig::after { content: "!"; display: block; color: #fff; font-size: 10px; font-weight: 700; line-height: 13px; text-align: center; }
+.status-ingetrokken::after { content: "–"; display: block; color: #fff; font-size: 11px; line-height: 12px; text-align: center; }
