@@ -91,7 +91,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid #e30613; outline-
 .light-mode ::-webkit-scrollbar-thumb { border-color: #f1f1f3; background: #c9c9ce; }
 @media (max-width: 640px) { .theme-toggle { font-size: 0; } }
 .status-opgeladen { color: #71717a; border: 1.5px solid currentColor; border-radius: 50%; background: transparent; }
-.status-gekoppeld { color: #d69e00; border: 1.5px solid currentColor; border-radius: 50%; background: conic-gradient(currentColor 0 270deg, transparent 270deg); }
+.status-gekoppeld { color: #d69e00; border: 1.5px solid currentColor; border-radius: 50%; background: conic-gradient(currentColor 0 90deg, transparent 90deg); }
 .status-geverifieerd, .status-gecontroleerd { color: #16a34a; border: 1.5px solid currentColor; border-radius: 50%; background: conic-gradient(currentColor 0 270deg, transparent 270deg); }
 .status-ingediend { color: #16a34a; border: 0; border-radius: 50%; background: currentColor; }
 .status-ingediend-actie-nodig { color: #f97316; border: 0; border-radius: 50%; background: currentColor; }

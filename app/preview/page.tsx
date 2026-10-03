@@ -68,7 +68,7 @@ function Quality({ value }: { value: number }) {
 function MailingRow({ mailing }: { mailing: typeof mailings[number] }) {
   return <div className="mailing-row">
     <div className="row-main"><StatusIcon status={mailing.status} /><span className="mailing-id">{mailing.id}</span><span className="mailing-title">{mailing.title}</span></div>
-    <div className="row-meta"><span className="pill pill-client"><Sparkles /> Contrapunt</span><span className="pill">{mailing.recipients}</span><span className="pill pill-mode"><span className={mailing.mode === "Prod" ? "mode-dot prod" : "mode-dot test"} />{mailing.mode}</span><span className="pill">{mailing.format}</span><Quality value={mailing.quality} /><span className="mailing-date">{mailing.date}</span><IconButton label={`Opties voor ${mailing.title}`}><MoreHorizontal /></IconButton></div>
+    <div className="row-meta"><span className="pill pill-client"><Sparkles /> Contrapunt</span><span className="pill">{mailing.recipients}</span><span className="pill pill-mode"><span className={mailing.mode === "Prod" ? "mode-dot prod" : "mode-dot test"} />{mailing.mode}</span><span className="pill">{mailing.format}</span>{mailing.status !== "Gekoppeld" && <Quality value={mailing.quality} />}<span className="mailing-date">{mailing.date}</span><IconButton label={`Opties voor ${mailing.title}`}><MoreHorizontal /></IconButton></div>
   </div>
 }
 
