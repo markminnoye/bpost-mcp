@@ -46,7 +46,6 @@ const mailings = [
   { id: "ML-139891", title: "Nieuwsbrief juni", status: "Afgerond", group: "verlopen", quality: 98.9, recipients: "654 adressen", mode: "Prod", format: "C5", date: "30 aug", priority: false },
   { id: "CP-2026-05", title: "Zomerprogramma 2026", status: "Afgerond", group: "verlopen", quality: 99.6, recipients: "2.104 adressen", mode: "Prod", format: "C4", date: "08 sep", priority: false },
   { id: "ML-139891-2", title: "Nieuwsbrief juni", status: "Afgerond", group: "verlopen", quality: 98.9, recipients: "654 adressen", mode: "Prod", format: "C5", date: "30 aug", priority: false },
-  { id: "CP-2026-03", title: "Donateursmailing voorjaar", status: "Afgerond", group: "verlopen", quality: 95.8, recipients: "516 adressen", mode: "Prod", format: "C5", date: "14 aug", priority: true },
   { id: "ML-139440", title: "Uitnodiging algemene vergadering", status: "Afgerond", group: "verlopen", quality: 99.2, recipients: "188 adressen", mode: "Test", format: "C5", date: "01 aug", priority: false },
   { id: "ML-139998", title: "Programma winterlezingen", status: "Afgerond", group: "verlopen", quality: 99.8, recipients: "876 adressen", mode: "Test", format: "C5", date: "09 sep", priority: false },
 ]
