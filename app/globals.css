@@ -97,7 +97,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid #e30613; outline-
 .status-ingediend-actie-nodig { color: #f97316; border: 0; border-radius: 50%; background: currentColor; }
 .status-afgerond { color: #71717a; border: 0; border-radius: 50%; background: currentColor; }
 .status-ingetrokken { color: #dc2626; border: 0; border-radius: 50%; background: currentColor; }
-.status-opgeladen::after, .status-gekoppeld::after, .status-geverifieerd::after, .status-gecontroleerd::after { content: ""; display: block; width: 3px; height: 3px; margin: 3px; border-radius: 50%; background: currentColor; }
+.status-opgeladen::after, .status-geverifieerd::after, .status-gecontroleerd::after { content: ""; display: block; width: 3px; height: 3px; margin: 3px; border-radius: 50%; background: currentColor; }
 .status-ingediend::after, .status-afgerond::after { content: "✓"; display: block; color: #fff; font-size: 10px; line-height: 13px; text-align: center; }
 .status-ingediend-actie-nodig::after { content: "!"; display: block; color: #fff; font-size: 10px; font-weight: 700; line-height: 13px; text-align: center; }
 .status-ingetrokken::after { content: "–"; display: block; color: #fff; font-size: 11px; line-height: 12px; text-align: center; }
