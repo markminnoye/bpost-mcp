@@ -46,8 +46,10 @@ function IconButton({ label, children, onClick }: { label: string; children: Rea
   return <button aria-label={label} onClick={onClick} className="icon-button">{children}</button>
 }
 
-function PriorityIcon() {
-  return <span className="status-icon status-created" role="img" aria-label="Status" ><span /></span>
+function StatusIcon({ status }: { status: string }) {
+  if (status === "Verzonden") return <span className="status-icon status-sent" role="img" aria-label="Verzonden"><Check /></span>
+  if (status === "Voorbij") return <span className="status-icon status-past" role="img" aria-label="Voorbij"><Check /></span>
+  return <span className="status-icon status-created" role="img" aria-label="Aangemaakt"><span /></span>
 }
 
 function Quality({ value }: { value: number }) {
@@ -57,7 +59,7 @@ function Quality({ value }: { value: number }) {
 
 function MailingRow({ mailing }: { mailing: typeof mailings[number] }) {
   return <div className="mailing-row">
-    <div className="row-main"><PriorityIcon /><span className="mailing-id">{mailing.id}</span><span className="mailing-title">{mailing.title}</span></div>
+    <div className="row-main"><StatusIcon status={mailing.status} /><span className="mailing-id">{mailing.id}</span><span className="mailing-title">{mailing.title}</span></div>
     <div className="row-meta"><span className="pill pill-client"><Sparkles /> Contrapunt</span><span className="pill">{mailing.recipients}</span><span className="pill pill-mode"><span className={mailing.mode === "Prod" ? "mode-dot prod" : "mode-dot test"} />{mailing.mode}</span><span className="pill">{mailing.format}</span><Quality value={mailing.quality} /><span className="mailing-date">{mailing.date}</span><IconButton label={`Opties voor ${mailing.title}`}><MoreHorizontal /></IconButton></div>
   </div>
 }
