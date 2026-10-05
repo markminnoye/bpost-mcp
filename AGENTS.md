@@ -47,6 +47,36 @@ Genereer TSDoc-commentaar voor alle geëxporteerde functies (en publieke types).
 - `npm run docs:check` faalt als `docs/ontwikkelaars/library/` of `docs/ontwikkelaars/api/openapi.yaml` achterloopt. Push naar `develop` publiceert de `docs/`-map naar branch `docs` en commit niet terug naar `develop`.
 - GitBook toont vier tabbladen (Documentatie, Ontwikkelaars, Naslag bpost, Changelog), zie `docs/gitbook-docs.yaml`, ADR 0003 en `docs/README.md`. Alle technische info staat in `docs/ontwikkelaars/` en kan later in één keer geschrapt worden: verwijs er niet naar vanuit de andere tabs.
 
+#### Documentatiestructuur onderhouden
+
+Alles wat hieronder staat geldt voor mensen en agenten. De volledige werkwijze staat in `docs/ontwikkelaars/beheer/documentatie.md`; de reden voor de indeling in `docs/adr/0003-docs-tabs-removable-developer-tab.md`.
+
+| Map | GitBook-tab | Hoe onderhouden |
+|---|---|---|
+| `docs/documentatie/` | Documentatie (skill, webapp, MCP; alfa, Nederlands) | Met de hand |
+| `docs/ontwikkelaars/` | Ontwikkelaars (alle technische info, schrapbaar) | Met de hand, behalve `library/` en `api/openapi.yaml` (gegenereerd) |
+| `docs/internal/e-masspost/docs/` | Naslag bpost | Submodule, zie hieronder |
+| `docs/changelog/` | Changelog | Niet bewerken: kopie van `CHANGELOG.md`, gemaakt door `publish-docs.yml` |
+
+Niet gepubliceerd in een tab: `docs/adr/`, `docs/install/`, `docs/samples/`, `docs/superpowers/`, `docs/external/` en de rest van `docs/internal/`. `.agent/skills/docs/` hoort bij de skill: behouden, niet verplaatsen of opruimen.
+
+**Een pagina toevoegen of verplaatsen**
+1. Elke tab-map heeft een eigen `README.md` en `SUMMARY.md`. Een pagina die niet in de `SUMMARY.md` van haar tab staat, is niet bereikbaar op de site: voeg ze daar toe en verwijder ze er bij verwijderen of verplaatsen weer uit.
+2. Handgeschreven pagina's zijn in het Nederlands (Vlaams). Voor klantgerichte tekst: `@.agent/prompts/customer-facing-agent.md`. Ontwikkelaars-pagina's blijven technisch.
+3. Een onderdeel dat nog gebouwd wordt, krijgt één landingspagina met status, geen lege pagina's.
+4. Pagina's buiten `docs/ontwikkelaars/` verwijzen niet naar `docs/ontwikkelaars/`. Links tussen tabs zijn geen relatieve links; schrijf verwijzingen als tekst.
+5. Een tab-map ziet alleen zichzelf: relatieve links werken enkel binnen dezelfde tab-map.
+
+**Gegenereerd, niet met de hand bewerken:** `docs/ontwikkelaars/library/` (`npm run docs:code`), `docs/ontwikkelaars/api/openapi.yaml` (`npm run docs:api`), `docs/changelog/`. Pas de bron aan (TSDoc, Zod-schema's, `CHANGELOG.md`) en draai `npm run docs:build` en `npm run docs:check`. Branch `docs` wordt bij elke push naar `develop` met force overschreven: nooit rechtstreeks op `docs` werken.
+
+**bpost-protocolnaslag (submodule `docs/internal/e-masspost/`)**
+- De tekst staat in de map `docs/` van de skills-repo en is daar de enige bron; de skill-zip wordt eruit gebouwd. Pas ze niet aan in een kopie, en zeker niet enkel in `bpost-mcp`.
+- Werkwijze: aanpassing in de skills-repo (branch, pull request naar `main`, tekst ook in haar `CHANGELOG.md`), daarna in `bpost-mcp` de submodule-pointer bijwerken met een `CHANGELOG.md`-item.
+- Nieuwe bpost-inzichten (onbekende codes, randgevallen): zie "Continuous Learning".
+- Padverwijzingen in code, docs en plannen gebruiken `docs/internal/e-masspost/docs/…`. Het oude pad `…/skills/e-masspost-protocol/…` bestaat niet meer.
+
+**Structuur wijzigen** (tab toevoegen of schrappen, gegenereerde output verplaatsen): eerst een ADR in `docs/adr/` (kopieer `template.md`), daarna `docs/gitbook-docs.yaml`, `docs/README.md` en deze sectie bijwerken.
+
 ### Environment & Configuration
 
 - **Zero Hardcoding**: Never hardcode production fallback URLs (like `.vercel.app`) in components or logic.
