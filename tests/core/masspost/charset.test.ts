@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { findUnsupportedChars, normalizeForBpost, isBpostSafeCodePoint } from '@/core/masspost/charset'
+import {
+  CHARACTER_REPLACEMENTS,
+  findUnsupportedChars,
+  normalizeForBpost,
+  isBpostSafeCodePoint,
+} from '@/core/masspost/charset'
 import { mapRows } from '@/core/masspost/mapping'
-import ExcelJS from 'exceljs'
+import { xlsxBuffer } from '@/core/masspost/fixtures/xlsx'
 import { convertExcelToMailingRequest } from '@/core/masspost/pipeline'
 
 describe('isBpostSafeCodePoint', () => {
@@ -33,17 +38,29 @@ describe('normalizeForBpost', () => {
   it('drops accents on letters outside Latin-1 but keeps Latin-1 letters intact', () => {
     expect(normalizeForBpost('Kőrösi Zoë').text).toBe('Korösi Zoë')
   })
+  it('transliterates letters without a decomposition (ł, đ, œ, ı)', () => {
+    // ó is Latin-1 and stays, ź loses its accent, Ł has no decomposition and comes from the table.
+    expect(normalizeForBpost('Łódź').text).toBe('Lódz')
+    expect(normalizeForBpost('Đorđe Œuvre ılık').text).toBe('Dorde OEuvre ilik')
+  })
+  it('turns a bullet into a space', () => {
+    expect(normalizeForBpost('Grote Markt 1 • 3de verdieping').text).toBe('Grote Markt 1   3de verdieping')
+  })
   it('leaves characters it cannot fix so validation can report them', () => {
-    // ó is Latin-1 and stays, ź loses its accent, Ł has no decomposition and is left for validation.
-    expect(normalizeForBpost('Łódź').text).toBe('Łódz')
-    expect(findUnsupportedChars(normalizeForBpost('Łódź').text)).toEqual(['Ł'])
+    expect(normalizeForBpost('Ωmega 😀').text).toBe('Ωmega 😀')
+    expect(findUnsupportedChars(normalizeForBpost('Ωmega 😀').text)).toEqual(['Ω', '😀'])
+  })
+  it('exports every replacement so the documentation can list them', () => {
+    expect(CHARACTER_REPLACEMENTS['ł']).toBe('l')
+    expect(CHARACTER_REPLACEMENTS['’']).toBe("'")
+    expect(CHARACTER_REPLACEMENTS['•']).toBe(' ')
   })
 })
 
 describe('mapRows charset handling', () => {
   const mapping = { name: ['N'], streetHouseBox: ['S'], postcodeCity: ['P'] }
   it('warns when characters were replaced or cannot be sent', () => {
-    const { rows, warnings } = mapRows([{ N: 'D’Hooge', S: 'Łódźstraat 1', P: '2000 Antwerpen' }], mapping)
+    const { rows, warnings } = mapRows([{ N: 'D’Hooge', S: 'Ωmegastraat 1', P: '2000 Antwerpen' }], mapping)
     expect(rows[0].fields.name.value).toBe("D'Hooge")
     expect(warnings.some((w) => w.field === 'name' && w.message.includes('vervangen'))).toBe(true)
     expect(warnings.some((w) => w.field === 'streetHouseBox' && w.message.includes('niet aanvaardt'))).toBe(true)
@@ -52,11 +69,7 @@ describe('mapRows charset handling', () => {
 
 describe('pipeline charset guard', () => {
   async function xlsx(name: string) {
-    const wb = new ExcelJS.Workbook()
-    const ws = wb.addWorksheet('A')
-    ws.addRow(['Naam', 'Straat', 'Postcode'])
-    ws.addRow([name, 'Kerkstraat 10', '2000 Antwerpen'])
-    return Buffer.from(await wb.xlsx.writeBuffer())
+    return xlsxBuffer([['Naam', 'Straat', 'Postcode'], [name, 'Kerkstraat 10', '2000 Antwerpen']], 'A')
   }
   const map = { name: ['Naam'], streetHouseBox: ['Straat'], postcodeCity: ['Postcode'] }
   const params = {
@@ -73,9 +86,9 @@ describe('pipeline charset guard', () => {
   })
 
   it('refuses to build XML when a character cannot be represented in ISO-8859-1', async () => {
-    const r = await convertExcelToMailingRequest(await xlsx('Łukasz'), map, params, creds)
+    const r = await convertExcelToMailingRequest(await xlsx('Ωukasz'), map, params, creds)
     expect(r.validation.valid).toBe(false)
     expect(r.xml).toBeUndefined()
-    expect(r.validation.issues[0].message).toContain('Ł')
+    expect(r.validation.issues[0].message).toContain('Ω')
   })
 })

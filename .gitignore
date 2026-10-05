@@ -10,6 +10,9 @@ src/generated/
 .next/
 out/
 
+# Standalone POC build (npm run build:poc)
+dist/
+
 # debug logs
 npm-debug.log*
 yarn-debug.log*

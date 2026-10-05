@@ -16,13 +16,19 @@ const SuggestionShape = z.object({
     companyDepartment: z.array(z.string()).optional(),
     streetHouseBox: z.array(z.string()),
     postcodeCity: z.array(z.string()),
+    country: z.array(z.string()).optional().meta({
+      description: 'Country column (name or two-letter code). Sent to bpost as Comp 18 or 17, never for Belgium.',
+    }),
   }),
   confidence: z.enum(['high', 'medium', 'low']),
   rationale: z.record(z.string(), z.string()).meta({
-    description: 'Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93`.',
+    description: 'Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93` and, for the heuristic and presets, `18` (country).',
   }),
   unmatchedHeaders: z.array(z.string()),
   needsAi: z.boolean(),
+  preset: z.enum(['contrapunt-export', 'aft']).optional().meta({
+    description: "Known layout recognised from the titles: Contrapunt's export or bpost's Address File Tool.",
+  }),
 })
 
 /** 200 body. Describes the handler; it does not parse it. `source` says who produced the mapping. */

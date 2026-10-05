@@ -6,13 +6,21 @@
 
 # Interface: ColumnMapping
 
-Source-column titles that feed each unstructured address block.
+Source-column titles that feed each address block.
 
 ## Properties
 
 ### companyDepartment?
 
 > `optional` **companyDepartment?**: readonly `string`[]
+
+***
+
+### country?
+
+> `optional` **country?**: readonly `string`[]
+
+Country name or two-letter code. Sent only for addresses outside Belgium.
 
 ***
 

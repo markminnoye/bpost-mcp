@@ -12,6 +12,8 @@ Alfaversie. De webapp en de MCP-koppeling worden nog gebouwd en kunnen verandere
 |---|---|---|
 | bpost-kennis voor je AI-assistent (skill) | Beschikbaar | [Bpost-skill](bpost-skill.md) |
 | Inloggen en je account instellen | Alfa | [Webapp](webapp/inloggen.md) |
+| Een adreslijst inlezen, koppelen en nakijken | Proefversie | [Adreslijst nakijken](webapp/adreslijst-nakijken.md) |
+| Regels waarop we je adreslijst nakijken | Proefversie | [Formaatvalidatie](webapp/formaatvalidatie.md) |
 | Werken via je AI-assistent (MCP) | Alfa, wordt volledig herschreven | [MCP](mcp/README.md) |
 
 Het volledige bpost e-MassPost-protocol (bestandsformaten, flows, foutcodes) vind je in de groep **Naslag bpost**. De **Changelog** toont wat er veranderd is.

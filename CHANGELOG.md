@@ -39,6 +39,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skills-submodule bijgewerkt naar `562e545` (skills PR #9): live Contrapunt **field findings**, AFT API Manual v1.7 en portal code-lists.
 - Ontwerp van de **web-flow voor mailings** (5 stappen: opladen, koppelen, formaatvalidatie, adrescontrole, indienen) met besluitenlog, schetsen en twee diagrammen. Plan `.agent/plans/2026-10-02-masspost-web-flow-design.md`, samenvatting op de ontwikkelaarspagina Website. Nog niet gebouwd.
 - Ontwikkelaarspagina **Architectuurmodellen** (`docs/ontwikkelaars/architectuurmodellen.md`): vergelijking van het Centraal model, Lokaal met relay, Lokaal met portaal, het Gesplitst model en het Kluismodel (meerdere gebruikers, multi-tenancy, privacy, correcties, Vercel-limieten, FTP). Bevat de CORS-test van 05/10 op het bpost-portaal en de Address Proofing-API. Analyse, nog geen besluit.
+- **POC formaatvalidatie** op `/masspost/poc`, volgens de schets van stap 3.
+  - Een adreslijst (.xlsx) inlezen, de kolommen koppelen (met 5 voorbeeldwaarden per kolom en een envelopvoorbeeld) en nakijken op de regels van bpost.
+  - Per formaatfout een voorstel dat je overneemt, zelf aanpast of waarvoor je de rij uitsluit. Met toetsenbord en ongedaan maken.
+  - Alles gebeurt in de browser: niets wordt opgeladen of bewaard, en je hoeft niet aan te melden.
+  - De normale grens is 25.000 adressen, tot 150.000 om te meten (besluit 43).
+  - Ook als één offline HTML-bestand (`npm run build:poc`).
+  - Nieuwe documentatiepagina's: **Adreslijst nakijken** (de stappen, met wat elke keuze bij het koppelen betekent) en **Formaatvalidatie** (alle regels). Het koppelscherm legt "Tonen bij het verbeteren" uit en linkt naar die pagina.
+- **POC, uitbreidingen:**
+  - **Pills** rechts naast de stappen: herkende indeling (AFT of Contrapunt, in blauw), aantal adressen, buitenland, formaatfouten en uitgesloten rijen. De stapiconen blijven grijs tot een stap een status heeft: geel als er iets te doen is, groen als ze in orde is.
+  - **Koppelen:** per kolom een pill met het aantal gevulde rijen (bv. 0/200), lege kolommen onderaan, en "Verder" bovenaan. "Ander bestand kiezen" is weg: klik op "1. Opladen".
+  - **AFT-bestanden** worden herkend, net als de export van Contrapunt. Dan slaan we het koppelen over, en zonder formaatfouten gaan we meteen naar stap 4.
+  - **Koppelen:** de keuze **Land** (enkel meegestuurd bij een adres buiten België), meer voorbeelden per kolom met een klik, een envelop met de gekoppelde kolommen waarop je de volgorde wijzigt, en voorbeeldenveloppen per soort adres om door te bladeren.
+  - **Stap 4:** "Download voor de drukker" geeft je bestand met elke rij op haar plaats, en de kolommen *Meesturen* (uitgesloten rijen: niet drukken) en *Volgnummer bpost*.
+- **Ook .xls-bestanden** (Excel 97-2003) worden ingelezen, naast .xlsx. Excel-bestanden lezen en schrijven gebeurt voortaan met SheetJS in plaats van exceljs: ongeveer de helft van het geheugen, en een losstaand POC-bestand van 0,6 MB in plaats van 1,2 MB (ADR 0005).
 
 **Aanpassingen**
 
@@ -63,6 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cursor-regel + hook: Linear-issues moeten een begrijpelijke, self-contained brief hebben (geen dunne architectuurstubs).
 - De installatieprompt, README en het MCP-registrybestand (`server.json`) gebruiken `https://bpost.sonicrocket.app`. In `docs/install/install-prompt.md` staat `{{BASE_URL}}`; bij het serveren van de prompt wordt dat ingevuld vanuit `NEXT_PUBLIC_BASE_URL`.
 - OAuth-toegangstokens die nog op `https://bpost.sonicrocket.io` zijn uitgegeven blijven geldig via `AUTH_ACCEPTED_ISSUERS` (standaard die host). Nieuwe tokens worden ondertekend met de host van het verzoek. Op het `.app`-adres is dat de canonieke basis-URL.
+- **Tekencontrole:** ook ł, đ, œ, ı en het opsommingsteken (•) worden nu vervangen door een gewoon teken, ook in de scripts.
+- **Kolommen met een lege titel:** een kolom met een lege titel in de Excel verschuift de andere kolommen niet meer. Voordien kwamen de waarden dan onder de verkeerde titel.
 
 **Oplossingen**
 
@@ -102,6 +118,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skills submodule pointer `docs/internal/e-masspost` → `562e545` (field findings, AFT API Manual v1.7, portal code lists; skills PR #9).
 - Design of the mailing web flow (upload, map, format validation, address check, submit): decision log in `.agent/plans/2026-10-02-masspost-web-flow-design.md`, interactive sketches in `docs/ontwerp/webapp/` (not published), diagrams in `docs/ontwikkelaars/afbeeldingen/`, summary in `docs/ontwikkelaars/website.md`. Not built yet.
 - `docs/ontwikkelaars/architectuurmodellen.md`: architecture options for the web app (Centraal, Lokaal met relay/portaal, Gesplitst, Kluismodel) with trade-offs. Includes a 2026-10-05 CORS check: the e-MassPost portal redirect chain sends no CORS headers; the Address Proofing REST endpoint answers preflight with `access-control-allow-origin: *` (the API key is the blocker for browser use). Clarifies that Vercel's 4.5 MB limit covers function request/response bodies, not FTP downloads made by a function. No decision taken.
+- Web POC `/masspost/poc` (`src/app/(tools)/masspost/poc/`): upload → map → format validation, all in the browser (main thread; no upload, DB or login; `noindex`). Dependencies: `@tabler/icons-react`, dev `esbuild`.
+- Country support: `ColumnMapping.country`, `COUNTRY_COMP_CODES` (17/18), `isBelgianCountry`. `rowsToItems` adds Comp 18 (name) or 17 (two-letter code) for addresses outside Belgium. `checkFieldValue`/`proposeFieldValue` accept `country` (max 42, never abbreviated).
+- `presets/aft.ts`: the Address File Tool layout (both the template and the guide spellings). `suggestColumnMapping` reports `preset` (`aft` or `contrapunt-export`), maps country columns (land, pays, country, ISO code), and adds the Contrapunt country column. The suggest-mapping response schema describes the optional `country` and `preset` (additive).
+- `mapRows(rows, mapping, { rowNumbers })` and `findFormatIssues(…, { rowNumbers })` use the spreadsheet row number as `seq` (web-flow decision 49). Without `rowNumbers`, behaviour is unchanged.
+- `printer-export.ts`: `buildPrinterExport` (web-flow decision 48).
+- POC: pills (`MetaPills.tsx`), known-layout skip, step 4 with the printer export, column profiles, template envelope with column order, envelopes per kind of address.
+- `.xls` (Excel 97-2003, BIFF8) input in `parseExcelAddresses`. Files are recognised by their first bytes (zip or Compound File); anything else, including CSV, is refused.
+- `src/core/masspost/fixtures/xlsx.ts` (`xlsxBuffer`, `writeXlsxFile`) for tests and scripts.
+- ADR 0005 (`docs/adr/0005-sheetjs-voor-excel.md`).
+- New library module `format-check.ts`: `checkFieldValue`, `proposeFieldValue` (incl. `ABBREVIATIONS`), `findFormatIssues`, `missingTargets`. Rules per Comp 90-93: max 50, ISO-8859-1, no `|`/tab/line break, no `/` in 92/93, required 90/92/93. Proposals are never applied silently.
+- `npm run build:poc` builds `dist/masspost-poc.html` (esbuild, offline, `file://`). `npm run generate:large-xlsx` makes test lists.
+- Customer pages `docs/documentatie/webapp/adreslijst-nakijken.md` (the POC steps and column roles) and `docs/documentatie/webapp/formaatvalidatie.md` (rules, kept in sync with the code by `tests/docs/formaatvalidatie-doc.test.ts`).
+- Browser measurements in `docs/ontwikkelaars/schaal-en-limieten.md` (150,000 rows: 1.4 s to read, 0.16 s to check).
+- New optional env `NEXT_PUBLIC_DOCS_URL` (GitBook site) for links to the customer docs.
 
 ### Changed
 
@@ -119,9 +149,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Masspost credentials: `BPOST_TEST_CUSTOMER_ID`, optional `BPOST_TEST_BARCODE_CUSTOMER_ID`, `BPOST_TEST_MID_VERSION` (default **`0200`**, locked for Contrapunt 28/09), `BPOST_TEST_CUSTOMER_FILE_REF` (default `REFERENCE`); `MailingContextSchema.version` allows `0100` | `0102` | `0200`.
 - Install prompt, README, `.env.example`, and the MCP registry manifest point at `https://bpost.sonicrocket.app`. The install prompt uses a `{{BASE_URL}}` placeholder filled from `NEXT_PUBLIC_BASE_URL` when served.
 - OAuth access-token verification accepts an explicit issuer/audience allowlist (`AUTH_ACCEPTED_ISSUERS`). When unset, the default is `https://bpost.sonicrocket.io`. An empty value disables extra hosts. New tokens are still signed for the request origin (`getPublicOrigin`).
+- `charset.ts`: the replacement table is exported as `CHARACTER_REPLACEMENTS` and extended (ł/Ł, đ/Đ, œ/Œ, ı, • → space). `mapRows` and the pipeline apply these too.
+- `parseExcelAddresses` accepts an `ArrayBuffer` without `Buffer` (browser-safe) and returns `rowNumbers`. `mapping.joinColumns` is exported.
+- SheetJS Community Edition 0.20.3 (Apache 2.0, installed from `cdn.sheetjs.com`; the npm `xlsx` 0.18.5 is outdated) replaces exceljs for reading and writing workbooks (ADR 0005). Benchmarks: about half the memory, slightly faster, and identical cell values. Scripts (`apply-opti-corrections`, `build-compare-200`, `test-transport`, `generate-large-address-xlsx`) and tests now write via `fixtures/xlsx.ts`. exceljs is removed, and with it the moderate `uuid` advisory it pulled in.
+- Web-flow design: decision 43 (more than 25,000 addresses; POC measures up to 150,000) and decision 44 (SheetJS, .xlsx and .xls).
 
 ### Fixed
 
+- `parseExcelAddresses`: a column with an empty header no longer shifts the following columns onto the wrong header (the exceljs reader compacted the header list but kept reading by position).
 - FTPS to bpost: `filetransfer.bpost.be` omits its intermediate certificate (GEANT TLS RSA 1), so Node stopped with "unable to verify the first certificate" before login. `sendXmlViaFtp` now adds that intermediate to Node's default roots (`src/core/masspost/transport/bpost-ca.ts`, SHA-256 pinned in a test). It is signed by HARICA TLS RSA Root CA 2021, which Node already trusts. Verified with a TLS handshake against the live server, no login.
 - `docs/gitbook-docs.yaml` was invalid for GitBook (`site.structure.0`): sections use `children` instead of `spaces`, and every `key` must be unique across the file. As a result the tab structure was never published.
 

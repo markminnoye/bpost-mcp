@@ -1,16 +1,18 @@
 import { describe, it, expect } from 'vitest'
-import ExcelJS from 'exceljs'
+import { xlsxBuffer } from '@/core/masspost/fixtures/xlsx'
 import { convertExcelToMailingRequest } from '@/core/masspost/pipeline'
 import type { ColumnMapping } from '@/core/masspost/mapping'
 import type { BuildRequestParams } from '@/core/masspost/build-request'
 
 async function buildFixture(): Promise<Buffer> {
-  const workbook = new ExcelJS.Workbook()
-  const sheet = workbook.addWorksheet('Adressen')
-  sheet.addRow(['Naam', 'Straat', 'Nummer', 'Postcode', 'Gemeente'])
-  sheet.addRow(['Jan Janssens', 'Kerkstraat', '10', '2000', 'Antwerpen'])
-  sheet.addRow(['Marie Peeters', 'Dorpsstraat', '3', '9000', 'Gent'])
-  return Buffer.from(await workbook.xlsx.writeBuffer())
+  return xlsxBuffer(
+    [
+      ['Naam', 'Straat', 'Nummer', 'Postcode', 'Gemeente'],
+      ['Jan Janssens', 'Kerkstraat', '10', '2000', 'Antwerpen'],
+      ['Marie Peeters', 'Dorpsstraat', '3', '9000', 'Gent'],
+    ],
+    'Adressen',
+  )
 }
 
 const mapping: ColumnMapping = {
@@ -59,12 +61,14 @@ describe('convertExcelToMailingRequest (end-to-end, no network)', () => {
   })
 
   it('surfaces mapping warnings for rows with gaps without blocking the others', async () => {
-    const workbook = new ExcelJS.Workbook()
-    const sheet = workbook.addWorksheet('Adressen')
-    sheet.addRow(['Naam', 'Straat', 'Nummer', 'Postcode', 'Gemeente'])
-    sheet.addRow(['Jan Janssens', 'Kerkstraat', '10', '2000', 'Antwerpen'])
-    sheet.addRow(['', '', '', '9000', 'Gent']) // missing name + street
-    const buffer = Buffer.from(await workbook.xlsx.writeBuffer())
+    const buffer = xlsxBuffer(
+      [
+        ['Naam', 'Straat', 'Nummer', 'Postcode', 'Gemeente'],
+        ['Jan Janssens', 'Kerkstraat', '10', '2000', 'Antwerpen'],
+        ['', '', '', '9000', 'Gent'], // missing name + street
+      ],
+      'Adressen',
+    )
 
     const result = await convertExcelToMailingRequest(buffer, mapping, params, credentials)
 

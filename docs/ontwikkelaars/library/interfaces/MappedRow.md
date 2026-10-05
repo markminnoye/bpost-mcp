@@ -6,7 +6,7 @@
 
 # Interface: MappedRow
 
-One address after column mapping. `seq` starts at 1.
+One address after column mapping. `seq` is the spreadsheet row number when given, else 1, 2, 3, …
 
 ## Properties
 
@@ -17,6 +17,10 @@ One address after column mapping. `seq` starts at 1.
 #### companyDepartment?
 
 > `optional` **companyDepartment?**: [`MappedField`](MappedField.md)
+
+#### country?
+
+> `optional` **country?**: [`MappedField`](MappedField.md)
 
 #### name
 

@@ -47,6 +47,27 @@ describe('rowsToItems + buildMailingRequest', () => {
     expect(items[0].priority).toBe('NP')
   })
 
+  it('adds the country as Comp 18 (name) or 17 (two-letter code), but never for Belgium', () => {
+    const withCountry: ColumnMapping = { ...mapping, country: ['Land'] }
+    const { rows } = mapRows(
+      [
+        { Naam: 'Pieter Bakker', Adres: 'Heirstraat 21', Postcode: '6129 PK Urmond', Land: 'Nederland' },
+        { Naam: 'Marie Dubois', Adres: 'Rue Haute 3', Postcode: '59000 Lille', Land: 'fr' },
+        { Naam: 'Jan Janssens', Adres: 'Kerkstraat 10', Postcode: '2000 Antwerpen', Land: 'België' },
+        { Naam: 'Els Martens', Adres: 'Dorp 4', Postcode: '9300 Aalst', Land: '' },
+      ],
+      withCountry,
+    )
+    const comps = rowsToItems(rows, params.priority).map((item) => item.Comps.Comp)
+
+    expect(comps[0]).toContainEqual({ code: '18', value: 'Nederland' })
+    expect(comps[1]).toContainEqual({ code: '17', value: 'FR' })
+    expect(comps[2].map((c) => c.code)).toEqual(['90', '92', '93'])
+    expect(comps[3].map((c) => c.code)).toEqual(['90', '92', '93'])
+    const request = buildMailingRequest(rowsToItems(rows, params.priority), params, credentials)
+    expect(validateMailingRequest(request, '0100').valid).toBe(true)
+  })
+
   it('builds a MailingRequest that passes Zod validation end to end', () => {
     const { rows } = mapRows(
       [

@@ -15,7 +15,7 @@
 //
 // bpost rate limit: max 1 outbound FTP connection initiation per 5 minutes — avoid re-running
 // --ftp in a tight loop during Connection & Security Test.
-import ExcelJS from 'exceljs'
+import { xlsxBuffer } from '../src/core/masspost/fixtures/xlsx'
 import { convertExcelToMailingRequest } from '../src/core/masspost/pipeline'
 import { getHttpCredentials, getFtpCredentials, MissingCredentialsError } from '../src/core/masspost/credentials'
 import { sendMailingRequestViaHttp } from '../src/core/masspost/transport/http'
@@ -37,11 +37,13 @@ import path from 'node:path'
 const execFileAsync = promisify(execFile)
 
 async function buildSyntheticFixture(): Promise<Buffer> {
-  const workbook = new ExcelJS.Workbook()
-  const sheet = workbook.addWorksheet('Adressen')
-  sheet.addRow(['Naam', 'Straat', 'Nummer', 'Postcode', 'Gemeente'])
-  sheet.addRow(['Contrapunt Test', 'P. Nollekensstraat', '95', '3010', 'Kessel-Lo'])
-  return Buffer.from(await workbook.xlsx.writeBuffer())
+  return xlsxBuffer(
+    [
+      ['Naam', 'Straat', 'Nummer', 'Postcode', 'Gemeente'],
+      ['Contrapunt Test', 'P. Nollekensstraat', '95', '3010', 'Kessel-Lo'],
+    ],
+    'Adressen',
+  )
 }
 
 const SYNTHETIC_MAPPING = {

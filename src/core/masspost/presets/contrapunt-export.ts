@@ -20,3 +20,6 @@ export const CONTRAPUNT_EXPORT_COLUMN_MAPPING: ColumnMapping = {
     'Correspondentieadres - Plaats (Key)',
   ],
 }
+
+/** Country column of the same export. Optional: older exports do not have it. */
+export const CONTRAPUNT_EXPORT_COUNTRY_COLUMN = 'Correspondentieadres - Land (Tekst)'

@@ -8,7 +8,8 @@
 
 > **rowsToItems**(`rows`, `priority`): `object`[]
 
-Turns mapped rows into `Item`s using the unstructured Comp codes (90/91/92/93).
+Turns mapped rows into `Item`s using the unstructured Comp codes (90/91/92/93), plus the
+ country for an address outside Belgium: Comp 17 for a two-letter code, Comp 18 for a name.
 
 ## Parameters
 

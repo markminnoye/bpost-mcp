@@ -4,23 +4,36 @@
 // byte of each code point (U+2019 ’ → 0x19 control char, U+2026 … → 0x26 "&"), which silently
 // corrupts addresses or produces malformed XML. Guard against that before encoding.
 
-/** Typographic characters that Excel/Word insert and that have an unambiguous ASCII equivalent. */
-const ASCII_EQUIVALENTS: Record<string, string> = {
-  '‘': "'",
-  '’': "'",
-  '‚': "'",
-  '‛': "'",
-  '“': '"',
-  '”': '"',
-  '„': '"',
-  '‐': '-',
-  '‑': '-',
-  '‒': '-',
-  '–': '-',
-  '—': '-',
-  '―': '-',
-  '…': '...',
-  '€': 'EUR',
+/**
+ * Characters bpost does not accept that have one safe replacement: typographic quotes, dashes and
+ * ellipsis from Excel/Word, letters without a Unicode decomposition (ł, đ, œ, ı) and the bullet.
+ * Letters with an accent outside Latin-1 (ő, ź, …) are not listed: `normalizeForBpost` drops the
+ * accent. The customer documentation lists every entry (`docs/documentatie/webapp/formaatvalidatie.md`).
+ */
+export const CHARACTER_REPLACEMENTS: Readonly<Record<string, string>> = {
+  '\u2018': "'", // ‘
+  '\u2019': "'", // ’
+  '\u201A': "'", // ‚
+  '\u201B': "'", // ‛
+  '\u201C': '"', // “
+  '\u201D': '"', // ”
+  '\u201E': '"', // „
+  '\u2010': '-', // ‐
+  '\u2011': '-', // non-breaking hyphen
+  '\u2012': '-', // ‒
+  '\u2013': '-', // –
+  '\u2014': '-', // —
+  '\u2015': '-', // ―
+  '\u2026': '...', // …
+  '\u20AC': 'EUR', // €
+  '\u0141': 'L', // Ł
+  '\u0142': 'l', // ł
+  '\u0110': 'D', // Đ
+  '\u0111': 'd', // đ
+  '\u0152': 'OE', // Œ
+  '\u0153': 'oe', // œ
+  '\u0131': 'i', // ı
+  '\u2022': ' ', // •
 }
 
 /** Exotic whitespace → plain space; zero-width characters → removed. */
@@ -78,8 +91,8 @@ export function normalizeForBpost(text: string): NormalizedText {
       out += ch
       continue
     }
-    if (ch in ASCII_EQUIVALENTS) {
-      out += ASCII_EQUIVALENTS[ch]
+    if (ch in CHARACTER_REPLACEMENTS) {
+      out += CHARACTER_REPLACEMENTS[ch]
       replaced.add(ch)
       continue
     }

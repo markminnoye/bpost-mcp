@@ -123,6 +123,8 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 | [Bpost e-MassPost library + webapp](2026-09-28-bpost-library-web-app.md) | 🔄 | **Koers 29/09:** XML via **FTP**, validatie via **OptiAddress** (`MailingCheck` / 7001). Library staat; web UI en live FTP nog niet. |
 | [SR-79 kolom-mapping suggestie](2026-09-29-sr-79-column-mapping-suggest.md) | ✅ | API: heuristics + optionele AI. Geen UI. Caller bevestigt. |
 | [Masspost web-flow: ontwerp](2026-10-02-masspost-web-flow-design.md) | 🔄 | Brainstorm over de gebruikersflow, toestanden en statussen voor de webinterface (fase 2b). Besluitenlog en open vragen. |
+| [POC formaatvalidatie](2026-10-05-masspost-poc-formaatvalidatie.md) | 🔄 | `/masspost/poc`: Excel inlezen, kolommen koppelen en formaatvalidatie, alles in de browser (exceljs, tot 150.000 adressen om te meten). Nieuwe library-module `format-check.ts`, losstaand bestand via `npm run build:poc`. Wacht op review van Mark. |
+| [AI-kolommapping met geanonimiseerde voorbeelddata](2026-10-05-masspost-ai-kolommapping.md) | ⏳ | Vervolg op de POC: knop "Vraag een voorstel aan AI" in het koppelscherm; AI kiest ook context/niet gebruiken en de volgorde, met voorbeelddata (adressen leesbaar, andere tekst geanonimiseerd). Startprompt in het plan; open ontwerpvragen eerst met Mark. |
 | [Masspost: volledige API, dan de website](2026-10-01-masspost-api-and-web.md) | 🔄 | **Vervolg op het plan van 28/09.** Fase 0 FTP-spike op Vercel · 0b protocoltests (Create/Delete/Reuse, modus C/P) · 1 toegang + library-fixes · 2 Postgres + routes onder `src/app/api/masspost/` · 2b schetsen · 3 Tailwind/shadcn + login, index, wizard (v0) · 4 docs. Fase 0 TLS-fix en `--mode`-tests staan klaar (01/10). |
 
 ---

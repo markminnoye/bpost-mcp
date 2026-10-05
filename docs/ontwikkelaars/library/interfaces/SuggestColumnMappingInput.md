@@ -22,4 +22,4 @@
 
 ### presetId?
 
-> `optional` **presetId?**: `"contrapunt-export"`
+> `optional` **presetId?**: [`MappingPresetId`](../type-aliases/MappingPresetId.md)

@@ -26,11 +26,19 @@
 
 ***
 
+### preset?
+
+> `optional` **preset?**: [`MappingPresetId`](../type-aliases/MappingPresetId.md)
+
+Set when the titles match a known layout: Contrapunt's export or bpost's Address File Tool.
+
+***
+
 ### rationale
 
 > **rationale**: `Record`\<`string`, `string`\>
 
-Why each Comp target (90, 91, 92, 93) was chosen.
+Why each Comp target (90, 91, 92, 93, and 18 for the country) was chosen.
 
 ***
 

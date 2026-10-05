@@ -152,15 +152,29 @@ Not wired as an npm script on purpose (Python side dependency).
 
 ---
 
+## Web POC and scale test
+
+| Command | What |
+|---|---|
+| `npm run build:poc` | Bundle the web POC (`src/app/(tools)/masspost/poc/`) into one offline HTML file: `dist/masspost-poc.html`. Uses `NEXT_PUBLIC_DOCS_URL` from `.env.local` for the rules link |
+| `npm run generate:large-xlsx -- --rows N --out tmp/…xlsx` | Made-up address list in Contrapunt's layout, ~3 % format problems, deterministic per size |
+
+Browser code imports modules directly (`excel`, `mapping`, `suggest-mapping`, `format-check`), never `index.ts` (it pulls in FTP). Measurements: `docs/ontwikkelaars/schaal-en-limieten.md`.
+
+---
+
 ## Library map (`src/core/masspost/`)
 
 | Module | Role |
 |--------|------|
-| `excel.ts` | Parse `.xlsx` → `{ headers, rows }` (`exceljs`) |
-| `mapping.ts` | Column mapping → unstructured Comp **90/91/92/93**; max **50** chars; reports truncation & charset fixes |
+| `excel.ts` | Parse `.xlsx` / `.xls` → `{ headers, rows, rowNumbers }` (SheetJS, ADR 0005). Recognises the file by its first bytes; CSV is refused. Runs in Node and in the browser |
+| `mapping.ts` | Column mapping → unstructured Comp **90/91/92/93** (max **50**) and country (Comp 17/18, max 42, `isBelgianCountry` → left out); `mapRows(rows, mapping, { rowNumbers })` makes `seq` the row number |
 | `suggest-mapping.ts` | `suggestColumnMapping` — header heuristics / Contrapunt preset. No cell values, no AI |
 | `presets/contrapunt-export.ts` | `CONTRAPUNT_EXPORT_COLUMN_MAPPING` (re-exported by the fixture) |
-| `charset.ts` | `normalizeForBpost` / `findUnsupportedChars` (ISO-8859-1) |
+| `charset.ts` | `normalizeForBpost` / `findUnsupportedChars` (ISO-8859-1); `CHARACTER_REPLACEMENTS` |
+| `printer-export.ts` | `buildPrinterExport`: original first sheet plus *Meesturen* and *Volgnummer bpost* (row number); no row removed (web-flow decisions 48, 49) |
+| `presets/aft.ts` | Address File Tool column titles (template and guide spellings); recognised by `suggestColumnMapping` (`preset: 'aft'`) |
+| `format-check.ts` | Format validation per Comp 90-93 without silent fixes: `checkFieldValue`, `proposeFieldValue` (incl. `ABBREVIATIONS`), `findFormatIssues`, `missingTargets`. Browser-safe; used by the web POC |
 | `build-request.ts` | `rowsToItems`, `buildMailingRequest`, `buildMailingCheckRequest`; `FORCE_TEST_MODE` |
 | `validate.ts` | Zod validate with per-field issues (`midVersion`-aware) |
 | `pipeline.ts` | `convertExcelToMailingRequest` / `convertExcelToMailingCheck` |
@@ -170,6 +184,7 @@ Not wired as an npm script on purpose (Python side dependency).
 | `transport/ftp.ts` | FTPS upload: `\requests`, `.TMP` → final name |
 | `parse-response.ts` | `extractMailingResponseMessages` / `hasFatalMailingResponse` (file-level Replies) |
 | `fixtures/contrapunt-sample.ts` | Paths + `CONTRAPUNT_EXPORT_COLUMN_MAPPING` + simple buffer |
+| `fixtures/xlsx.ts` | `xlsxBuffer` / `writeXlsxFile`: plain workbook from rows (SheetJS, no styling), for tests and scripts |
 
 ### Pipeline API
 

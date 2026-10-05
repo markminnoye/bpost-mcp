@@ -11,7 +11,6 @@
 // Requires Python xlwt for the .xls (pip install xlwt). Set AFT_PYTHON to that interpreter.
 import { spawnSync } from 'node:child_process'
 import { readFile, writeFile } from 'node:fs/promises'
-import ExcelJS from 'exceljs'
 import { parseExcelAddresses } from '../src/core/masspost/excel'
 import { mapRows } from '../src/core/masspost/mapping'
 import {
@@ -21,6 +20,7 @@ import {
   CONTRAPUNT_TEST_ADRESSEN_200_XLSX,
   CONTRAPUNT_TEST_ADRESSEN_XLSX,
 } from '../src/core/masspost/fixtures/contrapunt-sample'
+import { writeXlsxFile } from '../src/core/masspost/fixtures/xlsx'
 
 /** Column titles from docs/internal/e-masspost/docs/resources/template.xls — order is fixed. */
 const AFT_COLUMNS = [
@@ -87,13 +87,10 @@ print(f"rows={len(rows)} cols={len(columns)}")
 `
 
 async function writeCrmXlsx(headers: string[], rows: Record<string, unknown>[]): Promise<void> {
-  const workbook = new ExcelJS.Workbook()
-  const sheet = workbook.addWorksheet('Blad1')
-  sheet.addRow(headers)
-  for (const row of rows) {
-    sheet.addRow(headers.map((header) => row[header] ?? ''))
-  }
-  await workbook.xlsx.writeFile(CONTRAPUNT_TEST_ADRESSEN_200_XLSX)
+  await writeXlsxFile(CONTRAPUNT_TEST_ADRESSEN_200_XLSX, [
+    headers,
+    ...rows.map((row) => headers.map((header) => row[header] ?? '')),
+  ])
 }
 
 function writeAftXls(rows: Record<string, string | number>[]): void {
