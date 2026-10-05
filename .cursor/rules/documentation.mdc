@@ -6,8 +6,4 @@ globs:
 alwaysApply: false
 ---
 
-Genereer TSDoc-commentaar voor alle geëxporteerde functies (en publieke types). Formaat: JSDoc-stijl met @param, @returns en @example waar nuttig.
-
-Nieuwe HTTP-route: laat het Zod-contract eerst goedkeuren, implementeer daarna, en registreer dat schema in de OpenAPI-generator. Een apart protocol (zoals MCP) hoort niet in die service-spec.
-
-Gegenereerde output staat in `docs/ontwikkelaars/`: `api/openapi.yaml` (OpenAPI van de HTTP-service) en `library/` (TypeDoc van de publieke library-entry). MCP heeft een eigen hoofdstuk in `docs/documentatie/mcp/` (geen spec). Verwijs vanuit de andere tabs niet naar `docs/ontwikkelaars/`. Beslissingen die je later niet zomaar terugdraait: korte ADR in `docs/adr/` (kopieer `template.md`). Na een wijziging aan publieke exports of route-schema's: `npm run docs:build`.
+De regels voor documentatie (structuur, tabs, gegenereerde output, submodule, TSDoc, ADR's) staan in `AGENTS.md`, sectie "Documentation" en "Documentatiestructuur onderhouden". Dat is de enige bron; pas ze daar aan.
