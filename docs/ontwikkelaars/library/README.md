@@ -13,6 +13,7 @@
 ## Interfaces
 
 - [Abbreviation](interfaces/Abbreviation.md)
+- [AftExportInput](interfaces/AftExportInput.md)
 - [BuildCheckParams](interfaces/BuildCheckParams.md)
 - [BuildDeleteParams](interfaces/BuildDeleteParams.md)
 - [BuildRequestParams](interfaces/BuildRequestParams.md)
@@ -43,6 +44,7 @@
 ## Type Aliases
 
 - [AddressField](type-aliases/AddressField.md)
+- [AftPriority](type-aliases/AftPriority.md)
 - [FieldCheck](type-aliases/FieldCheck.md)
 - [FormatIssueKind](type-aliases/FormatIssueKind.md)
 - [MappingConfidence](type-aliases/MappingConfidence.md)
@@ -65,6 +67,7 @@
 
 ## Functions
 
+- [buildAftExport](functions/buildAftExport.md)
 - [buildMailingCheckRequest](functions/buildMailingCheckRequest.md)
 - [buildMailingDeleteRequest](functions/buildMailingDeleteRequest.md)
 - [buildMailingRequest](functions/buildMailingRequest.md)

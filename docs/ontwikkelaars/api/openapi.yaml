@@ -174,9 +174,8 @@ components:
         preset:
           type: string
           enum:
-            - contrapunt-export
             - aft
-          description: "Known layout recognised from the titles: Contrapunt's export or bpost's Address File Tool."
+          description: "Known layout recognised from the titles: bpost's Address File Tool."
         source:
           type: string
           enum:
@@ -251,9 +250,8 @@ components:
             preset:
               type: string
               enum:
-                - contrapunt-export
                 - aft
-              description: "Known layout recognised from the titles: Contrapunt's export or bpost's Address File Tool."
+              description: "Known layout recognised from the titles: bpost's Address File Tool."
           required:
             - mapping
             - confidence
@@ -271,10 +269,6 @@ components:
             type: string
           minItems: 1
           maxItems: 100
-        presetId:
-          type: string
-          enum:
-            - contrapunt-export
         localeHints:
           type: array
           items:

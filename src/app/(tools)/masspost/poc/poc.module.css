@@ -104,12 +104,19 @@
 
 /* —— Top bar: steps and theme —— */
 .top {
+  /* Stays at the top while the page scrolls: the steps and the pills remain in view. */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  padding-top: 12px;
+  margin-top: -12px;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
   margin-bottom: 20px;
   border-bottom: 1px solid var(--border);
 }
@@ -128,12 +135,78 @@
 }
 
 .steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 18px;
+  /* Four steps of equal width: as wide as the longest label. */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px 4px;
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+@media (max-width: 640px) {
+  .steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Variant C: one bar under the steps, a segment per step. The current step is in full colour,
+   with a thicker segment; the other steps fade until you point at them. */
+.steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* The arrow to the next step sits in the room to the right of the label, above the bar. */
+.stepArrow {
+  position: absolute;
+  right: 3px;
+  top: 8px;
+  color: var(--text-muted);
+}
+
+.steps li:not(.stepItemCurrent) svg,
+.steps li:not(.stepItemCurrent) .track {
+  opacity: 0.5;
+  transition: opacity 120ms ease;
+}
+
+.steps li:not(.stepItemCurrent):hover svg,
+.steps li:not(.stepItemCurrent):hover .track {
+  opacity: 1;
+}
+
+.stepItemCurrent .track {
+  height: 4px;
+  background: var(--border-strong);
+}
+
+.steps li .step {
+  padding-right: 26px;
+}
+
+.track {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.trackFill {
+  display: block;
+  height: 100%;
+  transition: width 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trackFill,
+  .steps li svg,
+  .steps li .track {
+    transition: none;
+  }
 }
 
 .step {
@@ -152,8 +225,9 @@
   flex: none;
 }
 
+/* A step you cannot reach yet: muted text; its icon and segment fade with the other non-current steps. */
 .stepTodo {
-  opacity: 0.55;
+  color: var(--text-muted);
 }
 
 .stepCurrent {
@@ -375,6 +449,21 @@ button.step:hover {
   color: var(--text-secondary);
 }
 
+/* An empty column we do not use fades; an empty column coupled to the address keeps full contrast. */
+.mapRow:not(.mapRowDim) .colPlain {
+  color: var(--text-primary);
+}
+
+.mapRowDim .colPlain,
+.mapRowDim .select {
+  color: var(--text-muted);
+}
+
+.emptyNote {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
 .mapGroup {
   padding: 8px 10px;
   font-size: 11px;
@@ -400,6 +489,11 @@ button.step:hover {
   background: var(--ok-bg);
   color: var(--ok-fg);
   border-color: var(--ok-line);
+}
+
+/* A check in order, quietly: neutral pill, only its (first) icon green. */
+.pillOkSoft .pillBody > svg:first-child {
+  color: var(--green);
 }
 
 /* —— Upload —— */
@@ -792,16 +886,27 @@ button.step:hover {
   margin: 0;
 }
 
-.gn span {
-  color: var(--text-muted);
-  font-weight: 400;
-  margin-left: 6px;
+/* The pill in a group header that opens and closes its rows. */
+.pillToggle {
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pillToggle:hover {
+  border-color: currentColor;
+}
+
+.pillToggle[aria-expanded='true'] .chev {
+  transform: rotate(90deg);
 }
 
 .cols,
 .row {
   display: grid;
-  grid-template-columns: 130px minmax(0, 1.15fr) 28px minmax(0, 1fr) 32px;
+  /* row · value · status · proposal · undo · exclude */
+  grid-template-columns: 130px minmax(0, 1.15fr) 28px minmax(0, 1fr) 28px 28px;
   gap: 10px;
   align-items: start;
   padding: 8px 10px;
@@ -854,37 +959,6 @@ button.step:hover {
 .in:focus {
   outline: 2px solid var(--focus);
   outline-offset: 1px;
-}
-
-.fw.changed .in {
-  padding-right: 34px;
-}
-
-/* .root prefix: must beat `.root [data-tip] { position: relative }`. */
-.root .undo {
-  position: absolute;
-  right: 4px;
-  top: 4px;
-  width: 24px;
-  height: 24px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0;
-}
-
-.fw.changed .undo {
-  display: inline-flex;
-}
-
-.undo:hover {
-  background: var(--surface-1);
-  color: var(--text-primary);
 }
 
 .why {
@@ -1031,16 +1105,28 @@ button.step:hover {
   padding: 0;
 }
 
-.panel {
+/* —— Step 4: the files to save, side by side; stacked on a narrow screen —— */
+.saveCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
   margin-top: 16px;
+}
+
+.saveCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface-1);
 }
 
-.panel p {
-  margin: 0 0 8px;
+.saveCard p {
+  margin: 0;
+  flex: 1;
 }
 
 /* —— Measurement —— */
@@ -1145,4 +1231,10 @@ button.step:hover {
   .actions {
     flex-direction: column-reverse;
   }
+}
+
+/* A row or toggle that gets focus scrolls clear of the sticky bar at the top. */
+.root [data-nav],
+.root [data-key] {
+  scroll-margin-top: 96px;
 }

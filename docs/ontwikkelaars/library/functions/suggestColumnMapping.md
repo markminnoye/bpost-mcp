@@ -8,9 +8,9 @@
 
 > **suggestColumnMapping**(`input`): [`SuggestColumnMappingResult`](../interfaces/SuggestColumnMappingResult.md)
 
-Suggests which columns feed each address block, from the column titles only. Known layouts
-(Contrapunt's export, bpost's Address File Tool) are recognised exactly and reported in `preset`;
-other files go through NL/FR/EN synonyms with a little tolerance for typos.
+Suggests which columns feed each address block, from the column titles only. A known layout
+(bpost's Address File Tool) is recognised exactly and reported in `preset`; other files go
+through NL/FR/EN synonyms with a little tolerance for typos.
 
 ## Parameters
 
@@ -18,7 +18,7 @@ other files go through NL/FR/EN synonyms with a little tolerance for typos.
 
 [`SuggestColumnMappingInput`](../interfaces/SuggestColumnMappingInput.md)
 
-Column titles, an optional preset to force, and optional language hints.
+Column titles and optional language hints.
 
 ## Returns
 

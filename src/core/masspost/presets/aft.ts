@@ -22,3 +22,47 @@ export const AFT_COLUMNS: Readonly<Record<AddressField, readonly string[]>> = {
 
 /** Titles every AFT file has, next to the unstructured name, street and postcode columns. */
 export const AFT_MARKER_COLUMNS: readonly string[] = ['SEQ', 'PRIORITY']
+
+/** Every column of the AFT template (`docs/internal/e-masspost/docs/resources/template.xls`, sheet
+ *  `Sheet0`), in its fixed order. The portal checks the titles and their order. */
+export const AFT_TEMPLATE_COLUMNS: readonly string[] = [
+  'SEQ',
+  'GREETING',
+  'FIRST_NAME',
+  'MIDDLE_NAME',
+  'LAST_NAME',
+  'SUFFIX',
+  'COMPANY_NAME',
+  'DEPARTMENT',
+  'BUILDING',
+  'ADDRESS_LINE_1',
+  'ADDRESS_LINE_2',
+  'ADDRESS_LINE_3',
+  'HOUSE_NUMBER',
+  'BOX_NUMBER',
+  'PO_BOX_NUMBER',
+  'POSTAL_CODE',
+  'CITY',
+  'ISO_COUNTRY_CODE',
+  'COUNTRY_NAME',
+  'STATE',
+  'UNSTRUCTURED_NAME',
+  'UNSTRUCTURED_COMPANY_DEPARTMENT',
+  'UNSTRUCTURED_BUILDING_STREET_HOUSE_BOX',
+  'UNSTRUCTURED_POST_CODE_CITY',
+  'MIDNUMBER',
+  'PRESORTING_CODE',
+  'LANGUAGE',
+  'PRIORITY',
+  'FIELDTOPRINT1',
+  'FIELDTOPRINT2',
+  'FIELDTOPRINT3',
+  'FEEDBACK',
+  'ORGINFO',
+  'ICTI',
+  'IZON',
+  'IMAC',
+  'IWAV',
+  'IOFF',
+  'PRINTORDER',
+]

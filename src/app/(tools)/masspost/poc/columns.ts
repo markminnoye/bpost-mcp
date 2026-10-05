@@ -211,7 +211,6 @@ export function columnExamples(list: LoadedList, count = 5, scanLimit = 5000): R
 /** Short name and explanation of a recognised layout, for its pill. */
 export const PRESET_LABELS: Record<MappingPresetId, { label: string; tip: string }> = {
   aft: { label: 'AFT', tip: 'AFT: kolommen volgens de Address File Tool van bpost, automatisch gekoppeld.' },
-  'contrapunt-export': { label: 'Contrapunt', tip: 'Export van Contrapunt herkend, automatisch gekoppeld.' },
 }
 
 /** A short label for a long column title: the part after the last " - ", without a trailing

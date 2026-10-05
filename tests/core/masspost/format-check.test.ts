@@ -73,6 +73,13 @@ describe('proposeFieldValue', () => {
     expect(proposeFieldValue('Łukasz Wójcik', 'name')).toBe('Lukasz Wójcik')
   })
 
+  it('drops emoji, with their skin tones, joiners and flags, but keeps © and ®', () => {
+    expect(proposeFieldValue('Mertens 🌻', 'name')).toBe('Mertens')
+    expect(proposeFieldValue('Jan 👍🏽 Peeters', 'name')).toBe('Jan Peeters')
+    expect(proposeFieldValue('Familie 👨‍👩‍👧 Claes 🇧🇪', 'name')).toBe('Familie Claes')
+    expect(proposeFieldValue('Atelier© ❤️', 'companyDepartment')).toBe('Atelier©')
+  })
+
   it('has no proposal for a character without a safe equivalent', () => {
     expect(proposeFieldValue('Ωmega', 'name')).toBeUndefined()
   })

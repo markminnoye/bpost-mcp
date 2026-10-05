@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { IconChevronRight } from '@tabler/icons-react'
 import { formatCount } from './columns'
 import styles from './poc.module.css'
 
@@ -71,7 +72,10 @@ export function MeasurePanel({ measurement }: { measurement: Measurement | null 
 
   return (
     <details className={styles.measure}>
-      <summary>Meting (POC)</summary>
+      <summary>
+        <IconChevronRight className={styles.chev} size={14} aria-hidden="true" />
+        Meting (POC)
+      </summary>
       <table className={styles.measureTable}>
         <tbody>
           {rows.map(([label, value]) => (

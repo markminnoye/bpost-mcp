@@ -8,7 +8,7 @@
 
 > **proposeFieldValue**(`value`, `field`): `string` \| `undefined`
 
-Proposes a value that passes `checkFieldValue`. Removes `|`, tabs and line breaks, swaps
+Proposes a value that passes `checkFieldValue`. Removes `|`, tabs, line breaks and emoji, swaps
 characters via `normalizeForBpost`, collapses spaces, writes `12/3` as `12 bus 3` in the street
 block, and abbreviates (`ABBREVIATIONS`) when the value is too long. The proposal is for the user
 to confirm; nothing is applied here.

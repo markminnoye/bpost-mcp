@@ -28,9 +28,9 @@
 
 ### preset?
 
-> `optional` **preset?**: [`MappingPresetId`](../type-aliases/MappingPresetId.md)
+> `optional` **preset?**: `"aft"`
 
-Set when the titles match a known layout: Contrapunt's export or bpost's Address File Tool.
+Set when the titles match a known layout: bpost's Address File Tool.
 
 ***
 

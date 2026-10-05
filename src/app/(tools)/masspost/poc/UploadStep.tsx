@@ -8,6 +8,8 @@ import { usedHeapMb, type Measurement } from './MeasurePanel'
 import { Spinner } from './StatusIcons'
 import styles from './poc.module.css'
 
+/** bpost asks at least this many addresses per mailing (confirmed by Contrapunt, 28/09/2026). */
+export const MIN_ADDRESSES = 500
 /** Above this many addresses the POC warns, but still reads the list (to measure). */
 export const SOFT_LIMIT = 25_000
 /** Above this many addresses the POC stops. */
@@ -108,7 +110,7 @@ export function UploadStep({
   return (
     <section aria-labelledby="upload-title">
       <h1 className={styles.t} id="upload-title">
-        Adreslijst opladen
+        Adreslijst importeren
       </h1>
       <p className={styles.m}>
         Sleep je Excel-bestand (.xlsx of .xls) hierheen of kies het op je computer. Op de eerste rij staan de

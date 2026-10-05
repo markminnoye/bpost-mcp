@@ -15,7 +15,7 @@ Elk blok is maximaal 50 tekens (`UNSTRUCTURED_MAX_LENGTH`). Wat langer is, wordt
 
 Bron: `suggestColumnMapping` in `src/core/masspost/suggest-mapping.ts`.
 
-1. **Preset.** Bevat het bestand de titels van de Contrapunt-export (`presetId: "contrapunt-export"`, of zonder id als de titels overeenkomen), dan wordt die vaste koppeling gebruikt.
+1. **Preset.** Bevat het bestand de titels van de Address File Tool van bpost, dan wordt die vaste koppeling gebruikt en meldt het resultaat `preset: "aft"`. Er valt dan niets voor te stellen. Er is geen vaste export van Contrapunt: hun voorbeeldbestand gaat via de synoniemen.
 2. **Synoniemen.** Anders scoort een lijst van NL/FR/EN-synoniemen elke titel (bijvoorbeeld `voornaam`, `prenom`, `first name`). Accenten en hoofdletters tellen niet mee.
    - Een score vanaf 60 wordt toegewezen.
    - Vanaf 80 is de zekerheid `high`.

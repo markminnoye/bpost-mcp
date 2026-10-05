@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useMemo, useState } from 'react'
-import { IconChevronLeft, IconChevronRight, IconDropletHalf2 } from '@tabler/icons-react'
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { isBelgianCountry, joinColumns } from '@/core/masspost/mapping'
 import { missingTargets } from '@/core/masspost/format-check'
 import {
@@ -20,7 +20,7 @@ import {
   type ColumnRole,
   type LoadedList,
 } from './columns'
-import { Spinner } from './StatusIcons'
+import { IconRows3, Spinner } from './StatusIcons'
 import styles from './poc.module.css'
 
 interface Props {
@@ -54,9 +54,16 @@ export function MappingStep({
   const { mapping } = useMemo(() => rolesToMapping(columnOrder, roles), [columnOrder, roles])
   const kinds = useMemo(() => addressKinds(list, mapping), [list, mapping])
   const filled = useMemo(() => columnFillCounts(list), [list])
-  // Columns without any value add noise: they go to the bottom, in their own group.
+  const toAddress = (header: string) => (ADDRESS_FIELDS as readonly string[]).includes(roles[header])
+  // Columns without any value add noise: they go to the bottom, in their own group. Those coupled to
+  // the address come first there, in the order they had when the step opened: a row does not jump
+  // away while you change its choice.
   const withValues = list.headers.filter((header) => filled[header] > 0)
-  const empty = list.headers.filter((header) => filled[header] === 0)
+  const [empty] = useState(() => {
+    const all = list.headers.filter((header) => filled[header] === 0)
+    return [...all.filter(toAddress), ...all.filter((header) => !toAddress(header))]
+  })
+  const emptyCoupled = empty.filter(toAddress).length
   const [opened, setOpened] = useState<string | null>(null)
   const [position, setPosition] = useState<Partial<Record<AddressKind, number>>>({})
   const missing = missingTargets(mapping)
@@ -66,9 +73,11 @@ export function MappingStep({
     const count = filled[header]
     const isOpen = opened === header
     const profile = isOpen ? columnProfile(list, header) : null
+    // An empty column coupled to the address stands out; an unused empty one fades.
+    const emptyCoupledHere = count === 0 && toAddress(header)
     return (
       <Fragment key={header}>
-        <div className={styles.mapRow} role="row">
+        <div className={`${styles.mapRow} ${count === 0 && !emptyCoupledHere ? styles.mapRowDim : ''}`} role="row">
           <span className={styles.colName} role="cell">
             {count > 0 ? (
               <button
@@ -98,7 +107,7 @@ export function MappingStep({
               }
             >
               <span className={styles.pillBody} aria-hidden="true">
-                <IconDropletHalf2 size={13} stroke={1.75} />
+                <IconRows3 size={13} />
                 {formatCount(count)}/{formatCount(list.rows.length)}
               </span>
               <span className={styles.srOnly}>
@@ -110,6 +119,7 @@ export function MappingStep({
                 {value}
               </span>
             ))}
+            {emptyCoupledHere && <span className={styles.emptyNote}>Gekoppeld, maar leeg: er komt niets in dit vak.</span>}
           </span>
           <span role="cell">
             <select
@@ -197,7 +207,10 @@ export function MappingStep({
             {withValues.map(renderColumn)}
             {empty.length > 0 && (
               <div className={styles.mapGroup} role="row">
-                <span role="cell">Kolommen zonder waarden ({formatCount(empty.length)})</span>
+                <span role="cell">
+                  Kolommen zonder waarden ({formatCount(empty.length)}
+                  {emptyCoupled > 0 && `, waarvan ${formatCount(emptyCoupled)} gekoppeld`})
+                </span>
               </div>
             )}
             {empty.map(renderColumn)}

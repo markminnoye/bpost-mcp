@@ -1,4 +1,4 @@
-// Sample list with Contrapunt's export columns and the format problems from the sketch.
+// Sample list with the column titles of Contrapunt's sample file and the format problems from the sketch.
 // All names and addresses are made up: this repository is public.
 import type { LoadedList } from './columns'
 

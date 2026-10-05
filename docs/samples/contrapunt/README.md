@@ -16,7 +16,7 @@ Referentie-export om de masspost-library en `npm run test:transport` te testen (
 | Straat/huis/box (92) | `Correspondentieadres - Straat (Key)`, `… Huisnummer …`, `… aanv. huisnr. …` |
 | Postcode/gemeente (93) | `Correspondentieadres - Postcode (Key)`, `… Plaats (Key)` |
 
-Mapping in code: `CONTRAPUNT_EXPORT_COLUMN_MAPPING` in `src/core/masspost/fixtures/contrapunt-sample.ts`.
+Mapping in code: `CONTRAPUNT_SAMPLE_COLUMN_MAPPING` in `src/core/masspost/fixtures/contrapunt-sample.ts`. Dit is enkel de indeling van dit bestand: Contrapunt heeft geen vaste Excel-export, de webapp herkent ze niet als aparte indeling.
 
 Identiteit en bestandsmetadata in `.env.local` — uitgebreid uitgelegd in **[masspost-test-env.md](../../internal/masspost-test-env.md)**.
 

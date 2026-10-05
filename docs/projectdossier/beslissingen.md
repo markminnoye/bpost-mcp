@@ -66,7 +66,7 @@ Concept ter nazicht. Datums verwijzen naar de meeting van 23 september of naar d
 
 ### DEC-008: mapping met lokale regels en AI als vangnet
 
-**Waarom.** Voor de bekende export van Contrapunt is geen AI nodig. Voor onbekende layouts proberen we eerst synoniemen en fuzzy matching. Een AI-model kan optioneel helpen bij lage zekerheid, en dan enkel met de kolomkoppen, niet met de adressen. Die keuze is gemaakt om geen adressen naar een extern model te sturen.
+**Waarom.** Voor een bekende indeling, zoals de Address File Tool van bpost, is geen AI nodig. Voor onbekende layouts proberen we eerst synoniemen en fuzzy matching. Een AI-model kan optioneel helpen bij lage zekerheid, en dan enkel met de kolomkoppen, niet met de adressen. Die keuze is gemaakt om geen adressen naar een extern model te sturen.
 
 **Eerste versie.** De eerste versie werkt zonder LLM (zie DEC-011), dus de AI-fallback komt later.
 

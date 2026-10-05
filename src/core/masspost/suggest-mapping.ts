@@ -1,10 +1,5 @@
 // src/core/masspost/suggest-mapping.ts
 import type { AddressField, ColumnMapping, UnstructuredTarget } from './mapping'
-import {
-  CONTRAPUNT_EXPORT_COLUMN_MAPPING,
-  CONTRAPUNT_EXPORT_COUNTRY_COLUMN,
-  CONTRAPUNT_EXPORT_PRESET_ID,
-} from './presets/contrapunt-export'
 import { AFT_COLUMNS, AFT_MARKER_COLUMNS, AFT_PRESET_ID } from './presets/aft'
 
 /**
@@ -13,12 +8,11 @@ import { AFT_COLUMNS, AFT_MARKER_COLUMNS, AFT_PRESET_ID } from './presets/aft'
  */
 
 export type MappingConfidence = 'high' | 'medium' | 'low'
-export type MappingPresetId = typeof CONTRAPUNT_EXPORT_PRESET_ID | typeof AFT_PRESET_ID
+export type MappingPresetId = typeof AFT_PRESET_ID
 export type MappingLocale = 'nl' | 'fr' | 'en'
 
 export interface SuggestColumnMappingInput {
   headers: readonly string[]
-  presetId?: MappingPresetId
   localeHints?: readonly string[]
 }
 
@@ -29,7 +23,7 @@ export interface SuggestColumnMappingResult {
   rationale: Record<string, string>
   unmatchedHeaders: string[]
   needsAi: boolean
-  /** Set when the titles match a known layout: Contrapunt's export or bpost's Address File Tool. */
+  /** Set when the titles match a known layout: bpost's Address File Tool. */
   preset?: MappingPresetId
 }
 
@@ -263,61 +257,8 @@ function scorePhrase(headerNorm: string, phrase: string): number {
   return 0
 }
 
-function cloneMapping(mapping: ColumnMapping): ColumnMapping {
-  return {
-    name: [...mapping.name],
-    streetHouseBox: [...mapping.streetHouseBox],
-    postcodeCity: [...mapping.postcodeCity],
-    ...(mapping.companyDepartment?.length
-      ? { companyDepartment: [...mapping.companyDepartment] }
-      : {}),
-    ...(mapping.country?.length ? { country: [...mapping.country] } : {}),
-  }
-}
-
-function contrapuntColumns(): string[] {
-  const mapping = CONTRAPUNT_EXPORT_COLUMN_MAPPING
-  return [
-    ...mapping.name,
-    ...(mapping.companyDepartment ?? []),
-    ...mapping.streetHouseBox,
-    ...mapping.postcodeCity,
-  ]
-}
-
-function matchesContrapuntExport(headers: readonly PreparedHeader[]): boolean {
-  const present = new Set(headers.map((header) => header.raw))
-  return contrapuntColumns().every((column) => present.has(column))
-}
-
 function listColumns(columns: readonly string[]): string {
   return columns.join(', ')
-}
-
-function contrapuntResult(headers: readonly PreparedHeader[], duplicates: readonly string[]): SuggestColumnMappingResult {
-  const hasCountry = headers.some((header) => header.raw === CONTRAPUNT_EXPORT_COUNTRY_COLUMN)
-  const mapping: ColumnMapping = {
-    ...cloneMapping(CONTRAPUNT_EXPORT_COLUMN_MAPPING),
-    ...(hasCountry ? { country: [CONTRAPUNT_EXPORT_COUNTRY_COLUMN] } : {}),
-  }
-  const used = new Set([...contrapuntColumns(), ...(hasCountry ? [CONTRAPUNT_EXPORT_COUNTRY_COLUMN] : [])])
-  return {
-    mapping,
-    confidence: 'high',
-    rationale: {
-      '90': 'Contrapunt-export: Roepnaam en Familienaam.',
-      '91': 'Geen kolom voor bedrijf of afdeling in de Contrapunt-export.',
-      '92': 'Contrapunt-export: straat, huisnummer en bus.',
-      '93': 'Contrapunt-export: postcode en plaats.',
-      '18': hasCountry ? 'Contrapunt-export: land.' : 'Geen kolom voor het land.',
-    },
-    unmatchedHeaders: [
-      ...headers.filter((header) => !used.has(header.raw)).map((header) => header.raw),
-      ...duplicates,
-    ],
-    needsAi: false,
-    preset: CONTRAPUNT_EXPORT_PRESET_ID,
-  }
 }
 
 /** First AFT title (in either spelling) that is in the file, per block. */
@@ -512,11 +453,11 @@ function heuristicResult(
 }
 
 /**
- * Suggests which columns feed each address block, from the column titles only. Known layouts
- * (Contrapunt's export, bpost's Address File Tool) are recognised exactly and reported in `preset`;
- * other files go through NL/FR/EN synonyms with a little tolerance for typos.
+ * Suggests which columns feed each address block, from the column titles only. A known layout
+ * (bpost's Address File Tool) is recognised exactly and reported in `preset`; other files go
+ * through NL/FR/EN synonyms with a little tolerance for typos.
  *
- * @param input Column titles, an optional preset to force, and optional language hints.
+ * @param input Column titles and optional language hints.
  * @returns The mapping, how sure it is, why, the unused titles, and whether AI could help.
  * @example
  * const { mapping, preset } = suggestColumnMapping({ headers: parsed.headers })
@@ -524,16 +465,8 @@ function heuristicResult(
 export function suggestColumnMapping(input: SuggestColumnMappingInput): SuggestColumnMappingResult {
   const { unique, duplicates } = prepareHeaders(input.headers)
   const locales = knownLocales(input.localeHints)
-  // `presetId: contrapunt-export` selects this layout, and the same titles are recognized
-  // without the id. If those titles are not in the file, fall through — never suggest a
-  // column the workbook does not have.
-  if (
-    (input.presetId === undefined || input.presetId === CONTRAPUNT_EXPORT_PRESET_ID) &&
-    matchesContrapuntExport(unique)
-  ) {
-    return contrapuntResult(unique, duplicates)
-  }
-  if ((input.presetId === undefined || input.presetId === AFT_PRESET_ID) && matchesAft(unique)) {
+  // The AFT layout is recognised from its titles; there is nothing to suggest then.
+  if (matchesAft(unique)) {
     return aftResult(unique, duplicates)
   }
   return heuristicResult(unique, duplicates, locales)

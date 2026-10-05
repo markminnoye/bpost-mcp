@@ -52,8 +52,9 @@ Daarnaast:
 - **Letters met een accent dat bpost niet kent** (bv. ő, ź of ș): we laten het accent weg. Zo wordt Kőrösi Korösi; de ö blijft, want die kent bpost wel.
 - **Speciale spaties** worden een gewone spatie, en onzichtbare tekens vallen weg.
 - **Twee of meer spaties na elkaar** worden één spatie.
+- **Emoji** (zoals 🌻 of 👍) stellen we voor weg te laten. Zo wordt "Mertens 🌻" "Mertens".
 
-Een teken zonder veilige vervanging (bv. een emoji, of Griekse of Cyrillische letters) krijgt geen voorstel. Dan heeft de rij jouw input nodig.
+Een teken zonder veilige vervanging (bv. Griekse of Cyrillische letters) krijgt geen voorstel. Dan heeft de rij jouw input nodig.
 
 ## Schuine streep in het adres
 
@@ -92,12 +93,12 @@ Past het na de afkortingen nog niet, dan doen we geen voorstel en heeft de rij j
 
 | Groep | Wat je doet |
 |---|---|
-| Vreemde tekens | Er is een voorstel. Neem het over per rij, of alle overige in één keer. |
+| Vreemde tekens | Er is een voorstel. Neem het over per rij, of alle open voorstellen in één keer met **Alles overnemen**. |
 | Schuine streep in het adres | Idem. |
 | Te lang, meer dan 50 tekens | Idem. |
-| Jouw input nodig | Er is geen veilig voorstel: een leeg verplicht vak, een teken zonder vervanging of een vak dat te lang blijft. Pas de waarde aan of sluit de rij uit. |
+| Jouw input nodig | Er is geen veilig voorstel: een leeg verplicht vak, een teken zonder vervanging of een vak dat te lang blijft. Pas de waarde aan, sluit de rij uit, of sluit alle open rijen in één keer uit met **Alles uitsluiten**. |
 
-Elke aanpassing kan je terugdraaien met de knop in het veld, of met "Ongedaan maken" na het overnemen van een hele groep.
+Elke aanpassing kan je terugdraaien met de knop ↶ rechts in de rij, of met "Ongedaan maken" na het overnemen van een hele groep.
 
 ## Wat we hier niet nakijken
 

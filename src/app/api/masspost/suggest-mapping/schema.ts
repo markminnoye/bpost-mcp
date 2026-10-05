@@ -4,7 +4,6 @@ import { z } from 'zod'
 export const SuggestMappingRequestSchema = z
   .object({
     headers: z.array(z.string()).min(1).max(100),
-    presetId: z.literal('contrapunt-export').optional(),
     localeHints: z.array(z.enum(['nl', 'fr', 'en'])).max(3).optional(),
   })
   .strict()
@@ -26,8 +25,8 @@ const SuggestionShape = z.object({
   }),
   unmatchedHeaders: z.array(z.string()),
   needsAi: z.boolean(),
-  preset: z.enum(['contrapunt-export', 'aft']).optional().meta({
-    description: "Known layout recognised from the titles: Contrapunt's export or bpost's Address File Tool.",
+  preset: z.enum(['aft']).optional().meta({
+    description: "Known layout recognised from the titles: bpost's Address File Tool.",
   }),
 })
 

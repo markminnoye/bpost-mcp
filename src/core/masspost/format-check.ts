@@ -5,7 +5,7 @@
 // Sources: docs/internal/e-masspost/docs/schemas/mailing-request.md (Table 46, Address Group Rules)
 // and address-file-tool.md (columns U-X). The customer-facing list of these rules is
 // docs/documentatie/webapp/formaatvalidatie.md. Pure and browser-safe: imports only charset and mapping.
-import { findUnsupportedChars, normalizeForBpost } from './charset'
+import { findUnsupportedChars, isBpostSafeCodePoint, normalizeForBpost } from './charset'
 import {
   COUNTRY_NAME_MAX_LENGTH,
   UNSTRUCTURED_MAX_LENGTH,
@@ -61,6 +61,15 @@ export const ABBREVIATIONS: readonly Abbreviation[] = [
 ]
 
 const FORBIDDEN_IN_ADDRESS = /[|\t\r\n]/
+
+/** Emoji and the parts they are built from: skin tones, flags, keycaps, joiners and variation
+ *  selectors. Some pictographs are in Latin-1 (© ®); bpost accepts those, so they stay. */
+const EMOJI = /[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\u200D\u20E3\uFE0E\uFE0F\u{E0020}-\u{E007F}]/gu
+
+/** Replaces every emoji by a space: "Mertens 🌻" becomes "Mertens " (trimmed later). */
+function withoutEmoji(text: string): string {
+  return text.replace(EMOJI, (ch) => (isBpostSafeCodePoint(ch.codePointAt(0)!) ? ch : ' '))
+}
 
 function lengthOf(value: string): number {
   return [...value].length
@@ -133,7 +142,7 @@ function abbreviate(text: string, field: AddressField): string {
 }
 
 /**
- * Proposes a value that passes `checkFieldValue`. Removes `|`, tabs and line breaks, swaps
+ * Proposes a value that passes `checkFieldValue`. Removes `|`, tabs, line breaks and emoji, swaps
  * characters via `normalizeForBpost`, collapses spaces, writes `12/3` as `12 bus 3` in the street
  * block, and abbreviates (`ABBREVIATIONS`) when the value is too long. The proposal is for the user
  * to confirm; nothing is applied here.
@@ -145,7 +154,7 @@ function abbreviate(text: string, field: AddressField): string {
  * proposeFieldValue('Jan ’t Hooft', 'name') // "Jan 't Hooft"
  */
 export function proposeFieldValue(value: string, field: AddressField): string | undefined {
-  let text = value.replace(/[|\t\r\n]+/g, ' ')
+  let text = withoutEmoji(value.replace(/[|\t\r\n]+/g, ' '))
   text = normalizeForBpost(text).text
   if (field === 'streetHouseBox') {
     text = text.replace(/(\d+[A-Za-z]?)\s*\/\s*([A-Za-z0-9]+)/g, '$1 bus $2')

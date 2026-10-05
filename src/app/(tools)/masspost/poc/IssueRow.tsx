@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
-import { IconArrowBackUp, IconCircleCheck, IconCircleX, IconCornerDownLeft, IconX } from '@tabler/icons-react'
+import { IconArrowBackUp, IconCircleCheck, IconCircleX, IconCornerDownLeft, IconMail, IconMailOff } from '@tabler/icons-react'
 import { checkFieldValue, type FormatIssue } from '@/core/masspost/format-check'
 import { FIELD_LABELS } from './columns'
 import styles from './poc.module.css'
@@ -140,7 +140,7 @@ export const IssueRow = memo(function IssueRow({ issue, value, excluded, context
       </div>
 
       <div className={styles.cell}>
-        <div className={`${styles.fw} ${changed ? styles.changed : ''}`}>
+        <div className={styles.fw}>
           <input
             ref={inputRef}
             id={id}
@@ -176,22 +176,6 @@ export const IssueRow = memo(function IssueRow({ issue, value, excluded, context
               }
             }}
           />
-          <button
-            type="button"
-            className={styles.undo}
-            tabIndex={-1}
-            data-tip={undoTip}
-            aria-label={undoTip}
-            onMouseDown={noBlur}
-            onClick={() => {
-              editRef.current = null
-              setDraft(null)
-              actions.commit(issue, issue.original)
-              rowRef.current?.focus()
-            }}
-          >
-            <IconArrowBackUp size={15} stroke={1.75} aria-hidden="true" />
-          </button>
         </div>
         <div className={styles.why} id={`${id}-why`} data-row-area="">
           {error}
@@ -231,6 +215,28 @@ export const IssueRow = memo(function IssueRow({ issue, value, excluded, context
         ) : null}
       </div>
 
+      {/* Commands on the right: put the original value back (after a change), then exclude. */}
+      {changed ? (
+        <button
+          type="button"
+          className={`${styles.ib} ${styles.xbtn}`}
+          tabIndex={-1}
+          data-tip={undoTip}
+          aria-label={undoTip}
+          onMouseDown={noBlur}
+          onClick={() => {
+            editRef.current = null
+            setDraft(null)
+            actions.commit(issue, issue.original)
+            rowRef.current?.focus()
+          }}
+        >
+          <IconArrowBackUp size={15} stroke={1.75} aria-hidden="true" />
+        </button>
+      ) : (
+        <span />
+      )}
+
       <button
         type="button"
         className={`${styles.ib} ${styles.xbtn}`}
@@ -245,7 +251,12 @@ export const IssueRow = memo(function IssueRow({ issue, value, excluded, context
           rowRef.current?.focus()
         }}
       >
-        <IconX size={15} stroke={1.75} aria-hidden="true" />
+        {/* The icon shows what a click does: a struck-out envelope excludes, a plain one takes the row back. */}
+        {excluded ? (
+          <IconMail size={15} stroke={1.75} aria-hidden="true" />
+        ) : (
+          <IconMailOff size={15} stroke={1.75} aria-hidden="true" />
+        )}
       </button>
 
       <div className={styles.ctx} data-row-area="">

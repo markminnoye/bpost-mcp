@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CONTRAPUNT_EXPORT_COLUMN_MAPPING } from '@/core/masspost/presets/contrapunt-export'
+import { CONTRAPUNT_SAMPLE_COLUMN_MAPPING } from '@/core/masspost/fixtures/contrapunt-sample'
 
 vi.mock('@/lib/auth/resolve-request-auth', () => ({
   resolveRequestAuth: vi.fn(),
@@ -66,13 +66,13 @@ describe('POST /api/masspost/suggest-mapping', () => {
     expect(suggestColumnMappingWithAi).not.toHaveBeenCalled()
   })
 
-  it('returns the Contrapunt heuristic and does not call AI', async () => {
+  it('maps the Contrapunt sample titles with the heuristic and does not call AI', async () => {
     const response = await POST(post({ headers: CONTRAPUNT_HEADERS }))
     const body = await response.json()
 
     expect(response.status).toBe(200)
     expect(body.source).toBe('heuristic')
-    expect(body.mapping).toEqual(CONTRAPUNT_EXPORT_COLUMN_MAPPING)
+    expect(body.mapping).toEqual(CONTRAPUNT_SAMPLE_COLUMN_MAPPING)
     expect(body.needsAi).toBe(false)
     expect(suggestColumnMappingWithAi).not.toHaveBeenCalled()
   })

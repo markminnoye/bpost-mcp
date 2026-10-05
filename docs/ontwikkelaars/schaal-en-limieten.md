@@ -29,7 +29,7 @@ Boven de 500 adressen is er nog **nooit iets naar bpost gestuurd**. Dat geldt oo
 
 ## Meting van de library
 
-Synthetische lijsten in de Contrapunt-indeling (8 kolommen, wisselende namen en huisnummers, straten uit het voorbeeldbestand). De keten loopt van het inlezen van de Excel tot het gzip-bestand. Er zit **geen database, geen FTP en geen bpost** in.
+Synthetische lijsten met de kolommen van het voorbeeldbestand van Contrapunt (8 kolommen, wisselende namen en huisnummers, straten uit het voorbeeldbestand). De keten loopt van het inlezen van de Excel tot het gzip-bestand. Er zit **geen database, geen FTP en geen bpost** in.
 
 | Rijen | Excel | Tijd | Piekgeheugen | XML | XML na gzip |
 |---|---|---|---|---|---|

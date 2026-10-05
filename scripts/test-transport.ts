@@ -23,7 +23,7 @@ import { sendXmlViaFtp } from '../src/core/masspost/transport/ftp'
 import { buildMailingRequestFileName } from '../src/core/masspost/file-naming'
 import type { BuildRequestParams } from '../src/core/masspost/build-request'
 import {
-  CONTRAPUNT_EXPORT_COLUMN_MAPPING,
+  CONTRAPUNT_SAMPLE_COLUMN_MAPPING,
   CONTRAPUNT_TEST_ADRESSEN_XLSX,
 } from '../src/core/masspost/fixtures/contrapunt-sample'
 import { access, mkdir, writeFile } from 'node:fs/promises'
@@ -245,7 +245,7 @@ async function main() {
   report.push('')
 
   let filePath: string | undefined
-  let mapping = CONTRAPUNT_EXPORT_COLUMN_MAPPING
+  let mapping = CONTRAPUNT_SAMPLE_COLUMN_MAPPING
 
   if (useSynthetic) {
     filePath = undefined

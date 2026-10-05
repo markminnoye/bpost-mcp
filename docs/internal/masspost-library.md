@@ -169,11 +169,11 @@ Browser code imports modules directly (`excel`, `mapping`, `suggest-mapping`, `f
 |--------|------|
 | `excel.ts` | Parse `.xlsx` / `.xls` → `{ headers, rows, rowNumbers }` (SheetJS, ADR 0005). Recognises the file by its first bytes; CSV is refused. Runs in Node and in the browser |
 | `mapping.ts` | Column mapping → unstructured Comp **90/91/92/93** (max **50**) and country (Comp 17/18, max 42, `isBelgianCountry` → left out); `mapRows(rows, mapping, { rowNumbers })` makes `seq` the row number |
-| `suggest-mapping.ts` | `suggestColumnMapping` — header heuristics / Contrapunt preset. No cell values, no AI |
-| `presets/contrapunt-export.ts` | `CONTRAPUNT_EXPORT_COLUMN_MAPPING` (re-exported by the fixture) |
+| `suggest-mapping.ts` | `suggestColumnMapping` — header heuristics / AFT preset. No cell values, no AI |
 | `charset.ts` | `normalizeForBpost` / `findUnsupportedChars` (ISO-8859-1); `CHARACTER_REPLACEMENTS` |
 | `printer-export.ts` | `buildPrinterExport`: original first sheet plus *Meesturen* and *Volgnummer bpost* (row number); no row removed (web-flow decisions 48, 49) |
-| `presets/aft.ts` | Address File Tool column titles (template and guide spellings); recognised by `suggestColumnMapping` (`preset: 'aft'`) |
+| `presets/aft.ts` | Address File Tool column titles (template and guide spellings); recognised by `suggestColumnMapping` (`preset: 'aft'`). `AFT_TEMPLATE_COLUMNS`: all 39 template columns in order |
+| `aft-export.ts` | `buildAftExport`: Excel 97-2003 (.xls) for the AFT upload, template columns, unstructured blocks, `SEQ` = row number, corrections applied, excluded rows left out, `PRIORITY` NP by default. Browser-safe |
 | `format-check.ts` | Format validation per Comp 90-93 without silent fixes: `checkFieldValue`, `proposeFieldValue` (incl. `ABBREVIATIONS`), `findFormatIssues`, `missingTargets`. Browser-safe; used by the web POC |
 | `build-request.ts` | `rowsToItems`, `buildMailingRequest`, `buildMailingCheckRequest`; `FORCE_TEST_MODE` |
 | `validate.ts` | Zod validate with per-field issues (`midVersion`-aware) |
@@ -183,7 +183,7 @@ Browser code imports modules directly (`excel`, `mapping`, `suggest-mapping`, `f
 | `transport/http.ts` | Thin wrapper around existing `BpostClient` |
 | `transport/ftp.ts` | FTPS upload: `\requests`, `.TMP` → final name |
 | `parse-response.ts` | `extractMailingResponseMessages` / `hasFatalMailingResponse` (file-level Replies) |
-| `fixtures/contrapunt-sample.ts` | Paths + `CONTRAPUNT_EXPORT_COLUMN_MAPPING` + simple buffer |
+| `fixtures/contrapunt-sample.ts` | Paths + `CONTRAPUNT_SAMPLE_COLUMN_MAPPING` (columns of the sample file; not a recognised layout) + simple buffer |
 | `fixtures/xlsx.ts` | `xlsxBuffer` / `writeXlsxFile`: plain workbook from rows (SheetJS, no styling), for tests and scripts |
 
 ### Pipeline API
@@ -228,7 +228,6 @@ import { suggestColumnMapping } from '@/core/masspost'
 
 const suggestion = suggestColumnMapping({
   headers, // string[] from parseExcelAddresses
-  presetId: 'contrapunt-export', // optional; also detected from the titles themselves
   localeHints: ['nl'], // optional: nl | fr | en, tie-break only
 })
 
@@ -238,7 +237,7 @@ const suggestion = suggestColumnMapping({
 // suggestion.needsAi — true only when a required target is missing or confidence is low
 ```
 
-Contrapunt export titles (including an extra `Land` column) return exactly `CONTRAPUNT_EXPORT_COLUMN_MAPPING`, `confidence: 'high'`, `needsAi: false`. `Land` stays unmatched. Other layouts use NL/FR/EN synonyms. A preset id never invents columns that are not in `headers`.
+Address File Tool titles return the AFT mapping with `preset: 'aft'`. There is no fixed Contrapunt export: the titles of their sample file map through the NL/FR/EN synonyms to `CONTRAPUNT_SAMPLE_COLUMN_MAPPING` (plus the `Land` column as country), `confidence: 'high'`, `needsAi: false`. Other layouts use the same synonyms. A suggestion never names a column that is not in `headers`.
 
 Optional AI fallback, outside core: `POST /api/masspost/suggest-mapping` requires the same bearer token or session cookie as the other protected routes (`resolveRequestAuth`). It runs the heuristic first. Only when `needsAi` is true does `src/lib/masspost/suggest-mapping-ai.ts` call the Vercel AI Gateway (`ai` package, `provider/model` string). The model sees the system note for Comp 90–93 plus a JSON object `{ headers, localeHints }` — **not** the sheet. The response is Zod-parsed and every chosen column must be one of the headers, each used at most once. Without `MASSPOST_SUGGEST_MAPPING_MODEL` the route answers **503** `ai_not_configured` and still returns the local `suggestion` for a human to confirm. Nothing is applied to `convertExcelToMailingRequest` automatically.
 

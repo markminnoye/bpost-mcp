@@ -36,7 +36,7 @@ import {
   type MidProtocolVersion,
 } from '../src/core/masspost/credentials'
 import {
-  CONTRAPUNT_EXPORT_COLUMN_MAPPING,
+  CONTRAPUNT_SAMPLE_COLUMN_MAPPING,
   CONTRAPUNT_TEST_ADRESSEN_XLSX,
   buildSimpleContrapuntTestXlsxBuffer,
 } from '../src/core/masspost/fixtures/contrapunt-sample'
@@ -260,7 +260,7 @@ async function main() {
   const result = useOpti
     ? await convertExcelToMailingCheck(
         buffer,
-        CONTRAPUNT_EXPORT_COLUMN_MAPPING,
+        CONTRAPUNT_SAMPLE_COLUMN_MAPPING,
         {
           mailingRef: (useSimple ? `OPTISIMPLE${stamp}` : `OPTI${stamp}`).slice(0, 20),
           priority: 'NP',
@@ -275,7 +275,7 @@ async function main() {
       )
     : await convertExcelToMailingRequest(
         buffer,
-        CONTRAPUNT_EXPORT_COLUMN_MAPPING,
+        CONTRAPUNT_SAMPLE_COLUMN_MAPPING,
         {
           mailingRef: (useSimple ? `SIMPLE${stamp}` : `MANUAL${stamp}`).slice(0, 20),
           expectedDeliveryDate: new Date(now.getTime() + 14 * 86400000).toISOString().slice(0, 10),

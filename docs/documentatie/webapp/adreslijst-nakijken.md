@@ -10,7 +10,7 @@ Met deze pagina lees je een adreslijst in, kies je welke kolommen het adres vorm
 
 Er bestaat ook een versie als één los bestand, die je zonder internet opent door erop te dubbelklikken. Die werkt op dezelfde manier.
 
-## Stap 1: opladen
+## Stap 1: importeren
 
 Sleep je Excel-bestand in het vak, of klik op **Kies een bestand**.
 
@@ -23,25 +23,28 @@ Geen bestand bij de hand? **Probeer met een voorbeeldlijst** laadt 30 verzonnen 
 
 ## Bovenaan: de stappen en de pills
 
-Links bovenaan staan de stappen. Hun icoon is grijs tot de stap een status heeft: geel als er in die stap iets te doen is (de koppeling is onvolledig, of er staan formaatfouten open), groen als ze in orde is. Klik op een vorige stap om terug te gaan. Wil je een ander bestand, klik dan op **1. Opladen**.
+Links bovenaan staan de stappen. Hun icoon is grijs tot de stap een status heeft: geel als er in die stap iets te doen is (de koppeling is onvolledig, of er staan formaatfouten open), groen als ze in orde is. Onder de stappen loopt één balk, met een stuk per stap. Elk stuk vult zich naarmate de stap klaar is, in dezelfde kleur: bij Koppelen de verplichte vakken met een kolom, bij Formaatvalidatie de formaatfouten die je oploste of uitsloot. Ga met de muis over een stap om het percentage te zien. De stap waar je bent, staat in volle kleur met een dikkere balk; de andere stappen zijn lichter. Pijltjes tussen de stappen tonen de volgorde; de vier stappen zijn even breed.
 
-Rechts op dezelfde regel staat een rij pills: een icoon met een getal. Ga er met de muis over voor de uitleg.
+De balk met de stappen en de pills blijft bovenaan staan als je naar beneden scrolt.
+
+Klik op een stap om ernaar te gaan: terug, of weer vooruit naar een stap die je al deed. Wil je een ander bestand, klik dan op **1. Importeren**.
+
+Rechts op dezelfde regel staat een rij pills: een icoon met een getal. Ga er met de muis over voor de uitleg. Ze staan in deze volgorde: eerst wat je bestand is, dan wat we nakijken, en rechts het resultaat: de adressen die meegaan en helemaal rechts de rijen die je uitsloot. Een pill die iets nakijkt, is oranje als er iets te doen is. Is alles in orde, dan blijft ze neutraal en wordt enkel het icoon groen. De pill voor het formaat wordt dan helemaal groen, met een vinkje.
 
 | Pill | Betekenis |
 |---|---|
-| **AFT** of **Contrapunt** (blauw) | We herkennen de indeling: de Address File Tool van bpost, of de export van Contrapunt. De kolommen zijn automatisch gekoppeld. |
-| Envelop met getal | Het aantal adressen in je lijst (de naam van het bestand staat in de uitleg). Oranje boven 25.000. |
+| **AFT** (blauw) | We herkennen de indeling van de Address File Tool van bpost. De kolommen zijn automatisch gekoppeld. |
+| Kolommen | Hoeveel kolommen aan het adres gekoppeld zijn (stap 2). Oranje zolang een verplicht vak geen kolom heeft. |
 | Wereldbol (oranje) | Adressen in het buitenland: kijk het land na. |
-| Kolommen | Hoeveel kolommen aan het adres gekoppeld zijn (stap 2). |
-| abc (oranje of groen) | Open formaatfouten, of "formaat in orde" (stap 3 en 4). |
-| Verbodsteken | Rijen die je uitsloot (stap 3 en 4). |
-| Envelop met pijl | Hoeveel adressen meegaan (stap 4). |
+| abc | Hoeveel formaatfouten nog open staan (oranje), of groen met een vinkje als er geen meer open staan (stap 3 en 4). |
+| Envelop met getal | Hoeveel adressen meegaan naar bpost: je hele lijst min de rijen die je uitsloot (de naam van het bestand staat in de uitleg). Oranje onder 500, het minimum dat bpost per mailing vraagt, en boven 25.000. |
+| Envelop met streep | Helemaal rechts: de rijen die je uitsloot (stap 3 en 4). |
 
 ## Stap 2: kolommen koppelen
 
 Bpost krijgt een adres in vakken: naam, bedrijf of afdeling, straat met nummer en bus, postcode met gemeente, en het land. Hier kies je per kolom van je lijst wat er mee gebeurt.
 
-**Herken je bestand een gekende indeling** (de AFT van bpost of de export van Contrapunt), dan koppelen we de kolommen zelf en sla je deze stap over. Je kan ze toch bekijken via **2. Koppelen** bovenaan.
+**Heeft je bestand de indeling van de AFT van bpost,** dan koppelen we de kolommen zelf en sla je deze stap over. Je kan ze toch bekijken via **2. Koppelen** bovenaan.
 
 | Keuze | Wat ermee gebeurt |
 |---|---|
@@ -53,12 +56,12 @@ Bpost krijgt een adres in vakken: naam, bedrijf of afdeling, straat met nummer e
 | **Tonen bij het verbeteren** | Gaat **niet** naar bpost en komt niet op de envelop. Je ziet de waarde wel naast een adres dat je moet verbeteren, als extra uitleg. Bijvoorbeeld een lidnummer of een afdeling. Zo weet je over wie het gaat, zonder dat het op de brief komt. |
 | **Niet gebruiken** | We doen er niets mee. |
 
-**Voorbeelden:** naast elke kolom staat een pill met een druppel die zegt in hoeveel rijen de kolom gevuld is, bv. "787/789". Daarnaast staan vijf voorbeeldwaarden. Klik op de naam van de kolom voor meer: tot 20 verschillende waarden, hoeveel verschillende waarden ze heeft, en hoe lang de langste waarde is. Dat kan enkel bij een kolom met waarden.
+**Voorbeelden:** naast elke kolom staat een pill met het icoon voor rijen die zegt in hoeveel rijen de kolom gevuld is, bv. "787/789". Daarnaast staan vijf voorbeeldwaarden. Klik op de naam van de kolom voor meer: tot 20 verschillende waarden, hoeveel verschillende waarden ze heeft, en hoe lang de langste waarde is. Dat kan enkel bij een kolom met waarden.
 
-**Lege kolommen** (zonder één waarde) staan onderaan, onder **Kolommen zonder waarden**, zodat ze niet tussen de rest staan.
+**Lege kolommen** (zonder één waarde) staan onderaan, onder **Kolommen zonder waarden**, zodat ze niet tussen de rest staan. Is een lege kolom toch aan het adres gekoppeld (bv. aan *Bedrijf of afdeling* in een AFT-bestand), dan staat ze bovenaan die groep, duidelijk leesbaar, met de melding dat er niets in dat vak komt. De andere lege kolommen zijn grijs.
 
 **Hoe we een voorstel maken:** we kijken naar de kolomtitels.
-- **De export van Contrapunt en de AFT** herkennen we exact.
+- **De indeling van de AFT** herkennen we exact.
 - **Andere bestanden:** we zoeken Nederlandse, Franse en Engelse woorden, zoals *voornaam*, *prénom*, *straat*, *rue*, *huisnummer*, *bus*, *postcode*, *gemeente*, *land* of *pays*. Kleine tikfouten mogen.
 - **Een kolom die we niet herkennen,** zetten we op **Tonen bij het verbeteren**, zodat er niets ongewild op de envelop komt. In een AFT-bestand zetten we die kolommen op **Niet gebruiken**: daar staat hetzelfde adres ook nog eens in andere kolommen.
 
@@ -80,23 +83,31 @@ De gevonden formaatfouten staan in groepen: vreemde tekens, een schuine streep i
 | Je wil | Met de muis | Met het toetsenbord |
 |---|---|---|
 | Het voorstel overnemen | De knop ↵ naast het voorstel | `Enter` |
-| Alle overige voorstellen van een groep overnemen | **Overige … voorstellen overnemen** | |
+| Alle open voorstellen van een groep overnemen | **Alles overnemen** in de kop van de groep | |
 | Zelf aanpassen | Klik in het veld | `E`, daarna `Enter` om te bevestigen of `Esc` om terug te zetten |
-| De oorspronkelijke waarde terugzetten | De knop ↶ in het veld | `⌘Z` (laatste actie ongedaan) |
-| De rij uitsluiten of opnieuw opnemen | De knop ✕ | `X` |
+| De oorspronkelijke waarde terugzetten | De knop ↶ rechts in de rij, links van uitsluiten | `⌘Z` (laatste actie ongedaan) |
+| De rij uitsluiten of opnieuw opnemen | De knop met de doorstreepte envelop; bij een uitgesloten rij wordt dat een gewone envelop, om ze opnieuw op te nemen | `X` |
+| Alle open rijen van "Jouw input nodig" uitsluiten | **Alles uitsluiten** in de kop van die groep | |
 | Naar een andere rij | Klik op de rij | `↑` `↓` |
-| Verborgen rijen tonen of verbergen | **Toon de … andere rijen** | `→` `←` |
+| Alle rijen van een groep tonen of verbergen | De pill met het pijltje in de kop van de groep | `→` `←` |
 
+- **De pill in de kop van een groep** telt de rijen die nog open staan (oranje). Een groep met veel rijen toont er eerst drie. Staan er open rijen buiten beeld, dan zegt de pill hoeveel je er ziet: "(3)/7" betekent 3 van de 7 open rijen in beeld. Klik op de pill om ze allemaal te zien.
+- **Is een groep helemaal in orde,** dan wordt de pill neutraal met een groen icoon en het aantal rijen, en klapt de groep meteen dicht. Klik op de pill om de rijen terug te zien.
 - **Een uitgesloten rij** blijft bewaard, maar gaat niet mee in de mailing.
 - **Het vinkje** wordt groen zodra een waarde aan de regels voldoet.
 - **Verder naar adrescontrole** wordt rood zodra er geen formaatfouten meer open staan. Zijn er geen formaatfouten, dan ga je meteen door naar stap 4.
-- **Ga je terug naar Koppelen,** dan vervallen je aanpassingen.
+- **Je aanpassingen blijven bewaard** als je teruggaat naar Koppelen of Importeren. Ze vervallen pas als je een ander bestand importeert of de koppeling wijzigt. Dan kijken we de lijst opnieuw na.
 
 ## Stap 4: adrescontrole
 
-De adrescontrole bij bpost zit nog niet in deze proefversie. Wel kan je hier het bestand voor de drukker downloaden.
+De adrescontrole bij bpost zit nog niet in deze proefversie. Wel kan je hier twee bestanden opslaan, elk in een eigen kader naast elkaar. We maken ze in je browser: er wordt niets opgeladen. Je browser bewaart het bestand zoals elk ander bestand, meestal in de map Downloads.
 
-**Download voor de drukker (.xlsx)** geeft je bestand zoals je het opliet:
+**Opslaan voor bpost (AFT, .xls)** geeft een bestand voor de Address File Tool op het e-MassPost-portaal van bpost:
+- **de kolommen van het sjabloon van bpost,** in hun vaste volgorde, als Excel 97-2003 (.xls), want het portaal aanvaardt geen .xlsx;
+- **enkel de adressen die meegaan,** met je verbeteringen uit de formaatvalidatie;
+- *SEQ* is het rijnummer in je bestand, en elke rij gaat als niet-prioritaire zending (*PRIORITY* NP).
+
+**Opslaan voor de drukker (.xlsx)** geeft je bestand zoals het was:
 - **elke rij blijft op haar plaats,** ook lege rijen, met je kolommen ongewijzigd;
 - **twee kolommen komen erbij:**
   - *Meesturen*: "ja", of "nee, uitgesloten" voor een rij die je uitsloot. Die rij mag niet gedrukt worden.

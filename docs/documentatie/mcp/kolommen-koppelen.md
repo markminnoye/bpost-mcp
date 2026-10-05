@@ -14,7 +14,7 @@ bpost verwacht de adresgegevens in vaste velden. Jouw bestand heeft eigen kolomt
 
 ## Herkende titels
 
-Nederlandse, Franse en Engelse titels worden herkend, zoals *voornaam*, *familienaam*, *bedrijf*, *straat*, *huisnummer*, *bus*, *postcode* en *gemeente*. Een export van Contrapunt wordt exact herkend.
+Nederlandse, Franse en Engelse titels worden herkend, zoals *voornaam*, *familienaam*, *bedrijf*, *straat*, *huisnummer*, *bus*, *postcode* en *gemeente*.
 
 ## Wat controleer je?
 

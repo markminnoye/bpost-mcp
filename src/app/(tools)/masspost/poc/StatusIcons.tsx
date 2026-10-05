@@ -1,5 +1,12 @@
 // Harvey balls and the waiting wheel from docs/ontwerp/webapp/statusiconen.html (decisions 17, 18, 21).
+import { IconColumns3 } from '@tabler/icons-react'
 import styles from './poc.module.css'
+
+/** Rows: the column icon of the top bar turned a quarter, so rows and columns read as a pair.
+ *  Tabler has no three-rows icon. */
+export function IconRows3({ size = 14 }: { size?: number }) {
+  return <IconColumns3 size={size} stroke={1.75} aria-hidden="true" style={{ transform: 'rotate(90deg)' }} />
+}
 
 const SLICES = {
   0.25: 'M10 10 L10 2 A8 8 0 0 1 18 10 Z',
