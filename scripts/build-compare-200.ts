@@ -11,59 +11,20 @@
 // Requires Python xlwt for the .xls (pip install xlwt). Set AFT_PYTHON to that interpreter.
 import { spawnSync } from 'node:child_process'
 import { readFile, writeFile } from 'node:fs/promises'
-import ExcelJS from 'exceljs'
 import { parseExcelAddresses } from '../src/core/masspost/excel'
 import { mapRows } from '../src/core/masspost/mapping'
 import {
   COMPARE_SAMPLE_SIZE,
   CONTRAPUNT_AFT_200_XLS,
-  CONTRAPUNT_EXPORT_COLUMN_MAPPING,
+  CONTRAPUNT_SAMPLE_COLUMN_MAPPING,
   CONTRAPUNT_TEST_ADRESSEN_200_XLSX,
   CONTRAPUNT_TEST_ADRESSEN_XLSX,
 } from '../src/core/masspost/fixtures/contrapunt-sample'
+import { writeXlsxFile } from '../src/core/masspost/fixtures/xlsx'
+import { AFT_TEMPLATE_COLUMNS } from '../src/core/masspost/presets/aft'
 
 /** Column titles from docs/internal/e-masspost/docs/resources/template.xls — order is fixed. */
-const AFT_COLUMNS = [
-  'SEQ',
-  'GREETING',
-  'FIRST_NAME',
-  'MIDDLE_NAME',
-  'LAST_NAME',
-  'SUFFIX',
-  'COMPANY_NAME',
-  'DEPARTMENT',
-  'BUILDING',
-  'ADDRESS_LINE_1',
-  'ADDRESS_LINE_2',
-  'ADDRESS_LINE_3',
-  'HOUSE_NUMBER',
-  'BOX_NUMBER',
-  'PO_BOX_NUMBER',
-  'POSTAL_CODE',
-  'CITY',
-  'ISO_COUNTRY_CODE',
-  'COUNTRY_NAME',
-  'STATE',
-  'UNSTRUCTURED_NAME',
-  'UNSTRUCTURED_COMPANY_DEPARTMENT',
-  'UNSTRUCTURED_BUILDING_STREET_HOUSE_BOX',
-  'UNSTRUCTURED_POST_CODE_CITY',
-  'MIDNUMBER',
-  'PRESORTING_CODE',
-  'LANGUAGE',
-  'PRIORITY',
-  'FIELDTOPRINT1',
-  'FIELDTOPRINT2',
-  'FIELDTOPRINT3',
-  'FEEDBACK',
-  'ORGINFO',
-  'ICTI',
-  'IZON',
-  'IMAC',
-  'IWAV',
-  'IOFF',
-  'PRINTORDER',
-] as const
+const AFT_COLUMNS = AFT_TEMPLATE_COLUMNS
 
 const WRITE_XLS = `
 import json, sys, xlwt
@@ -87,13 +48,10 @@ print(f"rows={len(rows)} cols={len(columns)}")
 `
 
 async function writeCrmXlsx(headers: string[], rows: Record<string, unknown>[]): Promise<void> {
-  const workbook = new ExcelJS.Workbook()
-  const sheet = workbook.addWorksheet('Blad1')
-  sheet.addRow(headers)
-  for (const row of rows) {
-    sheet.addRow(headers.map((header) => row[header] ?? ''))
-  }
-  await workbook.xlsx.writeFile(CONTRAPUNT_TEST_ADRESSEN_200_XLSX)
+  await writeXlsxFile(CONTRAPUNT_TEST_ADRESSEN_200_XLSX, [
+    headers,
+    ...rows.map((row) => headers.map((header) => row[header] ?? '')),
+  ])
 }
 
 function writeAftXls(rows: Record<string, string | number>[]): void {
@@ -123,7 +81,7 @@ async function main() {
   }
 
   const sourceRows = parsed.rows.slice(0, COMPARE_SAMPLE_SIZE)
-  const mapped = mapRows(sourceRows, CONTRAPUNT_EXPORT_COLUMN_MAPPING)
+  const mapped = mapRows(sourceRows, CONTRAPUNT_SAMPLE_COLUMN_MAPPING)
   const blocked = mapped.warnings.filter((warning) => warning.message.includes('niet aanvaardt'))
   if (blocked.length > 0) {
     throw new Error(`Tekens die bpost weigert in de eerste ${COMPARE_SAMPLE_SIZE} rijen:\n${blocked.map((w) => w.message).join('\n')}`)

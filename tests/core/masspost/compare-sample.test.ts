@@ -4,7 +4,7 @@ import { parseExcelAddresses } from '@/core/masspost/excel'
 import { mapRows } from '@/core/masspost/mapping'
 import {
   COMPARE_SAMPLE_SIZE,
-  CONTRAPUNT_EXPORT_COLUMN_MAPPING,
+  CONTRAPUNT_SAMPLE_COLUMN_MAPPING,
   CONTRAPUNT_TEST_ADRESSEN_200_XLSX,
   CONTRAPUNT_TEST_ADRESSEN_XLSX,
 } from '@/core/masspost/fixtures/contrapunt-sample'
@@ -19,7 +19,7 @@ describe('AFT vs XML compare sample (200)', () => {
     expect(subset.rows[0]).toEqual(full.rows[0])
     expect(subset.rows[COMPARE_SAMPLE_SIZE - 1]).toEqual(full.rows[COMPARE_SAMPLE_SIZE - 1])
 
-    const mapped = mapRows(subset.rows, CONTRAPUNT_EXPORT_COLUMN_MAPPING)
+    const mapped = mapRows(subset.rows, CONTRAPUNT_SAMPLE_COLUMN_MAPPING)
     expect(mapped.rows[0]?.fields.name.value).toBe('Anna Vanderstappen')
     expect(mapped.rows[0]?.fields.streetHouseBox.value).toBe('Molenbeeksestraat 184 35')
     expect(mapped.rows[0]?.fields.postcodeCity.value).toBe('1020 Brussel')

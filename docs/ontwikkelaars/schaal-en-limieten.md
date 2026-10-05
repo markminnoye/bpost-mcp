@@ -29,7 +29,7 @@ Boven de 500 adressen is er nog **nooit iets naar bpost gestuurd**. Dat geldt oo
 
 ## Meting van de library
 
-Synthetische lijsten in de Contrapunt-indeling (8 kolommen, wisselende namen en huisnummers, straten uit het voorbeeldbestand). De keten loopt van het inlezen van de Excel tot het gzip-bestand. Er zit **geen database, geen FTP en geen bpost** in.
+Synthetische lijsten met de kolommen van het voorbeeldbestand van Contrapunt (8 kolommen, wisselende namen en huisnummers, straten uit het voorbeeldbestand). De keten loopt van het inlezen van de Excel tot het gzip-bestand. Er zit **geen database, geen FTP en geen bpost** in.
 
 | Rijen | Excel | Tijd | Piekgeheugen | XML | XML na gzip |
 |---|---|---|---|---|---|
@@ -38,6 +38,40 @@ Synthetische lijsten in de Contrapunt-indeling (8 kolommen, wisselende namen en 
 | 200.000 | 9,3 MB | 6,1 s | 1,95 GB | 36,6 MB | 3,6 MB |
 | 300.000 | 14,0 MB | 9,0 s | 2,79 GB | 55,0 MB | 5,4 MB |
 | 600.000 | 28,0 MB | 17,9 s | 3,48 GB | 110,1 MB | 10,7 MB |
+
+## Inlezen en nakijken in de browser
+
+Gemeten op 05/10/2026 met de [POC formaatvalidatie](website.md#poc-formaatvalidatie). De meting gebruikt het losstaande bestand (productiebouw van React), Chrome, een zichtbaar tabblad, een Mac met Apple-chip, en synthetische lijsten van `npm run generate:large-xlsx` (8 kolommen, ±3 % formaatfouten).
+- **Inlezen:** `parseExcelAddresses` op de main thread, met SheetJS sinds ADR 0005. Tussen haakjes de eerste meting met exceljs.
+- **Controle:** `findFormatIssues`.
+- **Tonen:** van het einde van de controle tot het scherm getekend is.
+- **Geheugen:** de JS-heap na het inlezen (`performance.memory`). Die schommelt met de garbage collector, dus het is een grootteorde.
+
+| Adressen | Excel | Inlezen | Controle | Tonen | Formaatfouten | Geheugen |
+|---|---|---|---|---|---|---|
+| 789 (`testadressen.xlsx`) | 49 KB | 21 ms (56 ms) | 2 ms | 16 ms | 2 | ±7 MB (±9 MB) |
+| 25.000 | 1,0 MB | 0,26 s (0,30 s) | 34 ms | 13 ms | 674 | ±40 MB (±55 MB) |
+| 35.000 | 1,4 MB | 0,33 s (0,35 s) | 44 ms | 11 ms | 901 | ±60 MB (±130 MB) |
+| 100.000 | 4,1 MB | 0,95 s (1,0 s) | 107 ms | 10 ms | 2.634 | ±120 MB (±190 MB) |
+| 150.000 | 6,1 MB | 1,3 s (1,4 s) | 165 ms | 15 ms | 3.954 | ±190 MB (±330 MB) |
+
+Dezelfde lijsten in Node (lezen alleen, piekgeheugen van het proces):
+
+| Adressen | exceljs | SheetJS |
+|---|---|---|
+| 25.000 | 0,39 s, 343 MB | 0,30 s, 204 MB |
+| 100.000 | 1,25 s, 720 MB | 1,09 s, 371 MB |
+| 150.000 | 1,93 s, 1.028 MB | 1,60 s, 501 MB |
+
+**Wat dat zegt:**
+- **Tot 150.000 adressen** is inlezen in de browser geen probleem op deze machine. De pagina bevriest even tijdens het inlezen, maar het wieltje (een CSS-animatie) blijft draaien.
+- **SheetJS tegenover exceljs:** iets sneller, en het gebruikt ongeveer de helft van het geheugen. De waarden per cel zijn identiek.
+- **Een hele groep overnemen:** alle voorstellen van een groep in één keer (2.294 rijen) kost 21 ms.
+- **Vergelijking met de Node-meting hierboven:** daar was het geheugen veel hoger (1 GB bij 100.000 rijen), want die meting omvat de hele keten tot XML en gzip. Deze meet enkel het inlezen en de controle.
+- **De ontwikkelserver** (`next dev`) is 1,5 à 2 keer trager.
+- **Een verborgen of geminimaliseerd tabblad** is veel trager, tot 10 keer voor de controle: de browser geeft het minder rekentijd. Wie meet, houdt het tabblad dus zichtbaar.
+- **Een .xls-bestand** bevat maximaal 65.535 adressen; dat is een grens van het formaat.
+- **Nog te meten:** een gewone kantoor-pc van Contrapunt. Reken op 2 à 4 keer trager. Daarvoor dient het losstaande bestand: het meetpaneel kopieert de cijfers als JSON.
 
 ## Het antwoord van bpost inlezen
 

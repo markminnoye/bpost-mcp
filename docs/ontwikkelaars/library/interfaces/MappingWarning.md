@@ -12,7 +12,7 @@ A truncation, empty required field, or character issue on one row.
 
 ### field
 
-> **field**: `"name"` \| `"companyDepartment"` \| `"streetHouseBox"` \| `"postcodeCity"`
+> **field**: [`AddressField`](../type-aliases/AddressField.md)
 
 ***
 

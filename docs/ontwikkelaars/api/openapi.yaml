@@ -145,6 +145,11 @@ components:
               type: array
               items:
                 type: string
+            country:
+              type: array
+              items:
+                type: string
+              description: Country column (name or two-letter code). Sent to bpost as Comp 18 or 17, never for Belgium.
           required:
             - name
             - streetHouseBox
@@ -159,13 +164,18 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93`.
+          description: Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93` and, for the heuristic and presets, `18` (country).
         unmatchedHeaders:
           type: array
           items:
             type: string
         needsAi:
           type: boolean
+        preset:
+          type: string
+          enum:
+            - aft
+          description: "Known layout recognised from the titles: bpost's Address File Tool."
         source:
           type: string
           enum:
@@ -211,6 +221,11 @@ components:
                   type: array
                   items:
                     type: string
+                country:
+                  type: array
+                  items:
+                    type: string
+                  description: Country column (name or two-letter code). Sent to bpost as Comp 18 or 17, never for Belgium.
               required:
                 - name
                 - streetHouseBox
@@ -225,13 +240,18 @@ components:
               type: object
               additionalProperties:
                 type: string
-              description: Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93`.
+              description: Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93` and, for the heuristic and presets, `18` (country).
             unmatchedHeaders:
               type: array
               items:
                 type: string
             needsAi:
               type: boolean
+            preset:
+              type: string
+              enum:
+                - aft
+              description: "Known layout recognised from the titles: bpost's Address File Tool."
           required:
             - mapping
             - confidence
@@ -249,10 +269,6 @@ components:
             type: string
           minItems: 1
           maxItems: 100
-        presetId:
-          type: string
-          enum:
-            - contrapunt-export
         localeHints:
           type: array
           items:

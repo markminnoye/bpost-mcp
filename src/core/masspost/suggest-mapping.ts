@@ -1,9 +1,6 @@
 // src/core/masspost/suggest-mapping.ts
-import type { ColumnMapping, UnstructuredTarget } from './mapping'
-import {
-  CONTRAPUNT_EXPORT_COLUMN_MAPPING,
-  CONTRAPUNT_EXPORT_PRESET_ID,
-} from './presets/contrapunt-export'
+import type { AddressField, ColumnMapping, UnstructuredTarget } from './mapping'
+import { AFT_COLUMNS, AFT_MARKER_COLUMNS, AFT_PRESET_ID } from './presets/aft'
 
 /**
  * Suggests a ColumnMapping from Excel headers. Pure: no Next.js, no AI, no cell values.
@@ -11,22 +8,23 @@ import {
  */
 
 export type MappingConfidence = 'high' | 'medium' | 'low'
-export type MappingPresetId = typeof CONTRAPUNT_EXPORT_PRESET_ID
+export type MappingPresetId = typeof AFT_PRESET_ID
 export type MappingLocale = 'nl' | 'fr' | 'en'
 
 export interface SuggestColumnMappingInput {
   headers: readonly string[]
-  presetId?: MappingPresetId
   localeHints?: readonly string[]
 }
 
 export interface SuggestColumnMappingResult {
   mapping: ColumnMapping
   confidence: MappingConfidence
-  /** Why each Comp target (90, 91, 92, 93) was chosen. */
+  /** Why each Comp target (90, 91, 92, 93, and 18 for the country) was chosen. */
   rationale: Record<string, string>
   unmatchedHeaders: string[]
   needsAi: boolean
+  /** Set when the titles match a known layout: bpost's Address File Tool. */
+  preset?: MappingPresetId
 }
 
 type Role =
@@ -39,8 +37,10 @@ type Role =
   | 'box'
   | 'postcode'
   | 'city'
+  | 'countryName'
+  | 'countryCode'
 
-const ROLE_TARGET: Record<Role, UnstructuredTarget> = {
+const ROLE_TARGET: Record<Role, AddressField> = {
   givenName: 'name',
   familyName: 'name',
   fullName: 'name',
@@ -50,13 +50,17 @@ const ROLE_TARGET: Record<Role, UnstructuredTarget> = {
   box: 'streetHouseBox',
   postcode: 'postcodeCity',
   city: 'postcodeCity',
+  countryName: 'country',
+  countryCode: 'country',
 }
 
-const TARGET_ROLES: Record<UnstructuredTarget, readonly Role[]> = {
+const TARGET_ROLES: Record<AddressField, readonly Role[]> = {
   name: ['givenName', 'fullName', 'familyName'],
   companyDepartment: ['company'],
   streetHouseBox: ['street', 'houseNumber', 'box'],
   postcodeCity: ['postcode', 'city'],
+  // One country column at most: the name when there is one, else the two-letter code.
+  country: ['countryName', 'countryCode'],
 }
 
 const REQUIRED_TARGETS: readonly UnstructuredTarget[] = ['name', 'streetHouseBox', 'postcodeCity']
@@ -141,6 +145,18 @@ const SYNONYMS: readonly Synonym[] = [
   { phrase: 'locality', role: 'city', locale: 'en' },
   { phrase: 'ville', role: 'city', locale: 'fr' },
   { phrase: 'localite', role: 'city', locale: 'fr' },
+  { phrase: 'land', role: 'countryName', locale: 'nl' },
+  { phrase: 'landnaam', role: 'countryName', locale: 'nl' },
+  { phrase: 'pays', role: 'countryName', locale: 'fr' },
+  { phrase: 'country', role: 'countryName', locale: 'en' },
+  { phrase: 'country name', role: 'countryName', locale: 'en' },
+  { phrase: 'countryname', role: 'countryName', locale: 'en' },
+  { phrase: 'landcode', role: 'countryCode', locale: 'nl' },
+  { phrase: 'code pays', role: 'countryCode', locale: 'fr' },
+  { phrase: 'country code', role: 'countryCode', locale: 'en' },
+  { phrase: 'countrycode', role: 'countryCode', locale: 'en' },
+  { phrase: 'iso country code', role: 'countryCode', locale: 'en' },
+  { phrase: 'countryisocode', role: 'countryCode', locale: 'en' },
 ]
 
 interface PreparedHeader {
@@ -153,7 +169,7 @@ interface Assignment {
   raw: string
   index: number
   role: Role
-  target: UnstructuredTarget
+  target: AddressField
   score: number
 }
 
@@ -241,59 +257,61 @@ function scorePhrase(headerNorm: string, phrase: string): number {
   return 0
 }
 
-function cloneMapping(mapping: ColumnMapping): ColumnMapping {
-  return {
-    name: [...mapping.name],
-    streetHouseBox: [...mapping.streetHouseBox],
-    postcodeCity: [...mapping.postcodeCity],
-    ...(mapping.companyDepartment?.length
-      ? { companyDepartment: [...mapping.companyDepartment] }
-      : {}),
-  }
-}
-
-function contrapuntColumns(): string[] {
-  const mapping = CONTRAPUNT_EXPORT_COLUMN_MAPPING
-  return [
-    ...mapping.name,
-    ...(mapping.companyDepartment ?? []),
-    ...mapping.streetHouseBox,
-    ...mapping.postcodeCity,
-  ]
-}
-
-function matchesContrapuntExport(headers: readonly PreparedHeader[]): boolean {
-  const present = new Set(headers.map((header) => header.raw))
-  return contrapuntColumns().every((column) => present.has(column))
-}
-
 function listColumns(columns: readonly string[]): string {
   return columns.join(', ')
 }
 
-function contrapuntResult(headers: readonly PreparedHeader[], duplicates: readonly string[]): SuggestColumnMappingResult {
-  const mapping = cloneMapping(CONTRAPUNT_EXPORT_COLUMN_MAPPING)
-  const used = new Set(contrapuntColumns())
+/** First AFT title (in either spelling) that is in the file, per block. */
+function aftColumn(present: ReadonlySet<string>, field: AddressField): string | undefined {
+  return AFT_COLUMNS[field].find((column) => present.has(column))
+}
+
+function matchesAft(headers: readonly PreparedHeader[]): boolean {
+  const present = new Set(headers.map((header) => header.raw))
+  return (
+    AFT_MARKER_COLUMNS.every((column) => present.has(column)) &&
+    REQUIRED_TARGETS.every((target) => aftColumn(present, target) !== undefined)
+  )
+}
+
+function aftResult(headers: readonly PreparedHeader[], duplicates: readonly string[]): SuggestColumnMappingResult {
+  const present = new Set(headers.map((header) => header.raw))
+  const pick = (field: AddressField) => {
+    const column = aftColumn(present, field)
+    return column ? [column] : []
+  }
+  const companyDepartment = pick('companyDepartment')
+  const country = pick('country')
+  const mapping: ColumnMapping = {
+    name: pick('name'),
+    streetHouseBox: pick('streetHouseBox'),
+    postcodeCity: pick('postcodeCity'),
+    ...(companyDepartment.length ? { companyDepartment } : {}),
+    ...(country.length ? { country } : {}),
+  }
+  const used = new Set(Object.values(mapping).flat())
   return {
     mapping,
     confidence: 'high',
     rationale: {
-      '90': 'Contrapunt-export: Roepnaam en Familienaam.',
-      '91': 'Geen kolom voor bedrijf of afdeling in de Contrapunt-export.',
-      '92': 'Contrapunt-export: straat, huisnummer en bus.',
-      '93': 'Contrapunt-export: postcode en plaats.',
+      '90': `Address File Tool: ${mapping.name.join(', ')}.`,
+      '91': companyDepartment.length ? `Address File Tool: ${companyDepartment.join(', ')}.` : 'Geen kolom voor bedrijf of afdeling.',
+      '92': `Address File Tool: ${mapping.streetHouseBox.join(', ')}.`,
+      '93': `Address File Tool: ${mapping.postcodeCity.join(', ')}.`,
+      '18': country.length ? `Address File Tool: ${country.join(', ')}.` : 'Geen kolom voor het land.',
     },
     unmatchedHeaders: [
       ...headers.filter((header) => !used.has(header.raw)).map((header) => header.raw),
       ...duplicates,
     ],
     needsAi: false,
+    preset: AFT_PRESET_ID,
   }
 }
 
 interface RankedHit {
   role: Role
-  target: UnstructuredTarget
+  target: AddressField
   base: number
   rank: number
 }
@@ -357,7 +375,7 @@ function assignHeaders(headers: readonly PreparedHeader[], locales: Set<MappingL
   return { assignments, unmatched, hadAmbiguity }
 }
 
-function columnsFor(assignments: readonly Assignment[], target: UnstructuredTarget): string[] {
+function columnsFor(assignments: readonly Assignment[], target: AddressField): string[] {
   const columns: string[] = []
   for (const role of TARGET_ROLES[target]) {
     const matches = assignments
@@ -365,10 +383,12 @@ function columnsFor(assignments: readonly Assignment[], target: UnstructuredTarg
       .sort((a, b) => a.index - b.index)
     for (const match of matches) columns.push(match.raw)
   }
-  return columns
+  // Joining two country columns ("België BE") makes no sense: keep the first, by role priority.
+  return target === 'country' ? columns.slice(0, 1) : columns
 }
 
-function rationaleFor(target: UnstructuredTarget, columns: readonly string[], assignments: readonly Assignment[]): string {
+function rationaleFor(target: AddressField, columns: readonly string[], assignments: readonly Assignment[]): string {
+  if (target === 'country') return columns.length ? `${listColumns(columns)} als land.` : 'Geen kolom voor het land.'
   if (columns.length === 0) {
     if (target === 'name') return 'Geen kolom voor naam.'
     if (target === 'companyDepartment') return 'Geen kolom voor bedrijf of afdeling.'
@@ -397,13 +417,18 @@ function heuristicResult(
   const companyDepartment = columnsFor(assignments, 'companyDepartment')
   const streetHouseBox = columnsFor(assignments, 'streetHouseBox')
   const postcodeCity = columnsFor(assignments, 'postcodeCity')
+  const country = columnsFor(assignments, 'country')
 
   const mapping: ColumnMapping = {
     name,
     streetHouseBox,
     postcodeCity,
     ...(companyDepartment.length > 0 ? { companyDepartment } : {}),
+    ...(country.length > 0 ? { country } : {}),
   }
+  // Columns that lost the country slot to a better one are not used.
+  const used = new Set([...name, ...companyDepartment, ...streetHouseBox, ...postcodeCity, ...country])
+  const unused = assignments.filter((assignment) => !used.has(assignment.raw)).map((assignment) => assignment.raw)
 
   const requiredFilled = REQUIRED_TARGETS.every((target) => columnsFor(assignments, target).length > 0)
   const weakest = assignments.reduce((min, assignment) => Math.min(min, assignment.score), 100)
@@ -420,23 +445,29 @@ function heuristicResult(
       '91': rationaleFor('companyDepartment', companyDepartment, assignments),
       '92': rationaleFor('streetHouseBox', streetHouseBox, assignments),
       '93': rationaleFor('postcodeCity', postcodeCity, assignments),
+      '18': rationaleFor('country', country, assignments),
     },
-    unmatchedHeaders: [...unmatched, ...duplicates],
+    unmatchedHeaders: [...unmatched, ...unused, ...duplicates],
     needsAi: !requiredFilled || confidence === 'low',
   }
 }
 
+/**
+ * Suggests which columns feed each address block, from the column titles only. A known layout
+ * (bpost's Address File Tool) is recognised exactly and reported in `preset`; other files go
+ * through NL/FR/EN synonyms with a little tolerance for typos.
+ *
+ * @param input Column titles and optional language hints.
+ * @returns The mapping, how sure it is, why, the unused titles, and whether AI could help.
+ * @example
+ * const { mapping, preset } = suggestColumnMapping({ headers: parsed.headers })
+ */
 export function suggestColumnMapping(input: SuggestColumnMappingInput): SuggestColumnMappingResult {
   const { unique, duplicates } = prepareHeaders(input.headers)
   const locales = knownLocales(input.localeHints)
-  // `presetId: contrapunt-export` selects this layout, and the same titles are recognized
-  // without the id. If those titles are not in the file, fall through — never suggest a
-  // column the workbook does not have.
-  if (
-    (input.presetId === undefined || input.presetId === CONTRAPUNT_EXPORT_PRESET_ID) &&
-    matchesContrapuntExport(unique)
-  ) {
-    return contrapuntResult(unique, duplicates)
+  // The AFT layout is recognised from its titles; there is nothing to suggest then.
+  if (matchesAft(unique)) {
+    return aftResult(unique, duplicates)
   }
   return heuristicResult(unique, duplicates, locales)
 }

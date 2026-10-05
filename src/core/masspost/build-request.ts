@@ -1,6 +1,6 @@
 // src/core/masspost/build-request.ts
 import type { Item } from '@/schemas/mailing-request'
-import { UNSTRUCTURED_COMP_CODES, type MappedRow } from './mapping'
+import { COUNTRY_COMP_CODES, UNSTRUCTURED_COMP_CODES, isBelgianCountry, type MappedRow } from './mapping'
 import type { MidProtocolVersion } from './credentials'
 
 /**
@@ -33,7 +33,8 @@ export interface BuildRequestParams {
   genPSC: 'Y' | 'N'
 }
 
-/** Turns mapped rows into `Item`s using the unstructured Comp codes (90/91/92/93).
+/** Turns mapped rows into `Item`s using the unstructured Comp codes (90/91/92/93), plus the
+ *  country for an address outside Belgium: Comp 17 for a two-letter code, Comp 18 for a name.
  *
  * @param rows Output of `mapRows`.
  * @param priority Item priority written on every item (`NP` or `P`).
@@ -51,6 +52,14 @@ export function rowsToItems(rows: MappedRow[], priority: 'P' | 'NP'): Item[] {
         code: UNSTRUCTURED_COMP_CODES.companyDepartment,
         value: row.fields.companyDepartment.value,
       })
+    }
+    const country = row.fields.country?.value
+    if (country && !isBelgianCountry(country)) {
+      comps.push(
+        /^[a-z]{2}$/i.test(country)
+          ? { code: COUNTRY_COMP_CODES.isoCode, value: country.toUpperCase() }
+          : { code: COUNTRY_COMP_CODES.name, value: country },
+      )
     }
     return {
       seq: row.seq,

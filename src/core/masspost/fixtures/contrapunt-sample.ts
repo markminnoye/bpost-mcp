@@ -1,8 +1,22 @@
 // src/core/masspost/fixtures/contrapunt-sample.ts
-import ExcelJS from 'exceljs'
 import path from 'node:path'
+import type { ColumnMapping } from '../mapping'
+import { xlsxBuffer } from './xlsx'
 
-export { CONTRAPUNT_EXPORT_COLUMN_MAPPING } from '../presets/contrapunt-export'
+/**
+ * Columns of the sample file from Contrapunt (`testadressen.xlsx` and its copies), joined into
+ * unstructured Comp 90 / 92 / 93. A fixture for tests and scripts: the app does not recognise this
+ * layout, there is no fixed Contrapunt export.
+ */
+export const CONTRAPUNT_SAMPLE_COLUMN_MAPPING: ColumnMapping = {
+  name: ['Roepnaam', 'Familienaam'],
+  streetHouseBox: [
+    'Correspondentieadres - Straat (Key)',
+    'Correspondentieadres - Huisnummer (Key)',
+    'Correspondentieadres - aanv. huisnr. (Key)',
+  ],
+  postcodeCity: ['Correspondentieadres - Postcode (Key)', 'Correspondentieadres - Plaats (Key)'],
+}
 
 /** Repo-local copy of Contrapunt's test export (see docs/samples/contrapunt/README.md). */
 export const CONTRAPUNT_TEST_ADRESSEN_XLSX = path.join(
@@ -27,17 +41,16 @@ export const CONTRAPUNT_AFT_200_XLS = path.join(
 
 /** One fake address (Contrapunt column layout) for quick portal upload tests. */
 export async function buildSimpleContrapuntTestXlsxBuffer(): Promise<Buffer> {
-  const workbook = new ExcelJS.Workbook()
-  const sheet = workbook.addWorksheet('Blad1')
-  sheet.addRow([
-    'Roepnaam',
-    'Familienaam',
-    'Correspondentieadres - Straat (Key)',
-    'Correspondentieadres - Huisnummer (Key)',
-    'Correspondentieadres - aanv. huisnr. (Key)',
-    'Correspondentieadres - Postcode (Key)',
-    'Correspondentieadres - Plaats (Key)',
+  return xlsxBuffer([
+    [
+      'Roepnaam',
+      'Familienaam',
+      'Correspondentieadres - Straat (Key)',
+      'Correspondentieadres - Huisnummer (Key)',
+      'Correspondentieadres - aanv. huisnr. (Key)',
+      'Correspondentieadres - Postcode (Key)',
+      'Correspondentieadres - Plaats (Key)',
+    ],
+    ['Test', 'Upload', 'Molenbeeksestraat', '184', '35', '1020', 'Brussel'],
   ])
-  sheet.addRow(['Test', 'Upload', 'Molenbeeksestraat', '184', '35', '1020', 'Brussel'])
-  return Buffer.from(await workbook.xlsx.writeBuffer())
 }

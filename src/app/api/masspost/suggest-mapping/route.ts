@@ -76,7 +76,6 @@ export async function POST(request: NextRequest) {
 
   const suggestion = suggestColumnMapping({
     headers,
-    presetId: parsed.data.presetId,
     localeHints: parsed.data.localeHints,
   })
 

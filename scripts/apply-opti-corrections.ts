@@ -11,19 +11,19 @@
 //   npx tsx scripts/apply-opti-corrections.ts <2RS.xml> [out.xlsx]
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import ExcelJS from 'exceljs'
 import { parseExcelAddresses } from '../src/core/masspost/excel'
 import { mapRows } from '../src/core/masspost/mapping'
 import {
-  CONTRAPUNT_EXPORT_COLUMN_MAPPING,
+  CONTRAPUNT_SAMPLE_COLUMN_MAPPING,
   CONTRAPUNT_TEST_ADRESSEN_XLSX,
 } from '../src/core/masspost/fixtures/contrapunt-sample'
+import { writeXlsxFile } from '../src/core/masspost/fixtures/xlsx'
 
-const STREET = CONTRAPUNT_EXPORT_COLUMN_MAPPING.streetHouseBox[0]
-const HOUSE = CONTRAPUNT_EXPORT_COLUMN_MAPPING.streetHouseBox[1]
-const BOX = CONTRAPUNT_EXPORT_COLUMN_MAPPING.streetHouseBox[2]
-const POSTCODE = CONTRAPUNT_EXPORT_COLUMN_MAPPING.postcodeCity[0]
-const CITY = CONTRAPUNT_EXPORT_COLUMN_MAPPING.postcodeCity[1]
+const STREET = CONTRAPUNT_SAMPLE_COLUMN_MAPPING.streetHouseBox[0]
+const HOUSE = CONTRAPUNT_SAMPLE_COLUMN_MAPPING.streetHouseBox[1]
+const BOX = CONTRAPUNT_SAMPLE_COLUMN_MAPPING.streetHouseBox[2]
+const POSTCODE = CONTRAPUNT_SAMPLE_COLUMN_MAPPING.postcodeCity[0]
+const CITY = CONTRAPUNT_SAMPLE_COLUMN_MAPPING.postcodeCity[1]
 
 const DEFAULT_OUT = path.join(
   process.cwd(),
@@ -113,15 +113,12 @@ async function main() {
     applied.push(correction.seq)
   }
 
-  const workbook = new ExcelJS.Workbook()
-  const sheet = workbook.addWorksheet('Blad1')
-  sheet.addRow(parsed.headers)
-  for (const row of rows) {
-    sheet.addRow(parsed.headers.map((header) => row[header] ?? ''))
-  }
-  await workbook.xlsx.writeFile(outPath)
+  await writeXlsxFile(outPath, [
+    parsed.headers,
+    ...rows.map((row) => parsed.headers.map((header) => row[header] ?? '')),
+  ])
 
-  const check = mapRows(rows, CONTRAPUNT_EXPORT_COLUMN_MAPPING)
+  const check = mapRows(rows, CONTRAPUNT_SAMPLE_COLUMN_MAPPING)
   const mismatches: string[] = []
   for (const correction of corrections) {
     const mapped = check.rows[correction.seq - 1]

@@ -25,6 +25,16 @@ const envSchema = z.object({
     .string()
     .url({ message: 'NEXT_PUBLIC_BASE_URL must be a valid URL. Set it in .env.local for dev, or rely on VERCEL_URL on Vercel, or set NEXT_PUBLIC_BASE_URL in the dashboard (recommended for production custom domains).' }),
   
+  /**
+   * Public documentation site (GitBook), without trailing slash, e.g. https://sonicrocket.gitbook.io/contrapunt-bpost.
+   * Pages link to customer docs from here. Optional: without it, those links are hidden.
+   */
+  NEXT_PUBLIC_DOCS_URL: z
+    .string()
+    .url({ message: 'NEXT_PUBLIC_DOCS_URL must be a valid URL (the GitBook site), or unset.' })
+    .transform((url) => url.replace(/\/+$/, ''))
+    .optional(),
+
   /** GitHub Token for reporting issues */
   GITHUB_TOKEN: z.string().optional(),
 
@@ -100,6 +110,7 @@ const envSchema = z.object({
 // Use safeParse to provide better error messages if validation fails
 const result = envSchema.safeParse({
   NEXT_PUBLIC_BASE_URL: resolvePublicBaseUrlFromEnv(),
+  NEXT_PUBLIC_DOCS_URL: process.env.NEXT_PUBLIC_DOCS_URL || undefined,
   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   REDIS_URL: process.env.REDIS_URL,
   READINESS_PROBE_TIMEOUT_MS: process.env.READINESS_PROBE_TIMEOUT_MS,

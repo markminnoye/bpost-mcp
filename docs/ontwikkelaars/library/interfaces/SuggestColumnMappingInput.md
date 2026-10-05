@@ -17,9 +17,3 @@
 ### localeHints?
 
 > `optional` **localeHints?**: readonly `string`[]
-
-***
-
-### presetId?
-
-> `optional` **presetId?**: `"contrapunt-export"`

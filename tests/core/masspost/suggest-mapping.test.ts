@@ -3,8 +3,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parseExcelAddresses } from '@/core/masspost/excel'
 import { mapRows } from '@/core/masspost/mapping'
-import { CONTRAPUNT_EXPORT_COLUMN_MAPPING } from '@/core/masspost/presets/contrapunt-export'
-import { CONTRAPUNT_TEST_ADRESSEN_XLSX } from '@/core/masspost/fixtures/contrapunt-sample'
+import { CONTRAPUNT_SAMPLE_COLUMN_MAPPING, CONTRAPUNT_TEST_ADRESSEN_XLSX } from '@/core/masspost/fixtures/contrapunt-sample'
 import { suggestColumnMapping } from '@/core/masspost/suggest-mapping'
 import type { SuggestColumnMappingInput } from '@/core/masspost/suggest-mapping'
 
@@ -19,34 +18,23 @@ const CONTRAPUNT_HEADERS = [
 ]
 
 describe('suggestColumnMapping', () => {
-  it('returns the Contrapunt fixture mapping for those headers, without AI', () => {
+  it('maps the titles of the Contrapunt sample with synonyms, without a preset or AI', () => {
     const headers = [...CONTRAPUNT_HEADERS, 'Correspondentieadres - Land (Tekst)']
     const result = suggestColumnMapping({ headers })
 
-    expect(result.mapping).toEqual(CONTRAPUNT_EXPORT_COLUMN_MAPPING)
+    expect(result.mapping).toEqual({ ...CONTRAPUNT_SAMPLE_COLUMN_MAPPING, country: ['Correspondentieadres - Land (Tekst)'] })
+    expect(result.preset).toBeUndefined()
     expect(result.confidence).toBe('high')
     expect(result.needsAi).toBe(false)
-    expect(result.unmatchedHeaders).toEqual(['Correspondentieadres - Land (Tekst)'])
-    expect(result.rationale['90']).toMatch(/Contrapunt/)
+    expect(result.unmatchedHeaders).toEqual([])
+    expect(result.rationale['90']).toContain('Roepnaam')
     expect(result.rationale['92']).toBeTruthy()
     expect(result.rationale['93']).toBeTruthy()
   })
 
-  it('returns the same preset when presetId is contrapunt-export', () => {
-    const result = suggestColumnMapping({
-      headers: CONTRAPUNT_HEADERS,
-      presetId: 'contrapunt-export',
-    })
-
-    expect(result.mapping).toEqual(CONTRAPUNT_EXPORT_COLUMN_MAPPING)
-    expect(result.confidence).toBe('high')
-    expect(result.needsAi).toBe(false)
-    expect(result.unmatchedHeaders).toEqual([])
-  })
-
-  it('does not invent Contrapunt columns when the preset titles are absent', () => {
+  it('only uses columns that are in the file', () => {
     const headers = ['Naam', 'Straat', 'Postcode', 'Plaats']
-    const result = suggestColumnMapping({ headers, presetId: 'contrapunt-export' })
+    const result = suggestColumnMapping({ headers })
     const used = [
       ...result.mapping.name,
       ...result.mapping.streetHouseBox,
@@ -54,7 +42,7 @@ describe('suggestColumnMapping', () => {
     ]
 
     expect(used.every((column) => headers.includes(column))).toBe(true)
-    expect(result.mapping).not.toEqual(CONTRAPUNT_EXPORT_COLUMN_MAPPING)
+    expect(result.preset).toBeUndefined()
     expect(result.needsAi).toBe(false)
   })
 
@@ -148,21 +136,18 @@ describe('suggestColumnMapping', () => {
     expect(result.needsAi).toBe(true)
   })
 
-  it('does not mutate headers, the fixture, or row data passed alongside the suggestion', () => {
+  it('does not mutate headers or row data passed alongside the suggestion', () => {
     const headers = [...CONTRAPUNT_HEADERS]
     const payload: SuggestColumnMappingInput & { rows: Record<string, string>[] } = {
       headers,
       rows: [{ Roepnaam: 'Anna', Familienaam: 'Vanderstappen' }],
     }
     const snapshot = structuredClone(payload)
-    const fixtureBefore = structuredClone(CONTRAPUNT_EXPORT_COLUMN_MAPPING)
 
-    const result = suggestColumnMapping(payload)
+    suggestColumnMapping(payload)
 
     expect(payload).toEqual(snapshot)
     expect(headers).toEqual(CONTRAPUNT_HEADERS)
-    expect(CONTRAPUNT_EXPORT_COLUMN_MAPPING).toEqual(fixtureBefore)
-    expect(result.mapping.name).not.toBe(CONTRAPUNT_EXPORT_COLUMN_MAPPING.name)
   })
 
   it('leaves parsed sheet rows unchanged when the suggestion is later passed to mapRows', async () => {
@@ -173,9 +158,9 @@ describe('suggestColumnMapping', () => {
     const result = suggestColumnMapping({ headers: parsed.headers })
     mapRows(parsed.rows.slice(0, 1), result.mapping)
 
-    expect(result.mapping).toEqual(CONTRAPUNT_EXPORT_COLUMN_MAPPING)
+    expect(result.mapping).toEqual({ ...CONTRAPUNT_SAMPLE_COLUMN_MAPPING, country: ['Correspondentieadres - Land (Tekst)'] })
     expect(result.needsAi).toBe(false)
-    expect(result.unmatchedHeaders).toEqual(['Correspondentieadres - Land (Tekst)'])
+    expect(result.unmatchedHeaders).toEqual([])
     expect(parsed.rows[0]).toEqual(before)
   })
 
@@ -189,4 +174,47 @@ describe('suggestColumnMapping', () => {
       expect(source, file).not.toMatch(/@ai-sdk\//)
     }
   })
+
+  it('maps a country column, by name or by code, never into the name', () => {
+    const byName = suggestColumnMapping({ headers: ['Naam', 'Straat', 'Postcode', 'Gemeente', 'Land'] })
+    expect(byName.mapping.country).toEqual(['Land'])
+    expect(byName.mapping.name).toEqual(['Naam'])
+
+    const both = suggestColumnMapping({ headers: ['Name', 'Street', 'Zip', 'City', 'ISO_COUNTRY_CODE', 'COUNTRY_NAME'] })
+    expect(both.mapping.country).toEqual(['COUNTRY_NAME'])
+    expect(both.mapping.name).toEqual(['Name'])
+
+    const fr = suggestColumnMapping({ headers: ['Nom', 'Rue', 'Code postal', 'Localité', 'Pays'] })
+    expect(fr.mapping.country).toEqual(['Pays'])
+  })
+
+  it('recognises the Address File Tool layout in both spellings bpost uses', () => {
+    const template = ['SEQ', 'FIRST_NAME', 'LAST_NAME', 'ADDRESS_LINE_1', 'POSTAL_CODE', 'CITY', 'ISO_COUNTRY_CODE', 'COUNTRY_NAME',
+      'UNSTRUCTURED_NAME', 'UNSTRUCTURED_COMPANY_DEPARTMENT', 'UNSTRUCTURED_BUILDING_STREET_HOUSE_BOX', 'UNSTRUCTURED_POST_CODE_CITY', 'PRIORITY']
+    const result = suggestColumnMapping({ headers: template })
+    expect(result.preset).toBe('aft')
+    expect(result.confidence).toBe('high')
+    expect(result.mapping).toEqual({
+      name: ['UNSTRUCTURED_NAME'],
+      companyDepartment: ['UNSTRUCTURED_COMPANY_DEPARTMENT'],
+      streetHouseBox: ['UNSTRUCTURED_BUILDING_STREET_HOUSE_BOX'],
+      postcodeCity: ['UNSTRUCTURED_POST_CODE_CITY'],
+      country: ['COUNTRY_NAME'],
+    })
+
+    const guide = ['SEQ', 'NAME_UNSTRUCTURED', 'COMPANY_DEPARTMENT_BUILDING_UNSTRUCTURED', 'STREET_HOUSE_BUILDING_UNSTRUCTURED',
+      'POSTCODE_CITY_UNSTRUCTURED', 'COUNTRYISOCODE', 'COUNTRYNAME', 'PRIORITY']
+    expect(suggestColumnMapping({ headers: guide }).mapping).toEqual({
+      name: ['NAME_UNSTRUCTURED'],
+      companyDepartment: ['COMPANY_DEPARTMENT_BUILDING_UNSTRUCTURED'],
+      streetHouseBox: ['STREET_HOUSE_BUILDING_UNSTRUCTURED'],
+      postcodeCity: ['POSTCODE_CITY_UNSTRUCTURED'],
+      country: ['COUNTRYNAME'],
+    })
+  })
+
+  it('does not report a preset for an ordinary layout', () => {
+    expect(suggestColumnMapping({ headers: ['Naam', 'Straat', 'Postcode'] }).preset).toBeUndefined()
+  })
 })
+

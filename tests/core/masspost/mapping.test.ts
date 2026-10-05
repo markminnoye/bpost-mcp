@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapRows, UNSTRUCTURED_MAX_LENGTH } from '@/core/masspost/mapping'
+import { isBelgianCountry, mapRows, UNSTRUCTURED_MAX_LENGTH } from '@/core/masspost/mapping'
 import type { ColumnMapping } from '@/core/masspost/mapping'
 
 const mapping: ColumnMapping = {
@@ -71,5 +71,31 @@ describe('mapRows', () => {
 
     expect(withoutResult.rows[0].fields.companyDepartment).toBeUndefined()
     expect(withResult.rows[0].fields.companyDepartment?.value).toBe('Acme')
+  })
+})
+
+describe('mapRows: country and row numbers', () => {
+  const withCountry: ColumnMapping = { ...mapping, country: ['Land'] }
+  const row = { Voornaam: 'Pieter', Achternaam: 'Bakker', Straat: 'Heirstraat', Nummer: '21', Postcode: '6129 PK', Gemeente: 'Urmond', Land: 'Nederland' }
+
+  it('maps the country column into its own field', () => {
+    const { rows: mapped } = mapRows([row], withCountry)
+    expect(mapped[0].fields.country?.value).toBe('Nederland')
+  })
+
+  it('uses the spreadsheet row number as seq when given, so gaps stay gaps', () => {
+    const { rows: mapped } = mapRows([row, row], mapping, { rowNumbers: [2, 5] })
+    expect(mapped.map((r) => r.seq)).toEqual([2, 5])
+  })
+})
+
+describe('isBelgianCountry', () => {
+  it('recognises Belgium in Dutch, French, German, English and as a code', () => {
+    for (const value of ['België', 'Belgie', 'BELGIQUE', 'Belgien', 'Belgium', 'BE', ' be ']) {
+      expect(isBelgianCountry(value), value).toBe(true)
+    }
+    for (const value of ['Nederland', 'NL', 'France', '', 'Bel']) {
+      expect(isBelgianCountry(value), value).toBe(false)
+    }
   })
 })

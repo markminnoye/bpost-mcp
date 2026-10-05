@@ -3,6 +3,7 @@ description: Vlaams, niet-technische eindgebruikersteksten — enkel klantgerich
 globs:
   - src/app/dashboard/**/*
   - src/app/install/**/*
+  - src/app/(tools)/**/*
   - src/app/page.tsx
   - src/app/layout.tsx
 alwaysApply: false
