@@ -159,7 +159,7 @@ Not wired as an npm script on purpose (Python side dependency).
 | `npm run build:poc` | Bundle the web POC (`src/app/(tools)/masspost/poc/`) into one offline HTML file: `dist/masspost-poc.html`. Uses `NEXT_PUBLIC_DOCS_URL` from `.env.local` for the rules link |
 | `npm run generate:large-xlsx -- --rows N --out tmp/…xlsx` | Made-up address list in Contrapunt's layout, ~3 % format problems, deterministic per size |
 
-Browser code imports modules directly (`excel`, `mapping`, `suggest-mapping`, `format-check`), never `index.ts` (it pulls in FTP). Measurements: `docs/ontwikkelaars/schaal-en-limieten.md`.
+Browser code imports modules directly (`excel`, `mapping`, `suggest-mapping`, `format-check`, `mask`), never `index.ts` (it pulls in FTP). Measurements: `docs/ontwikkelaars/schaal-en-limieten.md`.
 
 ---
 
@@ -170,6 +170,7 @@ Browser code imports modules directly (`excel`, `mapping`, `suggest-mapping`, `f
 | `excel.ts` | Parse `.xlsx` / `.xls` → `{ headers, rows, rowNumbers }` (SheetJS, ADR 0005). Recognises the file by its first bytes; CSV is refused. Runs in Node and in the browser |
 | `mapping.ts` | Column mapping → unstructured Comp **90/91/92/93** (max **50**) and country (Comp 17/18, max 42, `isBelgianCountry` → left out); `mapRows(rows, mapping, { rowNumbers })` makes `seq` the row number |
 | `suggest-mapping.ts` | `suggestColumnMapping` — header heuristics / AFT preset. No cell values, no AI |
+| `mask.ts` | `maskValue` / `maskExamples`: shape-preserving masking of sample values for the AI proposal (first letter + `X`/`x`, postcode with city readable, >6 digits → `9`). Idempotent, browser-safe (ADR 0006) |
 | `charset.ts` | `normalizeForBpost` / `findUnsupportedChars` (ISO-8859-1); `CHARACTER_REPLACEMENTS` |
 | `printer-export.ts` | `buildPrinterExport`: original first sheet plus *Meesturen* and *Volgnummer bpost* (row number); no row removed (web-flow decisions 48, 49) |
 | `presets/aft.ts` | Address File Tool column titles (template and guide spellings); recognised by `suggestColumnMapping` (`preset: 'aft'`). `AFT_TEMPLATE_COLUMNS`: all 39 template columns in order |
@@ -239,9 +240,7 @@ const suggestion = suggestColumnMapping({
 
 Address File Tool titles return the AFT mapping with `preset: 'aft'`. There is no fixed Contrapunt export: the titles of their sample file map through the NL/FR/EN synonyms to `CONTRAPUNT_SAMPLE_COLUMN_MAPPING` (plus the `Land` column as country), `confidence: 'high'`, `needsAi: false`. Other layouts use the same synonyms. A suggestion never names a column that is not in `headers`.
 
-Optional AI fallback, outside core: `POST /api/masspost/suggest-mapping` requires the same bearer token or session cookie as the other protected routes (`resolveRequestAuth`). It runs the heuristic first. Only when `needsAi` is true does `src/lib/masspost/suggest-mapping-ai.ts` call the Vercel AI Gateway (`ai` package, `provider/model` string). The model sees the system note for Comp 90–93 plus a JSON object `{ headers, localeHints }` — **not** the sheet. The response is Zod-parsed and every chosen column must be one of the headers, each used at most once. Without `MASSPOST_SUGGEST_MAPPING_MODEL` the route answers **503** `ai_not_configured` and still returns the local `suggestion` for a human to confirm. Nothing is applied to `convertExcelToMailingRequest` automatically.
-
-Masked sample cells are intentionally not sent (later). Do not post `rows` in the JSON body; the schema rejects unknown keys.
+AI proposal, outside core: `POST /api/masspost/suggest-mapping` requires the same bearer token or session cookie as the other protected routes (`resolveRequestAuth`). The body is `{ columns: [{ header, filled, examples }], rowCount, localeHints? }`: every column with its fill count and up to 5 sample values masked with `maskValue`. `suggestColumnRolesWithAi` (`src/lib/masspost/suggest-mapping-ai.ts`) masks them again, then calls the Vercel AI Gateway (`generateText` + `Output.object`, 20 s timeout, 1 retry). The answer is `{ mapping, context, ignore }` with every column exactly once; within a block the list order is the envelope order. Zod-parsed; an unknown or reused column gives **422**, a forgotten one goes to `context`. Without `MASSPOST_SUGGEST_MAPPING_MODEL` the route answers **503** `ai_not_configured`. One log line per call without content. Nothing is applied automatically: the caller confirms. See `docs/ontwikkelaars/kolom-mapping.md` and ADR 0006; measure with `npm run eval:ai-mapping -- --model=provider/model`.
 
 ### Transport
 
@@ -297,7 +296,7 @@ npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.
 npm test -- tests/core/masspost
 ```
 
-Coverage includes excel, mapping, suggest-mapping, charset, build-request, pipeline, credentials, file-naming, parse-response, compare-sample. The suggest route is covered with a mocked AI call (`tests/app/api/masspost/suggest-mapping/`).
+Coverage includes excel, mapping, suggest-mapping, mask, charset, build-request, pipeline, credentials, file-naming, parse-response, compare-sample. The suggest route and `suggestColumnRolesWithAi` are covered with a mocked model call (`tests/app/api/masspost/suggest-mapping/`, `tests/lib/masspost/suggest-mapping-ai.test.ts`).
 
 ---
 

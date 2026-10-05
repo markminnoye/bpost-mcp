@@ -99,8 +99,8 @@ const envSchema = z.object({
     .transform((v) => v !== 'false'),
 
   /**
-   * Optional Vercel AI Gateway model (`provider/model`) for column-mapping fallback.
-   * Unset or invalid → that path fails closed. The app still boots without it.
+   * Optional Vercel AI Gateway model (`provider/model`) for the AI column-mapping proposal (ADR 0006).
+   * Unset or invalid → that route fails closed (503). The app still boots without it.
    */
   MASSPOST_SUGGEST_MAPPING_MODEL: z.string().optional(),
   /** Optional AI Gateway key. On Vercel, OIDC can authenticate when this is unset. */

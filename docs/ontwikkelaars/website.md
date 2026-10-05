@@ -10,7 +10,7 @@ De webapp is een Next.js-app (App Router) in `src/app/`. Ze is in alfa; de flows
 | `/dashboard` | `src/app/dashboard/page.tsx` | Accountinstellingen: bpost-gegevens, barcode-instellingen, app-tokens. Vereist aanmelding |
 | `/install` | `src/app/install/page.tsx` | Installatie-instructies voor de AI-assistent |
 | `/reference` | `src/app/reference/page.tsx` | Statische transparantiepagina met tool- en instructieteksten (`src/generated/tool-registry.json`) |
-| `/masspost/poc` | `src/app/(tools)/masspost/poc/page.tsx` | Proefversie (POC) van stap 1 tot 3 van de flow: Excel inlezen, kolommen koppelen, formaatvalidatie. Alles draait in de browser, zonder login, zonder opslag en zonder aanvraag met adressen. `noindex`. Zie [POC formaatvalidatie](#poc-formaatvalidatie) |
+| `/masspost/poc` | `src/app/(tools)/masspost/poc/page.tsx` | Proefversie (POC) van stap 1 tot 3 van de flow: Excel inlezen, kolommen koppelen, formaatvalidatie. Alles draait in de browser, zonder opslag. Enkel de schakelaar AI-voorstel (optioneel, met login) stuurt kolomtitels en gemaskeerde voorbeelden naar `POST /api/masspost/suggest-mapping`. `noindex`. Zie [POC formaatvalidatie](#poc-formaatvalidatie) |
 
 ## POC formaatvalidatie
 
@@ -18,11 +18,17 @@ Een proef van de eerste drie stappen, gebouwd op de schets `docs/ontwerp/webapp/
 
 - **Inlezen:** `parseExcelAddresses` (SheetJS, ADR 0005) op de main thread, geladen met een dynamische `import()`. Leest .xlsx en .xls. Normale grens 25.000 adressen; tot 150.000 met een waarschuwing, om te meten (besluit 43).
 - **Regels:** `format-check.ts` (`checkFieldValue`, `proposeFieldValue`, `findFormatIssues`, `missingTargets`). Dezelfde functies controleren live tijdens het aanpassen. De klantenpagina met de regels staat in de groep Documentatie (Webapp, Formaatvalidatie); een test houdt ze gelijk met `CHARACTER_REPLACEMENTS` en `ABBREVIATIONS`.
-- **Clientcode** importeert de modules rechtstreeks (`excel`, `mapping`, `suggest-mapping`, `format-check`), nooit `src/core/masspost/index.ts`: die trekt FTP en Node-code mee.
+- **Clientcode** importeert de modules rechtstreeks (`excel`, `mapping`, `suggest-mapping`, `format-check`, `mask`), nooit `src/core/masspost/index.ts`: die trekt FTP en Node-code mee.
 - **Stijl:** een CSS-module (`poc.module.css`) met de tokens van de schets, licht en donker. Geen Tailwind of shadcn.
 - **Bekende indeling:** `suggestColumnMapping` meldt `preset: 'aft'` voor de Address File Tool. Een vaste export van Contrapunt bestaat niet (besluit 50). Zijn de adreskolommen gevuld, dan slaat de POC het koppelen over; zonder formaatfouten gaat hij meteen naar stap 4.
 - **Pills** (besluit 46): `MetaPills.tsx`, een icoon met een getal en de uitleg als tooltip en als tekst voor schermlezers.
 - **Koppelen:** de rol Land (Comp 17/18, enkel buiten België), een profiel per kolom bij een klik, een sjabloon-envelop met de volgorde per vak (`columnOrder`), en voorbeeldenveloppen per soort adres (`addressKinds`, eerste 20.000 rijen).
+- **AI-voorstel** (ADR 0006, besluit 13 van het AI-plan): een schakelaar (`role="switch"`) in de kop van "Gebruiken als".
+  - `page.tsx` geeft `aiModel` door als `MASSPOST_SUGGEST_MAPPING_MODEL` een geldig `provider/model` is. Zonder model, en in het losstaande bestand, is er geen schakelaar.
+  - `ai-suggestion.ts` bouwt de body (`columnExamples`, `columnFillCounts`, `maskExamples`) en roept de route op. `rolesFromSuggestion` (`columns.ts`) zet het antwoord om in rollen en `columnOrder`.
+  - `PocFlow` onthoudt het voorstel per bestand: aan, uit en weer aan vraagt het model niet opnieuw. Uit zet de keuze van vóór het aanzetten terug.
+  - `✦` vóór de tekst van de keuze van de AI ("✦ Naam"), zodra er een voorstel is (ook bij uit). Vooraan, omdat een native `<select>` in het vakje en in de open lijst dezelfde tekst toont; zo staat de `✦` op beide plaatsen. Is het de huidige keuze, dan krijgt de keuzelijst "Voorstel van AI" voor schermlezers (`aria-describedby`).
+  - Bij een fout springt de schakelaar terug naar uit, met een melding. Bij 401 is er een link naar `/api/auth/signin` in een nieuw tabblad, want de lijst staat enkel in het geheugen.
 - **Stap 4:** "Opslaan voor bpost (AFT, .xls)" via `buildAftExport` (besluit 57), met de verbeteringen en zonder uitgesloten rijen. "Opslaan voor de drukker" via `buildPrinterExport` (besluiten 48 en 49): het oorspronkelijke eerste werkblad met de kolommen *Meesturen* en *Volgnummer bpost*. De `seq` is het rijnummer (`findFormatIssues` en `mapRows` met `rowNumbers`).
 - **Meting:** het paneel "Meting (POC)" onderaan toont de tijd per stap en het geheugen (Chrome), en kopieert ze als JSON. De resultaten staan in [Schaal en limieten](schaal-en-limieten.md).
 - **Link naar de regels:** `NEXT_PUBLIC_DOCS_URL` (de GitBook-site). Zonder die variabele verdwijnt de link.

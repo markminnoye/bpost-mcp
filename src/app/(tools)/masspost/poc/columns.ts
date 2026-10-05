@@ -71,6 +71,29 @@ export function rolesToMapping(
   }
 }
 
+/** The AI proposal from `POST /api/masspost/suggest-mapping`: every column exactly once. */
+export interface AiSuggestion {
+  mapping: Record<AddressField, string[]>
+  context: string[]
+  ignore: string[]
+}
+
+/**
+ * Roles and column order from the AI proposal (decision 13 of the AI plan). Within a block the
+ * columns follow the AI's order; the other columns keep the file order. A column the answer does
+ * not name is shown while correcting.
+ */
+export function rolesFromSuggestion(
+  headers: readonly string[],
+  suggestion: AiSuggestion,
+): { roles: Record<string, ColumnRole>; columnOrder: string[] } {
+  const roles: Record<string, ColumnRole> = Object.fromEntries(headers.map((header) => [header, 'context']))
+  for (const field of ADDRESS_FIELDS) for (const column of suggestion.mapping[field]) roles[column] = field
+  for (const column of suggestion.ignore) roles[column] = 'ignore'
+  const inBlocks = ADDRESS_FIELDS.flatMap((field) => suggestion.mapping[field]).filter((c) => headers.includes(c))
+  return { roles, columnOrder: [...inBlocks, ...headers.filter((header) => !inBlocks.includes(header))] }
+}
+
 /** Moves `column` one place left or right among the columns of the same block. */
 export function moveInBlock(
   columnOrder: readonly string[],

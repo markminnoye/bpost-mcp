@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useMemo, useState } from 'react'
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
+import { IconChevronLeft, IconChevronRight, IconSparkles } from '@tabler/icons-react'
 import { isBelgianCountry, joinColumns } from '@/core/masspost/mapping'
 import { missingTargets } from '@/core/masspost/format-check'
 import {
@@ -20,6 +20,7 @@ import {
   type ColumnRole,
   type LoadedList,
 } from './columns'
+import { modelLabel, type AiSuggestionResult } from './ai-suggestion'
 import { IconRows3, Spinner } from './StatusIcons'
 import styles from './poc.module.css'
 
@@ -32,6 +33,25 @@ interface Props {
   onRoleChange: (header: string, role: ColumnRole) => void
   onMove: (column: string, direction: -1 | 1) => void
   onNext: () => void
+  /** The AI proposal switch (AI plan, decision 13). Absent when no model is set up or offline. */
+  ai?: {
+    /** Gateway model id, shown readable in the tooltip. */
+    model: string
+    on: boolean
+    busy: boolean
+    /** The role the AI chose per column, once a proposal is known for this file (also when off). */
+    roles?: Record<string, ColumnRole>
+    error?: Exclude<AiSuggestionResult, { ok: true }>['reason']
+    onToggle: (on: boolean) => void
+  }
+}
+
+/** Why the AI proposal did not come, in plain words. */
+const AI_ERRORS: Record<NonNullable<NonNullable<Props['ai']>['error']>, string> = {
+  login: 'Je kan de AI-functies enkel gebruiken als je aangemeld bent.',
+  not_linked: 'Je account is nog niet volledig ingesteld, dus de AI-functies werken nog niet.',
+  not_configured: 'De AI-functies zijn hier niet beschikbaar.',
+  failed: 'Het AI-voorstel lukte niet. Probeer het straks opnieuw, of koppel de kolommen zelf.',
 }
 
 function joinLabels(labels: string[]): string {
@@ -49,6 +69,7 @@ export function MappingStep({
   onRoleChange,
   onMove,
   onNext,
+  ai,
 }: Props) {
   const examples = useMemo(() => columnExamples(list), [list])
   const { mapping } = useMemo(() => rolesToMapping(columnOrder, roles), [columnOrder, roles])
@@ -75,6 +96,9 @@ export function MappingStep({
     const profile = isOpen ? columnProfile(list, header) : null
     // An empty column coupled to the address stands out; an unused empty one fades.
     const emptyCoupledHere = count === 0 && toAddress(header)
+    // The AI's choice for this column, and whether it is the current one (told to screen readers).
+    const aiRole = ai?.roles?.[header]
+    const aiChosen = aiRole !== undefined && aiRole === roles[header]
     return (
       <Fragment key={header}>
         <div className={`${styles.mapRow} ${count === 0 && !emptyCoupledHere ? styles.mapRowDim : ''}`} role="row">
@@ -126,14 +150,22 @@ export function MappingStep({
               className={styles.select}
               value={roles[header]}
               aria-labelledby={`col-${i}`}
+              aria-describedby={aiChosen ? `ai-${i}` : undefined}
               onChange={(e) => onRoleChange(header, e.target.value as ColumnRole)}
             >
               {ROLE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
+                  {/* ✦ in front: the same text shows in the closed list and in the open list. */}
+                  {aiRole === option.value && '✦ '}
                   {option.label}
                 </option>
               ))}
             </select>
+            {aiChosen && (
+              <span className={styles.srOnly} id={`ai-${i}`}>
+                Voorstel van AI
+              </span>
+            )}
           </span>
         </div>
         {profile && (
@@ -198,11 +230,46 @@ export function MappingStep({
 
       <div className={styles.mapLayout}>
         <div>
+          {ai?.error && (
+            <p className={`${styles.alert} ${styles.aiAlert}`} role="alert">
+              {AI_ERRORS[ai.error]}
+              {ai.error === 'login' && (
+                <>
+                  {' '}
+                  <a className={styles.link} href="/api/auth/signin?callbackUrl=/masspost/poc" target="_blank" rel="noopener noreferrer">
+                    Aanmelden
+                  </a>
+                </>
+              )}
+            </p>
+          )}
           <div className={styles.mapList} role="table" aria-label="Kolommen in je bestand">
             <div className={styles.mapHead} role="row">
               <span role="columnheader">Kolom in je bestand</span>
               <span role="columnheader">Voorbeelden</span>
-              <span role="columnheader">Gebruiken als</span>
+              <span role="columnheader" className={styles.roleHead}>
+                Gebruiken als
+                {ai && (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={ai.on}
+                    aria-busy={ai.busy}
+                    disabled={ai.busy}
+                    className={`${styles.aiSwitch} ${styles.tipBelow}`}
+                    data-tip={`Koppel de kolommen volgens het voorstel van AI (${modelLabel(ai.model)})`}
+                    onClick={() => ai.onToggle(!ai.on)}
+                  >
+                    <span className={styles.switchTrack} aria-hidden="true" />
+                    {ai.busy ? (
+                      <Spinner size={14} />
+                    ) : (
+                      <IconSparkles className={styles.aiIcon} size={14} stroke={1.75} aria-hidden="true" />
+                    )}
+                    AI-voorstel
+                  </button>
+                )}
+              </span>
             </div>
             {withValues.map(renderColumn)}
             {empty.length > 0 && (
@@ -219,6 +286,7 @@ export function MappingStep({
             Klik op een kolom voor meer voorbeelden. <strong>Tonen bij het verbeteren:</strong> de kolom gaat niet naar
             bpost en komt niet op de envelop, maar je ziet ze naast een adres dat je moet verbeteren (bv. een lidnummer).{' '}
             <strong>Niet gebruiken:</strong> we doen er niets mee.
+            {ai?.roles && ' ✦ staat bij de keuze die AI voorstelt.'}
             {docsUrl && (
               <>
                 {' '}

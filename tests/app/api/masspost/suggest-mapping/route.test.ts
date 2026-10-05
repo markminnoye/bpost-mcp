@@ -1,6 +1,5 @@
 import type { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { CONTRAPUNT_SAMPLE_COLUMN_MAPPING } from '@/core/masspost/fixtures/contrapunt-sample'
 
 vi.mock('@/lib/auth/resolve-request-auth', () => ({
   resolveRequestAuth: vi.fn(),
@@ -12,7 +11,7 @@ vi.mock('@/lib/masspost/suggest-mapping-ai', async () => {
   )
   return {
     ...actual,
-    suggestColumnMappingWithAi: vi.fn(),
+    suggestColumnRolesWithAi: vi.fn(),
   }
 })
 
@@ -21,18 +20,25 @@ import { resolveRequestAuth } from '@/lib/auth/resolve-request-auth'
 import {
   SuggestMappingAiInvalidOutputError,
   SuggestMappingAiNotConfiguredError,
-  suggestColumnMappingWithAi,
+  suggestColumnRolesWithAi,
+  type ColumnRolesSuggestion,
 } from '@/lib/masspost/suggest-mapping-ai'
 
-const CONTRAPUNT_HEADERS = [
-  'Roepnaam',
-  'Familienaam',
-  'Correspondentieadres - Straat (Key)',
-  'Correspondentieadres - Huisnummer (Key)',
-  'Correspondentieadres - aanv. huisnr. (Key)',
-  'Correspondentieadres - Postcode (Key)',
-  'Correspondentieadres - Plaats (Key)',
-]
+const BODY = {
+  rowCount: 120,
+  columns: [
+    { header: 'Naam', filled: 120, examples: ['Jxx Pxxxxxx'] },
+    { header: 'Adres', filled: 120, examples: ['Kxxxstraat 12'] },
+    { header: 'Gemeente', filled: 120, examples: ['9000 Gent'] },
+    { header: 'Fax', filled: 0, examples: [] },
+  ],
+}
+
+const SUGGESTION: ColumnRolesSuggestion = {
+  mapping: { name: ['Naam'], companyDepartment: [], streetHouseBox: ['Adres'], postcodeCity: ['Gemeente'], country: [] },
+  context: [],
+  ignore: ['Fax'],
+}
 
 function post(body: unknown): NextRequest {
   return new Request('http://localhost/api/masspost/suggest-mapping', {
@@ -44,7 +50,7 @@ function post(body: unknown): NextRequest {
 
 describe('POST /api/masspost/suggest-mapping', () => {
   beforeEach(() => {
-    vi.mocked(suggestColumnMappingWithAi).mockReset()
+    vi.mocked(suggestColumnRolesWithAi).mockReset()
     vi.mocked(resolveRequestAuth).mockReset()
     vi.mocked(resolveRequestAuth).mockResolvedValue({
       success: true,
@@ -52,99 +58,82 @@ describe('POST /api/masspost/suggest-mapping', () => {
     })
   })
 
-  it('returns 401 when no valid auth is provided and does not suggest a mapping', async () => {
+  it('returns 401 without valid auth and does not call the model', async () => {
     vi.mocked(resolveRequestAuth).mockResolvedValue({
       success: false,
       error: { status: 401, reason: 'missing_auth' },
     })
 
-    const response = await POST(post({ headers: CONTRAPUNT_HEADERS }))
+    const response = await POST(post(BODY))
     const body = await response.json()
 
     expect(response.status).toBe(401)
     expect(body.error).toContain('Bearer token')
-    expect(suggestColumnMappingWithAi).not.toHaveBeenCalled()
+    expect(suggestColumnRolesWithAi).not.toHaveBeenCalled()
   })
 
-  it('maps the Contrapunt sample titles with the heuristic and does not call AI', async () => {
-    const response = await POST(post({ headers: CONTRAPUNT_HEADERS }))
+  it('passes the columns to the model and returns its proposal', async () => {
+    vi.mocked(suggestColumnRolesWithAi).mockResolvedValue(SUGGESTION)
+
+    const response = await POST(post({ ...BODY, localeHints: ['nl'] }))
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(body.source).toBe('heuristic')
-    expect(body.mapping).toEqual(CONTRAPUNT_SAMPLE_COLUMN_MAPPING)
-    expect(body.needsAi).toBe(false)
-    expect(suggestColumnMappingWithAi).not.toHaveBeenCalled()
+    expect(body).toEqual(SUGGESTION)
+    expect(suggestColumnRolesWithAi).toHaveBeenCalledTimes(1)
+    expect(suggestColumnRolesWithAi).toHaveBeenCalledWith({ ...BODY, localeHints: ['nl'] })
   })
 
-  it('calls AI with headers only when the heuristic is incomplete', async () => {
-    vi.mocked(suggestColumnMappingWithAi).mockResolvedValue({
-      name: ['Kolom A'],
-      streetHouseBox: ['Kolom B'],
-      postcodeCity: ['Kolom C'],
-    })
-
-    const response = await POST(post({ headers: ['Kolom A', 'Kolom B', 'Kolom C'], localeHints: ['nl'] }))
-    const body = await response.json()
-
-    expect(response.status).toBe(200)
-    expect(body.source).toBe('ai')
-    expect(body.needsAi).toBe(false)
-    expect(body.mapping).toEqual({
-      name: ['Kolom A'],
-      streetHouseBox: ['Kolom B'],
-      postcodeCity: ['Kolom C'],
-    })
-    expect(suggestColumnMappingWithAi).toHaveBeenCalledTimes(1)
-    expect(suggestColumnMappingWithAi).toHaveBeenCalledWith({
-      headers: ['Kolom A', 'Kolom B', 'Kolom C'],
-      localeHints: ['nl'],
-    })
-  })
-
-  it('fails closed when AI is required and not configured', async () => {
-    vi.mocked(suggestColumnMappingWithAi).mockRejectedValue(new SuggestMappingAiNotConfiguredError())
-
-    const response = await POST(post({ headers: ['Kolom A', 'Kolom B'] }))
-    const body = await response.json()
-
-    expect(response.status).toBe(503)
-    expect(body.code).toBe('ai_not_configured')
-    expect(body.mapping).toBeUndefined()
-    expect(body.suggestion.needsAi).toBe(true)
-    expect(body.suggestion.mapping.name).toEqual([])
-  })
-
-  it('returns the local suggestion when the model output is rejected', async () => {
-    vi.mocked(suggestColumnMappingWithAi).mockRejectedValue(new SuggestMappingAiInvalidOutputError())
-
-    const response = await POST(post({ headers: ['Kolom A'] }))
-    const body = await response.json()
-
-    expect(response.status).toBe(422)
-    expect(body.code).toBe('ai_invalid_output')
-    expect(body.suggestion.needsAi).toBe(true)
-  })
-
-  it('refuses a body that includes sheet rows', async () => {
-    const response = await POST(
-      post({
-        headers: ['Kolom A'],
-        rows: [{ 'Kolom A': 'Anna Vanderstappen' }],
-      }),
-    )
+  it.each([
+    ['sheet rows next to the columns', { ...BODY, rows: [{ Naam: 'Anna Vanderstappen' }] }],
+    ['the old contract with headers only', { headers: ['Naam', 'Adres'] }],
+    ['the same column title twice', { ...BODY, columns: [BODY.columns[0], BODY.columns[0]] }],
+    ['more than 5 examples', { ...BODY, columns: [{ header: 'Naam', filled: 6, examples: ['a', 'b', 'c', 'd', 'e', 'f'] }] }],
+    ['no columns', { rowCount: 0, columns: [] }],
+  ])('refuses %s with 400', async (_case, body) => {
+    const response = await POST(post(body))
 
     expect(response.status).toBe(400)
-    expect(suggestColumnMappingWithAi).not.toHaveBeenCalled()
+    expect(suggestColumnRolesWithAi).not.toHaveBeenCalled()
   })
 
   it('rejects invalid JSON', async () => {
     const response = await POST(
-      new Request('http://localhost/api/masspost/suggest-mapping', {
-        method: 'POST',
-        body: '{',
-      }) as NextRequest,
+      new Request('http://localhost/api/masspost/suggest-mapping', { method: 'POST', body: '{' }) as NextRequest,
     )
     expect(response.status).toBe(400)
+  })
+
+  it('answers 503 when no model is configured', async () => {
+    vi.mocked(suggestColumnRolesWithAi).mockRejectedValue(new SuggestMappingAiNotConfiguredError())
+
+    const response = await POST(post(BODY))
+    const body = await response.json()
+
+    expect(response.status).toBe(503)
+    expect(body).toEqual({ error: 'AI-kolommapping is niet ingesteld.', code: 'ai_not_configured' })
+  })
+
+  it('answers 422 when the model gives no valid proposal', async () => {
+    vi.mocked(suggestColumnRolesWithAi).mockRejectedValue(new SuggestMappingAiInvalidOutputError())
+
+    const response = await POST(post(BODY))
+    const body = await response.json()
+
+    expect(response.status).toBe(422)
+    expect(body.code).toBe('ai_invalid_output')
+  })
+
+  it('answers 502 when the model call fails, without passing on its details', async () => {
+    vi.mocked(suggestColumnRolesWithAi).mockRejectedValue(new Error('upstream said: Naam=Jan Peeters'))
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const response = await POST(post(BODY))
+    const body = await response.json()
+
+    expect(response.status).toBe(502)
+    expect(body).toEqual({ error: 'AI-kolommapping is mislukt.', code: 'ai_failed' })
+    expect(JSON.stringify(consoleError.mock.calls)).not.toContain('Jan Peeters')
+    consoleError.mockRestore()
   })
 })

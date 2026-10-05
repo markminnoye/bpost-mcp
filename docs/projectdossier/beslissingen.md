@@ -15,7 +15,7 @@ Concept ter nazicht. Datums verwijzen naar de meeting van 23 september of naar d
 | DEC-005 | Eén bestand per mailing als eenheid, geen centrale databank                                         | 27/09/2026     | Ter discussie, zie Q-004                        |
 | DEC-006 | Mens in de lus, voorstellen worden nooit stilzwijgend toegepast                                     | 27/09/2026     | Besloten                                        |
 | DEC-007 | Kern als API/library, interface ernaast waar opportuun                                              | 29/09/2026     | Besloten, met nuance                            |
-| DEC-008 | Kolommapping: eerst lokale regels, AI enkel als optioneel vangnet en enkel met de kolomkoppen       | 29/09/2026     | Besloten                                        |
+| DEC-008 | Kolommapping: eerst lokale regels; AI op vraag, met kolomkoppen en gemaskeerde voorbeelden          | 29/09/2026, herzien 06/10/2026 | Besloten                                        |
 | DEC-009 | Gefaseerd bouwen: eerst de aanpak valideren, daarna volledige dataretentie en lokale deployment     | 27/09/2026     | Voorgesteld                                     |
 | DEC-010 | Bpost-referentiemateriaal wordt als skill en documentatie bijgehouden                               | 2026           | Besloten                                        |
 | DEC-011 | Hosted MCP-route als hoofdpad                                                                       | tot 23/09/2026 | Verlaten, MCP komt later                        |
@@ -64,13 +64,15 @@ Concept ter nazicht. Datums verwijzen naar de meeting van 23 september of naar d
 
 **Nuance.** De voorkeur gaat naar de API eerst, maar enkele onderdelen van de interface worden al uitgewerkt. Waar het opportuun is, werken we dus ook in omgekeerde richting, van de interface naar de kern.
 
-### DEC-008: mapping met lokale regels en AI als vangnet
+### DEC-008: mapping met lokale regels, AI op vraag
 
-**Waarom.** Voor een bekende indeling, zoals de Address File Tool van bpost, is geen AI nodig. Voor onbekende layouts proberen we eerst synoniemen en fuzzy matching. Een AI-model kan optioneel helpen bij lage zekerheid, en dan enkel met de kolomkoppen, niet met de adressen. Die keuze is gemaakt om geen adressen naar een extern model te sturen.
+**Waarom.** Voor een bekende indeling, zoals de Address File Tool van bpost, is geen AI nodig. Voor onbekende layouts proberen we eerst synoniemen en fuzzy matching. Lukt dat niet goed, dan kan de gebruiker zelf een voorstel van AI vragen en daarna bevestigen. Het model krijgt de kolomkoppen, hoe vaak elke kolom gevuld is en enkele gemaskeerde voorbeeldwaarden: van elk woord enkel de eerste letter en de vorm (`Jan Peeters` wordt `Jxx Pxxxxxx`). Postcode met gemeente blijft leesbaar. Zo blijven we binnen REQ-N-003.
 
-**Eerste versie.** De eerste versie werkt zonder LLM (zie DEC-011), dus de AI-fallback komt later.
+**Herzien (06/10/2026).** Eerst was het plan: AI vanzelf bij lage zekerheid, en enkel met de kolomkoppen. Met enkel koppen ziet een model niet wat er in een kolom staat; met gemaskeerde voorbeelden wel. De technische uitwerking staat in ADR 0006.
 
-**Alternatieven.** Enkel regels (te beperkt voor onbekende exports) en altijd AI (trager, duurder, meer privacyrisico).
+**Eerste versie.** De app werkt ook zonder AI (zie DEC-011): de AI is een extra knop bij het koppelen.
+
+**Alternatieven.** Enkel regels (te beperkt voor onbekende exports), altijd AI (trager, duurder, meer privacyrisico) en adressen leesbaar meesturen (vraagt een herziening van REQ-N-003).
 
 ### DEC-009: gefaseerd bouwen
 

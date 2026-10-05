@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { env } from '@/lib/config/env'
+import { isProviderModel } from '@/lib/masspost/suggest-mapping-ai'
 import { PocFlow } from './PocFlow'
 
 export const metadata: Metadata = {
@@ -8,7 +9,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-/** POC of upload, column mapping and format validation. Runs fully in the browser: no login, nothing stored. */
+/**
+ * POC of upload, column mapping and format validation. Runs in the browser, nothing stored. The AI
+ * proposal switch appears only when a model is set up; it needs a login (ADR 0006).
+ */
 export default function MasspostPocPage() {
-  return <PocFlow docsUrl={env.NEXT_PUBLIC_DOCS_URL} />
+  const model = env.MASSPOST_SUGGEST_MAPPING_MODEL?.trim()
+  return <PocFlow docsUrl={env.NEXT_PUBLIC_DOCS_URL} aiModel={isProviderModel(model) ? model : undefined} />
 }

@@ -152,42 +152,25 @@ components:
               description: Country column (name or two-letter code). Sent to bpost as Comp 18 or 17, never for Belgium.
           required:
             - name
+            - companyDepartment
             - streetHouseBox
             - postcodeCity
-        confidence:
-          type: string
-          enum:
-            - high
-            - medium
-            - low
-        rationale:
-          type: object
-          additionalProperties:
-            type: string
-          description: Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93` and, for the heuristic and presets, `18` (country).
-        unmatchedHeaders:
+            - country
+          description: Columns per address block. Within a block, the list order is the order on the envelope.
+        context:
           type: array
           items:
             type: string
-        needsAi:
-          type: boolean
-        preset:
-          type: string
-          enum:
-            - aft
-          description: "Known layout recognised from the titles: bpost's Address File Tool."
-        source:
-          type: string
-          enum:
-            - heuristic
-            - ai
+          description: Not on the envelope; shown while correcting. Columns the model left out end up here.
+        ignore:
+          type: array
+          items:
+            type: string
+          description: Empty, technical or duplicate columns.
       required:
         - mapping
-        - confidence
-        - rationale
-        - unmatchedHeaders
-        - needsAi
-        - source
+        - context
+        - ignore
     SuggestMappingError:
       type: object
       properties:
@@ -199,76 +182,42 @@ components:
             - ai_not_configured
             - ai_invalid_output
             - ai_failed
-        suggestion:
-          type: object
-          properties:
-            mapping:
-              type: object
-              properties:
-                name:
-                  type: array
-                  items:
-                    type: string
-                companyDepartment:
-                  type: array
-                  items:
-                    type: string
-                streetHouseBox:
-                  type: array
-                  items:
-                    type: string
-                postcodeCity:
-                  type: array
-                  items:
-                    type: string
-                country:
-                  type: array
-                  items:
-                    type: string
-                  description: Country column (name or two-letter code). Sent to bpost as Comp 18 or 17, never for Belgium.
-              required:
-                - name
-                - streetHouseBox
-                - postcodeCity
-            confidence:
-              type: string
-              enum:
-                - high
-                - medium
-                - low
-            rationale:
-              type: object
-              additionalProperties:
-                type: string
-              description: Why each Comp target was chosen. Keys are `90`, `91`, `92`, `93` and, for the heuristic and presets, `18` (country).
-            unmatchedHeaders:
-              type: array
-              items:
-                type: string
-            needsAi:
-              type: boolean
-            preset:
-              type: string
-              enum:
-                - aft
-              description: "Known layout recognised from the titles: bpost's Address File Tool."
-          required:
-            - mapping
-            - confidence
-            - rationale
-            - unmatchedHeaders
-            - needsAi
       required:
         - error
     SuggestMappingRequest:
       type: object
       properties:
-        headers:
+        columns:
           type: array
           items:
-            type: string
+            type: object
+            properties:
+              header:
+                type: string
+                minLength: 1
+                maxLength: 200
+              filled:
+                type: integer
+                minimum: 0
+                description: Rows with a value in this column.
+              examples:
+                type: array
+                items:
+                  type: string
+                  maxLength: 200
+                maxItems: 5
+                description: Sample values masked with `maskValue` (src/core/masspost/mask.ts). The server masks them again.
+            required:
+              - header
+              - filled
+              - examples
+            additionalProperties: false
           minItems: 1
           maxItems: 100
+          description: Every column of the file, in file order.
+        rowCount:
+          type: integer
+          minimum: 0
         localeHints:
           type: array
           items:
@@ -279,7 +228,8 @@ components:
               - en
           maxItems: 3
       required:
-        - headers
+        - columns
+        - rowCount
       additionalProperties: false
     AuthorizationServerMetadata:
       type: object
@@ -585,8 +535,8 @@ paths:
                 $ref: "#/components/schemas/UploadBatchError"
   /api/masspost/suggest-mapping:
     post:
-      summary: Suggest a column mapping
-      description: Requires a bearer token or a signed-in session. Tries the heuristic first; the AI fallback runs only when the heuristic needs it (`source` tells which one answered).
+      summary: Ask an AI model for a column mapping
+      description: "Requires a bearer token or a signed-in session. Sends column titles, fill counts and masked sample values (`maskValue` in `src/core/masspost/mask.ts`) to the configured model; the server masks the examples again. Returns every column exactly once: in an address block (list order is envelope order), under `context` or under `ignore`. The rule-based suggestion (`suggestColumnMapping`) is a library function and runs in the client. See ADR 0006."
       requestBody:
         required: true
         content:
@@ -595,13 +545,13 @@ paths:
               $ref: "#/components/schemas/SuggestMappingRequest"
       responses:
         "200":
-          description: Suggested mapping.
+          description: Proposed mapping.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuggestMappingResponse"
         "400":
-          description: Invalid JSON, invalid body, or no usable headers.
+          description: Invalid JSON or invalid body (e.g. duplicate column titles, more than 5 examples).
           content:
             application/json:
               schema:
@@ -619,19 +569,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuggestMappingError"
         "422":
-          description: AI chose a column that is not in the file (`ai_invalid_output`). Heuristic `suggestion` included.
+          description: The model gave no valid proposal (`ai_invalid_output`).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuggestMappingError"
         "502":
-          description: AI call failed (`ai_failed`). Heuristic `suggestion` included.
+          description: The model call failed or timed out (`ai_failed`).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuggestMappingError"
         "503":
-          description: AI fallback not configured (`ai_not_configured`). Heuristic `suggestion` included.
+          description: No model configured (`ai_not_configured`).
           content:
             application/json:
               schema:

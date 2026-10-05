@@ -103,9 +103,9 @@ registry.registerPath({
 registry.registerPath({
   method: 'post',
   path: '/api/masspost/suggest-mapping',
-  summary: 'Suggest a column mapping',
+  summary: 'Ask an AI model for a column mapping',
   description:
-    'Requires a bearer token or a signed-in session. Tries the heuristic first; the AI fallback runs only when the heuristic needs it (`source` tells which one answered).',
+    'Requires a bearer token or a signed-in session. Sends column titles, fill counts and masked sample values (`maskValue` in `src/core/masspost/mask.ts`) to the configured model; the server masks the examples again. Returns every column exactly once: in an address block (list order is envelope order), under `context` or under `ignore`. The rule-based suggestion (`suggestColumnMapping`) is a library function and runs in the client. See ADR 0006.',
   request: {
     body: {
       required: true,
@@ -113,13 +113,13 @@ registry.registerPath({
     },
   },
   responses: {
-    200: json(SuggestMappingResponseSchema, 'Suggested mapping.'),
-    400: json(SuggestMappingErrorSchema, 'Invalid JSON, invalid body, or no usable headers.'),
+    200: json(SuggestMappingResponseSchema, 'Proposed mapping.'),
+    400: json(SuggestMappingErrorSchema, 'Invalid JSON or invalid body (e.g. duplicate column titles, more than 5 examples).'),
     401: json(SuggestMappingErrorSchema, 'Missing or invalid authentication.'),
     403: json(SuggestMappingErrorSchema, 'Account has no tenant.'),
-    422: json(SuggestMappingErrorSchema, 'AI chose a column that is not in the file (`ai_invalid_output`). Heuristic `suggestion` included.'),
-    502: json(SuggestMappingErrorSchema, 'AI call failed (`ai_failed`). Heuristic `suggestion` included.'),
-    503: json(SuggestMappingErrorSchema, 'AI fallback not configured (`ai_not_configured`). Heuristic `suggestion` included.'),
+    422: json(SuggestMappingErrorSchema, 'The model gave no valid proposal (`ai_invalid_output`).'),
+    502: json(SuggestMappingErrorSchema, 'The model call failed or timed out (`ai_failed`).'),
+    503: json(SuggestMappingErrorSchema, 'No model configured (`ai_not_configured`).'),
   },
 })
 

@@ -30,10 +30,10 @@ const SPOKES = Array.from({ length: 12 }, (_, i) => i)
 
 /** One animation for every wait: a wheel with spokes. A CSS transform on its own layer, so the
  *  browser can keep it turning while the page reads a large file. */
-export function Spinner() {
+export function Spinner({ size = 20 }: { size?: number }) {
   return (
     <span className={styles.spin}>
-      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+      <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
         <g stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           {SPOKES.map((i) => (
             <line

@@ -8,7 +8,7 @@ Alle HTTP-routes van de dienst. De exacte request- en responsevormen staan in de
 | `GET /ready` | Gereed (database en Redis); `503` bij een fout | Geen |
 | `GET /version` | Naam en versie | Geen |
 | `POST /api/batches/upload` | CSV-bestand uploaden (multipart, veld `file`) | Bearer of sessie |
-| `POST /api/masspost/suggest-mapping` | Kolomkoppeling voorstellen (heuristiek, AI als terugval) | Bearer of sessie |
+| `POST /api/masspost/suggest-mapping` | AI-voorstel voor de kolomkoppeling, met gemaskeerde voorbeelden | Bearer of sessie |
 | `GET /api/install/prompt` | Installatieprompt als Markdown | Geen |
 | `GET /.well-known/oauth-authorization-server` | OAuth-metadata | Geen |
 | `GET /.well-known/oauth-protected-resource` | Metadata van de beschermde resource | Geen |
@@ -29,7 +29,7 @@ De routes antwoorden met JSON `{ "error": "…" }`. De OAuth-routes volgen het O
 | 401 | Geen, ongeldig of verlopen token of sessie |
 | 403 | Account heeft geen tenant |
 | 413 | Te veel rijen in de upload (maximum 1.000) |
-| 422, 502, 503 | Alleen bij `suggest-mapping`, wanneer de AI-terugval mislukt |
+| 422, 502, 503 | Alleen bij `suggest-mapping`, wanneer de AI-aanroep mislukt of niet ingesteld is |
 
 ## Nieuwe route toevoegen
 

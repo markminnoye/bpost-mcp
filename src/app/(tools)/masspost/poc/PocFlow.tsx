@@ -7,14 +7,19 @@ import type { AddressField } from '@/core/masspost/mapping'
 import { suggestColumnMapping, type MappingPresetId } from '@/core/masspost/suggest-mapping'
 import {
   ADDRESS_FIELDS,
+  columnExamples,
+  columnFillCounts,
   countForeign,
   initialRoles,
   moveInBlock,
   requiredBlocksHaveData,
+  rolesFromSuggestion,
   rolesToMapping,
+  type AiSuggestion,
   type ColumnRole,
   type LoadedList,
 } from './columns'
+import { requestAiSuggestion, suggestionRequestBody, type AiSuggestionResult } from './ai-suggestion'
 import { FormatStep, type SaveChoices, type SaveTarget } from './FormatStep'
 import { MappingStep } from './MappingStep'
 import { MeasurePanel, usedHeapMb, type Measurement } from './MeasurePanel'
@@ -29,12 +34,22 @@ function choiceKey(order: string[], roles: Record<string, ColumnRole>): string {
   return JSON.stringify([order, order.map((column) => roles[column])])
 }
 
+/** State of the AI proposal switch. The proposal is kept per file; `before` is the choice to return to. */
+interface AiState {
+  on: boolean
+  busy: boolean
+  suggestion?: AiSuggestion
+  before?: { roles: Record<string, ColumnRole>; order: string[] }
+  error?: Exclude<AiSuggestionResult, { ok: true }>['reason']
+}
+
 /**
  * POC of the first steps of a mailing: upload, map columns, format validation, and the start of
- * the address check (export for the printer). Everything runs in the browser; nothing is sent or
- * stored. Also bundled as a standalone HTML file.
+ * the address check (export for the printer). Everything runs in the browser and nothing is stored.
+ * Only the AI proposal switch sends something: column titles and masked examples (ADR 0006).
+ * Also bundled as a standalone HTML file, without `aiModel` and so without the switch.
  */
-export function PocFlow({ docsUrl }: { docsUrl?: string }) {
+export function PocFlow({ docsUrl, aiModel }: { docsUrl?: string; aiModel?: string }) {
   const [step, setStep] = useState<StepId>('upload')
   const [list, setList] = useState<LoadedList | null>(null)
   const [fileBytes, setFileBytes] = useState<ArrayBuffer | undefined>()
@@ -50,7 +65,13 @@ export function PocFlow({ docsUrl }: { docsUrl?: string }) {
   const [measurement, setMeasurement] = useState<Measurement | null>(null)
   const [theme, setTheme] = useState<'light' | 'dark' | undefined>()
   const [formatTotals, setFormatTotals] = useState({ open: 0, excludedRows: 0 })
+  const [ai, setAi] = useState<AiState>({ on: false, busy: false })
   const checkedAt = useRef(0)
+  const listRef = useRef<LoadedList | null>(null)
+  const aiRoles = useMemo(
+    () => (list && ai.suggestion ? rolesFromSuggestion(list.headers, ai.suggestion).roles : undefined),
+    [list, ai.suggestion],
+  )
   const foreignCount = useMemo(
     () => (list ? countForeign(list, rolesToMapping(columnOrder, roles).mapping) : 0),
     [list, columnOrder, roles],
@@ -128,6 +149,8 @@ export function PocFlow({ docsUrl }: { docsUrl?: string }) {
     const suggestion = suggestColumnMapping({ headers: loaded.headers })
     const chosen = initialRoles(loaded.headers, suggestion)
     const order = [...loaded.headers]
+    listRef.current = loaded
+    setAi({ on: false, busy: false })
     setList(loaded)
     setCheckedFor(null)
     setFileBytes(bytes)
@@ -177,6 +200,36 @@ export function PocFlow({ docsUrl }: { docsUrl?: string }) {
     })
   }
 
+  /** On: take over the AI proposal (asked once per file). Off: back to the choice from before. */
+  async function toggleAi(on: boolean) {
+    if (!list || ai.busy) return
+    if (!on) {
+      if (ai.before) {
+        setRoles(ai.before.roles)
+        setColumnOrder(ai.before.order)
+      }
+      setAi((a) => ({ ...a, on: false, before: undefined, error: undefined }))
+      return
+    }
+    const before = { roles, order: columnOrder }
+    let suggestion = ai.suggestion
+    if (!suggestion) {
+      setAi((a) => ({ ...a, busy: true, error: undefined }))
+      const result = await requestAiSuggestion(suggestionRequestBody(list, columnExamples(list), columnFillCounts(list)))
+      // Another file was loaded while waiting: this answer is about the old one.
+      if (listRef.current !== list) return
+      if (!result.ok) {
+        setAi((a) => ({ ...a, busy: false, on: false, error: result.reason }))
+        return
+      }
+      suggestion = result.suggestion
+    }
+    const chosen = rolesFromSuggestion(list.headers, suggestion)
+    setRoles(chosen.roles)
+    setColumnOrder(chosen.columnOrder)
+    setAi({ on: true, busy: false, suggestion, before })
+  }
+
   function toggleTheme() {
     const dark = theme ? theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
     setTheme(dark ? 'light' : 'dark')
@@ -216,6 +269,11 @@ export function PocFlow({ docsUrl }: { docsUrl?: string }) {
             onRoleChange={(header, role) => setRoles((r) => ({ ...r, [header]: role }))}
             onMove={(column, direction) => setColumnOrder((order) => moveInBlock(order, roles, column, direction))}
             onNext={() => (checked ? setStep(issues.length === 0 ? 'check' : 'format') : check(list, roles, columnOrder))}
+            ai={
+              aiModel
+                ? { model: aiModel, on: ai.on, busy: ai.busy, roles: aiRoles, error: ai.error, onToggle: toggleAi }
+                : undefined
+            }
           />
         )}
         {list && checkedFor !== null && (

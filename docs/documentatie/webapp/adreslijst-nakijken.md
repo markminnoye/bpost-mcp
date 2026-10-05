@@ -4,11 +4,11 @@
 Proefversie. Ze toont de eerste stappen van een mailing. Er gaat nog niets naar bpost, en de schermen kunnen nog veranderen.
 {% endhint %}
 
-Met deze pagina lees je een adreslijst in, kies je welke kolommen het adres vormen, kijk je na of elk adres aan de regels van bpost voldoet, en download je een bestand voor de drukker. Je vindt ze op `https://bpost.sonicrocket.app/masspost/poc`. Je hoeft niet aan te melden.
+Met deze pagina lees je een adreslijst in, kies je welke kolommen het adres vormen, kijk je na of elk adres aan de regels van bpost voldoet, en download je een bestand voor de drukker. Je vindt ze op `https://bpost.sonicrocket.app/masspost/poc`. Je hoeft niet aan te melden, behalve voor het AI-voorstel.
 
-**Wat er met je gegevens gebeurt:** niets verlaat je computer. De pagina leest het bestand in je browser, verstuurt geen adressen en bewaart niets. Sluit je het tabblad, dan is alles weg.
+**Wat er met je gegevens gebeurt:** de pagina leest het bestand in je browser en bewaart niets. Sluit je het tabblad, dan is alles weg. Er gaat enkel iets weg als je het **AI-voorstel** aanzet. Dan sturen we de kolomtitels, en per kolom enkele voorbeelden waarvan alleen de eerste letter en de vorm overblijven: "Jan Peeters" wordt "Jxx Pxxxxxx", "Kerkstraat 12" wordt "Kxxxstraat 12". Postcode en gemeente blijven leesbaar. Namen en straten zijn zo niet te herkennen.
 
-Er bestaat ook een versie als één los bestand, die je zonder internet opent door erop te dubbelklikken. Die werkt op dezelfde manier.
+Er bestaat ook een versie als één los bestand, die je zonder internet opent door erop te dubbelklikken. Die werkt op dezelfde manier, maar zonder AI-voorstel.
 
 ## Stap 1: importeren
 
@@ -64,6 +64,12 @@ Bpost krijgt een adres in vakken: naam, bedrijf of afdeling, straat met nummer e
 - **De indeling van de AFT** herkennen we exact.
 - **Andere bestanden:** we zoeken Nederlandse, Franse en Engelse woorden, zoals *voornaam*, *prénom*, *straat*, *rue*, *huisnummer*, *bus*, *postcode*, *gemeente*, *land* of *pays*. Kleine tikfouten mogen.
 - **Een kolom die we niet herkennen,** zetten we op **Tonen bij het verbeteren**, zodat er niets ongewild op de envelop komt. In een AFT-bestand zetten we die kolommen op **Niet gebruiken**: daar staat hetzelfde adres ook nog eens in andere kolommen.
+
+**AI-voorstel:** met de schakelaar **AI-voorstel** naast *Gebruiken als* laat je AI de kolommen koppelen. AI kijkt naar de titels én naar de inhoud, en kiest ook de volgorde binnen een vak, bijvoorbeeld de postcode vóór de gemeente.
+- **Aan:** we nemen de keuzes van AI over. Je kan ze daarna nog zelf aanpassen.
+- **Uit:** je krijgt je keuzes van daarvoor terug.
+- **✦** staat in de keuzelijsten bij de keuze die AI voorstelt, ook als de schakelaar uit staat. Zo zie je waar AI iets anders kiest dan jij.
+- Je moet aangemeld zijn. Het blijft een voorstel: kijk het na voor je verdergaat.
 
 **Meerdere kolommen voor één vak** mag. We voegen ze samen met een spatie, en lege cellen slaan we over. Zo worden "Kerkstraat", "12" en "bus 3" samen "Kerkstraat 12 bus 3". Elke kolom kan maar één keuze hebben.
 
