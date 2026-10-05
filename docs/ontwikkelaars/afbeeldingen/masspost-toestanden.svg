@@ -42,7 +42,7 @@ text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Ari
 <line class="arr" x1="210" y1="186" x2="210" y2="208" marker-end="url(#arrow)"/>
 <g class="w"><rect x="40" y="210" width="340" height="56" rx="8" stroke-width="1"/><use href="#hb1" x="54" y="230" width="16" height="16"/><text class="t" x="82" y="229" dominant-baseline="central">Gekoppeld</text><text class="s" x="82" y="249" dominant-baseline="central">Wachten · nakijken op de regels</text></g>
 <line class="arr" x1="210" y1="266" x2="210" y2="288" marker-end="url(#arrow)"/>
-<g class="u"><rect x="40" y="290" width="340" height="56" rx="8" stroke-width="1"/><use href="#hb2" x="54" y="310" width="16" height="16"/><text class="t" x="82" y="309" dominant-baseline="central">Standaardfouten</text><text class="s" x="82" y="329" dominant-baseline="central">Actie nodig · zonder fouten vanzelf verder</text></g>
+<g class="u"><rect x="40" y="290" width="340" height="56" rx="8" stroke-width="1"/><use href="#hb2" x="54" y="310" width="16" height="16"/><text class="t" x="82" y="309" dominant-baseline="central">Formaatvalidatie</text><text class="s" x="82" y="329" dominant-baseline="central">Actie nodig · zonder formaatfouten vanzelf verder</text></g>
 <line class="arr" x1="210" y1="346" x2="210" y2="368" marker-end="url(#arrow)"/>
 <g class="w"><rect x="40" y="370" width="340" height="56" rx="8" stroke-width="1"/><use href="#spin" x="54" y="390" width="16" height="16"/><text class="t" x="82" y="389" dominant-baseline="central">Controle verstuurd</text><text class="s" x="82" y="409" dominant-baseline="central">Wachten op bpost</text></g>
 <line class="arr" x1="210" y1="426" x2="210" y2="448" marker-end="url(#arrow)"/>

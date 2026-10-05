@@ -12,7 +12,7 @@ Zie de diagrammen in de ontwikkelaarsdocumentatie: [flow](../../docs/ontwikkelaa
 
 1. **Opladen** (lege cirkel): nieuwe mailing, bestand slepen (.xlsx, tot 25.000 adressen), inlezen in het geheugen, alle kolommen naar de database.
 2. **Koppelen** (¼): rol per kolom (adres, context, niet bewaren); de Contrapunt-export wordt herkend.
-3. **Standaardfouten** (½): nakijken op de regels van bpost, voorstellen per rij bevestigen. Zonder fouten vanzelf verder.
+3. **Formaatvalidatie** (½): nakijken op de regels van bpost (tekens, lengte van de velden, verplichte velden, gekoppelde kolommen), voorstellen per rij bevestigen. Zonder formaatfouten vanzelf verder.
 4. **Adrescontrole** (¾, rood/oranje/groen): `MailingCheck` bij bpost, score en voorstellen nakijken. Opnieuw controleren is verplicht onder 96 %.
 5. **Indienen** (vol groen met vinkje): parameters bevestigen, `MailingCreate`. Daarna ligt alles vast.
 
@@ -38,12 +38,12 @@ Daarna de **afronding**: na de deposit (door Frank in het portaal) markeert een 
 | 14 | Slimme verbetering van bpost-voorstellen (bv. `WARMOESSTRAAT 81 BUS 8` → `Warmoesstraat 81 bus 8`). Regels en plaats: **nog open**. | – | – |
 | 15 | De Excel wordt **op de server** ingelezen en **streamend** naar de database gezet. Niet in de browser. | browser leest in | Ervaring: streamend op de backend is het snelst. |
 | 16 | **Taal per adres** komt in de database, is zichtbaar en aanpasbaar voor de gebruiker, vooral bij het verbeteren. De taalchip uit v0 vervalt. | één taal per mailing | De XSD maakt `lang` optioneel voor elk `Item`, de gids noemt hem verplicht bij `MailingCheck`. |
-| 17 | **Iconen (herzien 02/10):** lege cirkel = bestand opgeladen · ¼ = kolommen gekoppeld · ½ = standaardfouten te corrigeren · ¾ = gecontroleerd door bpost, rood onder 96 %, donker oranje van 96 %, groen vanaf 98 % · vol groen met vinkje = ingediend · vol (kleur en teken nog te kiezen) = ingediend en afgiftedatum voorbij · donkergrijs met vinkje = afgerond of adressen gewist. Eigen kleuren, niet die van een thema. | ¼ als start (eerste versie van besluit 17) | – |
+| 17 | **Iconen (herzien 02/10):** lege cirkel = bestand opgeladen · ¼ = kolommen gekoppeld · ½ = formaatfouten te corrigeren · ¾ = gecontroleerd door bpost, rood onder 96 %, donker oranje van 96 %, groen vanaf 98 % · vol groen met vinkje = ingediend · vol (kleur en teken nog te kiezen) = ingediend en afgiftedatum voorbij · donkergrijs met vinkje = afgerond of adressen gewist. Eigen kleuren, niet die van een thema. | ¼ als start (eerste versie van besluit 17) | – |
 | 18 | **Eén animatie voor elke wachttijd** (verwerken bij ons, adrescontrole, indienen): een draaiend wieltje met spaken, zoals bij het opstarten van een Mac. | aparte iconen per wachttijd | Eenduidig: draaien = wachten. |
-| 19 | **Nieuwe stap "Standaardfouten"** tussen koppelen en de adrescontrole: rijen bpost-conform maken (vreemde tekens, te lange velden, lege verplichte velden). Wij doen per rij een voorstel, de gebruiker bevestigt of past aan. Later AI voor betere voorstellen. | correcties automatisch toepassen | De gebruiker houdt de controle over wat er op de envelop komt. |
+| 19 | **Nieuwe stap "Formaatvalidatie"** (eerst "Standaardfouten", hernoemd in besluit 42) tussen koppelen en de adrescontrole: rijen bpost-conform maken (vreemde tekens, te lange velden, lege verplichte velden). Wij doen per rij een voorstel, de gebruiker bevestigt of past aan. Later AI voor betere voorstellen. | correcties automatisch toepassen | De gebruiker houdt de controle over wat er op de envelop komt. |
 | 20 | Na het inlezen komen **meteen alle kolommen** in de database. Na het koppelen worden de ongebruikte kolommen gewist. | enkel gekoppelde kolommen (bestand wacht in tijdelijke opslag) | Opnieuw koppelen zonder nieuwe upload; het lege bolletje betekent echt "in onze database". |
-| 21 | **Kleuren:** kwart en half (gekoppeld, standaardfouten) in donkergeel. Het oranje voor 96 tot 98 % moet feller, want het verschil met rood was te klein. | donker oranje `#C2410C` | Opvallen; rood en oranje duidelijk uit elkaar. |
-| 22 | Standaardfouten: **elke rij apart bevestigen én per soort alles in één klik**. Elke groep klapt open om rijen snel na te kijken en apart aan te passen. "Overige aanvaarden" past enkel de rijen toe die nog open staan. | enkel per soort · enkel per rij · zekere regels automatisch | Controle per rij, snelheid per soort. |
+| 21 | **Kleuren:** kwart en half (gekoppeld, formaatvalidatie) in donkergeel. Het oranje voor 96 tot 98 % moet feller, want het verschil met rood was te klein. | donker oranje `#C2410C` | Opvallen; rood en oranje duidelijk uit elkaar. |
+| 22 | Formaatvalidatie: **elke rij apart bevestigen én per soort alles in één klik**. Elke groep klapt open om rijen snel na te kijken en apart aan te passen. "Overige aanvaarden" past enkel de rijen toe die nog open staan. | enkel per soort · enkel per rij · zekere regels automatisch | Controle per rij, snelheid per soort. |
 | 23 | **Twee soorten chips.** In het overzicht: weergave, niet aanpasbaar (klant, aantal adressen, score, datum, …). Op de detailpagina: parameters per mailing, aanpasbaar tot het indienen (barcode, sortering, taal, klant, formaat, prioriteit, afgiftedatum, …). | één soort chip | Overzicht toont, detailpagina stelt in. |
 | 24 | **Uitsluiten in plaats van verwijderen.** Een rij blijft in de database, maar gaat niet mee in de mailing. Eigen icoon (uitsluiten), de rij wordt doorschijnend getoond en kan opnieuw opgenomen worden. | rij verwijderen | Niets verliezen, wel controle over wat naar bpost gaat. |
 | 25 | Bij het corrigeren van een veld toont de interface **de hele rij** (naam en andere adresvelden), want zonder context kan je bijvoorbeeld geen postcode invullen. | enkel het foute veld | Context is nodig om te corrigeren. |
@@ -63,17 +63,18 @@ Daarna de **afronding**: na de deposit (door Frank in het portaal) markeert een 
 | 39 | **Schatting als fantoomlijn:** de balk kleurt verder in tot de geschatte score, in een lichtere tint, met een lichter bolletje. Geen stippellijn. De tint volgt de zone waarin de schatting valt (rood, oranje, groen). | gestippeld bolletje | Je ziet meteen hoe ver je aanpassingen je brengen. |
 | 40 | **Twee groepen voor adressen die bpost niet herkent:** "Geen adres gevonden" (`MID-4010`) en "Meerdere adressen gevonden" (`MID-4020`). Bij meerdere is het adresveld een **keuzelijst** met de gevonden adressen. | één groep "geen adres gevonden" | Een rij "meerdere adressen" onder "geen adres gevonden" was tegenstrijdig. |
 | 41 | **Eén zoekveld per adres** (postcode.eu) in de rij zelf, geen aparte velden voor straat en postcode: het gekozen of getypte adres ("straat en nummer, postcode en gemeente") splitsen wij in Comp 92 en 93. | zoekveld plus twee invulvelden | De zoekbox bevat die gegevens al. |
+| 42 | **Stap 3 heet "Formaatvalidatie"** (Mark, 05/10), de gevonden problemen heten **formaatfouten**. Op het scherm staat onder de titel een uitleg in gewone taal: "Voldoet je lijst aan de regels van bpost? We kijken de tekens, de lengte van elk veld, de verplichte velden en de gekoppelde kolommen na." | Standaardfouten · Vormcontrole · een titel zonder "validatie" (bv. "Controle op de regels van bpost") | "Standaard" zei niet wat er nagekeken wordt. "Validatie" is vakjargon volgens `.agent/prompts/customer-facing-agent.md`, maar mag met een uitleg erbij. |
 
 ## Schetsen
 
-- [Statusiconen](2026-10-02-masspost-web-flow/statusiconen.html): besluiten 17, 18 en 21.
-- [Standaardfouten bevestigen](2026-10-02-masspost-web-flow/standaardfouten.html) (v8, interactief, licht en donker, met toetsenbord): besluiten 22, 24, 25, 29, 30, 33, 34 en 35.
-- [Adrescontrole](2026-10-02-masspost-web-flow/adrescontrole.html) (v2, interactief): stap 4, score met grenzen 96 en 98 % en fantoomlijn, vijf groepen (geen adres gevonden, meerdere adressen gevonden, voorstel van bpost, opmerking zonder voorstel, in orde), één zoekveld via postcode.eu (nagebootst). Besluiten 37 tot 41.
+- [Statusiconen](../../docs/ontwerp/webapp/statusiconen.html): besluiten 17, 18 en 21.
+- [Formaatfouten bevestigen](../../docs/ontwerp/webapp/formaatvalidatie.html) (v8, interactief, licht en donker, met toetsenbord): besluiten 22, 24, 25, 29, 30, 33, 34 en 35.
+- [Adrescontrole](../../docs/ontwerp/webapp/adrescontrole.html) (v2, interactief): stap 4, score met grenzen 96 en 98 % en fantoomlijn, vijf groepen (geen adres gevonden, meerdere adressen gevonden, voorstel van bpost, opmerking zonder voorstel, in orde), één zoekveld via postcode.eu (nagebootst). Besluiten 37 tot 41.
 - Flow en toestanden: [masspost-flow.svg](../../docs/ontwikkelaars/afbeeldingen/masspost-flow.svg) en [masspost-toestanden.svg](../../docs/ontwikkelaars/afbeeldingen/masspost-toestanden.svg), in de ontwikkelaarsdocumentatie (pagina Website). Pas ze daar aan.
 
 ## Interne toestanden (voorstel)
 
-`Wordt ingelezen` → `Opgeladen` → `Gekoppeld` → `Standaardfouten` → `Controle verstuurd` → `Gecontroleerd` (lus terug naar
+`Wordt ingelezen` → `Opgeladen` → `Gekoppeld` → `Formaatvalidatie` → `Controle verstuurd` → `Gecontroleerd` (lus terug naar
 `Controle verstuurd`) → `Indiening verstuurd` → `Ingediend` → `Afgerond` → `Adressen gewist`.
 Zijtak: `Ingediend` → `Intrekking verstuurd` → `Ingetrokken` → terug naar `Gecontroleerd` of naar `Adressen gewist`.
 Voor de gebruiker vertaald naar drie statussen (besluit 13): wachten, actie nodig, klaar. `Ingediend` met een voorbije afgiftedatum wordt "actie nodig" (oranje met uitroepteken).

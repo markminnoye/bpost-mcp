@@ -18,7 +18,7 @@ Elke map heeft zijn eigen `SUMMARY.md`; die blijft de bron voor de volgorde binn
 
 Pagina's buiten `docs/ontwikkelaars/` verwijzen niet naar `docs/ontwikkelaars/`. Relatieve links tussen groepen werken wel (het is één space), maar vermijd ze waar het kan, zodat een groep schrapbaar blijft.
 
-Niet gepubliceerd: `docs/adr/`, `docs/install/`, `docs/internal/` (behalve de submodule), `docs/samples/`, `docs/superpowers/`, `docs/external/`. Ze staan niet in `SUMMARY.md` en zijn dus onzichtbaar op de site.
+Niet gepubliceerd: `docs/adr/`, `docs/ontwerp/` (schetsen en mock-ups in HTML), `docs/install/`, `docs/internal/` (behalve de submodule), `docs/samples/`, `docs/superpowers/`, `docs/external/`. Ze staan niet in `SUMMARY.md` en zijn dus onzichtbaar op de site.
 
 ## Gegenereerd
 

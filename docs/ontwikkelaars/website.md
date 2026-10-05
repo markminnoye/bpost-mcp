@@ -35,11 +35,11 @@ Ontwerp van 2 oktober 2026, nog niet gebouwd. De library en de API komen eerst, 
 
 Een mailing doorloopt vijf stappen. Elke stap heeft een eigen icoon, dat de gebruiker ook in het overzicht ziet. De kleur van een vak toont wie aan zet is.
 
-![Flow van een mailing in vijf stappen: opladen, koppelen, standaardfouten, adrescontrole en indienen, gevolgd door de afronding](afbeeldingen/masspost-flow.svg)
+![Flow van een mailing in vijf stappen: opladen, koppelen, formaatvalidatie, adrescontrole en indienen, gevolgd door de afronding](afbeeldingen/masspost-flow.svg)
 
 1. **Opladen:** een .xlsx-bestand tot 25.000 adressen. De server leest het in het geheugen in en zet alle kolommen in de database. Het bestand zelf wordt niet bewaard.
 2. **Koppelen:** elke kolom krijgt een rol: adres, context (bewaren en tonen bij het corrigeren) of niet bewaren. De export van Contrapunt wordt herkend.
-3. **Standaardfouten:** de rijen worden nagekeken op de regels van bpost (tekens, lengte, lege velden). Per rij komt een voorstel dat de gebruiker bevestigt of aanpast. Zonder fouten gaat de mailing vanzelf verder.
+3. **Formaatvalidatie:** de rijen worden nagekeken op de regels van bpost: tekens, lengte van de velden, verplichte velden en gekoppelde kolommen. Per formaatfout komt een voorstel dat de gebruiker bevestigt of aanpast. Zonder formaatfouten gaat de mailing vanzelf verder. Op het scherm staat onder de titel: "Voldoet je lijst aan de regels van bpost? We kijken de tekens, de lengte van elk veld, de verplichte velden en de gekoppelde kolommen na."
 4. **Adrescontrole:** een `MailingCheck` bij bpost. Onder 96 % is een nieuwe controle verplicht, tussen 96 en 98 % volgt een waarschuwing.
 5. **Indienen:** een `MailingCreate`. Daarna ligt alles vast; wijzigen kan enkel door in te trekken en opnieuw in te dienen.
 

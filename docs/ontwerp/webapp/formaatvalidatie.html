@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Schets: standaardfouten</title>
+<title>Schets: formaatvalidatie</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css">
 <style>
 :root{--bg:#FFFFFF;--surface-1:#F4F4F5;--surface-2:#FFFFFF;--border:#E4E4E7;--border-strong:#D4D4D8;--text-primary:#18181B;--text-secondary:#52525B;--text-muted:#71717A;--red:#DC2626;--green:#16A34A;--tip-bg:#18181B;--tip-fg:#FAFAFA;--radius:6px;color-scheme:light}
@@ -74,7 +74,7 @@ details[open] summary i{transform:rotate(90deg)}
 <p class="note">Schets v8 uit de brainstorm van 02/10/2026 (zie <code>2026-10-02-masspost-web-flow-design.md</code>, besluiten 22, 24, 25, 29, 30, 33, 34 en 35). Interactief: pas een waarde aan, neem een voorstel over, zet de oorspronkelijke waarde terug of sluit een rij uit. Licht en donker: volgt je systeem, of wissel met de knop rechtsboven. De regels hier zijn vereenvoudigd (niet leeg, max. 50 tekens, enkel tekens die bpost kent, postcode van 4 cijfers).</p>
 
 <div class="hd">
-  <div><div class="t">Standaardfouten</div><div class="m" id="sum"></div></div>
+  <div><div class="t">Formaatvalidatie</div><div class="m">Voldoet je lijst aan de regels van bpost? We kijken de tekens, de lengte van elk veld, de verplichte velden en de gekoppelde kolommen na.</div><div class="m" id="sum"></div></div>
   <div class="tg"><button class="ib" id="theme" data-tip="Wissel tussen licht en donker" aria-label="Wissel tussen licht en donker"><i class="ti ti-sun-moon" aria-hidden="true"></i></button><button class="b primary" id="next" disabled>Verder naar adrescontrole</button></div>
 </div>
 <p class="help">Klik op een rij, of Tab tot in de lijst. Kies een rij met ↑ ↓ en druk Enter om het voorstel over te nemen, of E om zelf aan te passen. Het vinkje wordt groen zodra de waarde aan de regels van bpost voldoet. Na een aanpassing verschijnt in het veld een knop om de oorspronkelijke waarde terug te zetten.</p>

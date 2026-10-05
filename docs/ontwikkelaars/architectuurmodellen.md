@@ -6,7 +6,7 @@
 
 Het verschil tussen de modellen zit niet in **waar er gerekend wordt**, maar in **waar de toestand van een mailing bewaard wordt**: de rijen, de correcties, de status en het logboek.
 
-De regels voor de standaardcorrecties (tekens, lengtes, verplichte velden) zijn gewone TypeScript-functies in `src/core/masspost/` (`mapping`, `charset`, `validate`). Ze draaien in elk model in de browser, want het ontwerp vraagt live controle tijdens het corrigeren. En in elk model met automatische verzending is er een server nodig om met bpost te praten.
+De regels van de formaatvalidatie (tekens, lengtes, verplichte velden, gekoppelde kolommen) zijn gewone TypeScript-functies in `src/core/masspost/` (`mapping`, `charset`, `validate`). Ze draaien in elk model in de browser, want het ontwerp vraagt live controle tijdens het corrigeren. En in elk model met automatische verzending is er een server nodig om met bpost te praten.
 
 ## De modellen
 
@@ -97,7 +97,7 @@ Blijkt er toch een whitelist te zijn, dan biedt Vercel gedeelde vaste uitgaande 
 | Meerdere gebruikers op één account | Gedeeld overzicht, overnemen van elkaars mailing, logboek "wie deed wat" | Elke gebruiker ziet enkel wat in de eigen browser staat. Overnemen kan alleen met een exportbestand. | Gedeeld overzicht en logboek. Overnemen kan niet zonder het toestel (zie "Het Gesplitst model uitgelegd"). |
 | Multi-tenancy | `tenant_id` overal, filter in elke query. Risico: een lek tussen tenants. | Data vanzelf gescheiden. De relay heeft per tenant nog login, rate limit en configuratie nodig. | Zoals Centraal, maar zonder adressen in de database |
 | Privacy | Wij bewaren namen en adressen (30 dagen na afronding, plus back-ups) | Bij ons wordt niets bewaard. De data staat op de toestellen van Contrapunt. | Bij ons geen adressen in rust, alleen tijdens het doorgeven |
-| Standaardcorrecties | Zelfde regels in de browser (live) en op de server (bron van waarheid). Elke aanpassing wordt bewaard. | Eén keer, in de browser, zonder wachttijd. De relay controleert de XML nog eens. | Zoals Lokaal |
+| Formaatvalidatie | Zelfde regels in de browser (live) en op de server (bron van waarheid). Elke aanpassing wordt bewaard. | Eén keer, in de browser, zonder wachttijd. De relay controleert de XML nog eens. | Zoals Lokaal |
 | Correcties van bpost (7001) | De server haalt het antwoord op, bewaart het, voegt per `SEQ` samen en meldt "nieuw antwoord" | Alleen de browser met de rijen kan samenvoegen. De gebruiker moet de app openen. | De server haalt op en ziet wat er binnen is. Samenvoegen gebeurt in de browser met de rijen. |
 | Grote bestanden | Uploadlimiet voor de Excel, tenzij inlezen in de browser | Excel blijft in de browser, XML gaat gezipt | Zoals Lokaal |
 | Eigen barcodereeks | Teller in `barcode_sequences` | Niet mogelijk zonder teller op de server | Teller op de server |
@@ -166,7 +166,7 @@ De verantwoordelijkheid verschuift naar Contrapunt, ze verdwijnt niet.
 
 **In elk model** bevatten de antwoorden van bpost adressen: een `7001` bevat de verbeterde straat, en met `copyRequestItem=Y` komt het hele adres terug. Met `N` wordt dat minder; dat is nog te testen.
 
-### 4. Standaardcorrecties
+### 4. Formaatvalidatie
 
 Hier verschillen de modellen het minst:
 
@@ -218,7 +218,7 @@ De Excel blijft bij Contrapunt, dus opnieuw beginnen kan. Maar het handwerk van 
 
 Het Gesplitst model belooft: de server kent elke mailing en haar status, maar bewaart nooit een adres. Dat heeft twee gevolgen.
 
-**1. Een collega ziet de mailing, maar kan ze niet verder afwerken.** Medewerker A laadt maandag de lijst "Nieuwsbrief oktober" op en verbetert de helft van de standaardfouten. Dinsdag is A afwezig. Medewerker B ziet in het overzicht dat "Nieuwsbrief oktober" op actie wacht, want de server kent de status. Maar B kan de rijen niet openen: de adressen en de verbeteringen van A staan alleen in de browser op de laptop van A. B kan alleen:
+**1. Een collega ziet de mailing, maar kan ze niet verder afwerken.** Medewerker A laadt maandag de lijst "Nieuwsbrief oktober" op en verbetert de helft van de formaatfouten. Dinsdag is A afwezig. Medewerker B ziet in het overzicht dat "Nieuwsbrief oktober" op actie wacht, want de server kent de status. Maar B kan de rijen niet openen: de adressen en de verbeteringen van A staan alleen in de browser op de laptop van A. B kan alleen:
 - wachten;
 - A een exportbestand laten sturen;
 - of opnieuw beginnen met dezelfde Excel, zonder de verbeteringen van A.

@@ -59,7 +59,7 @@ Alles wat hieronder staat geldt voor mensen en agenten. De volledige werkwijze s
 | `docs/changelog/` | Changelog | Niet bewerken: kopie van `CHANGELOG.md`, gemaakt door `publish-docs.yml` |
 | `docs/projectdossier/` | Projectdossier (requirements, beslissingen, open vragen, architectuur; concept) | Met de hand |
 
-Niet gepubliceerd (niet in `docs/SUMMARY.md`): `docs/adr/`, `docs/install/`, `docs/samples/`, `docs/superpowers/`, `docs/external/` en de rest van `docs/internal/`. `.agent/skills/docs/` hoort bij de skill: behouden, niet verplaatsen of opruimen. Wat privé moet blijven, komt niet in `docs/` terecht dat gepubliceerd wordt: de repository is publiek.
+Niet gepubliceerd (niet in `docs/SUMMARY.md`): `docs/adr/`, `docs/ontwerp/` (schetsen en mock-ups in HTML), `docs/install/`, `docs/samples/`, `docs/superpowers/`, `docs/external/` en de rest van `docs/internal/`. `.agent/skills/docs/` hoort bij de skill: behouden, niet verplaatsen of opruimen. Wat privé moet blijven, komt niet in `docs/` terecht dat gepubliceerd wordt: de repository is publiek.
 
 **Een pagina toevoegen of verplaatsen**
 1. Zet de pagina in de `SUMMARY.md` van haar map én in `docs/SUMMARY.md` (daar met het mappad als voorvoegsel). Een pagina die niet in `docs/SUMMARY.md` staat, is niet bereikbaar op de site.
