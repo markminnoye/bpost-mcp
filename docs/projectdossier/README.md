@@ -27,6 +27,8 @@ Contrapunt-medewerkers zonder technische achtergrond laten werken met bpost e-Ma
 | Voorlopig     | Geldt voor de eerste versie (MVP), nog te testen of bij te sturen |
 | Ter discussie | Er is een richting, maar ze staat nog open voor bijsturing        |
 | Open          | Vraag of punt waarvoor nog een antwoord nodig is                  |
+| Deels beantwoord | Er is al een deel van het antwoord, de rest staat nog open     |
+| Beantwoord    | Antwoord ingevuld en bevestigd, met datum                         |
 | Vervangen     | Niet meer van toepassing, met verwijzing naar wat het vervangt    |
 | Verlaten      | Bewust niet meer gevolgd, kan later terugkomen                    |
 
