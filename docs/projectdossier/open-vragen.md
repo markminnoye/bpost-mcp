@@ -1,0 +1,29 @@
+# Open vragen
+
+{% hint style="warning" %}
+Concept ter nazicht. Per vraag staat wat ze blokkeert en bij welke requirement of beslissing ze hoort.
+{% endhint %}
+
+| ID    | Vraag                                                                                                                                                                                                                                | Hoort bij          | Blokkeert                              |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ | -------------------------------------- |
+| Q-001 | Hoeveel adressen per bestand en per maand moet het systeem aankunnen? Wat is het kleinste, gemiddelde en grootste bestand?                                                                                                           | REQ-N-009          | Keuze opslag en dimensionering         |
+| Q-002 | Is het systeem enkel voor Contrapunt, of later ook voor klanten van Contrapunt (met gescheiden data per klant)?                                                                                                                      | REQ-N-010          | Multi-tenantontwerp en rechtenmodel    |
+| Q-003 | Waar draait de applicatie? Intern bij Contrapunt (container op de NAS) of bij een EU-aanbieder? En waar draait de eerste versie, gezien Contrapunt geen externe webserver wil?                                                       | REQ-N-002, DEC-009 | Hosting en deployment                  |
+| Q-004 | Bewaren we per mailing een bestand, of komt er een database? Past Excel als tussenformaat, of is objectopslag beter?                                                                                                                 | DEC-005            | Dataontwerp en dataretentie            |
+| Q-005 | Welke FTP/FTPS-toegang, credentials en IP-whitelisting heeft bpost nodig? Vragen we ook SOAP/XML-toegang aan bij bpost?                                                                                                              | DEC-004            | Automatisch versturen                  |
+| Q-006 | Hoe maakt de applicatie een eigen adressuggestie als bpost er geen geeft (matching tegen referentiedata, fuzzy matching)? Past dat binnen het principe dat correcties bij de klant liggen?                                           | REQ-F-008, DEC-003 | Uitbreiding suggesties                 |
+| Q-007 | Welke AI-aanbieder en welke regio zijn aanvaardbaar voor de latere AI-fallback van de kolommapping, ook als het enkel kolomkoppen betreft?                                                                                           | DEC-008            | AI-fallback (later)                    |
+| Q-008 | Hoe lang worden adresbestanden bewaard (voorstel: ongeveer 6 maanden) en wie zorgt voor verwijdering?                                                                                                                                | REQ-N-004          | Dataretentie                           |
+| Q-009 | Slaan we in het CRM enkel het projectnummer op, of schrijven we ook bestanden terug? Welke toegang is daarvoor nodig?                                                                                                                | REQ-F-010          | CRM-koppeling                          |
+| Q-010 | Wie is verwerkingsverantwoordelijke en wie verwerker tussen klant, Contrapunt en Sonic Rocket? Is er een verwerkersovereenkomst, en bevatten klantcontracten EU-only clausules?                                                      | REQ-N-005          | Hosting en opslagkeuze                 |
+| Q-011 | Blijft de code publiek (open source), of gaat ze naar een privé-repository? Zo ja: onder welke licentie, en wie is eigenaar van de code, Sonic Rocket of Contrapunt? Is dit verenigbaar met een eventuele latere commerciële uitrol? | DEC-013            | Hosting, licentie en commercialisering |
+| Q-012 | Staan er in de repository testbestanden of geschiedenis met echte adressen of gegevens van Contrapunt of hun klanten? Zo ja: verwijderen, ook uit de geschiedenis.                                                                   | REQ-N-011, DEC-013 | Publiek houden van de repository       |
+| Q-013 | Welke aanlevering aan bpost geeft de beste herkenning: samengestelde velden of aparte velden (straat, nummer, bus, postcode, plaats)? We testen dit met echte voorbeeldbestanden.                                                    | DEC-002            | Definitieve keuze van de adresvelden   |
+
+## Reeds onderzocht
+
+Deze vragen zijn uitgezocht. Het is productresearch, geen juridisch advies.
+
+**Mag Google Workspace voor bestanden met persoonsgegevens?** Ja, onder voorwaarden. Het is op zichzelf geen GDPR-verbod. Compliance is niet automatisch: de verwerkingsverantwoordelijke blijft verantwoordelijk voor rechtsgrond, eventuele gegevensbeschermingseffectbeoordeling (DPIA), beveiliging, bewaartermijnen en configuratie. Aandachtspunten zijn een actieve verwerkersovereenkomst met Google, externe deling dichtzetten, tweestapsverificatie, toegang beperken tot wie het nodig heeft, en bij voorkeur Europese dataregio's. Bij klanten met EU-only eisen is extra advies nodig. Dit voedt Q-010.
+
+**Heeft het CRM van Contrapunt een API met een projectnummer?** Ja. Het CRM heeft een officiële REST API en projecten hebben een numeriek ID dat als stabiele sleutel kan dienen. De exacte velden verschillen per account en moeten met een token van Contrapunt bevestigd worden. Dit voedt Q-009.

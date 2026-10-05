@@ -3,7 +3,7 @@
 Naast de dienst zelf is er een **skill**: een pakket met de volledige bpost e-MassPost-kennis dat je in je eigen AI-assistent laadt. Hij helpt bij het bouwen van bestanden, het opzoeken van foutcodes (MPW en MID), barcodes en het versturen naar bpost.
 
 {% hint style="info" %}
-De skill bevat dezelfde inhoud als het tabblad **Naslag bpost**. Wat je hier leest, krijgt je assistent ook.
+De skill bevat dezelfde inhoud als de groep **Naslag bpost**. Wat je hier leest, krijgt je assistent ook.
 {% endhint %}
 
 ## Installeren in Claude.ai

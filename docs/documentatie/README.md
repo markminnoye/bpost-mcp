@@ -14,7 +14,7 @@ Alfaversie. De webapp en de MCP-koppeling worden nog gebouwd en kunnen verandere
 | Inloggen en je account instellen | Alfa | [Webapp](webapp/inloggen.md) |
 | Werken via je AI-assistent (MCP) | Alfa, wordt volledig herschreven | [MCP](mcp/README.md) |
 
-Het volledige bpost e-MassPost-protocol (bestandsformaten, flows, foutcodes) vind je in het tabblad **Naslag bpost**. De **Changelog** toont wat er veranderd is.
+Het volledige bpost e-MassPost-protocol (bestandsformaten, flows, foutcodes) vind je in de groep **Naslag bpost**. De **Changelog** toont wat er veranderd is.
 
 ## Wat komt er nog?
 

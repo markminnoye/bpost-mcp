@@ -2,56 +2,11 @@ $schema: https://api.gitbook.com/gitbook-docs.yaml
 site:
   title: bpost e-Masspost
   structure:
-    - type: section
-      key: section-documentatie
-      title: Documentatie
-      path: documentatie
+    - type: space
+      key: space-docs
+      title: bpost e-Masspost
+      path: docs
       default: true
-      children:
-        - type: space
-          key: space-documentatie
-          title: Documentatie
-          path: documentatie
-          default: true
-          content:
-            directory: ./documentatie
-            language: nl
-    - type: section
-      key: section-ontwikkelaars
-      title: Ontwikkelaars
-      path: ontwikkelaars
-      children:
-        - type: space
-          key: space-ontwikkelaars
-          title: Ontwikkelaars
-          path: ontwikkelaars
-          default: true
-          content:
-            directory: ./ontwikkelaars
-            language: nl
-    - type: section
-      key: section-naslag-bpost
-      title: Naslag bpost
-      path: naslag-bpost
-      children:
-        - type: space
-          key: space-naslag-bpost
-          title: Naslag bpost
-          path: naslag-bpost
-          default: true
-          content:
-            directory: ./internal/e-masspost/docs
-            language: nl
-    - type: section
-      key: section-changelog
-      title: Changelog
-      path: changelog
-      children:
-        - type: space
-          key: space-changelog
-          title: Changelog
-          path: changelog
-          default: true
-          content:
-            directory: ./changelog
-            language: nl
+      content:
+        directory: ./
+        language: nl
