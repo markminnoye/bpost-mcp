@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schets: statusiconen</title>
+<style>
+:root{--bg:#0A0A0A;--surface-1:#141416;--border:#27272A;--text-primary:#FAFAFA;--text-secondary:#A1A1AA;--text-muted:#71717A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text-primary);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Geist","Inter",sans-serif}
+main{max-width:880px;margin:0 auto;padding:24px 16px 48px}
+.note{font-size:12px;color:var(--text-muted);margin-bottom:20px}
+.r{display:grid;grid-template-columns:24px 1fr 1fr auto;gap:14px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.l{font-size:14px}
+.i{font-size:12px;color:var(--text-muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.p{font-size:12px;padding:2px 10px;border-radius:999px;white-space:nowrap;color:var(--text-secondary);border:1px solid var(--border)}
+.lt{background:#FFFFFF;border-radius:12px;padding:12px 14px;margin-top:24px;display:flex;flex-wrap:wrap;gap:18px}
+.lt div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:#52525B}
+.spin{animation:sp 1s steps(12) infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<main>
+<p class="note">Schets uit de brainstorm van 02/10/2026 (zie <code>2026-10-02-masspost-web-flow-design.md</code>, besluiten 17, 18 en 21). Kleuren uit Tailwind: zinc-500/600, yellow-600, red-600, orange-500, green-600. Bovenaan op de donkere achtergrond van het v0-ontwerp, onderaan op wit.</p>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="sp" viewBox="0 0 20 20"><g stroke="#A1A1AA" stroke-width="2" stroke-linecap="round">
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="1"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.2" transform="rotate(30 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.27" transform="rotate(60 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.34" transform="rotate(90 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.42" transform="rotate(120 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.49" transform="rotate(150 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.56" transform="rotate(180 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.63" transform="rotate(210 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.7" transform="rotate(240 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.78" transform="rotate(270 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.85" transform="rotate(300 10 10)"/>
+<line x1="10" y1="2" x2="10" y2="5.5" opacity="0.92" transform="rotate(330 10 10)"/>
+</g></symbol></defs></svg>
+
+<div class="r"><svg class="spin" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><use href="#sp"/></svg><div class="l">Bestand wordt opgeladen en ingelezen</div><div class="i">elke wachttijd: bij ons, adrescontrole, indienen, intrekken</div><span class="p">Wachten</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#71717A" stroke-width="1.5"/></svg><div class="l">Opgeladen · kolommen koppelen</div><div class="i">Opgeladen</div><span class="p">Actie nodig</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#CA8A04" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 0 1 18 10 Z" fill="#CA8A04"/></svg><div class="l">Kolommen gekoppeld</div><div class="i">Gekoppeld</div><span class="p">Wachten</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#CA8A04" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 0 1 10 18 Z" fill="#CA8A04"/></svg><div class="l">Standaardfouten · 26 open</div><div class="i">Standaardfouten</div><span class="p">Actie nodig</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#DC2626" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="#DC2626"/></svg><div class="l">Gecontroleerd · 93,4%</div><div class="i">onder 96 % · #DC2626</div><span class="p">Actie nodig</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#F97316" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="#F97316"/></svg><div class="l">Gecontroleerd · 97,2%</div><div class="i">96 tot 98 % · #F97316</div><span class="p">Actie nodig</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#16A34A" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="#16A34A"/></svg><div class="l">Gecontroleerd · 99,8%</div><div class="i">vanaf 98 % · #16A34A</div><span class="p">Actie nodig</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#16A34A"/><path d="M6.3 10.3 L8.8 12.7 L13.8 7.6" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="l">Ingediend</div><div class="i">Ingediend</div><span class="p">Klaar</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F97316"/><line x1="10" y1="5.5" x2="10" y2="11" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="14.3" r="1.2" fill="#FFFFFF"/></svg><div class="l">Ingediend · afgiftedatum voorbij, al afgegeven?</div><div class="i">voorstel</div><span class="p">Actie nodig</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#71717A"/><path d="M6.3 10.3 L8.8 12.7 L13.8 7.6" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="l">Afgerond</div><div class="i">Afgerond, Adressen gewist · #52525B op licht, #71717A op donker</div><span class="p">Klaar</span></div>
+<div class="r"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#71717A" stroke-width="1.5" stroke-dasharray="2.5 2"/><line x1="5" y1="15" x2="15" y2="5" stroke="#71717A" stroke-width="1.5" stroke-linecap="round"/></svg><div class="l">Ingetrokken</div><div class="i">voorstel</div><span class="p">Actie nodig</span></div>
+
+<div class="lt" aria-label="Dezelfde iconen op een witte achtergrond">
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#71717A" stroke-width="1.5"/></svg>Opgeladen</div>
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#CA8A04" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 0 1 18 10 Z" fill="#CA8A04"/></svg>Gekoppeld</div>
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#CA8A04" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 0 1 10 18 Z" fill="#CA8A04"/></svg>Standaardfouten</div>
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#DC2626" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="#DC2626"/></svg>93,4%</div>
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#F97316" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="#F97316"/></svg>97,2%</div>
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#16A34A" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="#16A34A"/></svg>99,8%</div>
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#16A34A"/><path d="M6.3 10.3 L8.8 12.7 L13.8 7.6" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Ingediend</div>
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#F97316"/><line x1="10" y1="5.5" x2="10" y2="11" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="14.3" r="1.2" fill="#FFFFFF"/></svg>Datum voorbij</div>
+<div><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#52525B"/><path d="M6.3 10.3 L8.8 12.7 L13.8 7.6" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Afgerond</div>
+</div>
+</main>
+</body>
+</html>

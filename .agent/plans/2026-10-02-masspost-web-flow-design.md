@@ -1,0 +1,103 @@
+# Masspost web-flow: ontwerp (brainstorm)
+
+*Sonic Rocket · 2 oktober 2026 · status: in ontwerp, nog niet goedgekeurd*
+
+Ontwerp van de gebruikersflow en de toestanden voor de webinterface uit fase 2b/3 van
+[`2026-10-01-masspost-api-and-web.md`](2026-10-01-masspost-api-and-web.md). Vertrekpunt: het v0-ontwerp
+van Mark (Linear-stijl: lijst van mailings, venster "Nieuwe mailing" met chips).
+
+## Flow (vijf stappen voor de gebruiker)
+
+Zie de diagrammen in de ontwikkelaarsdocumentatie: [flow](../../docs/ontwikkelaars/afbeeldingen/masspost-flow.svg) en [toestanden](../../docs/ontwikkelaars/afbeeldingen/masspost-toestanden.svg) (opgenomen in `docs/ontwikkelaars/website.md`). Elke stap heeft het icoon uit besluit 17.
+
+1. **Opladen** (lege cirkel): nieuwe mailing, bestand slepen (.xlsx, tot 25.000 adressen), inlezen in het geheugen, alle kolommen naar de database.
+2. **Koppelen** (¼): rol per kolom (adres, context, niet bewaren); de Contrapunt-export wordt herkend.
+3. **Standaardfouten** (½): nakijken op de regels van bpost, voorstellen per rij bevestigen. Zonder fouten vanzelf verder.
+4. **Adrescontrole** (¾, rood/oranje/groen): `MailingCheck` bij bpost, score en voorstellen nakijken. Opnieuw controleren is verplicht onder 96 %.
+5. **Indienen** (vol groen met vinkje): parameters bevestigen, `MailingCreate`. Daarna ligt alles vast.
+
+Daarna de **afronding**: na de deposit (door Frank in het portaal) markeert een gebruiker de mailing als afgegeven; 30 dagen later worden de adressen gewist. De parameters (klant, barcode, formaat, afgiftedatum, …) mogen op elk moment vóór het indienen ingevuld worden (besluit 3).
+
+## Besluitenlog
+
+| # | Besluit (Mark, 02/10) | Alternatieven | Waarom |
+|---|---|---|---|
+| 1 | Opnieuw controleren is **enkel verplicht onder 96 %** (het minimum). Tussen 96 en 98 % een waarschuwing. | altijd opnieuw · enkel onder 98 % · gebruiker kiest | 96 % is de ondergrens, 98 % geeft extra korting. |
+| 2 | **Afgerond** zet een gebruiker **handmatig** ("Afgegeven"). Liefst later automatisch via een signaal van bpost op de FTP-server. | automatisch op de afgiftedatum · vast aantal dagen na indienen | Niet wissen vóór de echte afgifte. De 30 dagen bewaartermijn starten bij Afgerond. |
+| 3 | De instellingen die pas bij het indienen nodig zijn, mogen **vroeger optioneel** ingevuld worden. Bij het indienen een duidelijke melding dat ze daarna vastliggen. | pas invullen bij het indienen | De gebruiker vult alles in één keer in en hoeft niet op bpost te wachten. |
+| 4 | Zodra de upload **gestart** is (nog niet klaar), gaat de gebruiker al naar het volgende scherm om details in te vullen. | wachten tot de upload klaar is | Geen wachttijd voor de gebruiker. |
+| 5 | **Contrapunt is de gebruiker, niet de klant.** bpost-gegevens (customerId, accountId, barcode-klant-ID) zijn die van Contrapunt. Elke mailing hoort bij een **klant van Contrapunt** (bv. Ferm, De Roos). | – | Feit. |
+| 6 | **Barcodekeuze** als chip, standaard "bpost genereert". Keuzes: bpost 7, 9 of 11 cijfers, plus onze eigen reeksen (nu één: `generateMidNumber`, FCC 12). Moet vastliggen vóór het indienen. Onze reeks krijgt een naam en uitleg. | – | – |
+| 7 | **Geen export** van barcodes terug naar de Excel (zoals Franks tool). | – | Buiten de flow. |
+| 8 | De tool draait **standaard in productiemodus** (`P`). **Herzien 02/10:** de modus (`P`, `C`, `T`) wordt een **instelling van het account**, naast accountId en logingegevens, niet per mailing. Elke mailing onthoudt de modus waarmee ze ingediend is (een intrekking moet in dezelfde modus, `MID-3076`). | keuze per mailing · altijd `P` | Testen en certificeren blijven mogelijk zonder chip per mailing. |
+| 9 | Onder 500 adressen: waarschuwing. **Aanvullen tot 500** komt later, buiten de MVP. | – | – |
+| 10 | Andere barcodetypes: buiten de scope. | – | – |
+| 11 | Overzicht: **Bezig** bovenaan, daaronder **Actie nodig**. | Actie nodig bovenaan | Nieuwe aangiftes horen bovenaan. |
+| 12 | Statusicoon: **Harvey balls**. Een eigen, geanimeerd icoon voor "bezig op onze server" (stap 0) en "wacht op bpost bij het indienen". | – | – |
+| 13 | Naar de gebruiker drie statussen: **wachten**, **actie nodig**, **klaar** (niets doen). De interne toestanden blijven voor de code. | interne toestanden tonen | Eenvoud. |
+| 14 | Slimme verbetering van bpost-voorstellen (bv. `WARMOESSTRAAT 81 BUS 8` → `Warmoesstraat 81 bus 8`). Regels en plaats: **nog open**. | – | – |
+| 15 | De Excel wordt **op de server** ingelezen en **streamend** naar de database gezet. Niet in de browser. | browser leest in | Ervaring: streamend op de backend is het snelst. |
+| 16 | **Taal per adres** komt in de database, is zichtbaar en aanpasbaar voor de gebruiker, vooral bij het verbeteren. De taalchip uit v0 vervalt. | één taal per mailing | De XSD maakt `lang` optioneel voor elk `Item`, de gids noemt hem verplicht bij `MailingCheck`. |
+| 17 | **Iconen (herzien 02/10):** lege cirkel = bestand opgeladen · ¼ = kolommen gekoppeld · ½ = standaardfouten te corrigeren · ¾ = gecontroleerd door bpost, rood onder 96 %, donker oranje van 96 %, groen vanaf 98 % · vol groen met vinkje = ingediend · vol (kleur en teken nog te kiezen) = ingediend en afgiftedatum voorbij · donkergrijs met vinkje = afgerond of adressen gewist. Eigen kleuren, niet die van een thema. | ¼ als start (eerste versie van besluit 17) | – |
+| 18 | **Eén animatie voor elke wachttijd** (verwerken bij ons, adrescontrole, indienen): een draaiend wieltje met spaken, zoals bij het opstarten van een Mac. | aparte iconen per wachttijd | Eenduidig: draaien = wachten. |
+| 19 | **Nieuwe stap "Standaardfouten"** tussen koppelen en de adrescontrole: rijen bpost-conform maken (vreemde tekens, te lange velden, lege verplichte velden). Wij doen per rij een voorstel, de gebruiker bevestigt of past aan. Later AI voor betere voorstellen. | correcties automatisch toepassen | De gebruiker houdt de controle over wat er op de envelop komt. |
+| 20 | Na het inlezen komen **meteen alle kolommen** in de database. Na het koppelen worden de ongebruikte kolommen gewist. | enkel gekoppelde kolommen (bestand wacht in tijdelijke opslag) | Opnieuw koppelen zonder nieuwe upload; het lege bolletje betekent echt "in onze database". |
+| 21 | **Kleuren:** kwart en half (gekoppeld, standaardfouten) in donkergeel. Het oranje voor 96 tot 98 % moet feller, want het verschil met rood was te klein. | donker oranje `#C2410C` | Opvallen; rood en oranje duidelijk uit elkaar. |
+| 22 | Standaardfouten: **elke rij apart bevestigen én per soort alles in één klik**. Elke groep klapt open om rijen snel na te kijken en apart aan te passen. "Overige aanvaarden" past enkel de rijen toe die nog open staan. | enkel per soort · enkel per rij · zekere regels automatisch | Controle per rij, snelheid per soort. |
+| 23 | **Twee soorten chips.** In het overzicht: weergave, niet aanpasbaar (klant, aantal adressen, score, datum, …). Op de detailpagina: parameters per mailing, aanpasbaar tot het indienen (barcode, sortering, taal, klant, formaat, prioriteit, afgiftedatum, …). | één soort chip | Overzicht toont, detailpagina stelt in. |
+| 24 | **Uitsluiten in plaats van verwijderen.** Een rij blijft in de database, maar gaat niet mee in de mailing. Eigen icoon (uitsluiten), de rij wordt doorschijnend getoond en kan opnieuw opgenomen worden. | rij verwijderen | Niets verliezen, wel controle over wat naar bpost gaat. |
+| 25 | Bij het corrigeren van een veld toont de interface **de hele rij** (naam en andere adresvelden), want zonder context kan je bijvoorbeeld geen postcode invullen. | enkel het foute veld | Context is nodig om te corrigeren. |
+| 26 | Lijsten zijn voorlopig **maximaal ±20.000 adressen**. | – | Feit (Mark, 02/10). Een Excel van die grootte is 1 à 2 MB. |
+| 27 | **De huidige database uitbreiden** (`tenants`, `bpost_credentials`, `tenant_preferences`, …) en **nieuwe API's** bouwen. Daarna de MCP op die nieuwe API's laten steunen. Accountinstellingen (zoals de modus van besluit 8) staan dus in de database, niet in omgevingsvariabelen. | single-tenant via omgevingsvariabelen (plan 01/10, fase 1) | Eén datamodel en één API voor web en MCP. |
+| 28 | **Kolommen kiezen** (verfijning van besluit 20): bij het koppelen krijgt elke kolom een rol: adres, context (bewaren en tonen bij het corrigeren) of niet bewaren. Wij stellen een standaardkeuze voor. Wat op "niet bewaren" staat, wordt na het koppelen gewist. | alles wissen na het koppelen · alles bewaren | Extra kolommen zijn nodig, ook voor AI die later adressen samenstelt uit verspreide kolommen. |
+| 29 | **Rijen corrigeren als een webformulier:** de huidige waarde is meteen aanpasbaar (geen knop "aanpassen"), met live controle volgens dezelfde regels als de server. Rood kruisje plus de reden zolang de waarde fout is, groen vinkje zodra ze voldoet. Het voorstel staat naast de huidige waarde; een pijltje-knop (←) zet het in het veld, daarna toont de rij enkel de nieuwe waarde (de oude in de hovertip en het logboek). Per rij een knop om uit te sluiten of opnieuw op te nemen. Duidelijke hovertips. "Overige N overnemen" telt live mee. | knop "aanpassen" · voorstel onder de huidige waarde | Directe feedback, minder plaats. |
+| 30 | **Undo per veld:** zodra een waarde verschilt van de oorspronkelijke, verschijnt in het veld een undo-icoon. Klikken zet de oorspronkelijke waarde terug (en dus ook de fout en het voorstel). Na "Overige N overnemen" verschijnt een melding "N voorstellen overgenomen · Ongedaan maken" (ook met `⌘Z`). Een uitgesloten rij toont duidelijk "Uitgesloten uit de mailing". De interface krijgt een lichte en een donkere modus. | – | Vergissingen snel herstellen. |
+| 31 | **Accountinstellingen** (in de database, besluit 27): bpost-login, klantnummer (PRS-ID, `customerId` en `sender`), accountId (PBC-contract, `Header/@accountId`), barcode-klant-ID, **FTP-login**, **modus** (`P`, `C`, `T`) en **pollinginterval** (minstens 5 minuten). Klantnummer en accountId zijn twee verschillende waarden. | – | Alles wat per account verschilt, op één plaats. |
+| 32 | **Enkel .xlsx** in de MVP, **maximaal 25.000 adressen** (Mark, 02/10: wat ruimte boven de grootste lijsten van ±20.000). Voorstel: daarnaast een technische grens van 4 MB per bestand, onder de 4,5 MB per aanvraag van Vercel. CSV en grotere bestanden komen later. Het v0-venster ("Maximaal 10.000 adressen") aanpassen. | 10.000 · 20.000 · enkel bestandsgrootte | Ruimte voor Contrapunt, binnen wat we kunnen inlezen. |
+| 33 | **Toetsenbord in twee standen.** Lijststand: ↑ ↓ (of J K) kiest een rij, Enter (of F2) start het aanpassen, A neemt het voorstel over en gaat naar de volgende rij, X sluit uit of neemt opnieuw op, `⌘Z` maakt de laatste actie ongedaan. Bewerkstand: typen; Enter bevestigt, Esc zet terug, Tab bevestigt en gaat naar het volgende veld. De lijst is één Tab-stop; Tab springt eruit naar het volgende onderdeel. Knop "voorstel overnemen" wordt de dubbele punthaak («), hovertips tonen de sneltoets. | Enter = overnemen · spatie = overnemen | Enter = aanpassen zoals in een rekenblad; A is duidelijk (aanvaarden, accept); spatie scrollt de pagina en betekent in lijsten meestal "selecteren". |
+| 34 | **Herziening van 33 (Mark, 02/10):** `Enter` neemt het voorstel over (icoon ↵, `corner-down-left`) en gaat naar de volgende rij; zonder voorstel start `Enter` het aanpassen. `E` (of `F2`) is altijd aanpassen. `A` vervalt. Na een aanpassing staat de undo-knop **in het invoerveld** (icoon `arrow-back-up`, het klassieke undo-teken); de voorstelkolom blijft dan leeg, zonder doorstreepte oorspronkelijke waarde (Mark verkoos dit na een tussenversie met undo in de voorstelkolom). De oorspronkelijke waarde staat in de hovertip. Uitsluiten wordt een X-knop die ingedrukt blijft zolang de rij uitgesloten is. "Overige N overnemen" slaat rijen over die de gebruiker zelf aanpaste. | `A` overnemen, `Enter` aanpassen · undo in het veld · envelop-icoon | De X past bij de sneltoets X; het ronde undo-icoon verschilt van ↵. |
+| 35 | **Tab en pijltjes (herziening van 33, Mark 02/10):** `Tab` gaat enkel langs de grote knoppen ("Overige N overnemen", "Toon de N andere rijen", …) en de rijen; elke groep rijen is één Tab-stop. Tijdens het aanpassen bevestigt `Tab` en gaat naar die volgende stop (niet naar het volgende veld). `↑` `↓` lopen over de rijen én de uitklapknoppen. `→` klapt uit, `←` klapt in; `←` op een uitgeklapte rij klapt in en zet de focus op de uitklapknop. Het label wisselt tussen "Toon" en "Verberg". De gekozen rij krijgt enkel een lichte achtergrond, geen blauwe streep. | Tab langs elk veld | Snel door grote blokken met Tab, fijn met de pijltjes. |
+| 36 | De hoofdknop van een stap (bv. "Verder naar adrescontrole") is grijs zolang hij niet kan, en wordt **rood met witte letters** (merkkleur `#e30613`, zoals "Mailing aanmaken" in v0) zodra hij actief is. | altijd dezelfde kleur | Duidelijk wanneer je verder kan. |
+| 37 | Een bpost-"correctie" (`7001`) die **enkel in hoofdletters** verschilt van wat wij stuurden, telt als **in orde**: geen voorstel, de schrijfwijze van de gebruiker blijft. Echte verschillen (bv. "bus" toegevoegd) worden een voorstel in de schrijfwijze van de gebruiker. | toch tonen als voorstel · bpost-HOOFDLETTERS overnemen | In de Check van 01/10 waren 3 van 5 correcties enkel hoofdletters, en bpost telde die adressen al als juist (100 %). |
+| 38 | Vanaf 96 % mag een gebruiker **indienen, ook met adressen zonder oplossing**. Die gaan mee zoals ze zijn, met een waarschuwing ("Nog N adressen zonder oplossing gaan mee zoals ze zijn, of sluit ze uit"). | blokkeren · bij het indienen "sluit de overige uit" aanbieden | Keuze Mark (antwoord A). |
+| 39 | **Schatting als fantoomlijn:** de balk kleurt verder in tot de geschatte score, in een lichtere tint, met een lichter bolletje. Geen stippellijn. De tint volgt de zone waarin de schatting valt (rood, oranje, groen). | gestippeld bolletje | Je ziet meteen hoe ver je aanpassingen je brengen. |
+| 40 | **Twee groepen voor adressen die bpost niet herkent:** "Geen adres gevonden" (`MID-4010`) en "Meerdere adressen gevonden" (`MID-4020`). Bij meerdere is het adresveld een **keuzelijst** met de gevonden adressen. | één groep "geen adres gevonden" | Een rij "meerdere adressen" onder "geen adres gevonden" was tegenstrijdig. |
+| 41 | **Eén zoekveld per adres** (postcode.eu) in de rij zelf, geen aparte velden voor straat en postcode: het gekozen of getypte adres ("straat en nummer, postcode en gemeente") splitsen wij in Comp 92 en 93. | zoekveld plus twee invulvelden | De zoekbox bevat die gegevens al. |
+
+## Schetsen
+
+- [Statusiconen](2026-10-02-masspost-web-flow/statusiconen.html): besluiten 17, 18 en 21.
+- [Standaardfouten bevestigen](2026-10-02-masspost-web-flow/standaardfouten.html) (v8, interactief, licht en donker, met toetsenbord): besluiten 22, 24, 25, 29, 30, 33, 34 en 35.
+- [Adrescontrole](2026-10-02-masspost-web-flow/adrescontrole.html) (v2, interactief): stap 4, score met grenzen 96 en 98 % en fantoomlijn, vijf groepen (geen adres gevonden, meerdere adressen gevonden, voorstel van bpost, opmerking zonder voorstel, in orde), één zoekveld via postcode.eu (nagebootst). Besluiten 37 tot 41.
+- Flow en toestanden: [masspost-flow.svg](../../docs/ontwikkelaars/afbeeldingen/masspost-flow.svg) en [masspost-toestanden.svg](../../docs/ontwikkelaars/afbeeldingen/masspost-toestanden.svg), in de ontwikkelaarsdocumentatie (pagina Website). Pas ze daar aan.
+
+## Interne toestanden (voorstel)
+
+`Wordt ingelezen` → `Opgeladen` → `Gekoppeld` → `Standaardfouten` → `Controle verstuurd` → `Gecontroleerd` (lus terug naar
+`Controle verstuurd`) → `Indiening verstuurd` → `Ingediend` → `Afgerond` → `Adressen gewist`.
+Zijtak: `Ingediend` → `Intrekking verstuurd` → `Ingetrokken` → terug naar `Gecontroleerd` of naar `Adressen gewist`.
+Voor de gebruiker vertaald naar drie statussen (besluit 13): wachten, actie nodig, klaar. `Ingediend` met een voorbije afgiftedatum wordt "actie nodig" (oranje met uitroepteken).
+
+Regels: een toestand wisselt enkel na een bevestigd feit. Mislukt iets, dan blijft de toestand staan
+(rode vlag, logboek, opnieuw proberen). Uitzondering: weigert bpost de indiening (Status 998/999), dan
+terug naar `Gecontroleerd`. Vlaggen naast de toestand: probleem, nieuw antwoord, bpost traag, minder dan
+500 adressen. Elke wissel is één regel in `masspost_events`, in dezelfde transactie.
+
+## Open vragen
+
+- **Architectuurmodel (05/10, nog niet beslist):** Centraal, Lokaal (met relay of met portaal), Gesplitst of Kluismodel. Analyse en gevolgen voor de besluiten hierboven: `docs/ontwikkelaars/architectuurmodellen.md`. Dit ontwerp gaat voorlopig uit van het Centraal model.
+- **Route van het bestand naar de server** (besluit 15). Voorstel 02/10, nog te bevestigen door Mark: bij ±20.000 adressen (1 à 2 MB, onder de 4,5 MB-grens van een Vercel-functie) stuurt de browser het bestand in één aanvraag; de server leest het in het geheugen in (`exceljs` `load`, geen schijf, geen Blob) en schrijft de rijen in pakketten naar de database. Niets wordt bewaard, besluit 3 van 01/10 blijft overeind. Echt regel per regel streamen kan niet met .xlsx: het is een zip-bestand en de teksten (`sharedStrings.xml`) staan in de Contrapunt-export na het werkblad. Een bestand in stukken sturen vraagt opslag om de stukken samen te voegen. Boven 4,5 MB: later bekijken.
+- **Eerste echte test op schaal:** één adrescontrole met ±25.000 adressen in productie (een adrescontrole vraagt geen barcodes aan). Naar bpost is nog nooit meer dan 500 adressen gestuurd; ook het wegschrijven van 25.000 rijen naar de database is niet gemeten.
+- **Kandidaten bij `MID-4020`:** geeft bpost in een `MailingCheck` de passende adressen mee (`Suggestions`/`Alternatives` in de XSD, nooit live gezien)? Zo niet, dan haalt de keuzelijst ze bij postcode.eu.
+- **CSV als tweede weg** (later, besluit 32) (Mark, 02/10: "CSV zou een optie kunnen zijn"). Met CSV werkt het idee van stukken van ±200 KB wél zonder opslag: de browser knipt op regelgrenzen, elk stuk bevat volledige rijen en kan meteen naar de database. Aandachtspunten: tekenset (Excel bewaart standaard niet in UTF-8, kies "CSV UTF-8"), scheidingsteken (`;` in Belgische instellingen), regeleinden binnen aanhalingstekens. Ook het modernere .xlsx (Office Open XML) is een zip-bestand; enkel het oude "XML-werkblad 2003" is één doorlopend XML-bestand.
+- `copyRequestItem` staat in onze code standaard op `Y` (bpost schrijft elk adres terug in het antwoord). Testen of de correcties (`7001`) ook met `N` komen; het voorbeeld in de gids gebruikt `N`.
+- Taal per adres: waar komt de beginwaarde vandaan (kolom, postcode, straatnaam, vaste standaard)?
+- Icoon voor `Ingetrokken` (voorstel: gestippelde cirkel met streep) en "afgiftedatum voorbij" (voorstel: vol oranje met uitroepteken).
+- Klantenlijst: beheer in Instellingen? Eigen standaardwaarden per klant? Klant meesturen in `CustomerRefs`?
+- Regels voor de slimme verbetering, en waar ze leven.
+- Kan bpost onze eigen barcodes al bij de adrescontrole nakijken? (test nodig)
+- Stuurt bpost een bestand naar onze FTP-server wanneer een deposit aan onze mailing gekoppeld wordt?
+- Hoe vaak mogen we bpost bevragen? De gids beperkt het ophalen tot 1 verbinding per 5 minuten
+  en verwijst voor polling naar "the agreed upon use case" (PDF p. 27).
+- Is er nog een ander systeem dat barcodes maakt met het barcode-klant-ID van Contrapunt?
+- Naam en uitleg voor onze eigen barcodereeks.

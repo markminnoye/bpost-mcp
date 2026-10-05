@@ -5,6 +5,7 @@
 ## Website
 
 * [Website](website.md)
+* [Architectuurmodellen](architectuurmodellen.md)
 
 ## API
 

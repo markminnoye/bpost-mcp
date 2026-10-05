@@ -32,7 +32,7 @@ Bouwvolgorde: eerst de library en de API, daarna de interfaces erbovenop. Interf
 
 ## In dit tabblad
 
-- [Website](website.md)
+- [Website](website.md) en [Architectuurmodellen](architectuurmodellen.md)
 - [API-overzicht](api/overzicht.md), [HTTP-API](api/http-api.md) en de [OpenAPI-referentie](api/openapi.yaml)
 - [Library](library.md), [Kolom-mapping](kolom-mapping.md), [Comp-codes](comp-codes.md) en de [library-referentie](library/README.md)
 - Beheer: [Hosting en omgevingsvariabelen](beheer/hosting-en-omgevingsvariabelen.md), [Releaseprocedure](beheer/release.md), [Documentatie beheren](beheer/documentatie.md)

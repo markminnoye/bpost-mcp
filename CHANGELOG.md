@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `scripts/apply-opti-corrections.ts` schrijft Opti-correcties (bericht `7001`) terug naar Excel. Resultaat van de 500-test: `docs/samples/contrapunt/testadressen-500-corrected.xlsx`.
 - Skill-library: nieuwe skill **Address Proofing** (Mailops REST) naast Mail ID/OptiAddress, met privacyregel (geen persoonsnamen; bedrijfsnaam mag). Routing in de protocol-skill.
 - Skills-submodule bijgewerkt naar `562e545` (skills PR #9): live Contrapunt **field findings**, AFT API Manual v1.7 en portal code-lists.
+- Ontwerp van de **web-flow voor mailings** (5 stappen: opladen, koppelen, standaardfouten, adrescontrole, indienen) met besluitenlog, schetsen en twee diagrammen. Plan `.agent/plans/2026-10-02-masspost-web-flow-design.md`, samenvatting op de ontwikkelaarspagina Website. Nog niet gebouwd.
+- Ontwikkelaarspagina **Architectuurmodellen** (`docs/ontwikkelaars/architectuurmodellen.md`): vergelijking van het Centraal model, Lokaal met relay, Lokaal met portaal, het Gesplitst model en het Kluismodel (meerdere gebruikers, multi-tenancy, privacy, correcties, Vercel-limieten, FTP). Bevat de CORS-test van 05/10 op het bpost-portaal en de Address Proofing-API. Analyse, nog geen besluit.
 
 **Aanpassingen**
 
@@ -98,6 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cursor rule + hook for **begrijpelijke Linear-issues**: `.cursor/rules/linear-issue-descriptions.mdc` and `beforeMCPExecution` gate on `save_issue` (`.cursor/hooks/`). Tracked via `.gitignore` exceptions.
 - Skills submodule: `bpost-address-proofing` (validate/format REST, S42, PII deny-list). Protocol skill adds `reference/address-validation-products.md` and Comp ↔ S42 mapping. Mailops MCP client deferred (release freeze + API key).
 - Skills submodule pointer `docs/internal/e-masspost` → `562e545` (field findings, AFT API Manual v1.7, portal code lists; skills PR #9).
+- Design of the mailing web flow (upload, map, standard fixes, address check, submit): decision log and sketches in `.agent/plans/2026-10-02-masspost-web-flow-design.md` and `.agent/plans/2026-10-02-masspost-web-flow/`, diagrams in `docs/ontwikkelaars/afbeeldingen/`, summary in `docs/ontwikkelaars/website.md`. Not built yet.
+- `docs/ontwikkelaars/architectuurmodellen.md`: architecture options for the web app (Centraal, Lokaal met relay/portaal, Gesplitst, Kluismodel) with trade-offs. Includes a 2026-10-05 CORS check: the e-MassPost portal redirect chain sends no CORS headers; the Address Proofing REST endpoint answers preflight with `access-control-allow-origin: *` (the API key is the blocker for browser use). Clarifies that Vercel's 4.5 MB limit covers function request/response bodies, not FTP downloads made by a function. No decision taken.
 
 ### Changed
 
