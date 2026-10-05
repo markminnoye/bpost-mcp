@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. Supersedes ADR 0002.
+Superseded by ADR 0004 (het gratis GitBook-plan ondersteunt geen secties).
 
 ## Context
 
