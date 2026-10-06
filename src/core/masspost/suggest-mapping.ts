@@ -126,7 +126,10 @@ const SYNONYMS: readonly Synonym[] = [
   { phrase: 'busnummer', role: 'box', locale: 'nl' },
   { phrase: 'bus', role: 'box', locale: 'nl' },
   { phrase: 'box', role: 'box', locale: 'en' },
+  // Box words: the canonical list is BOX_KEYWORDS (box-keywords.ts, SR-83); phrases here are
+  // normalized (lowercase, no accents), so 'boite' also matches a 'Boîte' header.
   { phrase: 'boite', role: 'box', locale: 'fr' },
+  { phrase: 'bte', role: 'box', locale: 'fr' },
   { phrase: 'appartement', role: 'box', locale: 'nl' },
   { phrase: 'apartment', role: 'box', locale: 'en' },
   { phrase: 'postcode', role: 'postcode', locale: 'nl' },

@@ -175,7 +175,8 @@ Browser code imports modules directly (`excel`, `mapping`, `suggest-mapping`, `f
 | `printer-export.ts` | `buildPrinterExport`: original first sheet plus *Meesturen* and *Volgnummer bpost* (row number); no row removed (web-flow decisions 48, 49) |
 | `presets/aft.ts` | Address File Tool column titles (template and guide spellings); recognised by `suggestColumnMapping` (`preset: 'aft'`). `AFT_TEMPLATE_COLUMNS`: all 39 template columns in order |
 | `aft-export.ts` | `buildAftExport`: Excel 97-2003 (.xls) for the AFT upload, template columns, unstructured blocks, `SEQ` = row number, corrections applied, excluded rows left out, `PRIORITY` NP by default. Browser-safe |
-| `format-check.ts` | Format validation per Comp 90-93 without silent fixes: `checkFieldValue`, `proposeFieldValue` (incl. `ABBREVIATIONS`), `findFormatIssues`, `missingTargets`. Browser-safe; used by the web POC |
+| `box-keywords.ts` | `BOX_KEYWORDS` / `isBoxKeyword` / `BOX_CANONICAL` — bus words for Comp 92 (SR-83: `bus`, `boîte`, `bte`, `box`). Extendable list; splitting/validation only in scope 3a |
+| `format-check.ts` | Format validation per Comp 90-93 without silent fixes: `checkFieldValue`, `proposeFieldValue` (incl. `ABBREVIATIONS`: NL titles + Table 80 FR/NL street types + Saint), `findFormatIssues`, `missingTargets`. Browser-safe; used by the web POC |
 | `build-request.ts` | `rowsToItems`, `buildMailingRequest`, `buildMailingCheckRequest`; `FORCE_TEST_MODE` |
 | `validate.ts` | Zod validate with per-field issues (`midVersion`-aware) |
 | `pipeline.ts` | `convertExcelToMailingRequest` / `convertExcelToMailingCheck` |

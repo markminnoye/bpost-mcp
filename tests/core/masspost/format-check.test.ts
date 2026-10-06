@@ -44,6 +44,26 @@ describe('checkFieldValue', () => {
     expect(!r.ok && r.message).toContain('51')
     expect(checkFieldValue('x'.repeat(50), 'name')).toEqual({ ok: true })
   })
+
+  it('accepts the disputed 43 to 50 characters in every unstructured block (SR-82)', () => {
+    // 43-50 is the zone where Contrapunt's own tool stopped (42) and bpost allows 50.
+    const realistic = 'Vereniging Natuur- en Vogelbescherming Kortrijk'
+    expect(realistic.length).toBeGreaterThan(42)
+    expect(realistic.length).toBeLessThanOrEqual(50)
+    expect(checkFieldValue(realistic, 'name')).toEqual({ ok: true })
+    for (const field of ['name', 'companyDepartment', 'streetHouseBox', 'postcodeCity'] as const) {
+      expect(checkFieldValue('x'.repeat(43), field)).toEqual({ ok: true })
+      expect(checkFieldValue('x'.repeat(50), field)).toEqual({ ok: true })
+      expect(checkFieldValue('x'.repeat(51), field)).toMatchObject({ ok: false, kind: 'tooLong' })
+    }
+  })
+
+  it('accepts French and English box words in the street block without touching them (SR-83)', () => {
+    expect(checkFieldValue('Rue de la Gare 8 bte 3', 'streetHouseBox')).toEqual({ ok: true })
+    expect(checkFieldValue('Rue de la Station 12, boîte 5', 'streetHouseBox')).toEqual({ ok: true })
+    expect(checkFieldValue('Kerkstraat 12 bus 3', 'streetHouseBox')).toEqual({ ok: true })
+    expect(checkFieldValue('Main Street 4 box 2', 'streetHouseBox')).toEqual({ ok: true })
+  })
 })
 
 describe('checkFieldValue: country', () => {
@@ -102,6 +122,24 @@ describe('proposeFieldValue', () => {
     expect(
       proposeFieldValue('Burgemeester Edgard Van Hoorebekestraat 112 bus 0201', 'streetHouseBox'),
     ).toBe('Burg. Edgard Van Hoorebekestraat 112 bus 0201')
+  })
+
+  it('abbreviates French street forms from Table 80 and Saint (SR-83)', () => {
+    expect(
+      proposeFieldValue('Boulevard Saint Michel de la Place Royale Extérieure 15', 'streetHouseBox'),
+    ).toBe('Bd St. Michel de la Place Royale Extérieure 15')
+    expect(
+      proposeFieldValue('Avenue Saint Pierre de la Rue Longue Extérieure 8 bte 2', 'streetHouseBox'),
+    ).toBe('Av. St. Pierre de la Rue Longue Extérieure 8 bte 2')
+    expect(
+      proposeFieldValue('Rue Principielle Industrielle de la Station Nord 12', 'streetHouseBox'),
+    ).toBe('R Principielle Industrielle de la Station Nord 12')
+  })
+
+  it('abbreviates Dutch street types from Table 80 when the street block is too long (SR-83)', () => {
+    expect(
+      proposeFieldValue('Heerweg naast de Galerije aan het Plein Noordkant 12', 'streetHouseBox'),
+    ).toBe('Heerweg naast de Galerije aan het Pl Noordkant 12')
   })
 
   it('keeps the case style of the abbreviated word', () => {
