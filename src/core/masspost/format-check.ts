@@ -46,15 +46,36 @@ export interface Abbreviation {
  * Abbreviations tried, in this order, when a value is longer than 50 characters. Never applied to
  * the postcode and municipality (a municipality such as Sint-Niklaas must stay intact). Scoped per
  * block so that, for example, the family name "De Koning" is not shortened.
+ *
+ * Sources (do not invent entries outside these):
+ * - Existing Contrapunt/web-flow set already in this list (NL titles and name forms).
+ * - docs/internal/e-masspost/docs/reference/addressing-rules.md Table 80 (street type
+ *   abbreviations FR/NL). German column omitted (SR-83 focuses on FR + NL where relevant).
+ * - Saint → St. mirrors NL Sint → St. (same short form; FR counterpart called out for SR-83).
+ * - Roi (FR) is the counterpart of Koning but is already three letters like Kon.; no short form
+ *   is listed in Table 80, so there is no Roi entry. Zone Industrielle → Z.I. is multi-word and
+ *   skipped (abbreviation matcher is whole single words only).
  */
 export const ABBREVIATIONS: readonly Abbreviation[] = [
   { full: 'Burgemeester', short: 'Burg.', fields: ['streetHouseBox'] },
   { full: 'Sint', short: 'St.', fields: ['streetHouseBox'] },
+  { full: 'Saint', short: 'St.', fields: ['streetHouseBox'] },
   { full: 'Koningin', short: 'Kon.', fields: ['streetHouseBox'] },
   { full: 'Koning', short: 'Kon.', fields: ['streetHouseBox'] },
   { full: 'Generaal', short: 'Gen.', fields: ['streetHouseBox'] },
   { full: 'Avenue', short: 'Av.', fields: ['streetHouseBox'] },
   { full: 'Boulevard', short: 'Bd', fields: ['streetHouseBox'] },
+  // Table 80 — French street types
+  { full: 'Rue', short: 'R', fields: ['streetHouseBox'] },
+  { full: 'Place', short: 'Pl', fields: ['streetHouseBox'] },
+  { full: 'Route', short: 'Rte', fields: ['streetHouseBox'] },
+  { full: 'Square', short: 'Sqr', fields: ['streetHouseBox'] },
+  // Table 80 — Dutch street types
+  { full: 'Laan', short: 'Ln', fields: ['streetHouseBox'] },
+  { full: 'Straat', short: 'Str', fields: ['streetHouseBox'] },
+  { full: 'Plein', short: 'Pl', fields: ['streetHouseBox'] },
+  { full: 'Heerweg', short: 'Hweg', fields: ['streetHouseBox'] },
+  { full: 'Galerije', short: 'Ga', fields: ['streetHouseBox'] },
   { full: 'Dokter', short: 'Dr.', fields: ['streetHouseBox', 'name'] },
   { full: 'Professor', short: 'Prof.', fields: ['streetHouseBox', 'name'] },
   { full: 'Monseigneur', short: 'Mgr.', fields: ['streetHouseBox', 'name'] },

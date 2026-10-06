@@ -23,7 +23,7 @@ One word, e.g. the token before a box number in the street block.
 
 `boolean`
 
-`true` for "bus", "boîte"/"boite" and "bte" in any case or accent spelling.
+`true` for "bus", "boîte"/"boite", "bte" and "box" in any case or accent spelling.
 
 ## Example
 

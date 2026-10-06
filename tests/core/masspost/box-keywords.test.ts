@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { BOX_CANONICAL, BOX_KEYWORDS, isBoxKeyword } from '@/core/masspost/box-keywords'
 
-describe('BOX_KEYWORDS (SR-83 starter set)', () => {
-  it('starts with bus, boîte and bte, in an extendable list', () => {
-    expect(BOX_KEYWORDS.slice(0, 3).map((entry) => [entry.keyword, entry.locale])).toEqual([
+describe('BOX_KEYWORDS (SR-83)', () => {
+  it('lists bus, boîte, bte and box in an extendable list', () => {
+    expect(BOX_KEYWORDS.map((entry) => [entry.keyword, entry.locale])).toEqual([
       ['bus', 'nl'],
       ['boîte', 'fr'],
       ['bte', 'fr'],
+      ['box', 'en'],
     ])
   })
 
@@ -34,10 +35,15 @@ describe('isBoxKeyword', () => {
     expect(isBoxKeyword('Bte')).toBe(true)
   })
 
-  it('rejects partial words, other languages and empty input', () => {
+  it('recognises English box from the addressing rules', () => {
+    expect(isBoxKeyword('box')).toBe(true)
+    expect(isBoxKeyword('BOX')).toBe(true)
+  })
+
+  it('rejects partial words, unknown forms and empty input', () => {
     expect(isBoxKeyword('bussen')).toBe(false)
-    expect(isBoxKeyword('box')).toBe(false)
     expect(isBoxKeyword('appartement')).toBe(false)
+    expect(isBoxKeyword('bt')).toBe(false)
     expect(isBoxKeyword('')).toBe(false)
     expect(isBoxKeyword('   ')).toBe(false)
   })

@@ -62,7 +62,7 @@ Bpost leest een schuine streep niet als scheiding in de straat of in de postcode
 
 - **In de straat:** een huisnummer met een schuine streep wordt "bus". Zo wordt "Kerkstraat 12/3" "Kerkstraat 12 bus 3". Een andere schuine streep wordt een spatie.
 - **In de postcode en gemeente:** de schuine streep wordt een spatie. Zo wordt "9000/Gent" "9000 Gent".
-- **Bus, bte, boîte:** als busnummer herkennen we Nederlands "bus", Frans "boîte" en de afkorting "bte". Die laten we staan zoals ze er staan; een schuine streep schrijven we altijd als "bus".
+- **Bus, bte, boîte, box:** als busnummer herkennen we Nederlands "bus", Frans "boîte" en de afkorting "bte", en Engels "box" (zoals in de adresseringregels van bpost). Die laten we staan zoals ze er staan; een schuine streep schrijven we altijd als "bus".
 
 ## Te lang: afkortingen
 
@@ -72,16 +72,28 @@ Is een vak langer dan 50 tekens, dan proberen we deze afkortingen, in deze volgo
 |---|---|---|
 | Burgemeester | Burg. | Straat |
 | Sint | St. | Straat |
+| Saint | St. | Straat |
 | Koningin | Kon. | Straat |
 | Koning | Kon. | Straat |
 | Generaal | Gen. | Straat |
 | Avenue | Av. | Straat |
 | Boulevard | Bd | Straat |
+| Rue | R | Straat |
+| Place | Pl | Straat |
+| Route | Rte | Straat |
+| Square | Sqr | Straat |
+| Laan | Ln | Straat |
+| Straat | Str | Straat |
+| Plein | Pl | Straat |
+| Heerweg | Hweg | Straat |
+| Galerije | Ga | Straat |
 | Dokter | Dr. | Straat, naam |
 | Professor | Prof. | Straat, naam |
 | Monseigneur | Mgr. | Straat, naam |
 | Vereniging | Ver. | Naam, bedrijf of afdeling |
 | Familie | Fam. | Naam |
+
+De Franse en Nederlandse straattypes (Rue, Place, Laan, …) komen uit Tabel 80 van de Mail-ID-adresseringregels. "Saint" is het Franse tegenhangwoord van "Sint". "Roi" (Frans voor "Koning") staat niet in de lijst: het is al even kort als "Kon.".
 
 - **Enkel hele woorden:** "Sint" wordt "St.", maar "Sinterklaas" blijft staan.
 - **Hoofdletters blijven zoals ze waren:** "BURGEMEESTER" wordt "BURG.".

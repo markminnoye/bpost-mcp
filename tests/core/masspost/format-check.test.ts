@@ -58,10 +58,11 @@ describe('checkFieldValue', () => {
     }
   })
 
-  it('accepts French box words in the street block without touching them (SR-83)', () => {
+  it('accepts French and English box words in the street block without touching them (SR-83)', () => {
     expect(checkFieldValue('Rue de la Gare 8 bte 3', 'streetHouseBox')).toEqual({ ok: true })
     expect(checkFieldValue('Rue de la Station 12, boîte 5', 'streetHouseBox')).toEqual({ ok: true })
     expect(checkFieldValue('Kerkstraat 12 bus 3', 'streetHouseBox')).toEqual({ ok: true })
+    expect(checkFieldValue('Main Street 4 box 2', 'streetHouseBox')).toEqual({ ok: true })
   })
 })
 
@@ -121,6 +122,24 @@ describe('proposeFieldValue', () => {
     expect(
       proposeFieldValue('Burgemeester Edgard Van Hoorebekestraat 112 bus 0201', 'streetHouseBox'),
     ).toBe('Burg. Edgard Van Hoorebekestraat 112 bus 0201')
+  })
+
+  it('abbreviates French street forms from Table 80 and Saint (SR-83)', () => {
+    expect(
+      proposeFieldValue('Boulevard Saint Michel de la Place Royale Extérieure 15', 'streetHouseBox'),
+    ).toBe('Bd St. Michel de la Place Royale Extérieure 15')
+    expect(
+      proposeFieldValue('Avenue Saint Pierre de la Rue Longue Extérieure 8 bte 2', 'streetHouseBox'),
+    ).toBe('Av. St. Pierre de la Rue Longue Extérieure 8 bte 2')
+    expect(
+      proposeFieldValue('Rue Principielle Industrielle de la Station Nord 12', 'streetHouseBox'),
+    ).toBe('R Principielle Industrielle de la Station Nord 12')
+  })
+
+  it('abbreviates Dutch street types from Table 80 when the street block is too long (SR-83)', () => {
+    expect(
+      proposeFieldValue('Heerweg naast de Galerije aan het Plein Noordkant 12', 'streetHouseBox'),
+    ).toBe('Heerweg naast de Galerije aan het Pl Noordkant 12')
   })
 
   it('keeps the case style of the abbreviated word', () => {

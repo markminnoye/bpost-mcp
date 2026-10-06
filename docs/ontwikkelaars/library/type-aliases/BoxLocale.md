@@ -6,6 +6,6 @@
 
 # Type Alias: BoxLocale
 
-> **BoxLocale** = `"nl"` \| `"fr"`
+> **BoxLocale** = `"nl"` \| `"fr"` \| `"en"`
 
-Language of a box word. Only Dutch and French in the starter set (SR-83).
+Language of a box word (SR-83: NL/FR starter; EN `box` from the addressing rules).
