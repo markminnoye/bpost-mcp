@@ -83,7 +83,7 @@ export function PocFlow({ docsUrl, aiModel }: { docsUrl?: string; aiModel?: stri
   const checked = list !== null && checkedFor === choiceKey(columnOrder, roles)
   const stepStatus: Partial<Record<StepId, StepStatus>> = {
     upload: list ? 'done' : 'none',
-    mapping: !list ? 'none' : !mappingDone ? 'action' : checked ? 'done' : 'none',
+    mapping: !list ? 'none' : mappingDone ? 'done' : 'action',
     format: checked ? (formatTotals.open > 0 ? 'action' : 'done') : 'none',
     check: 'none',
   }
