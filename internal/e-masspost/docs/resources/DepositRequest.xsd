@@ -1,0 +1,1455 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by Jan Wilmaers (Belgian Post Group) -->
+<!-- edited with XMLSpy v2008 rel. 2 (http://www.altova.com) by mazuki (darksiderg) -->
+<!-- edited with XML Spy v4.4 U (http://www.xmlspy.com) by DoMyMove (Domymove S.A.) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:simpleType name="BooleanType">
+		<xs:annotation>
+			<xs:documentation>Custom type, contains Y and N</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Y"/>
+			<xs:enumeration value="N"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SeqType">
+		<xs:annotation>
+			<xs:documentation>Type for the seq attributes</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:positiveInteger"/>
+	</xs:simpleType>
+	<xs:element name="DepositRequest">
+		<xs:annotation>
+			<xs:documentation>Root tag for deposit request files</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Context">
+					<xs:annotation>
+						<xs:documentation>Tag provided for technical communication.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="requestName" use="required" fixed="DepositRequest">
+							<xs:annotation>
+								<xs:documentation>A constant identifying the request.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string"/>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="dataset" use="required" fixed="M004_MPA">
+							<xs:annotation>
+								<xs:documentation>Required by the File Handling System.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string"/>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="sender" type="xs:positiveInteger" use="required">
+							<xs:annotation>
+								<xs:documentation>Customer identifier. Must match the CCCCCCCC part in the file name.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="receiver" use="required" fixed="EMP">
+							<xs:annotation>
+								<xs:documentation>Required by the File Handling System.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string"/>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="version" use="required" fixed="0100">
+							<xs:annotation>
+								<xs:documentation>The file version. Must match the file version in the file name.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string"/>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Header">
+					<xs:annotation>
+						<xs:documentation>Tag that contains global information</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Files">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="RequestProps">
+											<xs:annotation>
+												<xs:documentation>Request file properties</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="customerFileRef" use="required">
+													<xs:annotation>
+														<xs:documentation>A customer reference related to this file.
+Needs to match the NNNNNNNNNN field from the file name.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:length value="10"/>
+															<xs:pattern value="[A-Z\d]{10}"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="ResponseProps" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Response file properties</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="format" use="optional">
+													<xs:annotation>
+														<xs:documentation>Format type for the response file. 
+If omitted, the response file will use the same file type as the request file.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="XML"/>
+															<xs:enumeration value="TXT"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="compressed" type="BooleanType" use="optional">
+													<xs:annotation>
+														<xs:documentation>Field indicating if the response file must be compressed. 
+If omitted, the response file will be compressed only if the request file was compressed.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="encrypted" type="BooleanType" use="optional">
+													<xs:annotation>
+														<xs:documentation>Field indicating if the response file must be encrypted. 
+If omitted, the response file will be encrypted only if the request file was encrypted.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="transmissionMode" use="optional">
+													<xs:annotation>
+														<xs:documentation>Transmission mode for the response file. 
+If omitted, the response file will use the same mode as the request file.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="HTTP"/>
+															<xs:enumeration value="HTTPS"/>
+															<xs:enumeration value="FTP"/>
+															<xs:enumeration value="FTPS"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+								<xs:key name="UQ_Header_CustomerRef_key">
+									<xs:selector xpath="CustomerRef"/>
+									<xs:field xpath="@key"/>
+								</xs:key>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="customerId" type="xs:positiveInteger" use="required">
+							<xs:annotation>
+								<xs:documentation>Customer identifier. Must match the CCCCCCCC part in the file name.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="accountId" type="xs:positiveInteger" use="required"/>
+						<xs:attribute name="mode" use="required">
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="T"/>
+									<xs:enumeration value="C"/>
+									<xs:enumeration value="P"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:choice maxOccurs="unbounded">
+					<xs:element name="DepositCreate" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Create a deposit</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:extension base="DepositCreateUpdateType">
+									<xs:attributeGroup ref="DepositIdentifierCreateAttGrp"/>
+								</xs:extension>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="DepositUpdate" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Update a deposit</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:extension base="DepositCreateUpdateType2">
+									<xs:attributeGroup ref="DepositIdentifierCreateAttGrp"/>
+								</xs:extension>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="DepositDelete" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Delete a deposit</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:extension base="DepositDeleteValidateType"/>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="DepositValidate" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Validate a deposit</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:extension base="DepositDeleteValidateType"/>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="DepositGroupCreate" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Create a deposit group</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="Contacts" type="ContactsType" minOccurs="0">
+									<xs:annotation>
+										<xs:documentation>Contact persons</xs:documentation>
+										<xs:documentation>Contact persons</xs:documentation>
+									</xs:annotation>
+									<xs:key name="UQ_DepositGroupCreate_Contact_seq">
+										<xs:selector xpath="Contact"/>
+										<xs:field xpath="@seq"/>
+									</xs:key>
+								</xs:element>
+								<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+									<xs:key name="UQ_DepositGroupCreate_CustomerRef_key">
+										<xs:selector xpath="CustomerRef"/>
+										<xs:field xpath="@key"/>
+									</xs:key>
+								</xs:element>
+								<xs:element name="DepositInGroupCreate" maxOccurs="unbounded">
+									<xs:annotation>
+										<xs:documentation>Create a deposit belonging to a deposit group</xs:documentation>
+									</xs:annotation>
+									<xs:complexType>
+										<xs:complexContent>
+											<xs:extension base="DepositInGroupCreateType"/>
+										</xs:complexContent>
+									</xs:complexType>
+								</xs:element>
+							</xs:sequence>
+							<xs:attribute name="seq" type="SeqType" use="required">
+								<xs:annotation>
+									<xs:documentation>A sequence number identifying the action within the file.</xs:documentation>
+								</xs:annotation>
+							</xs:attribute>
+							<xs:attribute name="depositGroupIdentifier" use="optional">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:minLength value="1"/>
+										<xs:maxLength value="20"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:attribute>
+							<xs:attribute name="depositGroupIdentifierType" use="optional" fixed="depositGroupRef">
+								<xs:simpleType>
+									<xs:restriction base="xs:string"/>
+								</xs:simpleType>
+							</xs:attribute>
+							<xs:attribute name="autoValidate" type="BooleanType" use="optional" default="N">
+								<xs:annotation>
+									<xs:documentation>if Y and the required number of addresses is reached, this deposit be validated by Mass Post without waiting for an explicit Validate action. </xs:documentation>
+								</xs:annotation>
+							</xs:attribute>
+						</xs:complexType>
+						<xs:key name="UQ_DepositGroupCreate_DepositInGroupCreate_seq">
+							<xs:selector xpath="DepositInGroupCreate"/>
+							<xs:field xpath="@seq"/>
+						</xs:key>
+					</xs:element>
+					<xs:element name="DepositGroupUpdate" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Update a deposit group</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="Contacts" type="ContactsType" minOccurs="0">
+									<xs:annotation>
+										<xs:documentation>Contact persons</xs:documentation>
+									</xs:annotation>
+									<xs:key name="UQ_DepositGroupUpdate_Contact_seq">
+										<xs:selector xpath="Contact"/>
+										<xs:field xpath="@seq"/>
+									</xs:key>
+								</xs:element>
+								<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+									<xs:key name="UQ_DepositGroupUpdate_CustomerRef_key">
+										<xs:selector xpath="CustomerRef"/>
+										<xs:field xpath="@key"/>
+									</xs:key>
+								</xs:element>
+								<xs:choice maxOccurs="unbounded">
+									<xs:element name="DepositInGroupCreate" type="DepositInGroupCreateType" minOccurs="0" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>Create a deposit belonging to a deposit group</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="DepositInGroupDelete" type="DepositInGroupDeleteType" minOccurs="0" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>Delete a deposit belonging to a deposit group</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:choice>
+							</xs:sequence>
+							<xs:attribute name="seq" type="SeqType" use="required">
+								<xs:annotation>
+									<xs:documentation>A sequence number identifying the action within the file.</xs:documentation>
+								</xs:annotation>
+							</xs:attribute>
+							<xs:attributeGroup ref="DepositGroupIdentiferUpdateDeleteValidateAttGrp"/>
+							<xs:attribute name="autoValidate" type="BooleanType" use="optional" default="N">
+								<xs:annotation>
+									<xs:documentation>if Y and the required number of addresses is reached, this deposit be validated by Mass Post without waiting for an explicit Validate action. </xs:documentation>
+								</xs:annotation>
+							</xs:attribute>
+						</xs:complexType>
+						<xs:key name="UQ_DepositGroupUpdate_DepositInGroupCreateUpdate_seq">
+							<xs:selector xpath="DepositInGroupCreate|DepositInGroupDelete"/>
+							<xs:field xpath="@seq"/>
+						</xs:key>
+					</xs:element>
+					<xs:element name="DepositGroupDelete" type="DepositGroupDeleteValidateType" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Delete a deposit group</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="DepositGroupValidate" type="DepositGroupDeleteValidateType" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Validate a deposit group</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:choice>
+			</xs:sequence>
+		</xs:complexType>
+		<xs:key name="UQ_DepositRequest_DepositAction_seq">
+			<xs:selector xpath="DepositCreate|DepositUpdate|DepositDelete|DepositValidate|DepositGroupCreate|DepositGroupUpdate|DepositGroupDelete|DepositGroupValidate"/>
+			<xs:field xpath="@seq"/>
+		</xs:key>
+	</xs:element>
+	<xs:complexType name="DepositCreateUpdateType">
+		<xs:annotation>
+			<xs:documentation>Type for create and update actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Contacts" type="ContactsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Contact persons</xs:documentation>
+				</xs:annotation>
+				<xs:key name="UQ_DepositCreateUpdate_Contact_seq">
+					<xs:selector xpath="Contact"/>
+					<xs:field xpath="@seq"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+				<xs:key name="UQ_DepositCreateUpdate_CustomerRef_key">
+					<xs:selector xpath="CustomerRef"/>
+					<xs:field xpath="@key"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="Contract">
+				<xs:annotation>
+					<xs:documentation>Contract information</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="billTo" type="xs:positiveInteger" use="required">
+						<xs:annotation>
+							<xs:documentation>Identifier of the billing address as provided by De Post - La Poste</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="invoiceGrouping" use="optional">
+						<xs:annotation>
+							<xs:documentation>customer owned reference used by De Post - La Poste to group invoices</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="70"/>
+								<xs:minLength value="1"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="depositor" type="xs:positiveInteger" use="optional"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Deposit" type="DepositType">
+				<xs:annotation>
+					<xs:documentation>Deposit information</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the action within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="mailingRef" use="optional">
+			<xs:annotation>
+				<xs:documentation>A customer reference identifying the mailing list. If empty, then the deposit is the master.</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="20"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="DepositCreateUpdateType2">
+		<xs:annotation>
+			<xs:documentation>Type for create and update actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Contacts" type="ContactsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Contact persons</xs:documentation>
+				</xs:annotation>
+				<xs:key name="UQ_DepositCreateUpdate_Contact_seq2">
+					<xs:selector xpath="Contact"/>
+					<xs:field xpath="@seq"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+				<xs:key name="UQ_DepositCreateUpdate_CustomerRef_key2">
+					<xs:selector xpath="CustomerRef"/>
+					<xs:field xpath="@key"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="Contract">
+				<xs:annotation>
+					<xs:documentation>Contract information</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="billTo" type="xs:positiveInteger" use="required">
+						<xs:annotation>
+							<xs:documentation>Identifier of the billing address as provided by De Post - La Poste</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="invoiceGrouping" use="optional">
+						<xs:annotation>
+							<xs:documentation>customer owned reference used by De Post - La Poste to group invoices</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="70"/>
+								<xs:minLength value="1"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="depositor" type="xs:positiveInteger" use="optional"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Deposit" type="DepositType2">
+				<xs:annotation>
+					<xs:documentation>Deposit information</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the action within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="mailingRef" use="optional">
+			<xs:annotation>
+				<xs:documentation>A customer reference identifying the mailing list. If empty, then the deposit is the master.</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="20"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="DepositInGroupCreateType">
+		<xs:annotation>
+			<xs:documentation>Type for create and update actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+				<xs:key name="UQ_DepositInGroupCreate_CustomerRef_key">
+					<xs:selector xpath="CustomerRef"/>
+					<xs:field xpath="@key"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="Contract">
+				<xs:annotation>
+					<xs:documentation>Contract information</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="billTo" type="xs:positiveInteger" use="required">
+						<xs:annotation>
+							<xs:documentation>Identifier of the billing address as provided by De Post - La Poste</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="invoiceGrouping" use="optional">
+						<xs:annotation>
+							<xs:documentation>customer owned reference used by De Post - La Poste to group invoices</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="70"/>
+								<xs:minLength value="1"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="depositor" type="xs:positiveInteger" use="optional"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Deposit" type="DepositType">
+				<xs:annotation>
+					<xs:documentation>Deposit information</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the action within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="mailingRef" use="optional">
+			<xs:annotation>
+				<xs:documentation>A customer reference identifying the mailing list. If empty, then the deposit is the master.</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="20"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attributeGroup ref="DepositIdentifierCreateAttGrp"/>
+	</xs:complexType>
+	<xs:complexType name="DepositDeleteValidateType">
+		<xs:annotation>
+			<xs:documentation>Type for delete and validate actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Contacts" type="ContactsType" minOccurs="0">
+				<xs:key name="UQ_DepositDeleteValidate_Contact_seq">
+					<xs:selector xpath="Contact"/>
+					<xs:field xpath="@seq"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+				<xs:key name="UQ_DepositDeleteValidate_CustomerRef_key">
+					<xs:selector xpath="CustomerRef"/>
+					<xs:field xpath="@key"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the action within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attributeGroup ref="DepositIdentifierUpdateDeleteValidateAttGrp"/>
+	</xs:complexType>
+	<xs:complexType name="DepositGroupDeleteValidateType">
+		<xs:annotation>
+			<xs:documentation>Type for delete and validate actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Contacts" type="ContactsType" minOccurs="0">
+				<xs:key name="UQ_DepositGroupDeleteValidate_Contact_seq">
+					<xs:selector xpath="Contact"/>
+					<xs:field xpath="@seq"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+				<xs:key name="UQ_DepositGroupDeleteValidate_CustomerRef_key">
+					<xs:selector xpath="CustomerRef"/>
+					<xs:field xpath="@key"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the action within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attributeGroup ref="DepositGroupIdentiferUpdateDeleteValidateAttGrp"/>
+	</xs:complexType>
+	<xs:complexType name="DepositInGroupDeleteType">
+		<xs:annotation>
+			<xs:documentation>Type for delete and validate actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0">
+				<xs:key name="UQ_DepositInGroupDeleteValidate_CustomerRef_key">
+					<xs:selector xpath="CustomerRef"/>
+					<xs:field xpath="@key"/>
+				</xs:key>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the action within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attributeGroup ref="DepositIdentifierUpdateDeleteValidateAttGrp"/>
+	</xs:complexType>
+	<xs:attributeGroup name="DepositIdentifierCreateAttGrp">
+		<xs:annotation>
+			<xs:documentation>Attribute group containg the deposit identifier and its type (for create a deposit)</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="depositIdentifier" use="optional">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="20"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="depositIdentifierType" type="xs:string" use="optional" fixed="depositRef"/>
+	</xs:attributeGroup>
+	<xs:attributeGroup name="DepositIdentifierUpdateDeleteValidateAttGrp">
+		<xs:annotation>
+			<xs:documentation>Attribute group containg the deposit identifier and its type (for update, delete and validate a deposit)</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="depositIdentifier" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="20"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="depositIdentifierType" use="optional" default="depositRef">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="depositRef"/>
+					<xs:enumeration value="tmpDepositNr"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:attributeGroup>
+	<xs:complexType name="ContactsType">
+		<xs:annotation>
+			<xs:documentation>Type for contact information</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Contact" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Contact person</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="seq" type="SeqType" use="required">
+						<xs:annotation>
+							<xs:documentation>A sequence number identifying the contact in a deposit action.</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="firstName" use="optional">
+						<xs:annotation>
+							<xs:documentation>First name</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="50"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="lastName" use="optional">
+						<xs:annotation>
+							<xs:documentation>Last name</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="50"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="email" use="required">
+						<xs:annotation>
+							<xs:documentation>E-mail address</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="100"/>
+								<xs:minLength value="6"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="lang" use="required">
+						<xs:annotation>
+							<xs:documentation>Preferred language</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:enumeration value="nl"/>
+								<xs:enumeration value="fr"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="phone" use="optional">
+						<xs:annotation>
+							<xs:documentation>Phone number</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="50"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="fax" use="optional">
+						<xs:annotation>
+							<xs:documentation>Fax number</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="50"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="mobile" use="optional">
+						<xs:annotation>
+							<xs:documentation>Mobile phone number</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="50"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CustomerRefsType">
+		<xs:sequence>
+			<xs:element name="CustomerRef" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Customer reference belonging to a file or action, this will be stored but ignored by De Post - La Poste</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="key" use="required">
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:minLength value="1"/>
+								<xs:maxLength value="250"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="value" use="required">
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:minLength value="1"/>
+								<xs:maxLength value="250"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:attributeGroup name="DepositGroupIdentiferUpdateDeleteValidateAttGrp">
+		<xs:annotation>
+			<xs:documentation>Attribute group containg the deposit group identifier and its type (for update, delete and validate a deposit group)</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="depositGroupIdentifier" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="20"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="depositGroupIdentifierType" use="optional" default="depositGroupRef">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="depositGroupRef"/>
+					<xs:enumeration value="tmpDepositGroupNr"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:attributeGroup>
+	<xs:complexType name="DepositType">
+		<xs:sequence>
+			<xs:element name="Items">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Item" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>This tag describes a part of the deposit which 'features' are similar</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Characteristics" minOccurs="0">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Characteristic" maxOccurs="unbounded">
+													<xs:annotation>
+														<xs:documentation>Specific characteristic of an item</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:attribute name="key" use="required">
+															<xs:annotation>
+																<xs:documentation>The first part of the key-value pair, provided by De Post - La Post.</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:enumeration value="annexType"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+														<xs:attribute name="value" use="required">
+															<xs:annotation>
+																<xs:documentation>The associated value of the key-value pair.</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:minLength value="1"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+										<xs:key name="UQ_DepositCreateUpdate_Characteristic_key">
+											<xs:selector xpath="Characteristic"/>
+											<xs:field xpath="@key"/>
+										</xs:key>
+									</xs:element>
+									<xs:element name="Quantities">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Quantity" maxOccurs="unbounded">
+													<xs:annotation>
+														<xs:documentation>A quantity of an item (e.g. unit weight, number of pieces)</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:attribute name="unit" use="required">
+															<xs:annotation>
+																<xs:documentation>The unit of the quantity (e.g. g/PCE, PCE)</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:enumeration value="PCE"/>
+																	<xs:enumeration value="g/PCE"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+														<xs:attribute name="value" use="required">
+															<xs:annotation>
+																<xs:documentation>The value of quantity expressed in 'unit'</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:minLength value="1"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+										<xs:key name="UQ_DepositCreateUpdate_Quantity_unit">
+											<xs:selector xpath="Quantity"/>
+											<xs:field xpath="@unit"/>
+										</xs:key>
+									</xs:element>
+									<xs:element name="Prepayments" minOccurs="0">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Prepayment" maxOccurs="unbounded">
+													<xs:annotation>
+														<xs:documentation>A prepayment of an item (e.g. by a metering machine)</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:attribute name="key" use="required">
+															<xs:annotation>
+																<xs:documentation>The first part of the key-value pair, provided by De Post - La Post.</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:enumeration value="meteringPrice"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+														<xs:attribute name="value" use="required">
+															<xs:annotation>
+																<xs:documentation>The associated value of the key-value pair.</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:minLength value="1"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+										<xs:key name="UQ_DepositCreateUpdate_Prepayment_key">
+											<xs:selector xpath="Prepayment"/>
+											<xs:field xpath="@key"/>
+										</xs:key>
+									</xs:element>
+								</xs:sequence>
+								<xs:attribute name="seq" type="SeqType" use="required">
+									<xs:annotation>
+										<xs:documentation>A sequence number identifying the item in a deposit.</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="UQ_DepositCreateUpdate_Item_seq">
+					<xs:selector xpath="Item"/>
+					<xs:field xpath="@seq"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="ItemCount">
+				<xs:annotation>
+					<xs:documentation>The number of items</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="value" type="xs:positiveInteger" use="required">
+						<xs:annotation>
+							<xs:documentation>Count of <Item/>; elements in the request</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Distributions" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Distribution" maxOccurs="unbounded">
+							<xs:complexType>
+								<xs:attribute name="region" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="AX"/>
+											<xs:enumeration value="BX"/>
+											<xs:enumeration value="CX"/>
+											<xs:enumeration value="LX"/>
+											<xs:enumeration value="GX"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="volume" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:decimal">
+											<xs:minInclusive value="0.00"/>
+											<xs:maxInclusive value="100.00"/>
+											<xs:fractionDigits value="2"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Options" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Option" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>An option belonging to a deposit</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="OptionQuantities">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="OptionQuantity" maxOccurs="unbounded">
+													<xs:annotation>
+														<xs:documentation>A quantity of an option (e.g. number of pieces)</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:attribute name="unit" use="required">
+															<xs:annotation>
+																<xs:documentation>The unit of the quantity (e.g. g/PCE, PCE)</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:enumeration value="PCE"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+														<xs:attribute name="value" use="required">
+															<xs:annotation>
+																<xs:documentation>The value of quantity expressed in 'unit'</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:minLength value="1"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+										<xs:key name="UQ_DepositCreateUpdate_OptionQuantity_unit">
+											<xs:selector xpath="OptionQuantity"/>
+											<xs:field xpath="@unit"/>
+										</xs:key>
+									</xs:element>
+								</xs:sequence>
+								<xs:attribute name="id" type="xs:positiveInteger" use="required">
+									<xs:annotation>
+										<xs:documentation>This is the id that identifies the option in e-Mass Post.</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="UQ_DepositCreateUpdate_Option_id">
+					<xs:selector xpath="Option"/>
+					<xs:field xpath="@id"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="Sender" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="xs:string" use="required"/>
+					<xs:attribute name="trNumber" type="xs:string" use="required"/>
+					<xs:attribute name="brandName" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="date" use="required">
+			<xs:annotation>
+				<xs:documentation>The date that the deposit is planned to be delivered at De Post - La Poste</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:date"/>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="modelName" use="required">
+			<xs:annotation>
+				<xs:documentation>The selected model as defined in the e-Mass Post web interface</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="70"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="modelPortalUserName" use="required">
+			<xs:annotation>
+				<xs:documentation>The Portal user name that has created this model</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="30"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="invoiceRef" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="30"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="meteringNumber" use="required">
+			<xs:annotation>
+				<xs:documentation>This is the metering number. This is required when metering type (defined in the model) is 'metering' or 'roll stamp'.</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="60"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="router" use="optional">
+			<xs:annotation>
+				<xs:documentation>The router name</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="200"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="formByMail" type="BooleanType" use="optional" default="N">
+			<xs:annotation>
+				<xs:documentation>Indicate if the deposit authorisation (PDF file) should be sent by e-mail</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="autoValidate" type="BooleanType" use="optional" default="N">
+			<xs:annotation>
+				<xs:documentation>if Y and the required number of addresses is reached, this deposit be validated by Mass Post without waiting for an explicit Validate action. </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="description" use="optional">
+			<xs:annotation>
+				<xs:documentation>Description of the deposit</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="200"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="DepositType2">
+		<xs:sequence>
+			<xs:element name="Items">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Item" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>This tag describes a part of the deposit which 'features' are similar</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Characteristics" minOccurs="0">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Characteristic" maxOccurs="unbounded">
+													<xs:annotation>
+														<xs:documentation>Specific characteristic of an item</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:attribute name="key" use="required">
+															<xs:annotation>
+																<xs:documentation>The first part of the key-value pair, provided by De Post - La Post.</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:enumeration value="annexType"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+														<xs:attribute name="value" use="required">
+															<xs:annotation>
+																<xs:documentation>The associated value of the key-value pair.</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:minLength value="1"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+										<xs:key name="UQ_DepositCreateUpdate_Characteristic_key2">
+											<xs:selector xpath="Characteristic"/>
+											<xs:field xpath="@key"/>
+										</xs:key>
+									</xs:element>
+									<xs:element name="Quantities">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Quantity" maxOccurs="unbounded">
+													<xs:annotation>
+														<xs:documentation>A quantity of an item (e.g. unit weight, number of pieces)</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:attribute name="unit" use="required">
+															<xs:annotation>
+																<xs:documentation>The unit of the quantity (e.g. g/PCE, PCE)</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:enumeration value="PCE"/>
+																	<xs:enumeration value="g/PCE"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+														<xs:attribute name="value" use="required">
+															<xs:annotation>
+																<xs:documentation>The value of quantity expressed in 'unit'</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:minLength value="1"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+										<xs:key name="UQ_DepositCreateUpdate_Quantity_unit2">
+											<xs:selector xpath="Quantity"/>
+											<xs:field xpath="@unit"/>
+										</xs:key>
+									</xs:element>
+									<xs:element name="Prepayments" minOccurs="0">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Prepayment" maxOccurs="unbounded">
+													<xs:annotation>
+														<xs:documentation>A prepayment of an item (e.g. by a metering machine)</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:attribute name="key" use="required">
+															<xs:annotation>
+																<xs:documentation>The first part of the key-value pair, provided by De Post - La Post.</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:enumeration value="meteringPrice"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+														<xs:attribute name="value" use="required">
+															<xs:annotation>
+																<xs:documentation>The associated value of the key-value pair.</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:minLength value="1"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+										<xs:key name="UQ_DepositCreateUpdate_Prepayment_key2">
+											<xs:selector xpath="Prepayment"/>
+											<xs:field xpath="@key"/>
+										</xs:key>
+									</xs:element>
+								</xs:sequence>
+								<xs:attribute name="seq" type="SeqType" use="required">
+									<xs:annotation>
+										<xs:documentation>A sequence number identifying the item in a deposit.</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="UQ_DepositCreateUpdate_Item_seq2">
+					<xs:selector xpath="Item"/>
+					<xs:field xpath="@seq"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="ItemCount">
+				<xs:annotation>
+					<xs:documentation>The number of items</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="value" type="xs:positiveInteger" use="required">
+						<xs:annotation>
+							<xs:documentation>Count of <Item/>; elements in the request</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Distributions" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Distribution" maxOccurs="unbounded">
+							<xs:complexType>
+								<xs:attribute name="region" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="AX"/>
+											<xs:enumeration value="BX"/>
+											<xs:enumeration value="CX"/>
+											<xs:enumeration value="LX"/>
+											<xs:enumeration value="GX"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="volume" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:decimal">
+											<xs:minInclusive value="0.00"/>
+											<xs:maxInclusive value="100.00"/>
+											<xs:fractionDigits value="2"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Options" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Option" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>An option belonging to a deposit</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="OptionQuantities">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="OptionQuantity" maxOccurs="unbounded">
+													<xs:annotation>
+														<xs:documentation>A quantity of an option (e.g. number of pieces)</xs:documentation>
+													</xs:annotation>
+													<xs:complexType>
+														<xs:attribute name="unit" use="required">
+															<xs:annotation>
+																<xs:documentation>The unit of the quantity (e.g. g/PCE, PCE)</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:enumeration value="PCE"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+														<xs:attribute name="value" use="required">
+															<xs:annotation>
+																<xs:documentation>The value of quantity expressed in 'unit'</xs:documentation>
+															</xs:annotation>
+															<xs:simpleType>
+																<xs:restriction base="xs:string">
+																	<xs:maxLength value="250"/>
+																	<xs:minLength value="1"/>
+																</xs:restriction>
+															</xs:simpleType>
+														</xs:attribute>
+													</xs:complexType>
+												</xs:element>
+											</xs:sequence>
+										</xs:complexType>
+										<xs:key name="UQ_DepositCreateUpdate_OptionQuantity_unit2">
+											<xs:selector xpath="OptionQuantity"/>
+											<xs:field xpath="@unit"/>
+										</xs:key>
+									</xs:element>
+								</xs:sequence>
+								<xs:attribute name="id" type="xs:positiveInteger" use="required">
+									<xs:annotation>
+										<xs:documentation>This is the id that identifies the option in e-Mass Post.</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="UQ_DepositCreateUpdate_Option_id2">
+					<xs:selector xpath="Option"/>
+					<xs:field xpath="@id"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="Sender" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="xs:string" use="required"/>
+					<xs:attribute name="trNumber" type="xs:string" use="required"/>
+					<xs:attribute name="brandName" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="date" use="required">
+			<xs:annotation>
+				<xs:documentation>The date that the deposit is planned to be delivered at De Post - La Poste</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:date"/>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="modelName" use="required">
+			<xs:annotation>
+				<xs:documentation>The selected model as defined in the e-Mass Post web interface</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="70"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="modelPortalUserName" use="required">
+			<xs:annotation>
+				<xs:documentation>The Portal user name that has created this model</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="30"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="invoiceRef" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="30"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="meteringNumber" use="optional">
+			<xs:annotation>
+				<xs:documentation>This is the metering number. This is required when metering type (defined in the model) is 'metering' or 'roll stamp'.</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="60"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="router" use="optional">
+			<xs:annotation>
+				<xs:documentation>The router name</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="200"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="formByMail" type="BooleanType" use="optional" default="N">
+			<xs:annotation>
+				<xs:documentation>Indicate if the deposit authorisation (PDF file) should be sent by e-mail</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="autoValidate" type="BooleanType" use="optional" default="N">
+			<xs:annotation>
+				<xs:documentation>if Y and the required number of addresses is reached, this deposit be validated by Mass Post without waiting for an explicit Validate action. </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="description" use="optional">
+			<xs:annotation>
+				<xs:documentation>Description of the deposit</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="200"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+</xs:schema>

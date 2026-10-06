@@ -1,0 +1,11 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: Contrapunt/BPost
+  structure:
+    - type: space
+      key: space-emasspost
+      title: bpost e-MassPost
+      path: emasspost
+      default: true
+      content:
+        directory: ./

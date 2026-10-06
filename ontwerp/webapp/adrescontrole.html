@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schets: adrescontrole</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css">
+<style>
+:root{--bg:#FFFFFF;--surface-1:#F4F4F5;--surface-2:#FFFFFF;--border:#E4E4E7;--border-strong:#D4D4D8;--text-primary:#18181B;--text-secondary:#52525B;--text-muted:#71717A;--red:#DC2626;--green:#16A34A;--orange:#F97316;--yellow:#CA8A04;--tip-bg:#18181B;--tip-fg:#FAFAFA;--radius:6px;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A0A0A;--surface-1:#141416;--surface-2:#1C1C1F;--border:#27272A;--border-strong:#3F3F46;--text-primary:#FAFAFA;--text-secondary:#A1A1AA;--text-muted:#71717A;--red:#EF4444;--green:#22C55E;--tip-bg:#27272A;--tip-fg:#FAFAFA;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A0A0A;--surface-1:#141416;--surface-2:#1C1C1F;--border:#27272A;--border-strong:#3F3F46;--text-primary:#FAFAFA;--text-secondary:#A1A1AA;--text-muted:#71717A;--red:#EF4444;--green:#22C55E;--tip-bg:#27272A;--tip-fg:#FAFAFA;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text-primary);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Geist","Inter",sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px 64px}
+.note{font-size:12px;color:var(--text-muted);margin:0 0 16px}
+.scen{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--text-muted);margin-bottom:16px;flex-wrap:wrap}
+.scen button{font:inherit;font-size:12px;padding:2px 10px;border:1px dashed var(--border-strong);border-radius:999px;background:transparent;color:var(--text-secondary);cursor:pointer}
+.scen button[aria-pressed="true"]{border-style:solid;color:var(--text-primary);background:var(--surface-1)}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.t{font-size:16px;font-weight:500}
+.m{font-size:13px;color:var(--text-secondary)}
+.tg{display:flex;gap:8px;align-items:center}
+.b{font:inherit;font-size:12px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-primary);cursor:pointer;white-space:nowrap}
+.b:hover:not([disabled]){border-color:var(--text-muted)}
+.b[disabled]{opacity:.4;cursor:default}
+.b.primary:not([disabled]){background:#E30613;border-color:#E30613;color:#FFFFFF;font-weight:500}
+.b.primary:not([disabled]):hover{background:#C00511;border-color:#C00511}
+.score{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:14px 0 6px}
+.big{display:flex;align-items:center;gap:10px}
+.big .n{font-size:28px;font-weight:500;line-height:1}
+.big .l{font-size:12px;color:var(--text-muted)}
+.bar{position:relative;height:8px;background:var(--surface-1);border-radius:4px;margin:18px 0 22px}
+.bar .zone{position:absolute;top:0;height:8px;border-radius:4px}
+.mk{position:absolute;top:-4px;width:1px;height:16px;background:var(--text-muted)}
+.mk span{position:absolute;top:18px;left:-12px;font-size:11px;color:var(--text-muted);white-space:nowrap}
+.dot{position:absolute;top:-4px;width:16px;height:16px;margin-left:-8px;border-radius:50%;border:2px solid var(--bg)}
+.dot.est{opacity:.45}
+.zone.ph{opacity:.3}
+.est-t{font-size:13px;color:var(--text-secondary)}
+.adv{font-size:13px;color:var(--text-secondary);margin:4px 0 16px}
+.gh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 10px;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;margin-top:16px}
+.gn{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
+.gn span{color:var(--text-muted);font-weight:400;margin-left:2px}
+.row{display:grid;grid-template-columns:130px minmax(0,1.15fr) 28px minmax(0,1fr) 32px;gap:10px;align-items:start;padding:8px 10px;border-bottom:1px solid var(--border)}
+.row:focus{outline:none;background:var(--surface-1)}
+.row.editing{background:var(--surface-1)}
+.k{font-size:12px;color:var(--text-muted);padding-top:6px}
+.in{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-2);color:var(--text-primary);width:100%}
+.in[aria-invalid="true"]{border-color:var(--red)}
+.in:focus{outline:2px solid #3B82F6;outline-offset:1px}
+.sumv{font-size:13px;padding:6px 0;display:block}
+.why{font-size:12px;color:var(--red);margin-top:3px}
+.why.warn{color:var(--yellow)}
+.why.info{color:var(--text-muted)}
+.why:empty{display:none}
+.st{width:28px;height:30px;display:flex;align-items:center;justify-content:center;font-size:19px}
+.st.bad{color:var(--red)} .st.ok{color:var(--green)} .st.warn{color:var(--yellow)} .st.info{color:var(--text-muted)}
+.prop{display:flex;align-items:center;gap:6px;min-height:30px;font-size:13px;color:var(--text-secondary)}
+.ib{width:28px;height:28px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:15px}
+.ib:hover{border-color:var(--text-muted);color:var(--text-primary)}
+.ib[aria-pressed="true"]{background:var(--surface-1);color:var(--text-primary);border-color:var(--text-muted)}
+.fw{position:relative}
+.fw.changed .in{padding-right:34px}
+.fw .undo{position:absolute;right:4px;top:4px;width:24px;height:24px;display:none;align-items:center;justify-content:center;border:0;border-radius:4px;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:15px}
+.fw.changed .undo{display:inline-flex}
+.undo:hover{background:var(--surface-1);color:var(--text-primary)}
+.ctx{grid-column:2 / -1;font-size:12px;color:var(--text-muted);display:none}
+.row:focus-within .ctx{display:block}
+.row.excl{opacity:.45}
+.xtag{font-size:12px;color:var(--text-secondary);border:1px solid var(--border-strong);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.fw.cands .in{padding-right:30px}
+.chev{position:absolute;right:9px;top:7px;color:var(--text-muted);pointer-events:none;font-size:15px}
+.fw.changed .chev{display:none}
+.sug{list-style:none;margin:0;padding:0;border:1px solid var(--border-strong);border-radius:6px;overflow:hidden;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:15;background:var(--surface-2)}
+.hint{font-size:12px;color:var(--text-secondary);background:transparent;border:0;padding:6px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.sug li{font-size:13px;padding:6px 10px;cursor:pointer;display:flex;justify-content:space-between}
+.sug li:hover,.sug li.hl{background:var(--surface-1)}
+.sug li small{color:var(--text-muted)}
+[data-tip]{position:relative}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{content:attr(data-tip);position:absolute;right:0;bottom:calc(100% + 6px);z-index:10;width:max-content;max-width:280px;background:var(--tip-bg);color:var(--tip-fg);font-size:12px;line-height:1.4;padding:6px 8px;border-radius:6px;border:1px solid var(--border-strong);white-space:normal;text-align:left;pointer-events:none}
+details summary{list-style:none;cursor:pointer;font-size:12px;color:var(--text-secondary);padding:8px 10px;display:flex;align-items:center;gap:6px}
+details summary::-webkit-details-marker{display:none}
+details[open] summary i{transform:rotate(90deg)}
+.okrow{display:grid;grid-template-columns:130px 1fr;gap:10px;padding:6px 10px;border-bottom:1px solid var(--border);font-size:13px}
+.okrow small{color:var(--text-muted)}
+.more{font-size:12px;color:var(--text-muted);padding:8px 10px}
+.kb{font-size:12px;color:var(--text-muted);padding-top:16px}
+.kb code{font-family:ui-monospace,Menlo,monospace;font-size:11px;padding:1px 5px;border:1px solid var(--border);border-radius:4px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;background:var(--tip-bg);color:var(--tip-fg);border:1px solid var(--border-strong);border-radius:8px;padding:10px 14px;font-size:13px;z-index:20}
+.toast button{font:inherit;font-size:13px;font-weight:500;background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;padding:0}
+[hidden]{display:none!important}
+@media (max-width:640px){.row{grid-template-columns:1fr 28px 32px}.k{grid-column:1 / -1}.prop{grid-column:1 / -1}.score{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<p class="note">Schets v2 van stap 4 uit de brainstorm van 02/10/2026 (zie <code>2026-10-02-masspost-web-flow-design.md</code>, besluiten 1, 24, 29 tot 37). Interactief, met dezelfde toetsen als bij de formaatvalidatie. De zoekfunctie bootst postcode.eu na met een paar vaste adressen. Voorbeeld: een mailing van 789 adressen.</p>
+
+<div class="scen" role="group" aria-label="Schets: kies de laatste score van bpost">Schets, laatste score van bpost: <button data-s="93.4">93,4%</button><button data-s="97.2" aria-pressed="true">97,2%</button><button data-s="99.8">99,8%</button></div>
+
+<div class="hd">
+  <div><div class="t">Adrescontrole</div><div class="m">Laatste controle door bpost: vandaag 14:05 · 789 adressen</div></div>
+  <div class="tg"><button class="ib" id="theme" data-tip="Wissel tussen licht en donker" aria-label="Wissel tussen licht en donker"><i class="ti ti-sun-moon" aria-hidden="true"></i></button><button class="b" id="recheck">Opnieuw controleren</button><button class="b" id="submit">Indienen</button></div>
+</div>
+
+<section class="score" aria-label="Score">
+  <div class="big"><svg id="ball" width="28" height="28" viewBox="0 0 20 20" aria-hidden="true"></svg><div><div class="n" id="scoreN"></div><div class="l" title="Address Recognition Rate: deel van de adressen dat bpost herkent tot op het gebouw">ARR van bpost</div></div></div>
+  <div>
+    <div class="bar" aria-hidden="true"><div class="zone" id="zone"></div><div class="zone ph" id="phantom"></div><div class="mk" style="left:60%"><span>96%</span></div><div class="mk" style="left:80%"><span>98%</span></div><div class="dot" id="dotNow"></div><div class="dot est" id="dotEst"></div></div>
+    <div class="est-t" id="est"></div>
+  </div>
+</section>
+<p class="adv" id="adv" role="status"></p>
+
+<section data-group="red">
+  <div class="gh"><div class="gn"><i class="ti ti-circle-x" style="color:var(--red)" aria-hidden="true"></i>Geen adres gevonden<span data-gcount></span></div></div>
+  <div class="row" data-type="addr" data-orig="Kerkstraat 999, 9340 Lede" data-msg="bpost vond dit adres niet." data-ctx="Naam: Familie Verstraete · Lidnummer: 11208"><div class="k">Rij 58 · adres</div></div>
+  <div class="more" id="hiddenRed"></div>
+</section>
+
+<section data-group="multi">
+  <div class="gh"><div class="gn"><i class="ti ti-circle-x" style="color:var(--red)" aria-hidden="true"></i>Meerdere adressen gevonden<span data-gcount></span></div></div>
+  <div class="row" data-type="addr" data-orig="Stationstraat 3, 9340 Lede" data-cands="Stationsstraat 3, 9340 Lede|Stationsplein 3, 9340 Lede|Stationsstraat 3 bus 2, 9340 Lede" data-msg="bpost vond meerdere adressen die passen. Kies het juiste." data-ctx="Naam: Familie Peeters-Janssens · Lidnummer: 10482 · Afdeling: Ferm Lede"><div class="k">Rij 412 · adres</div></div>
+</section>
+
+<section data-group="prop">
+  <div class="gh"><div class="gn"><i class="ti ti-alert-circle" style="color:var(--yellow)" aria-hidden="true"></i>Voorstel van bpost<span data-gcount></span></div><button class="b" data-accept-all></button></div>
+  <div class="row" data-type="prop" data-field="straat" data-orig="Molenbeeksestraat 184 35" data-prop="Molenbeeksestraat 184 bus 35" data-msg="bpost stelt een andere schrijfwijze voor." data-ctx="Naam: Sofie Janssens · Postcode en gemeente: 1080 Sint-Jans-Molenbeek"><div class="k">Rij 2 · straat</div></div>
+  <div class="row" data-type="prop" data-field="straat" data-orig="Pagodenlaan 21 5" data-prop="Pagodenlaan 21 bus 5" data-msg="bpost stelt een andere schrijfwijze voor." data-ctx="Naam: Tom Claes · Postcode en gemeente: 1020 Laken"><div class="k">Rij 3 · straat</div></div>
+  <details>
+    <summary><i class="ti ti-chevron-right" aria-hidden="true"></i><span data-more>Toon de 2 andere rijen</span></summary>
+    <div class="row" data-type="prop" data-field="straat" data-orig="Sint-Jansstraat 4 b2" data-prop="Sint-Jansstraat 4 bus 2" data-msg="bpost stelt een andere schrijfwijze voor." data-ctx="Naam: An Wouters · Postcode en gemeente: 9300 Aalst"><div class="k">Rij 233 · straat</div></div>
+    <div class="row" data-type="prop" data-field="straat" data-orig="Koning Albertlaan 12" data-prop="Koning Albert I-laan 12" data-msg="bpost stelt een andere schrijfwijze voor." data-ctx="Naam: Marc De Vos · Postcode en gemeente: 8200 Brugge"><div class="k">Rij 640 · straat</div></div>
+  </details>
+</section>
+
+<section data-group="note">
+  <div class="gh"><div class="gn"><i class="ti ti-info-circle" style="color:var(--text-muted)" aria-hidden="true"></i>Opmerking zonder voorstel<span data-gcount></span></div></div>
+  <details>
+    <summary><i class="ti ti-chevron-right" aria-hidden="true"></i><span data-more>Toon de 2 rijen</span></summary>
+    <div class="row" data-type="note" data-field="straat" data-orig="Hoogstraat 15" data-msg="Gebouw gevonden, maar geen perfecte match. Optioneel nakijken." data-ctx="Naam: Lieve Maes · Postcode en gemeente: 9340 Lede"><div class="k">Rij 77 · straat</div></div>
+    <div class="row" data-type="note" data-field="straat" data-orig="Residentie Zonneveld, Dorpsplein 2" data-msg="Busnummer ontbreekt. Optioneel nakijken." data-ctx="Naam: Jef Peeters · Postcode en gemeente: 9340 Lede"><div class="k">Rij 301 · straat</div></div>
+  </details>
+</section>
+
+<section data-group="ok">
+  <div class="gh"><div class="gn"><i class="ti ti-circle-check" style="color:var(--green)" aria-hidden="true"></i>In orde<span data-gcount></span></div></div>
+  <details>
+    <summary><i class="ti ti-chevron-right" aria-hidden="true"></i><span>Toon een paar voorbeelden</span></summary>
+    <div class="okrow"><span class="k" style="padding:0">Rij 4 · straat</span><span>Steylsstraat 92 <small>· bpost schreef STEYLSSTRAAT 92, enkel hoofdletters</small></span></div>
+    <div class="okrow"><span class="k" style="padding:0">Rij 5 · straat</span><span>Brogniezstraat 179 <small>· enkel hoofdletters</small></span></div>
+    <div class="okrow"><span class="k" style="padding:0">Rij 6 · straat</span><span>Hendrik Consciencelaan 162</span></div>
+  </details>
+</section>
+
+<div class="kb"><code>Tab</code> naar de volgende knop of groep rijen · <code>↑</code> <code>↓</code> rij kiezen · <code>→</code> <code>←</code> rijen tonen of verbergen · <code>Enter</code> voorstel overnemen, of adres zoeken · <code>E</code> aanpassen · <code>Esc</code> terugzetten · <code>X</code> uitsluiten of opnieuw opnemen · <code>⌘Z</code> laatste actie ongedaan maken</div>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden><span></span><button type="button">Ongedaan maken</button></div>
+
+<script>
+const N=789, MAX=50; let score=97.2;
+const ADDR=['Kerkstraat 9, 9340 Lede','Kerkstraat 99, 9340 Lede','Kerkstraat 99, 9300 Aalst','Kerkstraat 99 bus 1, 9340 Lede','Stationsstraat 3, 9340 Lede','Stationsplein 3, 9340 Lede','Stationsstraat 3 bus 2, 9340 Lede','Stationsstraat 30, 9340 Lede'];
+const parseAddr=v=>{const m=v.match(/^(.*?),\s*(\d{4}\s+\S.*)$/);return m?[m[1].trim(),m[2].trim()]:null};
+function badChar(v){for(const ch of v){const c=ch.codePointAt(0);if(!((c>=32&&c<=126)||(c>=192&&c<=255)))return ch}return null}
+function rulesErr(v,field){if(!v.trim())return 'Verplicht veld is leeg.';const ch=badChar(v);if(ch)return 'Het teken "'+ch+'" kent bpost niet.';
+  if(v.length>MAX)return 'Te lang: '+v.length+' van maximaal '+MAX+' tekens.';
+  if(field==='pc'&&!/^\d{4} \S/.test(v))return 'Postcode en gemeente: begin met 4 cijfers.';
+  if(field==='straat'&&!/\d/.test(v))return 'Er ontbreekt een huisnummer.';return null}
+const same=(a,b)=>a.trim().toLowerCase()===b.trim().toLowerCase();
+const fmt=x=>x.toFixed(1).replace('.',',')+'%';
+const rows=[...document.querySelectorAll('.row')];
+const undoStack=[];
+const valsOf=r=>r._ins.map(i=>i.value);
+function snap(r){return [r,valsOf(r),r.hasAttribute('data-excluded')]}
+function pushUndo(e){if(e.length)undoStack.push(e)}
+function undoEntry(e){const i=undoStack.indexOf(e);if(i<0)return;undoStack.splice(i,1);e.forEach(([r,v,x])=>{r._ins.forEach((inp,j)=>inp.value=v[j]);r.toggleAttribute('data-excluded',x)});hideToast();update()}
+function undoLast(){if(undoStack.length)undoEntry(undoStack[undoStack.length-1])}
+function navItems(){return [...document.querySelectorAll('.row, details > summary')].filter(el=>el.offsetParent!==null)}
+function setStop(r){const sec=r.closest('[data-group]');sec.querySelectorAll('.row').forEach(x=>x.tabIndex=-1);r.tabIndex=0}
+function focusRow(r){if(!r)return;setStop(r);r.focus()}
+function focusItem(el){if(!el)return;if(el.classList.contains('row'))focusRow(el);else el.focus()}
+function move(el,d){const v=navItems();const i=v.indexOf(el);focusItem(v[Math.max(0,Math.min(v.length-1,i+d))])}
+const noBlur=b=>b.addEventListener('mousedown',e=>e.preventDefault());
+document.querySelectorAll('[data-group]').forEach(sec=>{const f=sec.querySelector('.row');if(f&&f.offsetParent!==null)f.tabIndex=0});
+
+rows.forEach((row,i)=>{
+  const type=row.dataset.type, msg=row.dataset.msg;
+  if(row.tabIndex!==0)row.tabIndex=-1;
+  const cell=document.createElement('div'), st=document.createElement('span'), pc=document.createElement('div'), ex=document.createElement('button'), ctx=document.createElement('div');
+  st.className='st'; pc.className='prop'; ex.className='ib'; ex.tabIndex=-1; noBlur(ex); ctx.className='ctx'; ctx.textContent=row.dataset.ctx||'';
+  const why=document.createElement('div'); why.className='why';
+  let before=null;
+  if(type==='addr'){
+    const orig=row.dataset.orig, cands=(row.dataset.cands||'').split('|').filter(Boolean);
+    cell.innerHTML='<div class="fw"><input class="in" tabindex="-1" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off"></div>';cell.append(why);
+    const fw=cell.querySelector('.fw'), inp=cell.querySelector('input');
+    if(cands.length){fw.classList.add('cands');const ch=document.createElement('span');ch.className='chev';ch.innerHTML='<i class="ti ti-chevron-down" aria-hidden="true"></i>';fw.append(ch)}
+    const undo=document.createElement('button');undo.className='undo';undo.type='button';undo.tabIndex=-1;undo.innerHTML='<i class="ti ti-arrow-back-up" aria-hidden="true"></i>';fw.append(undo);noBlur(undo);
+    undo.dataset.tip='Oorspronkelijk adres terugzetten: '+orig;undo.setAttribute('aria-label',undo.dataset.tip);
+    const sug=document.createElement('ul');sug.className='sug';sug.setAttribute('role','listbox');sug.id='l'+i;sug.hidden=true;inp.setAttribute('aria-controls',sug.id);fw.append(sug);
+    inp.value=orig;inp.setAttribute('aria-label',row.querySelector('.k').textContent);row._ins=[inp];
+    row.append(cell,st,pc,ex,ctx);
+    let items=[],hl=-1;
+    function results(){const t=inp.value.trim().toLowerCase();const list=cands.map(c=>[c,'gevonden door bpost']);
+      const q=inp.value!==orig&&t.length>=3?t:t.replace(/[\d,].*$/,'').trim();
+      if(q.length>=3)ADDR.forEach(a=>{if(a.toLowerCase().includes(q)&&!list.some(x=>x[0]===a))list.push([a,'postcode.eu'])});return list.slice(0,6)}
+    function openList(){items=results();sug.innerHTML='';hl=items.length?0:-1;
+      items.forEach(([v,src],k)=>{const li=document.createElement('li');li.setAttribute('role','option');li.innerHTML='<span></span><small></small>';li.firstChild.textContent=v;li.lastChild.textContent=src;if(k===hl)li.classList.add('hl');li.onmousedown=e=>{e.preventDefault();pick(v)};sug.append(li)});
+      sug.hidden=!items.length;inp.setAttribute('aria-expanded',items.length?'true':'false')}
+    function closeList(){sug.hidden=true;sug.innerHTML='';items=[];hl=-1;inp.setAttribute('aria-expanded','false')}
+    function moveHl(d){if(!items.length)return;hl=(hl+d+items.length)%items.length;[...sug.children].forEach((li,k)=>li.classList.toggle('hl',k===hl))}
+    function pick(v){inp.value=v;closeList();update()}
+    function startEdit(){if(row.hasAttribute('data-excluded'))return;before=[inp.value];row.classList.add('editing');inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);openList()}
+    function endEdit(keep){closeList();if(before===null)return;const b=before;before=null;row.classList.remove('editing');if(!keep)inp.value=b[0];else if(inp.value!==b[0])pushUndo([[row,b,row.hasAttribute('data-excluded')]]);update()}
+    row._primary=startEdit;row._edit=startEdit;
+    undo.onclick=()=>{const b=before;before=null;row.classList.remove('editing');closeList();pushUndo([[row,b||[inp.value],row.hasAttribute('data-excluded')]]);inp.value=orig;update();focusRow(row)};
+    inp.addEventListener('focus',()=>{if(before===null){before=[inp.value];row.classList.add('editing');openList()}setStop(row)});
+    inp.addEventListener('input',()=>{openList();update()});
+    inp.addEventListener('blur',()=>endEdit(true));
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='ArrowDown'){e.preventDefault();if(sug.hidden)openList();else moveHl(1)}
+      else if(e.key==='ArrowUp'){e.preventDefault();moveHl(-1)}
+      else if(e.key==='Enter'){e.preventDefault();if(!sug.hidden&&hl>=0)pick(items[hl][0]);else{endEdit(true);focusRow(row)}}
+      else if(e.key==='Escape'){e.preventDefault();if(!sug.hidden)closeList();else{endEdit(false);focusRow(row)}}
+      else if(e.key==='Tab'){endEdit(true)}});
+    row._render=function(){const excl=row.hasAttribute('data-excluded');const changed=inp.value!==orig;const pr=parseAddr(inp.value);
+      const err=changed?(pr?(rulesErr(pr[0],'straat')||rulesErr(pr[1],'pc')):'Schrijf het adres als: straat en nummer, postcode en gemeente.'):null;
+      row.classList.toggle('excl',excl);inp.disabled=excl;fw.classList.toggle('changed',!excl&&changed);
+      row._fixed=!excl&&changed&&!err;row._redOpen=!excl&&!row._fixed;row._open=row._redOpen;
+      inp.setAttribute('aria-invalid',!excl&&!row._fixed?'true':'false');why.className='why';why.textContent='';pc.innerHTML='';
+      if(excl){st.className='st';st.innerHTML='';st.removeAttribute('data-tip');pc.innerHTML='<span class="xtag">Uitgesloten uit de mailing</span>'}
+      else if(row._fixed){st.className='st ok';st.innerHTML='<i class="ti ti-circle-check" aria-hidden="true"></i>';st.dataset.tip='Aangepast. bpost controleert het bij de volgende controle of bij het indienen. Oorspronkelijk: '+orig;why.className='why info';why.textContent='Aangepast, nog niet door bpost gecontroleerd.'}
+      else{st.className='st bad';st.innerHTML='<i class="ti ti-circle-x" aria-hidden="true"></i>';st.dataset.tip=err||msg;why.textContent=err||msg;
+        const h=document.createElement('button');h.className='hint';h.tabIndex=-1;h.textContent=cands.length?'Kies uit '+cands.length+' adressen':'Zoek via postcode.eu';noBlur(h);h.onclick=()=>startEdit();pc.append(h)}
+      row.setAttribute('aria-label',row.querySelector('.k').textContent+': '+inp.value+'. '+(excl?'Uitgesloten.':row._fixed?'Aangepast.':'Fout: '+(err||msg)));};
+  } else {
+    const orig=row.dataset.orig, prop=row.dataset.prop;
+    cell.innerHTML='<div class="fw"><input class="in" tabindex="-1"></div>';cell.append(why);
+    const fw=cell.querySelector('.fw'), inp=cell.querySelector('input');
+    const undo=document.createElement('button');undo.className='undo';undo.type='button';undo.tabIndex=-1;undo.innerHTML='<i class="ti ti-arrow-back-up" aria-hidden="true"></i>';fw.append(undo);noBlur(undo);
+    undo.dataset.tip='Oorspronkelijke waarde terugzetten: '+orig;undo.setAttribute('aria-label',undo.dataset.tip);
+    inp.value=orig;inp.setAttribute('aria-label',row.querySelector('.k').textContent);row._ins=[inp];
+    row.append(cell,st,pc,ex,ctx);
+    function startEdit(){if(row.hasAttribute('data-excluded'))return;before=[inp.value];row.classList.add('editing');inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length)}
+    function endEdit(keep){if(before===null)return;const b=before;before=null;row.classList.remove('editing');if(!keep)inp.value=b[0];else if(inp.value!==b[0])pushUndo([[row,b,row.hasAttribute('data-excluded')]]);update()}
+    function accept(){if(!row._showsProp)return false;const b=before;before=null;row.classList.remove('editing');pushUndo([[row,b||[inp.value],false]]);inp.value=prop;update();return true}
+    row._accept=accept; row._edit=startEdit;
+    row._primary=()=>{if(row._showsProp){if(accept())move(row,1)}else startEdit()};
+    undo.onclick=()=>{const b=before;before=null;row.classList.remove('editing');pushUndo([[row,b||[inp.value],row.hasAttribute('data-excluded')]]);inp.value=orig;update();focusRow(row)};
+    inp.addEventListener('focus',()=>{if(before===null){before=[inp.value];row.classList.add('editing')}setStop(row)});
+    inp.addEventListener('input',update);
+    inp.addEventListener('blur',()=>endEdit(true));
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();endEdit(true);focusRow(row)}else if(e.key==='Escape'){e.preventDefault();endEdit(false);focusRow(row)}else if(e.key==='Tab'){endEdit(true)}});
+    row._render=function(){const excl=row.hasAttribute('data-excluded');const changed=inp.value!==orig;const err=changed?rulesErr(inp.value,row.dataset.field):null;
+      row.classList.toggle('excl',excl);inp.disabled=excl;fw.classList.toggle('changed',!excl&&changed);
+      row._showsProp=type==='prop'&&!excl&&!changed; row._open=row._showsProp; row._redOpen=false;
+      inp.setAttribute('aria-invalid',err?'true':'false');why.className='why';why.textContent='';pc.innerHTML='';
+      if(excl){st.className='st';st.innerHTML='';st.removeAttribute('data-tip');pc.innerHTML='<span class="xtag">Uitgesloten uit de mailing</span>'}
+      else if(err){st.className='st bad';st.innerHTML='<i class="ti ti-circle-x" aria-hidden="true"></i>';st.dataset.tip=err;why.textContent=err}
+      else if(changed){st.className='st ok';st.innerHTML='<i class="ti ti-circle-check" aria-hidden="true"></i>';st.dataset.tip=prop&&same(inp.value,prop)?'Voorstel van bpost overgenomen.':'Aangepast door jou. bpost kijkt het na bij de volgende controle of bij het indienen.'}
+      else if(type==='prop'){st.className='st warn';st.innerHTML='<i class="ti ti-alert-circle" aria-hidden="true"></i>';st.dataset.tip=msg+' Telt al mee als juist.';why.className='why warn';why.textContent=msg;
+        pc.innerHTML='<span></span>';pc.firstChild.textContent=prop;const b=document.createElement('button');b.className='ib';b.tabIndex=-1;b.innerHTML='<i class="ti ti-corner-down-left" aria-hidden="true"></i>';b.dataset.tip='Voorstel overnemen (Enter)';b.setAttribute('aria-label','Voorstel overnemen: '+prop);noBlur(b);b.onclick=()=>{accept();focusRow(row)};pc.prepend(b)}
+      else{st.className='st info';st.innerHTML='<i class="ti ti-info-circle" aria-hidden="true"></i>';st.dataset.tip=msg+' Telt al mee als juist.';why.className='why info';why.textContent=msg}
+      row.setAttribute('aria-label',row.querySelector('.k').textContent+': '+inp.value+'. '+(excl?'Uitgesloten.':err?'Fout: '+err:changed?'Aangepast.':msg+(prop?' Voorstel: '+prop+'.':'')));};
+  }
+  ex.onclick=()=>{toggleExcl(row);focusRow(row)};
+  row.addEventListener('keydown',e=>{if(e.target!==row)return;const k=e.key.toLowerCase(),mod=e.metaKey||e.ctrlKey||e.altKey;
+    if(e.key==='ArrowDown'||(k==='j'&&!mod)){e.preventDefault();move(row,1)}
+    else if(e.key==='ArrowUp'||(k==='k'&&!mod)){e.preventDefault();move(row,-1)}
+    else if(e.key==='Home'){e.preventDefault();focusItem(navItems()[0])}
+    else if(e.key==='End'){e.preventDefault();const v=navItems();focusItem(v[v.length-1])}
+    else if(e.key==='ArrowLeft'){const d=row.closest('details');if(d&&d.open){e.preventDefault();d.open=false;d.querySelector('summary').focus()}}
+    else if(e.key==='Enter'){e.preventDefault();row._primary()}
+    else if(e.key==='F2'||(k==='e'&&!mod)){e.preventDefault();row._edit()}
+    else if(k==='x'&&!mod){e.preventDefault();toggleExcl(row)}});
+  row.addEventListener('mousedown',e=>{if(e.target===row||e.target.classList.contains('k')||e.target.classList.contains('ctx')||e.target.classList.contains('why')||e.target.classList.contains('sumv')){e.preventDefault();focusRow(row)}});
+});
+function toggleExcl(row){pushUndo([snap(row)]);row.toggleAttribute('data-excluded');update()}
+rows.forEach(r=>{const ex=r.querySelector(':scope > button.ib');r._ex=ex});
+function update(){
+  rows.forEach(r=>{r._render();const excl=r.hasAttribute('data-excluded');r._ex.innerHTML='<i class="ti ti-x" aria-hidden="true"></i>';r._ex.setAttribute('aria-pressed',excl?'true':'false');const t=excl?'Opnieuw opnemen in de mailing (X)':'Uitsluiten uit de mailing (X). De rij blijft bewaard.';r._ex.dataset.tip=t;r._ex.setAttribute('aria-label',t)});
+  const addr=rows.filter(r=>r.dataset.type==='addr'), props=rows.filter(r=>r.dataset.type==='prop'), notes=rows.filter(r=>r.dataset.type==='note');
+  const nonC=N-Math.round(N*score/100), hiddenRed=Math.max(0,nonC-addr.length);
+  const excl=rows.filter(r=>r.hasAttribute('data-excluded')).length, exclRed=addr.filter(r=>r.hasAttribute('data-excluded')).length, fixed=addr.filter(r=>r._fixed).length;
+  const base=(N-nonC)/N*100, est=score+((N-nonC-(excl-exclRed)+fixed)/(N-excl)*100-base);
+  const redOpen=addr.filter(r=>r._redOpen).length+hiddenRed;
+  document.getElementById('hiddenRed').textContent=hiddenRed?'… en nog '+hiddenRed+' adressen die bpost niet vond (lijst scrolt verder)':'';
+  const gc=(g,t)=>document.querySelector('[data-group="'+g+'"] [data-gcount]').textContent=t;
+  const redRows=addr.filter(r=>!r.dataset.cands), multiRows=addr.filter(r=>r.dataset.cands);
+  const redOpenG=redRows.filter(r=>r._redOpen).length+hiddenRed, multiOpen=multiRows.filter(r=>r._redOpen).length;
+  gc('red',redOpenG?redOpenG+' open · jouw input nodig':'alles opgelost');
+  gc('multi',multiOpen?multiOpen+' open · kies het juiste adres':'alles opgelost');
+  const propOpen=props.filter(r=>r._open).length; gc('prop',propOpen?propOpen+' open · tellen al mee als juist':'alles nagekeken');
+  gc('note',notes.length+' · tellen al mee als juist'); gc('ok',(N-nonC-props.length-notes.length)+' adressen');
+  const btn=document.querySelector('[data-accept-all]');btn.textContent=propOpen?'Overige '+propOpen+' voorstellen overnemen':'Alles nagekeken';btn.disabled=!propOpen;
+  btn.onclick=()=>{const e=[];props.forEach(r=>{if(r._showsProp){e.push([r,valsOf(r),false]);r._ins[0].value=r.dataset.prop}});pushUndo(e);update();showToast(e.length+(e.length===1?' voorstel':' voorstellen')+' overgenomen',e)};
+  const col=score<96?'#DC2626':score<98?'#F97316':'#16A34A';
+  document.getElementById('scoreN').textContent=fmt(score);
+  document.getElementById('ball').innerHTML='<circle cx="10" cy="10" r="8" fill="none" stroke="'+col+'" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="'+col+'"/>';
+  const pos=x=>Math.max(0,Math.min(100,(x-90)*10))+'%';
+  const ecol=est<96?'#DC2626':est<98?'#F97316':'#16A34A', moved=Math.abs(est-score)>=0.001;
+  const z=document.getElementById('zone');z.style.left='0';z.style.width=pos(Math.min(score,est));z.style.background=col;z.style.opacity='.85';
+  const ph=document.getElementById('phantom');ph.style.left=pos(Math.min(score,est));ph.style.width='calc('+pos(Math.max(score,est))+' - '+pos(Math.min(score,est))+')';ph.style.background=ecol;ph.hidden=!moved;
+  const dn=document.getElementById('dotNow');dn.style.left=pos(score);dn.style.background=col;
+  const de=document.getElementById('dotEst');de.style.left=pos(est);de.style.background=ecol;de.hidden=!moved;
+  document.getElementById('est').textContent=Math.abs(est-score)<0.001?'Nog geen aanpassingen sinds de laatste controle.':'Verwacht na jouw aanpassingen: '+fmt(est)+' (schatting; enkel bpost geeft de echte score).';
+  const rc=document.getElementById('recheck'), sb=document.getElementById('submit');
+  let adv;
+  if(score<96){rc.className='b primary';sb.className='b';sb.disabled=true;sb.dataset.tip='Eerst opnieuw controleren: de laatste score ligt onder 96%.';adv='De laatste score ligt onder 96%. Verbeter of sluit adressen uit en laat bpost opnieuw controleren.'}
+  else if(score<98){rc.className='b primary';sb.className='b';sb.disabled=false;delete sb.dataset.tip;adv='Je kan indienen, maar onder 98% krijg je geen korting voor datakwaliteit. Opnieuw controleren kan de score verhogen.'}
+  else{rc.className='b';sb.className='b primary';sb.disabled=false;delete sb.dataset.tip;adv='Klaar om in te dienen.'}
+  if(score>=96&&redOpen)adv+=redOpen===1?' Nog 1 adres zonder oplossing gaat mee zoals het is, of sluit het uit.':' Nog '+redOpen+' adressen zonder oplossing gaan mee zoals ze zijn, of sluit ze uit.';
+  document.getElementById('adv').textContent=adv;
+}
+const toast=document.getElementById('toast');let toastEntry=null,timer=null;
+function hideToast(){toast.hidden=true;toastEntry=null;clearTimeout(timer)}
+function showToast(text,e){toastEntry=e||null;toast.querySelector('span').textContent=text;toast.querySelector('button').hidden=!e;toast.hidden=false;clearTimeout(timer);timer=setTimeout(hideToast,8000)}
+toast.querySelector('button').onclick=()=>{if(toastEntry)undoEntry(toastEntry)};
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'&&!(e.target instanceof HTMLInputElement)){e.preventDefault();const f=document.activeElement;undoLast();if(f&&f.classList&&f.classList.contains('row'))f.focus()}});
+document.querySelectorAll('details > summary').forEach(sm=>{const d=sm.parentElement,lbl=sm.querySelector('[data-more]'),n=d.querySelectorAll('.row').length;
+  sm.addEventListener('keydown',e=>{const k=e.key.toLowerCase(),mod=e.metaKey||e.ctrlKey||e.altKey;
+    if(e.key==='ArrowDown'||(k==='j'&&!mod)){e.preventDefault();move(sm,1)}else if(e.key==='ArrowUp'||(k==='k'&&!mod)){e.preventDefault();move(sm,-1)}
+    else if(e.key==='ArrowRight'){e.preventDefault();d.open=true}else if(e.key==='ArrowLeft'){e.preventDefault();d.open=false}});
+  d.addEventListener('toggle',()=>{if(lbl&&n)lbl.textContent=(d.open?'Verberg':'Toon')+' de '+(n===2&&lbl.textContent.includes('de 2 rijen')?'2 rijen':n+' andere rijen');
+    const sec=d.closest('[data-group]');
+    if(d.open){const stop=sec.querySelector('.row[tabindex="0"]');if(!stop){const first=[...sec.querySelectorAll('.row')].find(r=>r.offsetParent!==null);if(first)setStop(first)}}
+    else{if(d.contains(document.activeElement)&&document.activeElement!==sm)sm.focus();const stop=sec.querySelector('.row[tabindex="0"]');if(stop&&stop.offsetParent===null){stop.tabIndex=-1;const first=[...sec.querySelectorAll('.row')].find(r=>r.offsetParent!==null);if(first)setStop(first)}}});
+});
+document.querySelectorAll('.scen button').forEach(b=>b.onclick=()=>{score=parseFloat(b.dataset.s);document.querySelectorAll('.scen button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));update()});
+document.getElementById('recheck').onclick=()=>showToast('Schets: de adrescontrole wordt opnieuw naar bpost gestuurd.');
+document.getElementById('submit').onclick=()=>showToast('Schets: hier begint stap 5, indienen.');
+document.getElementById('theme').onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark'};
+update();
+</script>
+</body>
+</html>
