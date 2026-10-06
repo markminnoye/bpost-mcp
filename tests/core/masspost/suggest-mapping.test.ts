@@ -92,6 +92,20 @@ describe('suggestColumnMapping', () => {
     expect(result.needsAi).toBe(false)
   })
 
+  it('maps French box headers (boîte, bte) onto the street block (SR-83)', () => {
+    const result = suggestColumnMapping({
+      headers: ['Nom', 'Rue', 'Boîte', 'Code postal', 'Ville'],
+      localeHints: ['fr'],
+    })
+    expect(result.mapping.streetHouseBox).toEqual(['Rue', 'Boîte'])
+
+    const abbrev = suggestColumnMapping({
+      headers: ['Nom', 'Rue', 'Bte', 'Code postal', 'Ville'],
+      localeHints: ['fr'],
+    })
+    expect(abbrev.mapping.streetHouseBox).toEqual(['Rue', 'Bte'])
+  })
+
   it('maps an optional company column without requiring it', () => {
     const result = suggestColumnMapping({
       headers: ['Naam', 'Bedrijf', 'Straat', 'Postcode', 'Plaats'],

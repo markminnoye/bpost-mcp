@@ -35,9 +35,12 @@ export const COUNTRY_NAME_MAX_LENGTH = 42
 /** Any block a source column can be mapped onto: the four unstructured blocks and the country. */
 export type AddressField = UnstructuredTarget | 'country'
 
-/** Official max length for the unstructured Comp fields (AFT columns U-X). Contrapunt's own
- *  tool used 42 without documented reason — we use the documented limit and report truncation
- *  instead of silently cutting text off. */
+/** Official max length for the unstructured Comp fields (AFT columns U-X). Confirmed 50
+ *  (Linear SR-82): Table 46 of the Mail-ID Data Exchange Technical Guide lists 50 for Comp
+ *  90-93, and so does the blank AFT template (columns U-X). The 42 belongs to the structured
+ *  fields (First/Last Name, Company) — Contrapunt's own tool used 42 without documented reason.
+ *  We use the documented limit and report truncation instead of silently cutting text off. If
+ *  bpost's own validation ever says 42, that wins and this goes back to 42. */
 export const UNSTRUCTURED_MAX_LENGTH = 50
 
 /** Source-column titles that feed each address block. */

@@ -62,6 +62,7 @@ Bpost leest een schuine streep niet als scheiding in de straat of in de postcode
 
 - **In de straat:** een huisnummer met een schuine streep wordt "bus". Zo wordt "Kerkstraat 12/3" "Kerkstraat 12 bus 3". Een andere schuine streep wordt een spatie.
 - **In de postcode en gemeente:** de schuine streep wordt een spatie. Zo wordt "9000/Gent" "9000 Gent".
+- **Bus, bte, boîte:** als busnummer herkennen we Nederlands "bus", Frans "boîte" en de afkorting "bte". Die laten we staan zoals ze er staan; een schuine streep schrijven we altijd als "bus".
 
 ## Te lang: afkortingen
 

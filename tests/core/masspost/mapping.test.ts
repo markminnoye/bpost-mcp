@@ -50,6 +50,20 @@ describe('mapRows', () => {
     expect(warnings.some((w) => w.field === 'name' && w.message.includes('ingekort'))).toBe(true)
   })
 
+  it('keeps a 43 to 50 character name intact, without a warning (SR-82)', () => {
+    const name = 'Vereniging Natuur- en Vogelbescherming Kortrijk'
+    expect(name.length).toBeGreaterThan(42)
+    expect(name.length).toBeLessThanOrEqual(50)
+    const rows = [
+      { Voornaam: name, Achternaam: '', Straat: 'S', Nummer: '1', Postcode: '1000', Gemeente: 'G' },
+    ]
+    const { rows: mapped, warnings } = mapRows(rows, mapping)
+
+    expect(mapped[0].fields.name.value).toBe(name)
+    expect(mapped[0].fields.name.truncated).toBe(false)
+    expect(warnings.filter((w) => w.field === 'name')).toHaveLength(0)
+  })
+
   it('warns on empty required fields instead of silently accepting them', () => {
     const rows = [
       { Voornaam: '', Achternaam: '', Straat: '', Nummer: '', Postcode: '1000', Gemeente: 'G' },

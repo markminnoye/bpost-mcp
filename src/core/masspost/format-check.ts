@@ -6,6 +6,7 @@
 // and address-file-tool.md (columns U-X). The customer-facing list of these rules is
 // docs/documentatie/webapp/formaatvalidatie.md. Pure and browser-safe: imports only charset and mapping.
 import { findUnsupportedChars, isBpostSafeCodePoint, normalizeForBpost } from './charset'
+import { BOX_CANONICAL } from './box-keywords'
 import {
   COUNTRY_NAME_MAX_LENGTH,
   UNSTRUCTURED_MAX_LENGTH,
@@ -28,7 +29,8 @@ export const REQUIRED_FIELDS: readonly UnstructuredTarget[] = ['name', 'streetHo
 /** Blocks where bpost forbids `/` as a separator (address-file-tool.md, columns W and X). */
 const NO_SLASH_FIELDS: readonly AddressField[] = ['streetHouseBox', 'postcodeCity']
 
-/** Maximum length per block: 50 for Comp 90-93, 42 for the country name (Table 46). */
+/** Maximum length per block: 50 for Comp 90-93, 42 for the country name (Table 46).
+ *  The 50 is confirmed (Linear SR-82): the blank AFT template (columns U-X) agrees. */
 function maxLengthOf(field: AddressField): number {
   return field === 'country' ? COUNTRY_NAME_MAX_LENGTH : UNSTRUCTURED_MAX_LENGTH
 }
@@ -143,9 +145,10 @@ function abbreviate(text: string, field: AddressField): string {
 
 /**
  * Proposes a value that passes `checkFieldValue`. Removes `|`, tabs, line breaks and emoji, swaps
- * characters via `normalizeForBpost`, collapses spaces, writes `12/3` as `12 bus 3` in the street
- * block, and abbreviates (`ABBREVIATIONS`) when the value is too long. The proposal is for the user
- * to confirm; nothing is applied here.
+ * characters via `normalizeForBpost`, collapses spaces, splits `12/3` into `12 bus 3` in the
+ * street block (the slash split writes the canonical box word `BOX_CANONICAL`, whatever the
+ * address language; French "bte" and "boîte" stay untouched), and abbreviates (`ABBREVIATIONS`)
+ * when the value is too long. The proposal is for the user to confirm; nothing is applied here.
  *
  * @param value Current value of the block.
  * @param field Unstructured block the value is sent in.
@@ -157,7 +160,7 @@ export function proposeFieldValue(value: string, field: AddressField): string | 
   let text = withoutEmoji(value.replace(/[|\t\r\n]+/g, ' '))
   text = normalizeForBpost(text).text
   if (field === 'streetHouseBox') {
-    text = text.replace(/(\d+[A-Za-z]?)\s*\/\s*([A-Za-z0-9]+)/g, '$1 bus $2')
+    text = text.replace(/(\d+[A-Za-z]?)\s*\/\s*([A-Za-z0-9]+)/g, `$1 ${BOX_CANONICAL} $2`)
   }
   if (NO_SLASH_FIELDS.includes(field)) text = text.replace(/\//g, ' ')
   text = text.replace(/ {2,}/g, ' ').trim()
