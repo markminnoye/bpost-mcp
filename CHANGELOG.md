@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OAuth-toegangstokens die nog op `https://bpost.sonicrocket.io` zijn uitgegeven blijven geldig via `AUTH_ACCEPTED_ISSUERS` (standaard die host). Nieuwe tokens worden ondertekend met de host van het verzoek. Op het `.app`-adres is dat de canonieke basis-URL.
 - **Tekencontrole:** ook ł, đ, œ, ı en het opsommingsteken (•) worden nu vervangen door een gewoon teken, ook in de scripts.
 - **Kolommen met een lege titel:** een kolom met een lege titel in de Excel verschuift de andere kolommen niet meer. Voordien kwamen de waarden dan onder de verkeerde titel.
+- **Rustiger uiterlijk van de website (proefversie):** grijze achtergrond met witte kaartjes, zachtere randen en zwarte knoppen in plaats van rode, in de stijl van Vercel. Op de laatste stap staat "Terug naar de formaatfouten" nu bovenaan, op dezelfde plek als "Verder" bij de andere stappen, i.p.v. links onderaan. De website start altijd in **lichte modus**, ook als je computer op donker staat; donker kies je met de knop linksonderaan. De tabs bovenaan (Importeren, Koppelen, …) blijven even breed als je van stap wisselt.
 
 **Oplossingen**
 
@@ -184,6 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `parseExcelAddresses` accepts an `ArrayBuffer` without `Buffer` (browser-safe) and returns `rowNumbers`. `mapping.joinColumns` is exported.
 - SheetJS Community Edition 0.20.3 (Apache 2.0, installed from `cdn.sheetjs.com`; the npm `xlsx` 0.18.5 is outdated) replaces exceljs for reading and writing workbooks (ADR 0005). Benchmarks: about half the memory, slightly faster, and identical cell values. Scripts (`apply-opti-corrections`, `build-compare-200`, `test-transport`, `generate-large-address-xlsx`) and tests now write via `fixtures/xlsx.ts`. exceljs is removed, and with it the moderate `uuid` advisory it pulled in.
 - Web-flow design: decision 43 (more than 25,000 addresses; POC measures up to 150,000) and decision 44 (SheetJS, .xlsx and .xls).
+- Masspost web interface (POC) follows Vercel's Geist look: grey page background (`#fafafa`) with white cards, softer borders, and a black primary button instead of the red brand colour (white in dark mode). On the last step, the back button moved from the bottom left to the header, next to where "Verder" sits on the other steps. The POC always starts in light mode (the system dark setting is ignored; dark only via the theme button, which now sits in a footer at the bottom left instead of the top bar). The step tabs keep a constant width: each label reserves its bold width, so selecting "Formaatvalidatie" no longer widens the others.
 
 ### Fixed
 

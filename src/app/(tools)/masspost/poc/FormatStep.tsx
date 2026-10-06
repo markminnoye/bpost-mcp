@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent } from 'react'
-import { IconChecks, IconChevronRight, IconDeviceFloppy, IconMailOff } from '@tabler/icons-react'
+import { IconArrowLeft, IconChecks, IconChevronRight, IconDeviceFloppy, IconMailOff } from '@tabler/icons-react'
 import { checkFieldValue, type FormatIssue } from '@/core/masspost/format-check'
 import { UNSTRUCTURED_MAX_LENGTH } from '@/core/masspost/mapping'
 import { ADDRESS_FIELDS, FIELD_LABELS, formatCount } from './columns'
@@ -365,12 +365,24 @@ export function FormatStep({
   if (done) {
     return (
       <section aria-labelledby="done-title">
-        <h1 className={styles.t} id="done-title">
-          Adrescontrole
-        </h1>
-        <p className={styles.m}>
-          Je lijst voldoet aan de regels van bpost. De adrescontrole bij bpost zit nog niet in deze proefversie.
-        </p>
+        <div className={styles.hd}>
+          <div>
+            <h1 className={styles.t} id="done-title">
+              Adrescontrole
+            </h1>
+            <p className={styles.m}>
+              Je lijst voldoet aan de regels van bpost. De adrescontrole bij bpost zit nog niet in deze proefversie.
+            </p>
+          </div>
+          {issues.length > 0 && (
+            <div className={styles.tg}>
+              <button type="button" className={`${styles.b} ${styles.withIcon}`} onClick={() => onDone(false)}>
+                <IconArrowLeft size={14} stroke={1.75} aria-hidden="true" />
+                Terug naar de formaatfouten
+              </button>
+            </div>
+          )}
+        </div>
         <div className={styles.saveCards}>
           <section className={styles.saveCard} aria-labelledby="save-aft">
             <h2 className={styles.gn} id="save-aft">
@@ -409,13 +421,6 @@ export function FormatStep({
             </button>
           </section>
         </div>
-        {issues.length > 0 && (
-          <div className={styles.actions}>
-            <button type="button" className={styles.b} onClick={() => onDone(false)}>
-              Terug naar de formaatfouten
-            </button>
-          </div>
-        )}
       </section>
     )
   }

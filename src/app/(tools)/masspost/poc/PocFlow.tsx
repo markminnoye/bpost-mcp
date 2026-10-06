@@ -63,7 +63,7 @@ export function PocFlow({ docsUrl, aiModel }: { docsUrl?: string; aiModel?: stri
   const [checkedFor, setCheckedFor] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
   const [measurement, setMeasurement] = useState<Measurement | null>(null)
-  const [theme, setTheme] = useState<'light' | 'dark' | undefined>()
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [formatTotals, setFormatTotals] = useState({ open: 0, excludedRows: 0 })
   const [ai, setAi] = useState<AiState>({ on: false, busy: false })
   const checkedAt = useRef(0)
@@ -231,8 +231,7 @@ export function PocFlow({ docsUrl, aiModel }: { docsUrl?: string; aiModel?: stri
   }
 
   function toggleTheme() {
-    const dark = theme ? theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
-    setTheme(dark ? 'light' : 'dark')
+    setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
   // Format step and step 4 share one component. It stays mounted on the other steps (hidden), so
@@ -244,18 +243,11 @@ export function PocFlow({ docsUrl, aiModel }: { docsUrl?: string; aiModel?: stri
       <main className={styles.main}>
         <div className={styles.top}>
           <StepBar current={step} status={stepStatus} progress={progress} reachable={reachable} onGo={setStep} />
-          <div className={styles.topRight}>
-            {pills.length > 0 && <MetaPills pills={pills} />}
-            <button
-              type="button"
-              className={`${styles.ib} ${styles.tipBelow}`}
-              data-tip="Wissel tussen licht en donker"
-              aria-label="Wissel tussen licht en donker"
-              onClick={toggleTheme}
-            >
-              <IconSunMoon size={15} stroke={1.75} aria-hidden="true" />
-            </button>
-          </div>
+          {pills.length > 0 && (
+            <div className={styles.topRight}>
+              <MetaPills pills={pills} />
+            </div>
+          )}
         </div>
 
         {step === 'upload' && <UploadStep onLoaded={onLoaded} />}
@@ -297,6 +289,17 @@ export function PocFlow({ docsUrl, aiModel }: { docsUrl?: string; aiModel?: stri
 
         <MeasurePanel measurement={measurement} />
       </main>
+      <footer className={styles.footer}>
+        <button
+          type="button"
+          className={`${styles.ib} ${styles.tipStart}`}
+          data-tip="Wissel tussen licht en donker"
+          aria-label="Wissel tussen licht en donker"
+          onClick={toggleTheme}
+        >
+          <IconSunMoon size={15} stroke={1.75} aria-hidden="true" />
+        </button>
+      </footer>
     </div>
   )
 }

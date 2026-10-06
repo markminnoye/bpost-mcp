@@ -53,7 +53,7 @@ export function StepBar({
           const content = (
             <>
               <HarveyBall fill={step.fill} color={color} />
-              <span>
+              <span className={styles.stepLabel} data-label={`${index + 1}. ${step.label}`}>
                 {index + 1}. {step.label}
               </span>
               <span className={styles.srOnly}>, {done} % klaar</span>
