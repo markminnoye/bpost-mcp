@@ -120,6 +120,7 @@ See `.agent/plans/INDEX.md` for details.
 - **New focus:** a reusable library (`src/core/masspost/`) for the bpost e-MassPost integration, with a **web interface** (not MCP) for Contrapunt. See [Bpost e-MassPost library + webapp](.agent/plans/2026-09-28-bpost-library-web-app.md). **API/library first, UI second** — never the reverse. Interfaces stay thin and replaceable.
 - **MAIL ID protocol (locked 28/09/2026):** Contrapunt default **version 2.00 (`0200`)** — live portal Status 100. Dual-support `0100`/`0102` via `midVersion`.
 - **Path (locked 29/09/2026):** send `MailingRequest` XML over **FTP**; validate addresses with **OptiAddress** (`MailingCheck`, corrections as message 7001). Do not build the local AFT skill in `.agent/plans/2026-09-26-contrapunt-aft-address-prep.md` (stub). Living plan: `.agent/plans/2026-09-28-bpost-library-web-app.md`.
+- **AFT vs OptiAddress (locked 07/10/2026):** the Address File Tool does **not** return address corrections or suggestions. AFT = template/export/import + mailing-create response (MID / sorting / `FEEDBACK` status codes). Corrections and proposals = **OptiAddress** (`MailingCheck`, e.g. `7001` / `compCorrection`) or Address Proofing. Agents must not treat AFT as a correction product. Protocol docs: `docs/internal/e-masspost/docs/schemas/address-file-tool.md`, `…/flows/optiaddress-flows.md`, `…/reference/address-validation-products.md`.
 - **How to run / extend the library:** `docs/internal/masspost-library.md`.
 
 ### Available Agent Skills

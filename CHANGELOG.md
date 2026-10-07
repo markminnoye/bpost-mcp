@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Aanpassingen**
 
+- **AFT ≠ OptiAddress (documentatie):** de Address File Tool geeft **geen** adrescorrecties of voorstellen — dat is enkel OptiAddress (`MailingCheck`, o.a. `7001` / `compCorrection`) of Address Proofing. Verkeerde claims in de protocol-naslag (`field-findings`, OptiAddress-flows) en een aanname in het library-plan zijn rechtgezet; locked rule in `AGENTS.md`. Skills-submodule bijgewerkt.
 - **`POST /api/masspost/suggest-mapping` heeft een nieuw contract**, zonder overgang (er waren geen gebruikers). De route vraagt altijd het model en verwacht kolommen met gemaskeerde voorbeelden; de oude vorm met enkel kolomtitels, eerst de regels en AI alleen bij twijfel, is weg. De regels blijven als library-functie (`suggestColumnMapping`).
 - **Geen aparte indeling meer voor Contrapunt.** Contrapunt heeft geen vaste Excel-export, dus `suggestColumnMapping` herkent enkel nog de AFT van bpost als indeling (`preset: 'aft'`). Het voorbeeldbestand van Contrapunt krijgt via de synoniemen dezelfde koppeling. `presetId` is geschrapt: de AFT wordt altijd aan de titels herkend.
 - `npm run test:transport -- --ftp --debug` (of `--ftp-only --debug`): volledige FTP-diagnostiek voor Connection & Security Test — egress-IP, DNS, TCP/:21, AUTH TLS-certificaatprobe, openssl-chain, control-channel transcript — plus rapport zonder wachtwoorden in `docs/samples/contrapunt/generated/ftp-debug-*.md`. FTP gebruikt nu de canonieke `MID_…_0RQ.XML`-bestandsnaam.
@@ -168,6 +169,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **AFT vs OptiAddress docs:** locked in `AGENTS.md` that AFT does not return address corrections/suggestions; OptiAddress (`MailingCheck`) / Address Proofing do. Protocol submodule docs clarified; living plan corrected the earlier AFT-corrections assumption.
 - **Breaking:** `POST /api/masspost/suggest-mapping` request is now `{ columns: [{ header, filled, examples }], rowCount, localeHints? }` (unique headers, max 100 columns, max 5 examples of max 200 characters); the response is `{ mapping: { name, companyDepartment, streetHouseBox, postcodeCity, country }, context, ignore }`. The heuristic branch, `source`, `needsAi` and the `suggestion` field in error bodies are gone; errors are 400/401/403/422/502/503 with `code` on AI failures. `suggestColumnMappingWithAi`, `buildSuggestMappingUserPrompt`, `columnMappingFromModelOutput` and `SUGGEST_MAPPING_SYSTEM_PROMPT` are replaced by `suggestColumnRolesWithAi` and `SUGGEST_MAPPING_INSTRUCTIONS`. `generateObject` (deprecated in AI SDK 7) is replaced by `generateText` with `output`.
 - DEC-008 rewritten (AI on request, with column titles and masked examples), Q-007 updated; web-flow decision 61; AI plan updated (backend done, interface next).
 - Removed the Contrapunt preset: `presets/contrapunt-export.ts` is gone and `MappingPresetId` is `'aft'` only. The sample file's columns live on as the test fixture `CONTRAPUNT_SAMPLE_COLUMN_MAPPING` (`fixtures/contrapunt-sample.ts`, used by the scripts and tests); the heuristic maps those titles to the same mapping. `presetId` is removed from `SuggestColumnMappingInput`.
@@ -193,6 +195,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Protocol docs (skills submodule): removed incorrect claims that portal AFT returns corrected address columns or suggestions; AFT response is MID/sorting/`FEEDBACK` codes only (`address-file-tool.md`, `optiaddress-flows.md`, `field-findings.md`, `address-validation-products.md`).
 - `parseExcelAddresses`: a column with an empty header no longer shifts the following columns onto the wrong header (the exceljs reader compacted the header list but kept reading by position).
 - FTPS to bpost: `filetransfer.bpost.be` omits its intermediate certificate (GEANT TLS RSA 1), so Node stopped with "unable to verify the first certificate" before login. `sendXmlViaFtp` now adds that intermediate to Node's default roots (`src/core/masspost/transport/bpost-ca.ts`, SHA-256 pinned in a test). It is signed by HARICA TLS RSA Root CA 2021, which Node already trusts. Verified with a TLS handshake against the live server, no login.
 - `docs/gitbook-docs.yaml` was invalid for GitBook (`site.structure.0`): sections use `children` instead of `spaces`, and every `key` must be unique across the file. As a result the tab structure was never published.
