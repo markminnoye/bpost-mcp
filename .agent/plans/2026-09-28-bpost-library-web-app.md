@@ -222,7 +222,7 @@ Generate: `npm run generate:mailing-xml [-- --limit N] [-- --opti]`
 - **MailingCreate** → MID-nummer + vaak **MID-4060** (WARN), geen correctietekst.
 - **MailingCheck (Opti)** → correcties als **7001** / `compCorrection`, niet als AFT-kolommen en niet als `<Suggestions>`.
 
-Frank ziet bij een AFT-upload meteen correcties. Dat is het gedrag van de portaal-tool, niet ons verzendkanaal. Wie het verschil wil meten: `docs/samples/contrapunt/testadressen-200-aft.xls` en `npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx` (zelfde 200 adressen).
+**Correctie (07/10/2026):** AFT geeft **geen** adrescorrecties of voorstellen. Een eerdere aanname (“Frank ziet bij een AFT-upload meteen correcties”) was een **misattributie** — dat hoort bij OptiAddress / `MailingCheck`, niet bij de Address File Tool. AFT-antwoord = o.a. MID, sorting en `FEEDBACK`-statuscodes (`MID-4030` / `MID-4010`). Optionele AFT-vs-XML-meting blijft mogelijk op dezelfde 200 adressen (`docs/samples/contrapunt/testadressen-200-aft.xls` vs `npm run generate:mailing-xml -- --file docs/samples/contrapunt/testadressen-200.xlsx`), maar meet geen correctiekolommen in AFT.
 
 ### Eerste test-flow (29/09, avond)
 
