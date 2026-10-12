@@ -28,8 +28,11 @@ export type MailingChange = Partial<
   >
 >
 
-/** A row of the list, or a mailing that cannot be read (shown as "Kan deze mailing niet lezen"). */
-export type MailingListItem = { ok: true; summary: MailingSummary } | { ok: false; id: string }
+/**
+ * A row of the list, or a mailing that cannot be read (shown as "Kan deze mailing niet lezen"). An
+ * unreadable mailing still gives its `code` when that field is readable: the code stays taken.
+ */
+export type MailingListItem = { ok: true; summary: MailingSummary } | { ok: false; id: string; code?: string }
 
 /**
  * Where mailings live. v1: IndexedDB in the browser; later Google Drive (ADR 0007), behind the same
@@ -91,6 +94,14 @@ export class StoreUnavailableError extends Error {
   constructor(cause?: unknown) {
     super('Mailing storage is not available.', { cause })
     this.name = 'StoreUnavailableError'
+  }
+}
+
+/** The storage is full (in the browser: `QuotaExceededError`). Not the same as unavailable. */
+export class StoreFullError extends Error {
+  constructor(cause?: unknown) {
+    super('Mailing storage is full.', { cause })
+    this.name = 'StoreFullError'
   }
 }
 

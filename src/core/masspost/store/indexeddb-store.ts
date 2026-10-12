@@ -3,6 +3,7 @@ import {
   CodeTakenError,
   MailingNotFoundError,
   RevisionConflictError,
+  StoreFullError,
   StoreUnavailableError,
   UnreadableMailingError,
   applyChange,
@@ -28,6 +29,11 @@ function done<T>(request: IDBRequest<T>): Promise<T> {
   })
 }
 
+/** A failed write: full storage gets its own error, everything else is "unavailable". */
+function writeError(e: unknown): Error {
+  return (e as { name?: unknown } | null)?.name === 'QuotaExceededError' ? new StoreFullError(e) : new StoreUnavailableError(e)
+}
+
 function finished(tx: IDBTransaction): Promise<void> {
   return new Promise((resolve, reject) => {
     tx.oncomplete = () => resolve()
@@ -37,10 +43,11 @@ function finished(tx: IDBTransaction): Promise<void> {
 }
 
 const idOf = (raw: unknown) => String((raw as { id?: unknown } | undefined)?.id ?? '?')
-const sameCode = (raw: unknown, lowerCode: string) => {
+const codeOf = (raw: unknown) => {
   const code = (raw as { code?: unknown } | undefined)?.code
-  return typeof code === 'string' && code.toLowerCase() === lowerCode
+  return typeof code === 'string' ? code : undefined
 }
+const sameCode = (raw: unknown, lowerCode: string) => codeOf(raw)?.toLowerCase() === lowerCode
 
 /**
  * `MailingStore` in the browser's IndexedDB (v1, SR-112 v1 decision 2). Stays on this device only.
@@ -102,7 +109,7 @@ export class IndexedDbMailingStore implements MailingStore {
     const all = await done(db.transaction('mailings').objectStore('mailings').getAll())
     return all.map((raw) => {
       const parsed = mailingSchema.safeParse(raw)
-      return parsed.success ? { ok: true as const, summary: summarize(parsed.data) } : { ok: false as const, id: idOf(raw) }
+      return parsed.success ? { ok: true as const, summary: summarize(parsed.data) } : { ok: false as const, id: idOf(raw), code: codeOf(raw) }
     })
   }
 
@@ -138,7 +145,7 @@ export class IndexedDbMailingStore implements MailingStore {
       await ended
     } catch (e) {
       if (taken) throw new CodeTakenError(input.details.code)
-      throw new StoreUnavailableError(e)
+      throw writeError(e)
     }
     return m
   }
@@ -192,7 +199,7 @@ export class IndexedDbMailingStore implements MailingStore {
     try {
       await ended
     } catch (e) {
-      throw failure ?? new StoreUnavailableError(e)
+      throw failure ?? writeError(e)
     }
     return result!
   }

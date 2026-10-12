@@ -105,6 +105,13 @@ const envSchema = z.object({
   MASSPOST_SUGGEST_MAPPING_MODEL: z.string().optional(),
   /** Optional AI Gateway key. On Vercel, OIDC can authenticate when this is unset. */
   AI_GATEWAY_API_KEY: z.string().optional(),
+
+  /**
+   * Base64 key (32 bytes) for the bpost passwords in the database (AES-256-GCM, `src/lib/crypto.ts`).
+   * Optional here so the app boots without it; saving bpost settings fails with a clear message.
+   * The MCP code (`src/lib/tenant/get-credentials.ts`, `resolve.ts`) still reads `process.env`.
+   */
+  ENCRYPTION_KEY: z.string().min(1).optional(),
 })
 
 // Use safeParse to provide better error messages if validation fails
@@ -130,6 +137,7 @@ const result = envSchema.safeParse({
   BPOST_FTP_SECURE: process.env.BPOST_FTP_SECURE,
   MASSPOST_SUGGEST_MAPPING_MODEL: process.env.MASSPOST_SUGGEST_MAPPING_MODEL,
   AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY,
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || undefined,
 })
 
 if (!result.success) {

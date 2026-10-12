@@ -130,11 +130,11 @@ export function RowMenu({
               Archiveren
             </button>
           )}
-          <Placeholder className={styles.menuItem} tip="Komt later, samen met het indienen bij bpost">
+          <Placeholder role="menuitem" className={styles.menuItem} tip="Komt later, samen met het indienen bij bpost">
             <IconTruckDelivery {...ICON} />
             Afgegeven markeren
           </Placeholder>
-          <Placeholder className={styles.menuItem} tip="Komt later, samen met het indienen bij bpost">
+          <Placeholder role="menuitem" className={styles.menuItem} tip="Komt later, samen met het indienen bij bpost">
             <IconX {...ICON} />
             Intrekken
           </Placeholder>

@@ -125,6 +125,8 @@ function OpenMailing({
   const router = useRouter()
   const { store, user } = useMailingStore()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [archiveFailed, setArchiveFailed] = useState(false)
+  const moreButton = useRef<HTMLButtonElement>(null)
   const [blocked, setBlocked] = useState<string | null>(null)
   const wrap = useRef<HTMLDivElement>(null)
   const dialog = useRef<HTMLDialogElement>(null)
@@ -155,59 +157,81 @@ function OpenMailing({
   async function archive() {
     setMenuOpen(false)
     await saver.flush()
-    await store.archive(mailing.id, user.email)
+    try {
+      await store.archive(mailing.id, user.email)
+    } catch {
+      setArchiveFailed(true)
+      return
+    }
     router.push('/archief')
   }
 
   const header = (
-    <PageHeader
-      title={
-        <>
-          {saver.mailing.title} <span className={styles.code}>{saver.mailing.code}</span>
-        </>
-      }
-      actions={
-        <div className={styles.menuWrap} ref={wrap}>
-          <button
-            type="button"
-            className={styles.more}
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            aria-label={`Acties voor ${mailing.code}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <IconDots {...ICON} />
-          </button>
-          {menuOpen && (
-            <div
-              className={styles.menu}
-              role="menu"
+    <>
+      <PageHeader
+        title={
+          <>
+            {saver.mailing.title} <span className={styles.code}>{saver.mailing.code}</span>
+          </>
+        }
+        actions={
+          <div className={styles.menuWrap} ref={wrap}>
+            <button
+              ref={moreButton}
+              type="button"
+              className={styles.more}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
               aria-label={`Acties voor ${mailing.code}`}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') setMenuOpen(false)
-              }}
+              onClick={() => setMenuOpen(!menuOpen)}
             >
-              <button
-                type="button"
-                role="menuitem"
-                className={styles.menuItem}
-                onClick={() => {
-                  setMenuOpen(false)
-                  void leave(detailsHref)
+              <IconDots {...ICON} />
+            </button>
+            {menuOpen && (
+              <div
+                className={styles.menu}
+                role="menu"
+                aria-label={`Acties voor ${mailing.code}`}
+                onKeyDown={(e) => {
+                  const items = [...e.currentTarget.querySelectorAll<HTMLElement>('[role=menuitem]')]
+                  const i = items.indexOf(document.activeElement as HTMLElement)
+                  if (e.key === 'Escape') {
+                    e.preventDefault()
+                    setMenuOpen(false)
+                    moreButton.current?.focus()
+                  } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault()
+                    items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
+                  }
                 }}
               >
-                <IconPencil {...ICON} />
-                Gegevens aanpassen
-              </button>
-              <button type="button" role="menuitem" className={styles.menuItem} onClick={() => void archive()}>
-                <IconArchive {...ICON} />
-                Archiveren
-              </button>
-            </div>
-          )}
-        </div>
-      }
-    />
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={styles.menuItem}
+                  onClick={() => {
+                    setMenuOpen(false)
+                    void leave(detailsHref)
+                  }}
+                >
+                  <IconPencil {...ICON} />
+                  Gegevens aanpassen
+                </button>
+                <button type="button" role="menuitem" className={styles.menuItem} onClick={() => void archive()}>
+                  <IconArchive {...ICON} />
+                  Archiveren
+                </button>
+              </div>
+            )}
+          </div>
+        }
+      />
+      {archiveFailed && (
+        <p className={styles.err} role="alert">
+          Archiveren lukte niet. Probeer het opnieuw.
+        </p>
+      )}
+    </>
   )
 
   return (

@@ -120,8 +120,13 @@ export function MailingList({ archived }: { archived: boolean }) {
       text: archive ? `${m.code} is gearchiveerd` : `${m.code} staat terug bij Mailings`,
       undo: async () => {
         setToast(null)
-        if (archive) await store.restore(m.id, user.email)
-        else await store.archive(m.id, user.email)
+        try {
+          if (archive) await store.restore(m.id, user.email)
+          else await store.archive(m.id, user.email)
+        } catch {
+          setToast({ text: 'Ongedaan maken lukte niet. Probeer het via het menu … van de mailing.' })
+          return
+        }
         await reload()
       },
     })
@@ -275,14 +280,11 @@ export function MailingList({ archived }: { archived: boolean }) {
                 Kan deze mailing niet lezen.
               </div>
             ))}
-            {load.state === 'ok' && rows.length === 0 && (
+            {/* Without a search, an empty list here holds only unreadable mailings: they are the content. */}
+            {load.state === 'ok' && rows.length === 0 && query.trim() && (
               <div className={styles.state}>
                 <h2>Geen mailings gevonden</h2>
-                <p>
-                  {query.trim()
-                    ? `Niets past bij “${query.trim()}”. Zoek op code, titel of klant.`
-                    : 'Hier komen de mailings die je archiveert.'}
-                </p>
+                <p>{`Niets past bij “${query.trim()}”. Zoek op code, titel of klant.`}</p>
               </div>
             )}
             {rows.map((m) => (

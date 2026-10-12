@@ -44,3 +44,7 @@ export function useMailingStore(): { store: MailingStore; user: { email: string 
 /** The message when the browser cannot store anything (SR-112 v1 spec §4). */
 export const STORE_UNAVAILABLE_MESSAGE =
   'Je browser bewaart hier niets, mogelijk omdat dit een privévenster is. Open de app in een venster zonder privémodus.'
+
+/** The message when the browser's storage is full: a write failed for lack of room. */
+export const STORE_FULL_MESSAGE =
+  'De opslag van je browser is vol. Maak ruimte vrij op je computer en probeer het opnieuw.'

@@ -48,8 +48,8 @@ Je neemt het werk over aan de webapp van **bpost-mcp** (Next.js 16 App Router, R
 1. **Review van Mark** van v1; daarna SR-112 in Linear op In review en de acceptatiecriteria bijwerken (zie "SR-112 bijwerken" in het SR-112-plan).
 2. **Bestandsformaten** (Q-014 in `docs/projectdossier/open-vragen.md`): .ods en .xlsm gebouwd (Mark, 12/10). CSV pas na antwoord van Contrapunt, met herkenning van scheidingsteken (`;` of `,`) en tekenset (Windows-1252 of UTF-8).
 3. **Mijlpaal 2** (apart plan maken met `superpowers:brainstorming` → spec → `writing-plans`): `DriveMailingStore`, Google Identity Services, login per Workspace-domein en `tenant:add`, overzetten van IndexedDB naar Drive. Mark moet in Google Cloud de Drive API en de toestemming `drive` zetten en een gedeelde drive maken in `sonicrocket.be`.
-4. **Uitgestelde kleine punten** uit de review: codevoorstel kan blijven hangen op een code van een onleesbare mailing; in dev wordt bij openen één keer extra bewaard (StrictMode); verkeerde tekst bij een lijst met enkel onleesbare mailings; geen try/catch bij archiveren en ongedaan maken; volle opslag toont de melding over het privévenster; correcties van minder dan 2 s gaan verloren bij herladen; wachtwoordveld blijft verplicht na de eerste bewaring tot herladen; mogelijke doorverwijslus zonder tenant; instellingen twee keer opgehaald per pagina (`cache()`); toegankelijkheid (rol van plaatshouders in menu's, pijltjestoetsen in het menu van een mailing, focus in het paneel); `ENCRYPTION_KEY` niet via `env.ts` en geen `server-only` in `settings.ts`; na een mislukt tweede bestand blijft "Verder" actief voor het vorige; geen `error.tsx` onder `(app)`.
-5. `npm run check:hardcoded` faalt op een commentaarregel die al bestond in `src/lib/oauth/resource-url.ts`.
+4. **Uitgestelde kleine punten** (✅ opgelost 12/10, zie "Opruimronde" onderaan) uit de review: codevoorstel kan blijven hangen op een code van een onleesbare mailing; in dev wordt bij openen één keer extra bewaard (StrictMode); verkeerde tekst bij een lijst met enkel onleesbare mailings; geen try/catch bij archiveren en ongedaan maken; volle opslag toont de melding over het privévenster; correcties van minder dan 2 s gaan verloren bij herladen; wachtwoordveld blijft verplicht na de eerste bewaring tot herladen; mogelijke doorverwijslus zonder tenant; instellingen twee keer opgehaald per pagina (`cache()`); toegankelijkheid (rol van plaatshouders in menu's, pijltjestoetsen in het menu van een mailing, focus in het paneel); `ENCRYPTION_KEY` niet via `env.ts` en geen `server-only` in `settings.ts`; na een mislukt tweede bestand blijft "Verder" actief voor het vorige; geen `error.tsx` onder `(app)`.
+5. ✅ `npm run check:hardcoded` slaagt weer (commentaar in `src/lib/oauth/resource-url.ts` herschreven).
 6. De submodule `docs/internal/e-masspost` heeft lokale wijzigingen die niet bij dit werk horen; niet mee committen.
 
 ## Reviewronde 1 (Mark, 12/10), verwerkt
@@ -65,4 +65,11 @@ Je neemt het werk over aan de webapp van **bpost-mcp** (Next.js 16 App Router, R
 - .xlsm en .ods (library `address-file.ts`).
 - `suppressHydrationWarning` op `<html>` (attributen van browserextensies, bv. Scribe).
 - AI-voorstel bij Koppelen: ticket [SR-124](https://linear.app/sonicrocket/issue/SR-124).
-- Open: wat stap 4 (Adrescontrole) toont zolang er geen antwoord van bpost is. Dit moet nog ontworpen worden.
+- Stap 4 (Adrescontrole): het ontwerp bestaat al, `docs/ontwerp/webapp/adrescontrole.html` (Mark, 12/10). Basis voor SR-80.
+
+## Opruimronde (12/10), verwerkt
+
+Alle punten van "Uitgestelde kleine punten" hierboven. Bewust beperkt:
+- `ENCRYPTION_KEY` staat in `env.ts` (optioneel), maar `src/lib/tenant/get-credentials.ts` en `resolve.ts` (MCP, gepauzeerd) lezen nog `process.env`: hun tests zetten de sleutel pas tijdens het draaien.
+- De reset `font: inherit` op knoppen in de shell weegt zwaarder dan één klasse. Een `:where()`-versie zou de knoppen in de flow 12 px maken; niet aangepast zonder akkoord van Mark.
+- `server-only` is een nieuwe dependency (`src/lib/tenant/settings.ts`).

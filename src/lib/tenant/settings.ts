@@ -1,3 +1,5 @@
+import 'server-only'
+import { cache } from 'react'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { bpostCredentials, tenantPreferences, tenants } from '@/lib/db/schema'
@@ -26,11 +28,13 @@ const pick = <T extends string>(value: string | null | undefined, allowed: reado
   allowed.includes(value as T) ? (value as T) : fallback
 
 /**
- * Reads the settings of a tenant.
+ * Reads the settings of a tenant, once per request: the layout and the page both ask (React `cache`).
  * @param tenantId The tenant.
  * @returns The settings, or null when the tenant does not exist.
  */
-export async function getTenantSettings(tenantId: string): Promise<TenantSettings | null> {
+export const getTenantSettings = cache(readTenantSettings)
+
+async function readTenantSettings(tenantId: string): Promise<TenantSettings | null> {
   const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1)
   if (!tenant) return null
   const [prefs] = await db.select().from(tenantPreferences).where(eq(tenantPreferences.tenantId, tenantId)).limit(1)

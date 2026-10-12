@@ -70,7 +70,10 @@ export function AppShell({ tenantName, user, children }: { tenantName: string; u
       />
       <div className={styles.scrim} onClick={closePanel} aria-hidden="true" />
       <PanelContext.Provider value={{ open: openPanel }}>
-        <main className={styles.content}>{children}</main>
+        {/* With the panel open, the page behind it is out of reach (focus stays in the panel). */}
+        <main className={styles.content} inert={panelOpen || undefined}>
+          {children}
+        </main>
       </PanelContext.Provider>
     </div>
   )

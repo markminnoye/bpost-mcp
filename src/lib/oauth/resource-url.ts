@@ -67,7 +67,7 @@ export function oauthResourcesMatchForToken(
 
 /**
  * Authorization may run on the canonical Host (e.g. custom domain) while
- * `POST /oauth/token` uses another public URL (e.g. `*.vercel.app`). Resource
+ * `POST /oauth/token` uses another public URL (e.g. the default deployment host). Resource
  * binding must still succeed when both map to the same app — try the incoming
  * request origin first, then {@link env.NEXT_PUBLIC_BASE_URL} (set the latter to
  * your canonical URL in Vercel Production).

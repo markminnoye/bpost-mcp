@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach } from 'vitest'
 import type { ReactNode } from 'react'
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { MemoryMailingStore } from '@/core/masspost/store/memory-store'
-import type { MailingStore } from '@/core/masspost/store/mailing-store'
+import { StoreFullError, type MailingStore } from '@/core/masspost/store/mailing-store'
 import { MailingStoreContext } from '@/components/mailings/MailingStoreProvider'
 import { useMailingSaver } from '@/components/mailing-flow/useMailingSaver'
 import { newInput } from '../../core/masspost/store/mailing-store-contract'
@@ -59,5 +59,39 @@ describe('useMailingSaver', () => {
     })
     expect(result.current.hasUnsaved()).toBe(false)
     expect((await store.get(mailing.id))?.excludedRows).toEqual([4])
+  })
+
+  it('saves a waiting change right away when the page is hidden (reload, closing the tab)', async () => {
+    const store = new MemoryMailingStore()
+    const mailing = await store.create(newInput(), new Blob([]), 'an@x.be')
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <MailingStoreContext.Provider value={{ store, user: { email: 'an@x.be' } }}>{children}</MailingStoreContext.Provider>
+    )
+    const { result } = renderHook(() => useMailingSaver(mailing), { wrapper })
+    act(() => result.current.saveSoon({ excludedRows: [7] }, 'format-edited'))
+    await act(async () => {
+      window.dispatchEvent(new Event('pagehide'))
+      await new Promise((r) => setTimeout(r, 0))
+    })
+    expect((await store.get(mailing.id))?.excludedRows).toEqual([7])
+  })
+
+  it('tells when saving failed because the storage is full', async () => {
+    class FullStore extends MemoryMailingStore {
+      override async update(): Promise<never> {
+        throw new StoreFullError()
+      }
+    }
+    const store = new FullStore()
+    const mailing = await store.create(newInput(), new Blob([]), 'an@x.be')
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <MailingStoreContext.Provider value={{ store, user: { email: 'an@x.be' } }}>{children}</MailingStoreContext.Provider>
+    )
+    const { result } = renderHook(() => useMailingSaver(mailing), { wrapper })
+    await act(async () => {
+      await result.current.save({ excludedRows: [1] }, 'format-edited')
+    })
+    expect(result.current.state).toBe('error')
+    expect(result.current.full).toBe(true)
   })
 })

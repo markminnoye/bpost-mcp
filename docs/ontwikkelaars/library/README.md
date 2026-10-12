@@ -14,6 +14,7 @@
 - [MemoryMailingStore](classes/MemoryMailingStore.md)
 - [MissingCredentialsError](classes/MissingCredentialsError.md)
 - [RevisionConflictError](classes/RevisionConflictError.md)
+- [StoreFullError](classes/StoreFullError.md)
 - [StoreUnavailableError](classes/StoreUnavailableError.md)
 - [UnreadableMailingError](classes/UnreadableMailingError.md)
 

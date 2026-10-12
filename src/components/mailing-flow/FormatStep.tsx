@@ -149,12 +149,11 @@ export function FormatStep({
   // Report changes to save them; the first render is the starting point, not a change.
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
-  const firstState = useRef(true)
+  // Compared with the last reported state, not a "first run" flag: StrictMode runs the effect twice.
+  const reported = useRef({ values: state.values, excluded: state.excluded })
   useEffect(() => {
-    if (firstState.current) {
-      firstState.current = false
-      return
-    }
+    if (reported.current.values === state.values && reported.current.excluded === state.excluded) return
+    reported.current = { values: state.values, excluded: state.excluded }
     onChangeRef.current?.({ values: state.values, excluded: state.excluded })
   }, [state.values, state.excluded])
 

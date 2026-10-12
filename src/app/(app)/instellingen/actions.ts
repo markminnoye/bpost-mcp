@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db/client'
 import { bpostCredentials, tenantPreferences, tenants } from '@/lib/db/schema'
+import { env } from '@/lib/config/env'
 import { encrypt } from '@/lib/crypto'
 import { bpostCredentialsSchema, defaultsSchema, organisationSchema } from '@/lib/tenant/settings-schema'
 
@@ -95,7 +96,7 @@ export async function saveBpost(_prev: SettingsResult, formData: FormData): Prom
     }
   }
   const { password, ...fields } = parsed.data
-  const key = process.env.ENCRYPTION_KEY
+  const key = env.ENCRYPTION_KEY
   if (!key) return { ok: false, error: 'Bewaren lukt nu niet. Probeer het later opnieuw.' }
 
   // Same steps as saveCreds on the former dashboard: update when a row exists, insert otherwise.
@@ -116,5 +117,7 @@ export async function saveBpost(_prev: SettingsResult, formData: FormData): Prom
       .insert(bpostCredentials)
       .values({ tenantId, ...fields, passwordEncrypted: secret.ciphertext, passwordIv: secret.iv })
   }
+  // The page learns that a password is stored now, so the field is no longer required.
+  revalidatePath('/instellingen')
   return SAVED
 }

@@ -10,12 +10,18 @@ import {
   roundSequenceAllowed,
   type Mailing,
 } from '@/core/masspost/store/mailing'
-import { CodeTakenError, RevisionConflictError, StoreUnavailableError } from '@/core/masspost/store/mailing-store'
+import {
+  CodeTakenError,
+  RevisionConflictError,
+  StoreFullError,
+  StoreUnavailableError,
+  type MailingListItem,
+} from '@/core/masspost/store/mailing-store'
 import { sha256Hex } from '@/core/masspost/store/hash'
 import type { TenantDefaults } from '@/lib/tenant/settings-schema'
 import { PageHeader } from '@/components/app-shell/AppShell'
 import { Placeholder } from '@/components/app-shell/Placeholder'
-import { STORE_UNAVAILABLE_MESSAGE, useMailingStore } from '@/components/mailings/MailingStoreProvider'
+import { STORE_FULL_MESSAGE, STORE_UNAVAILABLE_MESSAGE, useMailingStore } from '@/components/mailings/MailingStoreProvider'
 import type { LoadedList } from './columns'
 import { FileDrop, readAddressFile } from './FileDrop'
 import { initialDraft, missingText, toDetails, withFile, withFormat, type ImportDraft } from './import-draft'
@@ -89,7 +95,7 @@ export function ImportStep(props: Props) {
       .then((items) => {
         if (!alive) return
         const ok = items.flatMap((i) => (i.ok ? [i.summary] : []))
-        setCodes(ok.map((s) => s.code))
+        setCodes(takenCodes(items))
         setCustomers([...new Set(ok.map((s) => s.customer).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'nl')))
       })
       .catch((e) => {
@@ -135,7 +141,11 @@ export function ImportStep(props: Props) {
 
   async function onFile(file: File): Promise<string | null> {
     const result = await readAddressFile(file)
-    if (!result.ok) return result.error
+    if (!result.ok) {
+      // A failed new choice also drops the earlier list: "Verder" must not go on with a file you replaced.
+      setLoaded(null)
+      return result.error
+    }
     setLoaded({ list: result.list, bytes: result.bytes, file })
     setDraft((d) => withFile(d, file.name, result.list.rows.length))
     return null
@@ -155,7 +165,7 @@ export function ImportStep(props: Props) {
         return
       }
       if (!loaded) return
-      if (await store.findByCode(current.code)) throw new CodeTakenError(current.code)
+      // No check beforehand: create refuses a taken code itself, also one of an unreadable mailing.
       const sha256 = await sha256Hex(loaded.bytes)
       await store.create(
         {
@@ -170,11 +180,13 @@ export function ImportStep(props: Props) {
       router.push(`/mailings/${encodeURIComponent(current.code)}`)
     } catch (e) {
       if (e instanceof CodeTakenError) {
-        const all = await store.list().then((items) => items.flatMap((i) => (i.ok ? [i.summary.code] : [])))
+        const all = await store.list().then(takenCodes)
         setCodes(all)
         setCodeError(`Deze code bestaat al. Volgende vrije: ${nextMailingCode(prefix || 'M', new Date().getFullYear(), all)}`)
       } else if (e instanceof RevisionConflictError) {
         setSaveError('Deze mailing is intussen gewijzigd. Herlaad de pagina en probeer opnieuw.')
+      } else if (e instanceof StoreFullError) {
+        setSaveError(STORE_FULL_MESSAGE)
       } else if (e instanceof StoreUnavailableError) {
         setSaveError(STORE_UNAVAILABLE_MESSAGE)
       } else {
@@ -424,4 +436,9 @@ export function ImportStep(props: Props) {
       </dialog>
     </div>
   )
+}
+
+/** Codes in use, also those of unreadable mailings whose code is still readable. */
+function takenCodes(items: MailingListItem[]): string[] {
+  return items.flatMap((i) => (i.ok ? [i.summary.code] : i.code ? [i.code] : []))
 }

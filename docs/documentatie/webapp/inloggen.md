@@ -20,7 +20,7 @@ Klik onderaan in de zijbalk op je naam en kies **Afmelden**. In hetzelfde menu z
 
 ## Lukt het niet?
 
-Kom je na het aanmelden terug op de beginpagina, neem dan contact op met support. Dat gebeurt als je login niet aan een account gekoppeld kon worden.
+Zie je na het aanmelden "Je account is nog niet gekoppeld aan een organisatie", neem dan contact op met support. Met **Afmelden** kan je intussen een ander Google-account kiezen.
 
 Staat de dienst op een ander adres (bijvoorbeeld een testomgeving)? Vervang dan `https://bpost.sonicrocket.app` door dat adres.
 

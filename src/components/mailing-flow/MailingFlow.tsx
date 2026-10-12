@@ -26,6 +26,7 @@ import { MappingStep } from './MappingStep'
 import { MetaPills, listPills, type Pill } from './MetaPills'
 import { formatStateFromMailing, resumeStep } from './resume'
 import { StepBar, type StepId, type StepStatus } from './StepBar'
+import { STORE_FULL_MESSAGE } from '@/components/mailings/MailingStoreProvider'
 import type { MailingSaver } from './useMailingSaver'
 import { exportBaseName, printerFile } from './exports'
 import { saveFile } from './save-file'
@@ -279,7 +280,7 @@ export function MailingFlow({
         {header}
         {saver.state === 'error' && (
           <p className={styles.alert} role="alert">
-            Nog niet bewaard.{' '}
+            {saver.full ? `Nog niet bewaard. ${STORE_FULL_MESSAGE}` : 'Nog niet bewaard.'}{' '}
             <button type="button" className={styles.b} onClick={() => void saver.retry()}>
               Opnieuw proberen
             </button>

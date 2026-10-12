@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Mailing } from '@/core/masspost/store/mailing'
-import { RevisionConflictError, type MailingChange } from '@/core/masspost/store/mailing-store'
+import { RevisionConflictError, StoreFullError, type MailingChange } from '@/core/masspost/store/mailing-store'
 import { useMailingStore } from '@/components/mailings/MailingStoreProvider'
 
 /** What `useMailingSaver` returns. */
@@ -15,6 +15,8 @@ export interface MailingSaver {
   saveSoon: (change: MailingChange, event: string) => void
   /** `error`: saving failed, the change waits; `conflict`: someone else saved in the meantime. */
   state: 'saved' | 'saving' | 'error' | 'conflict'
+  /** With `error`: the last save failed because the browser's storage is full. */
+  full: boolean
   /** Tries the waiting change again. */
   retry: () => Promise<void>
   /** Saves what is waiting right away. */
@@ -33,6 +35,7 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
   const { store, user } = useMailingStore()
   const [mailing, setMailing] = useState(initial)
   const [state, setStateValue] = useState<MailingSaver['state']>('saved')
+  const [full, setFull] = useState(false)
   const stateRef = useRef<MailingSaver['state']>('saved')
   const setState = useCallback((next: MailingSaver['state']) => {
     stateRef.current = next
@@ -60,9 +63,11 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
             ) as MailingChange
             pending.current = Object.keys(rest).length ? { ...pending.current, change: rest } : null
           }
+          setFull(false)
           setState(pending.current ? 'error' : 'saved')
         } catch (e) {
           pending.current = { change: { ...change, ...pending.current?.change }, event }
+          setFull(e instanceof StoreFullError)
           setState(e instanceof RevisionConflictError ? 'conflict' : 'error')
         }
       })
@@ -108,6 +113,23 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [state])
 
+  // Reloading, closing the tab or switching away: save what waits right away, not after 2 s.
+  // The browser usually finishes a write started here; the question on leaving stays as a backstop.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === 'hidden' && pending.current) void flush()
+    }
+    const onPageHide = () => {
+      if (pending.current) void flush()
+    }
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', onPageHide)
+    return () => {
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', onPageHide)
+    }
+  }, [flush])
+
   // Leaving within the app (sidebar): save what is waiting.
   useEffect(() => () => void flush(), [flush])
 
@@ -117,7 +139,7 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
   )
 
   return useMemo(
-    () => ({ mailing, save, saveSoon, state, retry: flush, flush, hasUnsaved }),
-    [mailing, save, saveSoon, state, flush, hasUnsaved],
+    () => ({ mailing, save, saveSoon, state, full, retry: flush, flush, hasUnsaved }),
+    [mailing, save, saveSoon, state, full, flush, hasUnsaved],
   )
 }

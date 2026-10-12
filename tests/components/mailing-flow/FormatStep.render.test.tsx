@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { useState } from 'react'
+import { StrictMode, useState } from 'react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { FormatStep } from '@/components/mailing-flow/FormatStep'
 
@@ -40,5 +40,27 @@ describe('FormatStep, address check (step 4)', () => {
     )
     expect((screen.getByRole('button', { name: 'Verder naar indienen' }) as HTMLButtonElement).disabled).toBe(true)
     expect(screen.queryByRole('button', { name: /Terug naar de formaatfouten/ })).toBeNull()
+  })
+})
+
+describe('FormatStep, saving on open', () => {
+  it('does not report the starting corrections as a change, also not in StrictMode', () => {
+    const onChange = vi.fn()
+    render(
+      <StrictMode>
+        <FormatStep
+          issues={[]}
+          rowCount={10}
+          onTotals={() => {}}
+          done={false}
+          onDone={() => {}}
+          onSave={async () => {}}
+          active
+          initial={{ values: { '2:name': 'Jan' }, excluded: {} }}
+          onChange={onChange}
+        />
+      </StrictMode>,
+    )
+    expect(onChange).not.toHaveBeenCalled()
   })
 })
