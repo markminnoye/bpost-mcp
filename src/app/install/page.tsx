@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { env } from '@/lib/config/env'
 import { MCP_CANONICAL_PATH } from '@/lib/mcp/paths'
 import { CopyCodeBlock } from '@/components/customer/CopyCodeBlock'
@@ -103,18 +104,12 @@ export default function InstallPage() {
         <h2 className="bp-section-title">B — App Tokens (Headless)</h2>
         <p className="bp-prose">
           Voor scenario&apos;s zonder browser-interactie — zoals <strong>CI/CD pipelines</strong>, <strong>server-side scripts</strong> of <strong>headless automatiseringen</strong> — kun je gebruikmaken van een vast <strong>Bearer-token</strong>.
-          Je genereert dit token in je dashboard en voegt het handmatig toe aan de HTTP-headers van je MCP-client (<code>Authorization: Bearer &lt;jouw-token&gt;</code>).
+          Je voegt dit token handmatig toe aan de HTTP-headers van je MCP-client (<code>Authorization: Bearer &lt;jouw-token&gt;</code>).
         </p>
 
-        <p className="bp-prose" style={{ marginBottom: '0.5rem' }}>
-          <strong>Stap 1 — Maak een app-token aan:</strong> meld je aan bij je account en maak onder
-          &ldquo;App Tokens&rdquo; een nieuw token.
+        <p className="bp-prose" style={{ marginBottom: '1.25rem' }}>
+          Bestaande app-tokens blijven werken. Een nieuw token aanmaken kan voorlopig niet in de webapp.
         </p>
-        <div className="bp-btn-row" style={{ marginBottom: '1.25rem' }}>
-          <a href="/dashboard" className="bp-btn bp-btn--primary">
-            Naar je account →
-          </a>
-        </div>
 
         <h3 className="bp-subtitle">Claude Desktop</h3>
         <p className="bp-prose">
@@ -122,8 +117,7 @@ export default function InstallPage() {
         </p>
         <CopyCodeBlock code={desktopBearerSnippet} copyLabel="JSON-configuratie kopiëren" />
         <p className="bp-muted-note">
-          Vervang <code>&lt;jouw-token&gt;</code> door het token uit je account. Dat token zie je maar één
-          keer.
+          Vervang <code>&lt;jouw-token&gt;</code> door je app-token.
         </p>
 
         <h3 className="bp-subtitle">Claude Code</h3>
@@ -135,9 +129,9 @@ export default function InstallPage() {
 
       <footer style={{ fontSize: '0.875rem', color: 'var(--bp-soft)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <div>
-          <a href="/dashboard" className="bp-link">
-            ← Terug naar je account
-          </a>
+          <Link href="/" className="bp-link">
+            ← Naar de startpagina
+          </Link>
         </div>
         <div>
           Hulp nodig? Neem contact op met support of bekijk de{' '}

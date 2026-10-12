@@ -13,9 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MCP-service voor BPost e-MassPost (alfa)",
-  description:
-    "Onafhankelijke MCP-service voor BPost e-MassPost — alfaversie; gebruik bij voorkeur de bpost-testomgeving.",
+  title: "Mailings voor e-MassPost",
+  description: "Mailings voorbereiden en opvolgen voor e-MassPost van bpost (alfa).",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },

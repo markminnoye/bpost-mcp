@@ -156,7 +156,6 @@ Not wired as an npm script on purpose (Python side dependency).
 
 | Command | What |
 |---|---|
-| `npm run build:poc` | Bundle the web POC (`src/app/(tools)/masspost/poc/`) into one offline HTML file: `dist/masspost-poc.html`. Uses `NEXT_PUBLIC_DOCS_URL` from `.env.local` for the rules link |
 | `npm run generate:large-xlsx -- --rows N --out tmp/…xlsx` | Made-up address list in Contrapunt's layout, ~3 % format problems, deterministic per size |
 
 Browser code imports modules directly (`excel`, `mapping`, `suggest-mapping`, `format-check`, `mask`), never `index.ts` (it pulls in FTP). Measurements: `docs/ontwikkelaars/schaal-en-limieten.md`.

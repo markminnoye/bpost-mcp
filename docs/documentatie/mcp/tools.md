@@ -29,7 +29,7 @@ Voor een CSV-bestand loop je de stappen in deze volgorde door.
 
 Verplicht: `batchId`, `expectedDeliveryDate` (`YYYY-MM-DD`), `format` (`Large` of `Small`).
 
-Optioneel: `mailingRef` (max 20), `priority` (`P` of `NP`, standaard `NP`), `mode` (`P`, `T`, `C`, standaard `T`), `customerFileRef` (max 10), `barcodeStrategy` (`bpost-generates`, `customer-provides`, `mcp-generates`; zonder waarde geldt de dashboardinstelling), `barcodeLength` (`7`, `9`, `11`; standaard 7; alleen bij `bpost-generates`), `genPSC` (`Y`/`N`, standaard `N`).
+Optioneel: `mailingRef` (max 20), `priority` (`P` of `NP`, standaard `NP`), `mode` (`P`, `T`, `C`, standaard `T`), `customerFileRef` (max 10), `barcodeStrategy` (`bpost-generates`, `customer-provides`, `mcp-generates`; zonder waarde geldt de opgeslagen instelling van je account), `barcodeLength` (`7`, `9`, `11`; standaard 7; alleen bij `bpost-generates`), `genPSC` (`Y`/`N`, standaard `N`).
 
 De batch moet `MAPPED` zijn zonder fouten. Na een geslaagde verzending staat hij op `SUBMITTED` en is hij vergrendeld. Rijen met fouten worden overgeslagen en in het antwoord vermeld.
 

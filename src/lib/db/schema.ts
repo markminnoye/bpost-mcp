@@ -31,6 +31,13 @@ export const tenantPreferences = pgTable('tenant_preferences', {
     .unique(),
   barcodeStrategy: text('barcode_strategy').notNull().default('bpost-generates'),
   barcodeLength: text('barcode_length').notNull().default('7'),
+  /** Defaults for a new mailing (Instellingen → Standaardwaarden, SR-112). */
+  defaultFormat: text('default_format').notNull().default('Small'),
+  defaultPriority: text('default_priority').notNull().default('NP'),
+  defaultGenMid: text('default_gen_mid').notNull().default('7'),
+  defaultPresort: text('default_presort').notNull().default('N'),
+  /** Prefix of mailing codes; null means the initials of the tenant name. */
+  codePrefix: text('code_prefix'),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 

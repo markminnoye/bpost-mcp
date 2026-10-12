@@ -1,40 +1,36 @@
-# Adreslijst nakijken (proefversie)
+# Adreslijst nakijken
 
 {% hint style="warning" %}
-Proefversie. Ze toont de eerste stappen van een mailing. Er gaat nog niets naar bpost, en de schermen kunnen nog veranderen.
+Alfaversie. Er gaat nog niets naar bpost, en de schermen kunnen nog veranderen.
 {% endhint %}
 
-Met deze pagina lees je een adreslijst in, kies je welke kolommen het adres vormen, kijk je na of elk adres aan de regels van bpost voldoet, en download je een bestand voor de drukker. Je vindt ze op `https://bpost.sonicrocket.app/masspost/poc`. Je hoeft niet aan te melden, behalve voor het AI-voorstel.
+Na stap 1 van een [nieuwe mailing](mailings.md) kies je welke kolommen het adres vormen, kijk je na of elk adres aan de regels van bpost voldoet, en sla je de bestanden op voor bpost en voor de drukker.
 
-**Wat er met je gegevens gebeurt:** de pagina leest het bestand in je browser en bewaart niets. Sluit je het tabblad, dan is alles weg. Er gaat enkel iets weg als je het **AI-voorstel** aanzet. Dan sturen we de kolomtitels, en per kolom enkele voorbeelden waarvan alleen de eerste letter en de vorm overblijven: "Jan Peeters" wordt "Jxx Pxxxxxx", "Kerkstraat 12" wordt "Kxxxstraat 12". Postcode en gemeente blijven leesbaar. Namen en straten zijn zo niet te herkennen.
-
-Er bestaat ook een versie als één los bestand, die je zonder internet opent door erop te dubbelklikken. Die werkt op dezelfde manier, maar zonder AI-voorstel.
+**Wat er met je gegevens gebeurt:** we lezen je bestand in je browser. De mailing, je bestand en je verbeteringen bewaren we in je browser, op dit toestel. Er gaat enkel iets weg als je het **AI-voorstel** aanzet. Dan sturen we de kolomtitels, en per kolom enkele voorbeelden waarvan alleen de eerste letter en de vorm overblijven: "Jan Peeters" wordt "Jxx Pxxxxxx", "Kerkstraat 12" wordt "Kxxxstraat 12". Postcode en gemeente blijven leesbaar. Namen en straten zijn zo niet te herkennen.
 
 ## Stap 1: importeren
 
-Sleep je Excel-bestand in het vak, of klik op **Kies een bestand**.
+Stap 1 is het begin van een nieuwe mailing: de gegevens en je adreslijst. Zie [Mailings](mailings.md#een-nieuwe-mailing).
 
 - **Formaten:** .xlsx en .xls (Excel 97-2003). Een .csv-bestand kan nog niet.
 - **De eerste rij** bevat de kolomtitels, elke volgende rij is één adres. Lege rijen slaan we over.
 - **Enkel het eerste werkblad** wordt ingelezen.
-- **Hoeveel adressen:** gewoon tot 25.000. Tot 150.000 kan, met een waarschuwing: dit is een proef, en we meten hoe snel het gaat. Een .xls-bestand bevat er nooit meer dan 65.535; dat is een grens van het formaat.
-
-Geen bestand bij de hand? **Probeer met een voorbeeldlijst** laadt 30 verzonnen adressen met de typische fouten.
+- **Hoeveel adressen:** meestal tot 25.000. Tot 150.000 kan, met een waarschuwing. Een .xls-bestand bevat er nooit meer dan 65.535; dat is een grens van het formaat.
 
 ## Bovenaan: de stappen en de pills
 
-Links bovenaan staan de stappen. Hun icoon is grijs tot de stap een status heeft: geel als er in die stap iets te doen is (de koppeling is onvolledig, of er staan formaatfouten open), groen als ze in orde is. Onder de stappen loopt één balk, met een stuk per stap. Elk stuk vult zich naarmate de stap klaar is, in dezelfde kleur: bij Koppelen de verplichte vakken met een kolom, bij Formaatvalidatie de formaatfouten die je oploste of uitsloot. Ga met de muis over een stap om het percentage te zien. De stap waar je bent, staat in volle kleur met een dikkere balk; de andere stappen zijn lichter. Pijltjes tussen de stappen tonen de volgorde; de vier stappen zijn even breed.
+Links bovenaan staan de stappen. Hun icoon is zwart, en wordt groen zodra de stap klaar is voor de volgende. Onder de stappen loopt één balk, met een stuk per stap. Elk stuk vult zich naarmate de stap klaar is, geel als er in die stap nog iets te doen is en groen als ze in orde is: bij Importeren de gegevens en je adreslijst, bij Koppelen de verplichte vakken met een kolom, bij Formaatvalidatie de formaatfouten die je oploste of uitsloot. Ga met de muis over een stap om het percentage te zien. De stap waar je bent, staat in volle kleur met een dikkere balk; de andere stappen zijn lichter. Pijltjes tussen de stappen tonen de volgorde; de vier stappen zijn even breed.
 
 De balk met de stappen en de pills blijft bovenaan staan als je naar beneden scrolt.
 
-Klik op een stap om ernaar te gaan: terug, of weer vooruit naar een stap die je al deed. Wil je een ander bestand, klik dan op **1. Importeren**.
+Klik op een stap om ernaar te gaan: terug, of weer vooruit naar een stap die je al deed. **1. Importeren** opent de gegevens van de mailing. Een ander bestand kiezen kan enkel in een nieuwe mailing.
 
 Rechts op dezelfde regel staat een rij pills: een icoon met een getal. Ga er met de muis over voor de uitleg. Ze staan in deze volgorde: eerst wat je bestand is, dan wat we nakijken, en rechts het resultaat: de adressen die meegaan en helemaal rechts de rijen die je uitsloot. Een pill die iets nakijkt, is oranje als er iets te doen is. Is alles in orde, dan blijft ze neutraal en wordt enkel het icoon groen. De pill voor het formaat wordt dan helemaal groen, met een vinkje.
 
 | Pill | Betekenis |
 |---|---|
 | **AFT** (blauw) | We herkennen de indeling van de Address File Tool van bpost. De kolommen zijn automatisch gekoppeld. |
-| Kolommen | Hoeveel kolommen aan het adres gekoppeld zijn (stap 2). Oranje zolang een verplicht vak geen kolom heeft. |
+| Kolommen | Hoeveel kolommen aan het adres gekoppeld zijn (stap 2). |
 | Wereldbol (oranje) | Adressen in het buitenland: kijk het land na. |
 | abc | Hoeveel formaatfouten nog open staan (oranje), of groen met een vinkje als er geen meer open staan (stap 3 en 4). |
 | Envelop met getal | Hoeveel adressen meegaan naar bpost: je hele lijst min de rijen die je uitsloot (de naam van het bestand staat in de uitleg). Oranje onder 500, het minimum dat bpost per mailing vraagt, en boven 25.000. |
@@ -102,11 +98,11 @@ De gevonden formaatfouten staan in groepen: vreemde tekens, een schuine streep i
 - **Een uitgesloten rij** blijft bewaard, maar gaat niet mee in de mailing.
 - **Het vinkje** wordt groen zodra een waarde aan de regels voldoet.
 - **Verder naar adrescontrole** wordt rood zodra er geen formaatfouten meer open staan. Zijn er geen formaatfouten, dan ga je meteen door naar stap 4.
-- **Je aanpassingen blijven bewaard** als je teruggaat naar Koppelen of Importeren. Ze vervallen pas als je een ander bestand importeert of de koppeling wijzigt. Dan kijken we de lijst opnieuw na.
+- **Je aanpassingen blijven bewaard,** ook als je teruggaat naar Koppelen of de mailing later opnieuw opent. Ze vervallen pas als je de koppeling wijzigt. Dan kijken we de lijst opnieuw na.
 
 ## Stap 4: adrescontrole
 
-De adrescontrole bij bpost zit nog niet in deze proefversie. Wel kan je hier twee bestanden opslaan, elk in een eigen kader naast elkaar. We maken ze in je browser: er wordt niets opgeladen. Je browser bewaart het bestand zoals elk ander bestand, meestal in de map Downloads.
+De adrescontrole bij bpost komt in een volgende versie. Wel kan je hier twee bestanden opslaan, elk in een eigen kader naast elkaar. We maken ze in je browser: er wordt niets opgeladen. Je browser bewaart het bestand zoals elk ander bestand, meestal in de map Downloads.
 
 **Opslaan voor bpost (AFT, .xls)** geeft een bestand voor de Address File Tool op het e-MassPost-portaal van bpost:
 - **de kolommen van het sjabloon van bpost,** in hun vaste volgorde, als Excel 97-2003 (.xls), want het portaal aanvaardt geen .xlsx;
@@ -120,7 +116,3 @@ De adrescontrole bij bpost zit nog niet in deze proefversie. Wel kan je hier twe
   - *Volgnummer bpost*: het nummer waarmee bpost het adres kent, het rijnummer in je bestand. Leeg voor een uitgesloten rij.
 
 Zo blijven je bestand, wat naar bpost gaat en wat er van bpost terugkomt rij per rij aan elkaar gekoppeld. Later komen ook de barcode en het adres zoals het bij bpost aangekondigd is in deze export.
-
-## Meting
-
-Onderaan staat **Meting (POC)**. Het toont hoe lang inlezen en nakijken duurden en hoeveel geheugen de browser gebruikte. Met **Kopieer meting** stuur je die cijfers door. Ze helpen ons bepalen hoe groot een lijst mag zijn.

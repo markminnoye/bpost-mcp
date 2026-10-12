@@ -11,6 +11,7 @@ Brainstorm van 2 oktober 2026. Het besluitenlog staat in [`.agent/plans/2026-10-
 | [formaatvalidatie.html](webapp/formaatvalidatie.html) | Stap 3: formaatfouten nakijken en bevestigen, met toetsenbord, undo en uitsluiten |
 | [adrescontrole.html](webapp/adrescontrole.html) | Stap 4: score van bpost met fantoomlijn, adressen zonder of met meerdere treffers, voorstellen van bpost |
 | [statusiconen.html](webapp/statusiconen.html) | De iconen per toestand, in licht en donker |
+| [app-shell.html](webapp/app-shell.html) | Brainstorm van 11 oktober 2026 (SR-112, besluitenlog in [`.agent/plans/2026-10-11-sr-112-webapp-shell-design.md`](../../.agent/plans/2026-10-11-sr-112-webapp-shell-design.md)): home met aanmelden, bovenbalk en inklapbare zijbalk, mailingoverzicht, Archief, Deposits, Instellingen en stap 1 van een nieuwe mailing. Licht als standaard, donker via de knop in de balk; rechtsonder de schetsbediening voor de andere schermen en toestanden. |
 
 De schetsen zijn interactief en volgen de lichte of donkere modus van je systeem. Openen in je browser:
 

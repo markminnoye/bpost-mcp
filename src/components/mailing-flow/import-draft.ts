@@ -1,0 +1,116 @@
+import {
+  defaultRoundSequence,
+  presortLocked,
+  roundSequenceAllowed,
+  type MailingDetails,
+  type MissingDetail,
+} from '@/core/masspost/store/mailing'
+import type { TenantDefaults } from '@/lib/tenant/settings-schema'
+
+/** The fields of step 1 while the user fills them in. */
+export interface ImportDraft {
+  customer: string
+  title: string
+  code: string
+  expectedDeliveryDate: string
+  format: 'Small' | 'Large'
+  priority: 'NP' | 'P'
+  genMID: 'N' | '7' | '9' | '11'
+  genPSC: 'Y' | 'N'
+  roundAndSequence: boolean
+  /** The user chose round and sequence; the default no longer applies. */
+  roundSequenceTouched: boolean
+}
+
+/**
+ * Step 1 with the tenant defaults and the proposed code.
+ * @param defaults From Instellingen.
+ * @param code The proposed code.
+ * @returns An empty draft.
+ */
+export function initialDraft(defaults: TenantDefaults, code: string): ImportDraft {
+  return {
+    customer: '',
+    title: '',
+    code,
+    expectedDeliveryDate: '',
+    format: defaults.format,
+    priority: defaults.priority,
+    genMID: defaults.genMID,
+    genPSC: defaults.genPSC,
+    roundAndSequence: false,
+    roundSequenceTouched: false,
+  }
+}
+
+function applyRules(d: ImportDraft, addresses: number | null): ImportDraft {
+  const n = addresses ?? 0
+  return {
+    ...d,
+    genPSC: presortLocked(d.format, n) ? 'Y' : d.genPSC,
+    roundAndSequence: !roundSequenceAllowed(d.format)
+      ? false
+      : d.roundSequenceTouched
+        ? d.roundAndSequence
+        : defaultRoundSequence(d.format, n),
+  }
+}
+
+/**
+ * After a file was read: the file name becomes the title when it is empty, and the rules for presort
+ * and round and sequence follow the number of addresses.
+ * @param d The draft.
+ * @param fileName Name of the Excel file.
+ * @param addresses Number of addresses read.
+ * @returns The new draft.
+ */
+export function withFile(d: ImportDraft, fileName: string, addresses: number): ImportDraft {
+  const title = d.title.trim() ? d.title : fileName.replace(/\.xlsx?$/i, '')
+  return applyRules({ ...d, title }, addresses)
+}
+
+/**
+ * After the format changed.
+ * @param d The draft.
+ * @param format Small or Large.
+ * @param addresses Number of addresses, null when no file yet.
+ * @returns The new draft.
+ */
+export function withFormat(d: ImportDraft, format: ImportDraft['format'], addresses: number | null): ImportDraft {
+  return applyRules({ ...d, format }, addresses)
+}
+
+/**
+ * The details to store.
+ * @param d The draft.
+ * @returns The mailing details.
+ */
+export function toDetails(d: ImportDraft): MailingDetails {
+  return {
+    code: d.code.trim(),
+    title: d.title.trim(),
+    customer: { name: d.customer.trim(), crmId: null },
+    expectedDeliveryDate: d.expectedDeliveryDate,
+    format: d.format,
+    priority: d.priority,
+    genMID: d.genMID,
+    genPSC: d.genPSC,
+    roundAndSequence: d.roundAndSequence,
+  }
+}
+
+const WORDS: Record<MissingDetail, string> = {
+  title: 'een titel',
+  code: 'een geldige code',
+  date: 'een afgiftedatum',
+  file: 'je adreslijst',
+}
+
+/**
+ * "Nog nodig: …" under the title of step 1.
+ * @param missing From `missingDetails`.
+ * @returns The sentence, or an empty string.
+ */
+export function missingText(missing: readonly MissingDetail[]): string {
+  return missing.length ? `Nog nodig: ${missing.map((m) => WORDS[m]).join(', ')}.` : ''
+}

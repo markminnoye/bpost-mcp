@@ -30,7 +30,7 @@ Niet alle variabelen lopen via `env.ts`. De databasevariabelen, `ENCRYPTION_KEY`
 | `BPOST_DB_DATABASE_URL` of `DATABASE_URL` | Neon Postgres |
 | `ENCRYPTION_KEY` | AES-256-GCM-sleutel (base64, 32 bytes) |
 | `AUTH_SECRET` | Auth.js |
-| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Google-aanmelding voor het dashboard |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Google-aanmelding voor de webapp |
 | `REDIS_URL` | Batchstatus. Vercel Marketplace Redis zet dit automatisch |
 
 ### Optioneel

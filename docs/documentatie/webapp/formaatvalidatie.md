@@ -1,7 +1,7 @@
 # Formaatvalidatie: de regels van bpost
 
 {% hint style="warning" %}
-Proefversie. De regels en de schermen kunnen nog veranderen.
+Alfaversie. De regels en de schermen kunnen nog veranderen.
 {% endhint %}
 
 Voor je adreslijst naar bpost gaat, kijken we na of elk adres aan de regels van bpost voldoet: de tekens, de lengte van elk vak, de verplichte vakken en de gekoppelde kolommen. Dat is de **formaatvalidatie**. Een probleem dat we vinden, heet een **formaatfout**.

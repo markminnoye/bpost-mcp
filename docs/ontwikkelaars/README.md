@@ -4,7 +4,7 @@ De dienst heeft vier onderdelen. De webapp staat centraal; de andere onderdelen 
 
 | Onderdeel | Wat | Waar |
 |---|---|---|
-| **Website** | Webapp met aanmelding en dashboard | [Website](website.md) |
+| **Website** | Webapp met aanmelding, mailings en instellingen | [Website](website.md) |
 | **HTTP-API** | Routes voor upload, kolomvoorstel, OAuth en gezondheid | [API-overzicht](api/overzicht.md) |
 | **Library** | `src/core/masspost/`: Excel, mapping, validatie, XML, transport | [Library](library.md) |
 | **MCP** (alfa) | AI-assistent als interface | Tabblad Documentatie → MCP |

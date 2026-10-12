@@ -24,8 +24,8 @@ import {
   type ColumnSample,
   type SuggestMappingLogEntry,
 } from '../src/lib/masspost/suggest-mapping-ai'
-import { columnExamples, columnFillCounts, type LoadedList } from '../src/app/(tools)/masspost/poc/columns'
-import { demoList } from '../src/app/(tools)/masspost/poc/demo-rows'
+import { columnExamples, columnFillCounts, type LoadedList } from '../src/components/mailing-flow/columns'
+import { demoList } from './fixtures/demo-rows'
 
 const FIELDS: readonly AddressField[] = ['name', 'companyDepartment', 'streetHouseBox', 'postcodeCity', 'country']
 

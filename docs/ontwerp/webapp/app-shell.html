@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="nl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schets: app-shell en mailings</title>
+<style>
+/* Schets uit de brainstorm van 11/10/2026 (SR-112). Kleuren en lettertype van de POC (poc.module.css):
+   licht als standaard, donker enkel via de knop in de balk. Iconen: Tabler (zoals in de app). */
+:root{
+  --bg:#fafafa;--card:#fff;--surface-1:#f2f2f2;--surface-2:#fff;--border:#ebebeb;--border-strong:#d4d4d4;
+  --text-primary:#171717;--text-secondary:#525252;--text-muted:#6e6e6e;
+  --red:#DC2626;--orange:#F97316;--green:#16A34A;--yellow:#CA8A04;--done:#52525B;
+  --btn-bg:#171717;--btn-fg:#fff;--btn-hover:#383838;--focus:#3b82f6;--accent:#1d4ed8;
+  --warn-bg:#fef3c7;--warn-fg:#92400e;--warn-line:#fcd34d;
+  --tip-bg:#171717;--tip-fg:#fafafa;--overlay:rgba(0,0,0,.35);--shadow:0 8px 24px rgba(0,0,0,.12);
+  --radius:6px;color-scheme:light;
+}
+[data-theme=dark]{
+  --bg:#0a0a0a;--card:#101012;--surface-1:#141416;--surface-2:#1c1c1f;--border:#27272a;--border-strong:#3f3f46;
+  --text-primary:#fafafa;--text-secondary:#a1a1aa;--text-muted:#8b8b94;
+  --red:#ef4444;--orange:#F97316;--green:#22c55e;--yellow:#eab308;--done:#71717A;
+  --btn-bg:#fafafa;--btn-fg:#0a0a0a;--btn-hover:#d4d4d4;--accent:#93c5fd;
+  --warn-bg:#451a03;--warn-fg:#fcd34d;--warn-line:#78350f;
+  --tip-bg:#27272a;--tip-fg:#fafafa;--overlay:rgba(0,0,0,.6);--shadow:0 8px 24px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text-primary);font:14px/1.5 "Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+
+/* —— Tenant bovenaan de zijbalk —— */
+.tenant{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:600;font-size:15px;min-width:0}
+.tenant-icon{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;background:var(--surface-1);border:1px solid var(--border);overflow:hidden;flex:none}
+.tenant-icon img{width:20px;height:20px}
+.tenant-icon .letter{font-weight:700;font-size:14px;color:#fff;width:100%;height:100%;display:grid;place-items:center;background:#7c3aed}
+.tenant-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spacer{flex:1}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);cursor:pointer;color:var(--text-secondary)}
+.icon-btn:hover{background:var(--surface-1);color:var(--text-primary)}
+.avatar{flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#e0e7ff;color:#3730a3;font-weight:600;font-size:12px}
+[data-theme=dark] .avatar{background:#312e81;color:#e0e7ff}
+
+/* —— Menu's (avatar en "…") —— */
+.menu-wrap{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 6px);min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);padding:6px;z-index:30}
+.menu .who{padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.menu .who b{display:block}
+.menu .who span{font-size:12px;color:var(--text-muted)}
+.sort-btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 8px;border:0;border-radius:var(--radius);background:none;color:var(--text-secondary);font-weight:500;cursor:pointer}
+.sort-btn:hover,.sort-btn[aria-expanded=true]{background:var(--surface-2);color:var(--text-primary)}
+.seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--radius);overflow:hidden;font-weight:400}
+.seg button{width:34px;height:30px;display:grid;place-items:center;border:0;background:var(--card);color:var(--text-muted);cursor:pointer}
+.seg button+button{border-left:1px solid var(--border-strong)}
+.seg button[aria-pressed=true]{background:var(--surface-1);color:var(--text-primary)}
+.menu [role^=menuitem]{display:flex;align-items:center;gap:10px;width:100%;padding:7px 10px;border:0;border-radius:5px;background:none;text-align:left;cursor:pointer}
+.menu [role^=menuitem]:hover,.menu [role^=menuitem]:focus-visible{background:var(--surface-1);outline:none}
+
+/* —— Zijbalk —— */
+.shell{display:flex;min-height:100vh}
+.side{position:sticky;top:0;height:100vh;width:248px;flex:none;display:flex;flex-direction:column;padding:12px 8px;border-right:1px solid var(--border);background:var(--bg);transition:width .18s ease}
+.side ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav-item{position:relative;display:flex;align-items:center;gap:12px;height:36px;padding:0 10px;border-radius:var(--radius);text-decoration:none;color:var(--text-secondary);white-space:nowrap;overflow:hidden}
+.nav-item:hover{background:var(--surface-1);color:var(--text-primary)}
+.nav-item[aria-current=page]{background:var(--surface-1);color:var(--text-primary);font-weight:600}
+.nav-item[aria-current=page]::before{content:"";position:absolute;left:-8px;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--accent)}
+.nav-item .soon{margin-left:auto;font-size:11px;font-weight:400;color:var(--text-muted);border:1px solid var(--border);border-radius:999px;padding:0 7px}
+.side-top{display:flex;align-items:center;gap:8px;height:52px;margin:-12px -8px 10px;padding:0 10px 0 14px;border-bottom:1px solid var(--border)}
+.side-top .tenant{font-size:16px}
+/* Variant om te vergelijken (schetsbediening): een donkerdere achtergrond in plaats van de lijn. */
+.tenant-bg .side-top{background:var(--surface-1);border-bottom-color:var(--border-strong)}
+.side-close{display:none;margin-left:auto}
+.side .nav-bottom{margin-top:auto;padding-bottom:8px}
+.side-foot{border-top:1px solid var(--border);padding-top:8px;display:flex;align-items:center;gap:4px}
+.user-wrap{flex:1;min-width:0}
+.user{display:flex;align-items:center;gap:10px;width:100%;height:40px;padding:0 6px;border:0;border-radius:var(--radius);background:none;cursor:pointer;text-align:left;color:var(--text-primary)}
+.user:hover,.user[aria-expanded=true]{background:var(--surface-1)}
+.user-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.user svg{color:var(--text-muted)}
+.menu.up{top:auto;bottom:calc(100% + 6px);left:0;right:auto;min-width:240px}
+.switch{margin-left:auto;position:relative;width:28px;height:16px;border-radius:999px;background:var(--border-strong);flex:none}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .15s ease}
+[aria-checked=true] .switch{background:var(--text-primary)}
+[aria-checked=true] .switch::after{transform:translateX(12px);background:var(--card)}
+.collapsed .side-top{padding:0;justify-content:center}
+.collapsed .side-foot{flex-direction:column;gap:6px}
+.collapsed .user-wrap{flex:none}
+.collapsed .user{width:auto;padding:0 6px}
+.collapse-btn{flex:none;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:var(--radius);background:none;color:var(--text-muted);cursor:pointer}
+.collapse-btn:hover{background:var(--surface-1);color:var(--text-primary)}
+.collapsed .side{width:56px}
+.collapsed .nav-label,.collapsed .soon{display:none}
+.scrim{display:none}
+.side-toggle{display:none;flex:none}
+@media (prefers-reduced-motion:reduce){.side{transition:none!important}}
+
+/* —— Inhoud —— */
+main{flex:1;min-width:0;padding:24px 32px 64px}
+main:focus{outline:none}
+.page{max-width:1120px;margin:0 auto}
+.page-head{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+h1{font-size:24px;line-height:1.25;margin:0;font-weight:600}
+h1:focus{outline:none}
+.btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:var(--radius);border:1px solid var(--border-strong);background:var(--card);cursor:pointer;font-weight:500;white-space:nowrap;text-decoration:none}
+.btn:hover{background:var(--surface-1)}
+.btn-primary{background:var(--btn-bg);border-color:var(--btn-bg);color:var(--btn-fg)}
+.btn-primary:hover{background:var(--btn-hover);border-color:var(--btn-hover)}
+.btn-primary:disabled{background:var(--surface-1);border-color:var(--border);color:var(--text-muted);cursor:not-allowed}
+.search{position:relative;margin-bottom:16px}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-muted)}
+.search input{width:100%;height:36px;padding:0 40px 0 36px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--card)}
+.search kbd{position:absolute;right:9px;top:50%;transform:translateY(-50%);font:11px ui-monospace,Menlo,monospace;border:1px solid var(--border-strong);border-radius:4px;padding:0 5px;color:var(--text-muted)}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 14px;margin-bottom:16px;border:1px solid var(--warn-line);background:var(--warn-bg);color:var(--warn-fg);border-radius:var(--radius)}
+.banner .btn{margin-left:auto;height:30px}
+
+/* —— Lijst —— */
+.box{border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.box-head{border-radius:8px 8px 0 0;gap:8px;min-height:50px;display:flex;align-items:center;padding:8px 10px 8px 16px;background:var(--surface-1);border-bottom:1px solid var(--border);font-weight:600}
+.row{display:grid;grid-template-columns:20px 96px minmax(0,1fr) 190px 84px 74px 58px 32px;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:0;border-radius:0 0 8px 8px}
+.row:hover{background:var(--surface-1)}
+.code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text-muted);white-space:nowrap;flex:none}
+.title{font-weight:600;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title:hover{text-decoration:underline}
+.pill{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;font-size:12px;border:1px solid var(--border);border-radius:999px;color:var(--text-secondary);white-space:nowrap;max-width:180px}
+.pill svg.i{width:14px;height:14px}
+.pill span{overflow:hidden;text-overflow:ellipsis}
+.pill.warn{background:var(--warn-bg);color:var(--warn-fg);border-color:var(--warn-line)}
+.pill.empty{visibility:hidden}
+.row>.pill{justify-self:start}
+.arr{display:inline-flex;align-items:center;justify-content:flex-end;gap:6px;font-variant-numeric:tabular-nums;font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%}
+.muted{color:var(--text-muted)}
+.date{font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.more{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:var(--radius);background:none;cursor:pointer;color:var(--text-muted)}
+.more:hover,.more[aria-expanded=true]{background:var(--surface-2);color:var(--text-primary);box-shadow:inset 0 0 0 1px var(--border)}
+.status{display:grid;place-items:center}
+.spin{animation:sp 1s steps(12) infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}.side{transition:none}}
+
+.menu [role=menuitemradio]{font-weight:400;flex-wrap:wrap;padding-left:32px;position:relative}
+.menu [role=menuitemradio] .hint{flex-basis:100%;font-size:12px;color:var(--text-muted);margin-top:-2px}
+.menu [role=menuitemradio][aria-checked=true]::before{content:"";position:absolute;left:10px;top:10px;width:14px;height:14px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5l10 -10'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5l10 -10'/%3E%3C/svg%3E") center/contain no-repeat}
+#sortMenu{min-width:220px}
+/* Twee regels (zoals GitHub met beschrijving) */
+.two .row{grid-template-columns:20px minmax(0,1fr) 32px;grid-template-areas:"st main more";align-items:start}
+.two .row .status{grid-area:st;padding-top:2px}
+.two .row .more{grid-area:more}
+.two .row .line{grid-area:main;display:flex;flex-direction:column;gap:6px;min-width:0}
+.line1{display:flex;align-items:baseline;gap:10px;min-width:0}
+.line2{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;font-size:12px;color:var(--text-muted)}
+.line2 .meta{display:inline-flex;align-items:center;gap:5px}
+.line2 svg.i{width:14px;height:14px}
+
+/* Lege staten en laden */
+.state{padding:48px 24px;text-align:center}
+.state svg.i{width:32px;height:32px;color:var(--text-muted)}
+.state h2{font-size:16px;margin:12px 0 4px}
+.state p{margin:0 auto 16px;max-width:440px;color:var(--text-secondary)}
+.skel{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--surface-1),var(--border),var(--surface-1));background-size:200% 100%;animation:sh 1.2s ease infinite}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* Melding onderaan */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:8px;background:var(--tip-bg);color:var(--tip-fg);box-shadow:var(--shadow);z-index:40}
+.toast button{border:0;background:none;color:#93c5fd;cursor:pointer;font-weight:600}
+
+dialog{border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text-primary);padding:20px;max-width:420px;box-shadow:var(--shadow)}
+dialog::backdrop{background:var(--overlay)}
+dialog h2{font-size:16px;margin:0 0 6px}
+dialog p{margin:0 0 16px;color:var(--text-secondary)}
+/* —— Formulier en kaarten —— */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;margin:0 0 4px}
+.card .lead{margin:0 0 16px;color:var(--text-secondary);font-size:13px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;min-width:0}
+.field label{font-weight:600;font-size:13px}
+.field input,.field select,.field textarea{height:36px;padding:0 10px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--card)}
+.field textarea{height:80px;padding:8px 10px;resize:vertical}
+.field .hint{font-size:12px;color:var(--text-muted)}
+.flabel{font-weight:600;font-size:13px}
+.check{display:flex;align-items:center;gap:8px;height:36px;font-weight:400!important}
+.check input{width:16px;height:16px;margin:0}
+.field input[readonly]{background:var(--surface-1);color:var(--text-secondary)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.req{color:var(--red)}
+.steps{position:relative;margin:8px 0 0;padding:0;list-style:none}
+.steps::before{content:"";position:absolute;left:13px;top:28px;bottom:16px;width:2px;background:var(--border)}
+.steps>li{position:relative;padding-left:44px;margin-bottom:8px}
+.num{position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--surface-1);border:1px solid var(--border-strong);font-weight:600;font-size:13px}
+.steps h2{font-size:16px;margin:2px 0 14px}
+.form-foot{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--border);padding-top:16px;margin-top:8px}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--text-secondary);text-decoration:none;font-size:13px;margin-bottom:8px}
+.stickybar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 6px;border-bottom:1px solid var(--border)}
+.stepbar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;list-style:none;margin:0;padding:0}
+.stp{position:relative;display:flex;flex-direction:column;gap:6px;padding-right:22px}
+.stp .lab{display:flex;align-items:center;gap:8px;color:var(--text-muted);white-space:nowrap}
+.stp.cur .lab{color:var(--text-primary);font-weight:600}
+.stp .trk{display:block;height:3px;border-radius:2px;background:var(--border);overflow:hidden}
+.stp.cur .trk{height:4px;background:var(--border-strong)}
+.stp .trk i{display:block;height:100%;background:var(--green)}
+.stp .chev{position:absolute;right:2px;top:1px;width:16px;height:16px;color:var(--text-muted)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 16px}
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:32px 16px;border:2px dashed var(--border-strong);border-radius:8px;background:var(--card);text-align:center;cursor:pointer;color:var(--text-secondary)}
+.drop.over{border-color:var(--text-primary);background:var(--surface-1)}
+.drop:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+.drop b{color:var(--text-primary);font-size:15px}
+.drop .btn{margin-top:8px}
+.drop small{color:var(--text-muted);margin-top:4px}
+.stephead{display:flex;align-items:flex-start;gap:16px;margin:20px 0 16px}
+.stephead>div{flex:1;min-width:0}
+.missing{margin:6px 0 0;font-size:13px;color:var(--warn-fg)}
+.missing:empty{display:none}
+.filecard{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.filecard>div{flex:1;display:flex;flex-direction:column;min-width:0}
+.readerr{margin:8px 0 0;color:var(--red);font-size:13px}
+
+/* —— Home —— */
+.home{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.login{width:min(400px,100%);text-align:center}
+.login .mark{width:48px;height:48px;margin:0 auto 16px;border-radius:12px;display:grid;place-items:center;background:var(--card);border:1px solid var(--border)}
+.login h1{font-size:22px;margin-bottom:8px}
+.login p{color:var(--text-secondary);margin:0 0 24px}
+.gbtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;height:42px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--card);font-weight:600;cursor:pointer}
+.gbtn:hover{background:var(--surface-1)}
+.login small{display:block;margin-top:24px;color:var(--text-muted)}
+.denied{border:1px solid var(--warn-line);background:var(--warn-bg);color:var(--warn-fg);border-radius:var(--radius);padding:12px;text-align:left;margin-bottom:16px;font-size:13px}
+
+/* —— Schetsbediening (geen onderdeel van het ontwerp) —— */
+.sketch{position:fixed;right:12px;bottom:12px;z-index:50;width:250px;background:#fffbe6;color:#3f3f46;border:1px dashed #a16207;border-radius:8px;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.sketch summary{padding:8px 10px;cursor:pointer;font-weight:700}
+.sketch div{padding:0 10px 10px;display:grid;gap:6px}
+.sketch label{display:grid;gap:2px}
+.sketch select{font-size:12px;padding:3px;background:#fff;color:#111;border:1px solid #d4d4d4;border-radius:4px}
+
+/* —— Smal scherm —— */
+@media (max-width:1100px){.row{grid-template-columns:20px 96px minmax(0,1fr) 170px 84px 74px 58px 32px}}
+/* Smaller dan 1024 px: zoals GitHub verdwijnt de zijbalk; een icoon naast de paginatitel schuift ze als paneel in. */
+@media (max-width:1023px){
+  .side{position:fixed;top:0;left:0;bottom:0;height:100vh;width:min(320px,85vw);z-index:60;background:var(--card);transform:translateX(-100%);transition:transform .2s ease;visibility:hidden}
+  .drawer-open .side{transform:none;visibility:visible;box-shadow:var(--shadow)}
+  .drawer-open .scrim{display:block;position:fixed;inset:0;background:var(--overlay);z-index:55}
+  .side-close{display:grid}
+  .collapse-btn{display:none}
+  .collapsed .side-foot{flex-direction:row}
+  .collapsed .user-wrap{flex:1}
+  .collapsed .user{width:100%}
+  .collapsed .side-top{padding:0 10px 0 14px;justify-content:flex-start}
+  .side-toggle{display:grid}
+  .collapsed .side{width:min(320px,85vw)}
+  .collapsed .nav-label,.collapsed .soon{display:initial}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+@media (max-width:639px){
+  main{padding:16px}
+  .page-head .btn-primary span{display:none}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .stepbar{grid-template-columns:repeat(2,1fr);row-gap:10px}
+  .stp .chev{display:none}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-mail" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/><path d="M3 7l9 6l9 -6"/></symbol>
+<symbol id="i-truck" viewBox="0 0 24 24"><path d="M5 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M15 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M5 17h-2v-11a1 1 0 0 1 1 -1h9v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5"/></symbol>
+<symbol id="i-archive" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10"/><path d="M10 12l4 0"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><path d="M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/></symbol>
+<symbol id="i-collapse" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M9 4v16"/><path d="M15 10l-2 2l2 2"/></symbol>
+<symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M9 4v16"/><path d="M14 10l2 2l-2 2"/></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6l16 0"/><path d="M4 12l16 0"/><path d="M4 18l16 0"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></symbol>
+<symbol id="i-building" viewBox="0 0 24 24"><path d="M3 21l18 0"/><path d="M9 8l1 0"/><path d="M9 12l1 0"/><path d="M9 16l1 0"/><path d="M14 8l1 0"/><path d="M14 12l1 0"/><path d="M14 16l1 0"/><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16"/></symbol>
+<symbol id="i-open" viewBox="0 0 24 24"><path d="M5 12l14 0"/><path d="M13 18l6 -6"/><path d="M13 6l6 6"/></symbol>
+<symbol id="i-restore" viewBox="0 0 24 24"><path d="M9 14l-4 -4l4 -4"/><path d="M5 10h11a4 4 0 1 1 0 8h-1"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></symbol>
+<symbol id="i-drive" viewBox="0 0 24 24"><path d="M12 10l-6 10l-3 -5l6 -10z"/><path d="M9 15h12l-3 5h-12"/><path d="M15 15l-6 -10h6l6 10z"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></symbol>
+<symbol id="i-sidebar" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M9 4v16"/><path d="M14 10l2 2l-2 2"/></symbol>
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="M4 6l9 0"/><path d="M4 12l7 0"/><path d="M4 18l7 0"/><path d="M15 15l3 3l3 -3"/><path d="M18 6l0 12"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+<symbol id="i-rows2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M4 16a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/></symbol>
+<symbol id="i-updown" viewBox="0 0 24 24"><path d="M8 9l4 -4l4 4"/><path d="M16 15l-4 4l-4 -4"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M12 11v6"/><path d="M9.5 13.5l2.5 -2.5l2.5 2.5"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></symbol>
+<symbol id="i-tool" viewBox="0 0 24 24"><path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5"/></symbol>
+<symbol id="sp" viewBox="0 0 20 20"><g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+<line x1="10" y1="2" x2="10" y2="5.5"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".2" transform="rotate(30 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".27" transform="rotate(60 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".34" transform="rotate(90 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".42" transform="rotate(120 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".49" transform="rotate(150 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".56" transform="rotate(180 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".63" transform="rotate(210 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".7" transform="rotate(240 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".78" transform="rotate(270 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".85" transform="rotate(300 10 10)"/><line x1="10" y1="2" x2="10" y2="5.5" opacity=".92" transform="rotate(330 10 10)"/></g></symbol>
+</defs></svg>
+
+<!-- ============ Home (afgemeld) ============ -->
+<div id="home" class="home" hidden>
+  <div class="login">
+    <div class="mark"><svg class="i" style="width:26px;height:26px"><use href="#i-mail"/></svg></div>
+    <h1 id="appName">Mailings voor e-MassPost</h1>
+    <p>Kijk je adreslijsten na op de regels van bpost en zet je mailings klaar.</p>
+    <div id="deniedMsg" class="denied" hidden><b>Geen toegang voor gmail.com.</b><br>Deze tool is enkel open voor organisaties die toegang kregen. Meld je aan met het account van je werk, of vraag toegang aan Sonic Rocket.</div>
+    <button class="gbtn" type="button" data-go="app">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Aanmelden met Google
+    </button>
+    <small>Alfaversie 0.5.0 · door Sonic Rocket</small>
+  </div>
+</div>
+
+<!-- ============ App ============ -->
+<div id="app">
+
+
+<div class="shell" id="shell">
+  <nav class="side" id="side" aria-label="Hoofdmenu">
+    <div class="side-top">
+      <a class="tenant" href="#mailings" aria-label="Naar Mailings" title="Contrapunt">
+        <span class="tenant-icon" id="tenantIcon"></span>
+        <span class="tenant-name nav-label" id="tenantName">Contrapunt</span>
+      </a>
+      <button class="icon-btn side-close" id="sideClose" type="button" aria-label="Menu sluiten"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <ul>
+      <li><a class="nav-item" href="#mailings" data-nav="mailings" title="Mailings"><svg class="i"><use href="#i-mail"/></svg><span class="nav-label">Mailings</span></a></li>
+      <li><a class="nav-item" href="#deposits" data-nav="deposits" title="Deposits"><svg class="i"><use href="#i-truck"/></svg><span class="nav-label">Deposits</span><span class="soon">binnenkort</span></a></li>
+      <li><a class="nav-item" href="#archief" data-nav="archief" title="Archief"><svg class="i"><use href="#i-archive"/></svg><span class="nav-label">Archief</span></a></li>
+    </ul>
+    <ul class="nav-bottom">
+      <li><a class="nav-item" href="#instellingen" data-nav="instellingen" title="Instellingen"><svg class="i"><use href="#i-settings"/></svg><span class="nav-label">Instellingen</span></a></li>
+    </ul>
+    <div class="side-foot">
+      <div class="menu-wrap user-wrap">
+        <button class="user" id="avatarBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Account van Mark Minnoye" title="Mark Minnoye">
+          <span class="avatar" aria-hidden="true">MM</span><span class="user-name nav-label">Mark Minnoye</span><svg class="i nav-label" style="width:14px;height:14px" aria-hidden="true"><use href="#i-updown"/></svg>
+        </button>
+        <div class="menu up" id="avatarMenu" role="menu" hidden>
+          <div class="who"><b>Mark Minnoye</b><span id="whoMail">mark@contrapunt.be</span></div>
+          <button role="menuitemcheckbox" type="button" id="themeItem" aria-checked="false"><svg class="i"><use href="#i-moon"/></svg>Donkere modus<span class="switch" aria-hidden="true"></span></button>
+          <button role="menuitem" type="button" data-go="home"><svg class="i"><use href="#i-logout"/></svg>Afmelden</button>
+        </div>
+      </div>
+      <button class="collapse-btn" id="collapseBtn" type="button" aria-expanded="true" aria-controls="side" aria-label="Zijbalk inklappen" title="Zijbalk inklappen"><svg class="i"><use href="#i-collapse"/></svg></button>
+    </div>
+  </nav>
+  <div class="scrim" id="scrim"></div>
+
+  <main id="main" tabindex="-1">
+
+    <!-- Mailings en Archief delen dezelfde opbouw -->
+    <section class="page" data-view="mailings archief">
+      <div class="page-head">
+        <button class="icon-btn side-toggle" type="button" aria-label="Menu openen" aria-controls="side" aria-expanded="false"><svg class="i"><use href="#i-sidebar"/></svg></button>
+        <h1 tabindex="-1" id="listTitle">Mailings</h1>
+        <span class="spacer"></span>
+        <a class="btn btn-primary" href="#nieuw" id="newBtn"><svg class="i"><use href="#i-plus"/></svg><span>Nieuwe mailing</span></a>
+      </div>
+      <div class="banner" id="expired" role="status" hidden>
+        <svg class="i"><use href="#i-drive"/></svg>De verbinding met Google Drive is verlopen. Wat je deed, blijft staan.
+        <button class="btn" type="button" data-fix-drive>Opnieuw verbinden</button>
+      </div>
+      <div class="search" id="searchWrap">
+        <svg class="i"><use href="#i-search"/></svg>
+        <label class="sr" for="q">Zoek in de mailings</label>
+        <input id="q" type="search" placeholder="Zoek op code, titel of klant" autocomplete="off">
+        <kbd aria-hidden="true">/</kbd>
+      </div>
+      <div class="box" id="box" aria-live="polite">
+        <div class="box-head" id="boxHead">
+          <span id="boxCount">9 mailings</span>
+          <span class="spacer"></span>
+          <div class="menu-wrap">
+            <button class="sort-btn" id="sortBtn" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="i"><use href="#i-sort"/></svg><span class="sr">Sorteren op </span><span id="sortLabel">Status</span><svg class="i" style="width:14px;height:14px"><use href="#i-down"/></svg></button>
+            <div class="menu" id="sortMenu" role="menu" aria-label="Sorteren op" hidden>
+              <button role="menuitemradio" type="button" data-sort="status" aria-checked="true">Status<span class="hint">actie nodig eerst</span></button>
+              <button role="menuitemradio" type="button" data-sort="date" aria-checked="false">Afgiftedatum<span class="hint">vroegste eerst</span></button>
+              <button role="menuitemradio" type="button" data-sort="modified" aria-checked="false">Laatst gewijzigd<span class="hint">recentste eerst</span></button>
+              <button role="menuitemradio" type="button" data-sort="code" aria-checked="false">Code<span class="hint">nieuwste eerst</span></button>
+              <button role="menuitemradio" type="button" data-sort="title" aria-checked="false">Titel (A–Z)</button>
+            </div>
+          </div>
+          <div class="seg" id="seg" role="group" aria-label="Weergave">
+            <button type="button" data-rows="two" aria-pressed="false" aria-label="Twee regels" title="Twee regels"><svg class="i"><use href="#i-rows2"/></svg></button>
+            <button type="button" data-rows="one" aria-pressed="true" aria-label="Eén regel" title="Eén regel"><svg class="i"><use href="#i-menu"/></svg></button>
+          </div>
+        </div>
+        <div id="rows"></div>
+      </div>
+    </section>
+
+    <section class="page" data-view="deposits" hidden>
+      <div class="page-head"><button class="icon-btn side-toggle" type="button" aria-label="Menu openen" aria-controls="side" aria-expanded="false"><svg class="i"><use href="#i-sidebar"/></svg></button><h1 tabindex="-1">Deposits</h1></div>
+      <div class="box"><div class="state">
+        <svg class="i"><use href="#i-tool"/></svg>
+        <h2>Dit onderdeel bouwen we nog</h2>
+        <p>Hier volg je straks de afgiftes bij bpost op: welke mailing bij welke afgifte hoort, en wanneer ze afgegeven is.</p>
+      </div></div>
+    </section>
+
+    <section class="page" data-view="instellingen" hidden style="max-width:760px">
+      <div class="page-head"><button class="icon-btn side-toggle" type="button" aria-label="Menu openen" aria-controls="side" aria-expanded="false"><svg class="i"><use href="#i-sidebar"/></svg></button><h1 tabindex="-1">Instellingen</h1></div>
+      <div class="card"><h2>Organisatie</h2><p class="lead">Deze gegevens gelden voor iedereen van je organisatie.</p>
+        <div class="grid2">
+          <div class="field"><label for="s-name">Naam</label><input id="s-name" value="Contrapunt"></div>
+          <div class="field"><label for="s-dom">Domein</label><input id="s-dom" value="contrapunt.be" readonly><span class="hint">Het icoon komt van de website van dit domein.</span></div>
+        </div>
+        <button class="btn" type="button">Opslaan</button>
+      </div>
+      <div class="card"><h2>bpost</h2><p class="lead">De gegevens van je contract bij bpost. Het wachtwoord bewaren we versleuteld.</p>
+        <div class="grid2">
+          <div class="field"><label for="s-prs">Klantnummer (PRS)</label><input id="s-prs" value="12345678" inputmode="numeric"></div>
+          <div class="field"><label for="s-acc">Account-ID</label><input id="s-acc" value="87654321" inputmode="numeric"></div>
+          <div class="field"><label for="s-bc">Barcode-klant-ID</label><input id="s-bc" value="12345" inputmode="numeric"><span class="hint">5 cijfers</span></div>
+          <div class="field"><label for="s-user">Gebruikersnaam</label><input id="s-user" value="contrapunt-mp"></div>
+          <div class="field"><label for="s-pw">Wachtwoord</label><input id="s-pw" type="password" placeholder="Laat leeg om het huidige te houden"></div>
+        </div>
+        <button class="btn" type="button">Opslaan</button>
+      </div>
+      <div class="card"><h2>Standaardwaarden</h2><p class="lead">Wat een nieuwe mailing al ingevuld krijgt. Je kan het per mailing aanpassen.</p>
+        <div class="grid2">
+          <div class="field"><label for="s-format">Formaat</label><select id="s-format"><option selected>Klein formaat</option><option>Groot formaat</option></select></div>
+          <div class="field"><label for="s-prio">Prioriteit</label><select id="s-prio"><option selected>Non-prior</option><option>Prior</option></select></div>
+          <div class="field"><label for="s-barcode">Barcode</label>
+            <select id="s-barcode"><option>Geen</option><option selected>bpost, 7 cijfers</option><option>bpost, 9 cijfers</option><option>bpost, 11 cijfers</option><option disabled>Contrapunt, 11 cijfers (binnenkort)</option></select></div>
+          <div class="field"><span class="flabel">Presortering</span><label class="check"><input type="checkbox" id="s-psc"> bpost maakt de presorteercodes</label></div>
+          <div class="field"><label for="s-prefix">Voorvoegsel voor codes</label><input id="s-prefix" value="CP" maxlength="6"><span class="hint">Bv. CP geeft CP-2026-15.</span></div>
+        </div>
+        <button class="btn" type="button">Opslaan</button>
+      </div>
+      <div class="card"><h2>Google Drive</h2><p class="lead">Je mailings en hun bestanden staan in een map op een gedeelde drive van je organisatie. Wie toegang heeft tot die map, ziet de mailings.</p>
+        <div class="grid2">
+          <div class="field"><label for="s-drive">Gedeelde drive</label><select id="s-drive"><option>Mailings Contrapunt</option><option>Algemeen</option></select></div>
+          <div class="field"><label for="s-folder">Map</label><select id="s-folder"><option>bpost-e-masspost</option><option>+ Nieuwe map "bpost-e-masspost" maken</option></select></div>
+        </div>
+        <button class="btn" type="button">Opslaan</button>
+      </div>
+    </section>
+
+    <section class="page" data-view="nieuw" hidden style="max-width:960px">
+<div class="stickybar"><nav aria-label="Stappen"><ol class="stepbar"><li class="stp cur" aria-current="step"><span class="lab"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-primary)" stroke-width="1.5"/></svg>1. Importeren</span><span class="trk"><i style="width:0%"></i></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></li><li class="stp"><span class="lab"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 0 1 18 10 Z" fill="var(--text-muted)"/></svg>2. Koppelen</span><span class="trk"><i style="width:0%"></i></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></li><li class="stp"><span class="lab"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 0 1 10 18 Z" fill="var(--text-muted)"/></svg>3. Formaatvalidatie</span><span class="trk"><i style="width:0%"></i></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></li><li class="stp"><span class="lab"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="var(--text-muted)"/></svg>4. Adrescontrole</span><span class="trk"><i style="width:0%"></i></span></li></ol></nav></div>
+      <div class="stephead">
+        <button class="icon-btn side-toggle" type="button" aria-label="Menu openen" aria-controls="side" aria-expanded="false"><svg class="i"><use href="#i-sidebar"/></svg></button>
+        <div>
+          <h1 tabindex="-1">Nieuwe mailing</h1>
+          <p class="muted" style="margin:4px 0 0">Vul de gegevens van je mailing in en kies je adreslijst.</p>
+          <p class="missing" id="missing" role="status"></p>
+        </div>
+        <button class="btn btn-primary" type="button" id="nextBtn" disabled>Verder naar koppelen</button>
+      </div>
+      <div class="card">
+        <h2>Gegevens van de mailing</h2>
+        <p class="lead">Verplichte velden zijn aangeduid met een sterretje (<span class="req">*</span>). Formaat, prioriteit, barcode en presortering komen uit Instellingen. Je kan alles aanpassen tot je de mailing indient.</p>
+        <div class="grid3">
+          <div class="field"><label for="f-klant">Klant</label><input id="f-klant" list="klanten" placeholder="Kies of typ een klant"><datalist id="klanten"><option>Harmonie Sint-Cecilia</option><option>Kunstencentrum Noord</option><option>Vzw Lezerskring</option></datalist></div>
+          <div class="field"><label for="f-title">Titel <span class="req">*</span></label><input id="f-title" placeholder="Leeg? Dan nemen we de bestandsnaam"></div>
+          <div class="field"><label for="f-code">Code <span class="req">*</span></label><input id="f-code" value="CP-2026-15" maxlength="20" aria-describedby="codeHint"><span class="hint" id="codeHint">Volgend vrij nummer, ook je referentie bij bpost.</span></div>
+          <div class="field"><label for="f-date">Geplande afgiftedatum <span class="req">*</span></label><input id="f-date" type="date" min="2026-10-11"></div>
+          <div class="field"><label for="f-format">Formaat <span class="req">*</span></label>
+            <select id="f-format"><option selected>Klein formaat</option><option>Groot formaat</option></select></div>
+          <div class="field"><label for="f-prio">Prioriteit <span class="req">*</span></label>
+            <select id="f-prio"><option selected>Non-prior</option><option>Prior</option></select></div>
+          <div class="field"><label for="f-barcode">Barcode</label>
+            <select id="f-barcode"><option>Geen</option><option selected>bpost, 7 cijfers</option><option>bpost, 9 cijfers</option><option>bpost, 11 cijfers</option><option disabled>Contrapunt, 11 cijfers (binnenkort)</option></select></div>
+          <div class="field"><span class="flabel">Presortering</span><label class="check"><input type="checkbox" id="f-psc"> bpost maakt de presorteercodes</label><span class="hint" id="pscHint"></span></div>
+          <div class="field"><span class="flabel">Ronde en sequentie</span><label class="check"><input type="checkbox" id="f-rs"> bpost geeft per brief de sequentie</label><span class="hint" id="rsHint">Enkel bij groot formaat.</span></div>
+        </div>
+      </div>
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept=".xlsx,.xls" class="sr">
+        <svg class="i" style="width:28px;height:28px"><use href="#i-upload"/></svg>
+        <b>Sleep je adreslijst hierheen</b>
+        <span>Excel (.xlsx of .xls)</span>
+        <span class="btn" aria-hidden="true">Kies een bestand</span>
+        <small>Het bestand komt in de map van deze mailing op de gedeelde drive van <span class="tn">Contrapunt</span>.</small>
+      </label>
+      <div class="filecard" id="filecard" hidden>
+        <svg class="i" style="width:24px;height:24px"><use href="#i-upload"/></svg>
+        <div><b id="fileName">adressen.xlsx</b><span class="muted" id="fileInfo">1.246 adressen · blad "Adressen"</span></div>
+        <button class="btn" type="button" id="otherFile">Ander bestand kiezen</button>
+      </div>
+      <p class="readerr" id="readErr" role="alert" hidden>Dit bestand kunnen we niet lezen. Kies een Excel-bestand (.xlsx of .xls).</p>
+    </section>
+
+    <section class="page" data-view="flow" hidden style="max-width:960px">
+      <div class="page-head"><button class="icon-btn side-toggle" type="button" aria-label="Menu openen" aria-controls="side" aria-expanded="false"><svg class="i"><use href="#i-sidebar"/></svg></button><h1 tabindex="-1"><span id="flowTitle">Nieuwsbrief december</span><span class="code" id="flowCode" style="font-size:14px;font-weight:400;margin-left:10px">CP-2026-15</span></h1><span class="spacer"></span>
+        <div class="menu-wrap"><button class="more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Acties voor deze mailing" data-code="page"><svg class="i"><use href="#i-dots"/></svg></button></div></div>
+      <div class="stickybar"><nav aria-label="Stappen"><ol class="stepbar"><li class="stp"><span class="lab"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--green)" stroke-width="1.5"/></svg>1. Importeren</span><span class="trk"><i style="width:100%"></i></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></li><li class="stp cur" aria-current="step"><span class="lab"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-primary)" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 0 1 18 10 Z" fill="var(--text-primary)"/></svg>2. Koppelen</span><span class="trk"><i style="width:0%"></i></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></li><li class="stp"><span class="lab"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 0 1 10 18 Z" fill="var(--text-muted)"/></svg>3. Formaatvalidatie</span><span class="trk"><i style="width:0%"></i></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></li><li class="stp"><span class="lab"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/><path d="M10 10 L10 2 A8 8 0 1 1 2 10 Z" fill="var(--text-muted)"/></svg>4. Adrescontrole</span><span class="trk"><i style="width:0%"></i></span></li></ol></nav></div>
+      <div class="box" style="margin-top:20px"><div class="state">
+        <svg class="i"><use href="#i-mail"/></svg>
+        <h2>Hier gaat de flow van de POC verder</h2>
+        <p>Koppelen, Formaatvalidatie en Adrescontrole, zoals op /masspost/poc, met de pills rechts in de stappenbalk. Terug naar stap 1 om de gegevens van de mailing aan te passen.</p>
+      </div></div>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<dialog id="leave" aria-labelledby="leaveTitle">
+  <h2 id="leaveTitle">Deze mailing is nog niet aangemaakt</h2>
+  <p>Als je nu weggaat, ben je de ingevulde gegevens en de gekozen adreslijst kwijt.</p>
+  <div class="form-foot" style="border:0;padding:0"><button class="btn" type="button" id="leaveGo">Weggaan</button><button class="btn btn-primary" type="button" id="leaveStay" autofocus>Blijven</button></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button type="button" id="undoBtn">Ongedaan maken</button></div>
+
+<details class="sketch">
+  <summary>Schetsbediening</summary>
+  <div>
+    <label>Scherm<select id="c-screen"><option value="app">App (aangemeld)</option><option value="home">Home (afgemeld)</option><option value="denied">Home, geen toegang</option></select></label>
+    <label>Tenant<select id="c-tenant"><option value="cp">Contrapunt (beginletter)</option><option value="sr">Sonic Rocket (favicon)</option></select></label>
+    <label>Naam van de tenant<select id="c-tenantstyle"><option value="line">Lijn eronder</option><option value="bg">Donkerdere achtergrond</option></select></label>
+    <label>Adressen in het bestand<select id="c-count"><option value="1246">1.246</option><option value="12500">12.500</option><option value="30000">30.000</option></select></label>
+    <label>Toestand lijst<select id="c-state"><option value="ok">Normaal</option><option value="loading">Laden</option><option value="empty">Nog geen mailings</option><option value="nodrive">Drive niet verbonden</option><option value="expired">Verbinding verlopen</option><option value="nofolder">Geen map gekozen</option></select></label>
+  </div>
+</details>
+
+<script>
+(function(){
+  'use strict'
+  var $ = function(s, r){ return (r || document).querySelector(s) }
+  var $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)) }
+  function store(k, v){ try{ if(v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v) }catch(e){ return null } }
+
+  // Statussen uit docs/ontwerp/webapp/statusiconen.html. group: 0 actie nodig, 1 wachten, 2 klaar.
+  var SLICE = {q:'M10 10 L10 2 A8 8 0 0 1 18 10 Z', h:'M10 10 L10 2 A8 8 0 0 1 10 18 Z', t:'M10 10 L10 2 A8 8 0 1 1 2 10 Z'}
+  function ball(color, slice){ return '<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="'+color+'" stroke-width="1.5"/>'+(slice?'<path d="'+SLICE[slice]+'" fill="'+color+'"/>':'')+'</svg>' }
+  function full(color, mark){ return '<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="'+color+'"/>'+(mark==='!'?'<line x1="10" y1="5.5" x2="10" y2="11" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="14.3" r="1.2" fill="#fff"/>':'<path d="M6.3 10.3 L8.8 12.7 L13.8 7.6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>')+'</svg>' }
+  function arrColor(a){ return a < 96 ? 'var(--red)' : a < 98 ? 'var(--orange)' : 'var(--green)' }
+  var STATUS = {
+    reading:  {group:1, label:'Bestand wordt ingelezen', icon:function(){ return '<span class="spin" style="color:var(--text-muted);display:grid"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><use href="#sp"/></svg></span>' }},
+    uploaded: {group:0, label:'Opgeladen · kolommen koppelen', icon:function(){ return ball('var(--text-muted)') }},
+    mapped:   {group:1, label:'Kolommen gekoppeld', icon:function(){ return ball('var(--yellow)','q') }},
+    format:   {group:0, label:'Formaatvalidatie · 26 formaatfouten open', icon:function(){ return ball('var(--yellow)','h') }},
+    checked:  {group:0, label:'Gecontroleerd door bpost', icon:function(m){ return ball(arrColor(m.arr),'t') }},
+    submitted:{group:2, label:'Ingediend', icon:function(){ return full('var(--green)') }},
+    overdue:  {group:0, label:'Ingediend · afgiftedatum voorbij, al afgegeven?', icon:function(){ return full('var(--orange)','!') }},
+    done:     {group:2, label:'Afgerond', icon:function(){ return full('var(--done)') }},
+    withdrawn:{group:0, label:'Ingetrokken', icon:function(){ return '<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="2.5 2"/><line x1="5" y1="15" x2="15" y2="5" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round"/></svg>' }}
+  }
+  // Voorbeelddata, verzonnen. Vandaag = 11/10/2026.
+  var MAILINGS = [
+    {code:'CP-2026-07', title:'Concertuitnodiging najaar', klant:'Harmonie Sint-Cecilia', n:342, arr:99.8, date:'2026-10-08', st:'overdue', who:'An', ago:'4 dagen'},
+    {code:'CP-2026-12', title:'Nieuwsbrief november', klant:'Vzw Lezerskring', n:1246, arr:null, date:'2026-10-18', st:'format', who:'Sofie', ago:'1 uur'},
+    {code:'CP-2026-11', title:'Ledenblad nr. 4', klant:'Vzw Lezerskring', n:2104, arr:93.4, date:'2026-10-22', st:'checked', who:'Pieter', ago:'gisteren'},
+    {code:'CP-2026-10', title:'Voorjaarsbrochure 2027 met extra lange titel die afgekapt wordt', klant:'Kunstencentrum Noord', n:789, arr:97.2, date:'2026-10-29', st:'checked', who:'An', ago:'3 dagen'},
+    {code:'CP-2026-13', title:'Uitnodiging opendeurdag', klant:'', n:412, arr:null, date:'', st:'uploaded', who:'Mark', ago:'10 minuten'},
+    {code:'CP-2026-09', title:'Concertseizoen 2027', klant:'Harmonie Sint-Cecilia', n:5230, arr:null, date:'2026-11-05', st:'mapped', who:'Sofie', ago:'2 uur'},
+    {code:'CP-2026-14', title:'Jaarverslag leden', klant:'Kunstencentrum Noord', n:null, arr:null, date:'', st:'reading', who:'Mark', ago:'net nu'},
+    {code:'CP-2026-06', title:'Nieuwsbrief september', klant:'Vzw Lezerskring', n:1980, arr:98.9, date:'2026-09-30', st:'done', who:'Pieter', ago:'11 dagen'},
+    {code:'CP-2026-08', title:'Zomerprogramma', klant:'Kunstencentrum Noord', n:3110, arr:99.6, date:'2026-10-14', st:'submitted', who:'An', ago:'5 dagen'},
+    {code:'CP-2026-05', title:'Zomerprogramma (test)', klant:'Kunstencentrum Noord', n:120, arr:96.1, date:'2026-07-02', st:'withdrawn', who:'Mark', ago:'3 maanden', archived:true},
+    {code:'CP-2026-03', title:'Donateursmailing voorjaar', klant:'Harmonie Sint-Cecilia', n:2850, arr:98.4, date:'2026-04-15', st:'done', who:'Pieter', ago:'5 maanden', archived:true}
+  ]
+  var MONTHS = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec']
+  var MONTHS_LONG = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december']
+  function shortDate(d){ if(!d) return ''; var p = d.split('-'); return +p[2] + ' ' + MONTHS[+p[1]-1] }
+  function longDate(d){ var p = d.split('-'); return +p[2] + ' ' + MONTHS_LONG[+p[1]-1] + ' ' + p[0] }
+  function nl(n){ return n.toLocaleString('nl-BE') }
+  function pct(a){ return a.toFixed(1).replace('.', ',') + ' %' }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c] }) }
+  // Actie nodig, wachten, klaar; binnen klaar eerst wat nog loopt (Ingediend), dan Afgerond; daarbinnen op afgiftedatum.
+  var DONE_LAST = {done:1}
+  function sortKey(m){ return [STATUS[m.st].group, DONE_LAST[m.st] || 0, m.date || '9999'] }
+  function byOrder(a, b){ var x = sortKey(a), y = sortKey(b); return x[0] - y[0] || x[1] - y[1] || (x[2] < y[2] ? -1 : x[2] > y[2] ? 1 : 0) }
+
+  // Minuten geleden, om op "laatst gewijzigd" te sorteren (de voorbeelddata heeft enkel tekst).
+  var AGO = {'net nu':0,'10 minuten':10,'1 uur':60,'2 uur':120,'gisteren':1440,'3 dagen':4320,'4 dagen':5760,'5 dagen':7200,'11 dagen':15840,'3 maanden':129600,'5 maanden':216000}
+  function byDate(a, b){ var x = a.date || '9999', y = b.date || '9999'; return x < y ? -1 : x > y ? 1 : 0 }
+  var SORTS = {
+    status:{label:'Status', fn:byOrder},
+    date:{label:'Afgiftedatum', fn:byDate},
+    modified:{label:'Laatst gewijzigd', fn:function(a, b){ return AGO[a.ago] - AGO[b.ago] }},
+    code:{label:'Code', fn:function(a, b){ return b.code.localeCompare(a.code, 'nl', {numeric:true}) }},
+    title:{label:'Titel (A–Z)', fn:function(a, b){ return a.title.localeCompare(b.title, 'nl') }}
+  }
+  var state = {sort:'status', view:'mailings', screen:'app', tenant:'cp', rows:'one', list:'ok', q:'', theme:'light', collapsed:false, undo:null}
+
+  function rowParts(m){
+    var s = STATUS[m.st]
+    var label = s.label + (m.st === 'checked' ? ' · ARR ' + pct(m.arr) : '')
+    return {
+      status:'<span class="status" title="'+esc(label)+'">'+s.icon(m)+'<span class="sr">'+esc(label)+'</span></span>',
+      code:'<span class="code">'+m.code+'</span>',
+      title:'<a class="title" href="#flow" data-open="'+m.code+'" title="'+esc(m.title)+'">'+esc(m.title)+'</a>',
+      klant: m.klant ? '<span class="pill" title="Klant: '+esc(m.klant)+'"><svg class="i"><use href="#i-building"/></svg><span>'+esc(m.klant)+'</span></span>' : '<span class="pill empty" aria-hidden="true"></span>',
+      n: m.n == null ? '<span class="pill empty" aria-hidden="true"></span>' : '<span class="pill'+(m.n < 500 ? ' warn' : '')+'" title="'+nl(m.n)+' adressen'+(m.n < 500 ? ', minder dan 500 (het minimum voor een mailing)' : '')+'"><svg class="i"><use href="#i-mail"/></svg>'+nl(m.n)+'<span class="sr"> adressen</span></span>',
+      arr: m.arr == null ? '<span class="arr muted" title="Nog niet gecontroleerd door bpost">—<span class="sr">nog geen ARR</span></span>' : '<span class="arr" title="ARR: deel van de adressen dat bpost herkent"><span class="dot" style="background:'+arrColor(m.arr)+'"></span>'+pct(m.arr)+'</span>',
+      date: m.date ? '<span class="date" title="Geplande afgifte: '+longDate(m.date)+'">'+shortDate(m.date)+'</span>' : '<span class="date muted" title="Nog geen afgiftedatum">—</span>',
+      more:'<div class="menu-wrap"><button class="more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Acties voor '+m.code+'" data-code="'+m.code+'"><svg class="i"><use href="#i-dots"/></svg></button></div>'
+    }
+  }
+  function renderRows(){
+    var archive = state.view === 'archief'
+    var rows = $('#rows'), head = $('#boxHead'), box = $('#box')
+    // Twee regels als de inhoud smal is (telefoon, smal venster of paneel), anders de gekozen weergave.
+    var narrow = $('#main').clientWidth < 860
+    box.classList.toggle('two', state.rows === 'two' || narrow)
+    $('#seg').hidden = narrow
+    $$('#seg [data-rows]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.rows === state.rows)) })
+    $('#sortLabel').textContent = SORTS[state.sort].label
+    $$('#sortMenu [data-sort]').forEach(function(b){ b.setAttribute('aria-checked', String(b.dataset.sort === state.sort)) })
+    box.removeAttribute('aria-busy')
+    $('#expired').hidden = state.list !== 'expired' || archive
+    $('#searchWrap').hidden = ['nodrive','nofolder','empty'].indexOf(state.list) >= 0
+    head.hidden = false
+    if(state.list === 'loading'){
+      box.setAttribute('aria-busy','true'); $('#boxCount').textContent = 'Mailings laden…'
+      rows.innerHTML = [1,2,3,4].map(function(){ return '<div class="row" aria-hidden="true"><span class="skel" style="width:18px;height:18px;border-radius:50%"></span><span class="skel"></span><span class="skel" style="width:60%"></span></div>' }).join('')
+      return
+    }
+    if(state.list === 'nodrive' || state.list === 'nofolder' || state.list === 'empty'){
+      head.hidden = true
+      var c = {
+        nodrive:['i-drive','Verbind met Google Drive','Je mailings staan op de gedeelde drive van '+$('#tenantName').textContent+'. Geef deze tool één keer toegang, dan tonen we ze hier.','<button class="btn btn-primary" type="button" data-fix-drive><svg class="i"><use href="#i-drive"/></svg>Verbinden met Drive</button>'],
+        nofolder:['i-settings','Kies eerst een map op Drive','Er is nog geen map gekozen waar de mailings van je organisatie komen.','<a class="btn" href="#instellingen">Naar Instellingen</a>'],
+        empty:['i-mail','Nog geen mailings','Start je eerste mailing: geef ze een naam, kies je adreslijst, en wij kijken ze na op de regels van bpost.','<a class="btn btn-primary" href="#nieuw"><svg class="i"><use href="#i-plus"/></svg>Nieuwe mailing</a>']
+      }[state.list]
+      rows.innerHTML = '<div class="state"><svg class="i"><use href="#'+c[0]+'"/></svg><h2>'+c[1]+'</h2><p>'+c[2]+'</p>'+c[3]+'</div>'
+      return
+    }
+    var q = state.q.trim().toLowerCase()
+    var list = MAILINGS.filter(function(m){ return !!m.archived === archive })
+      .filter(function(m){ return !q || (m.code + ' ' + m.title + ' ' + m.klant).toLowerCase().indexOf(q) >= 0 })
+      .sort(SORTS[state.sort].fn)
+    $('#boxCount').textContent = list.length + (list.length === 1 ? ' mailing' : ' mailings') + (archive ? ' in het archief' : '')
+    if(!list.length){ rows.innerHTML = '<div class="state"><h2>Geen mailings gevonden</h2><p>'+(q ? 'Niets past bij “'+esc(state.q)+'”. Zoek op code, titel of klant.' : 'Hier komen de mailings die je archiveert.')+'</p></div>'; return }
+    var two = box.classList.contains('two')
+    rows.innerHTML = list.map(function(m){
+      var p = rowParts(m)
+      if(!two) return '<div class="row">'+p.status+p.code+p.title+p.klant+p.n+p.arr+p.date+p.more+'</div>'
+      var meta = []
+      if(m.klant) meta.push(p.klant)
+      if(m.n != null) meta.push(p.n)
+      if(m.arr != null) meta.push(p.arr)
+      if(m.date) meta.push('<span class="meta" title="Geplande afgifte: '+longDate(m.date)+'"><svg class="i"><use href="#i-cal"/></svg>'+shortDate(m.date)+'</span>')
+      return '<div class="row">'+p.status+'<div class="line"><div class="line1">'+p.title+p.code+'</div><div class="line2">'+meta.join('')+'</div></div>'+p.more+'</div>'
+    }).join('')
+  }
+
+  // —— Menu's ——
+  var openMenu = null
+  function closeMenu(focusBack){
+    if(!openMenu) return
+    if(openMenu.own) openMenu.menu.remove(); else openMenu.menu.hidden = true
+    openMenu.btn.setAttribute('aria-expanded','false')
+    if(focusBack) openMenu.btn.focus()
+    openMenu = null
+  }
+  function showMenu(btn, menu, own){
+    closeMenu()
+    menu.hidden = false; btn.setAttribute('aria-expanded','true')
+    openMenu = {btn:btn, menu:menu, own:own}
+    var first = menu.querySelector('[aria-checked=true]') || menu.querySelector('[role^=menuitem]'); if(first) first.focus()
+  }
+  function rowMenu(btn){
+    var code = btn.getAttribute('data-code'), m = code === 'page' ? {code:$('#flowCode').textContent, archived:false, page:true} : MAILINGS.find(function(x){ return x.code === code })
+    var menu = document.createElement('div'); menu.className = 'menu'; menu.setAttribute('role','menu'); menu.setAttribute('aria-label','Acties voor '+code)
+    menu.innerHTML = (m.page ? '<button role="menuitem" type="button" data-act="edit"><svg class="i"><use href="#i-settings"/></svg>Gegevens aanpassen</button>' : '<button role="menuitem" type="button" data-act="open"><svg class="i"><use href="#i-open"/></svg>Openen</button>') +
+      (m.archived ? '<button role="menuitem" type="button" data-act="restore"><svg class="i"><use href="#i-restore"/></svg>Terugzetten naar Mailings</button>'
+                  : '<button role="menuitem" type="button" data-act="archive"><svg class="i"><use href="#i-archive"/></svg>Archiveren</button>')
+    menu.addEventListener('click', function(e){
+      var act = e.target.closest('[data-act]'); if(!act) return
+      closeMenu()
+      if(act.dataset.act === 'open'){ showMailing(m.code); go('flow'); return }
+      if(act.dataset.act === 'edit'){ go('nieuw'); return }
+      if(m.page){ toast(m.code + ' is gearchiveerd', null); go('mailings'); return }
+      var was = !!m.archived; m.archived = !was; renderRows()
+      toast(code + (was ? ' staat terug bij Mailings' : ' is gearchiveerd'), function(){ m.archived = was; renderRows() })
+    })
+    btn.parentNode.appendChild(menu)
+    showMenu(btn, menu, true)
+  }
+  document.addEventListener('click', function(e){
+    var more = e.target.closest('.more')
+    if(more){ if(openMenu && openMenu.btn === more) closeMenu(); else rowMenu(more); return }
+    if(e.target.closest('#sortBtn')){ if(openMenu && openMenu.btn.id === 'sortBtn') closeMenu(); else showMenu($('#sortBtn'), $('#sortMenu'), false); return }
+    var so = e.target.closest('[data-sort]'); if(so){ state.sort = so.dataset.sort; store('sort', state.sort); closeMenu(true); renderRows(); return }
+    var rv = e.target.closest('[data-rows]'); if(rv){ state.rows = rv.dataset.rows; store('rows', state.rows); renderRows(); return }
+    if(e.target.closest('#themeItem')){ setTheme(state.theme === 'dark' ? 'light' : 'dark'); return }
+    if(e.target.closest('#avatarBtn')){ if(openMenu && openMenu.btn.id === 'avatarBtn') closeMenu(); else showMenu($('#avatarBtn'), $('#avatarMenu'), false); return }
+    if(openMenu && !e.target.closest('.menu')) closeMenu()
+    var go = e.target.closest('[data-go]'); if(go){ setScreen(go.dataset.go); $('#c-screen').value = go.dataset.go }
+    if(e.target.closest('[data-fix-drive]')){ state.list = 'ok'; $('#c-state').value = 'ok'; renderRows() }
+  })
+  document.addEventListener('keydown', function(e){
+    if(openMenu){
+      var items = $$('[role^=menuitem]', openMenu.menu), i = items.indexOf(document.activeElement)
+      if(e.key === 'Escape'){ e.preventDefault(); closeMenu(true) }
+      else if(e.key === 'ArrowDown'){ e.preventDefault(); items[(i + 1) % items.length].focus() }
+      else if(e.key === 'ArrowUp'){ e.preventDefault(); items[(i - 1 + items.length) % items.length].focus() }
+      else if(e.key === 'Tab'){ closeMenu() }
+      return
+    }
+    if(e.key === 'Escape' && document.body.classList.contains('drawer-open')){ setDrawer(false, true) }
+    if(e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !$('#searchWrap').hidden && state.screen === 'app'){ e.preventDefault(); $('#q').focus() }
+  })
+
+  // —— Melding met ongedaan maken ——
+  var toastTimer
+  function toast(text, undo){
+    $('#toastText').textContent = text; state.undo = undo; $('#undoBtn').hidden = !undo; $('#toast').hidden = false
+    clearTimeout(toastTimer); toastTimer = setTimeout(function(){ $('#toast').hidden = true }, 6000)
+  }
+  $('#undoBtn').hidden = false
+  $('#undoBtn').addEventListener('click', function(){ if(state.undo) state.undo(); $('#toast').hidden = true })
+
+  // —— Thema ——
+  function setTheme(t){
+    state.theme = t; document.documentElement.setAttribute('data-theme', t)
+    $('#themeItem').setAttribute('aria-checked', String(t === 'dark'))
+    store('theme', t)
+  }
+
+  // —— Zijbalk ——
+  function setCollapsed(c){
+    state.collapsed = c; document.body.classList.toggle('collapsed', c)
+    var b = $('#collapseBtn'), label = c ? 'Zijbalk uitklappen' : 'Zijbalk inklappen'
+    b.setAttribute('aria-expanded', String(!c)); b.setAttribute('aria-label', label); b.title = label
+    b.innerHTML = '<svg class="i"><use href="#i-' + (c ? 'expand' : 'collapse') + '"/></svg>'
+    store('sidebar', c ? 'collapsed' : 'open')
+    if(state.view === 'mailings' || state.view === 'archief') setTimeout(renderRows, 200)
+  }
+  $('#collapseBtn').addEventListener('click', function(){ setCollapsed(!state.collapsed) })
+  // Het paneel onder 1024 px: openen met het icoon naast de titel, sluiten met ✕, Esc of een klik ernaast.
+  var opener = null
+  function setDrawer(open, focusBack){
+    var was = document.body.classList.contains('drawer-open')
+    document.body.classList.toggle('drawer-open', open)
+    $$('.side-toggle').forEach(function(b){ b.setAttribute('aria-expanded', String(open)) })
+    if(open){ $('#sideClose').focus() }
+    else if(was && focusBack && opener){ opener.focus() }
+  }
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('.side-toggle'); if(t){ opener = t; setDrawer(true) }
+  })
+  $('#sideClose').addEventListener('click', function(){ setDrawer(false, true) })
+  $('#scrim').addEventListener('click', function(){ setDrawer(false, true) })
+
+  // —— Weergaven via #hash ——
+  // Routering zonder echte navigatie: de schets werkt zo ook in een voorbeeldvenster (data:-URL).
+  function go(v){ state.view = v; try{ history.replaceState(null, '', '#' + v) }catch(e){} route() }
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a[href^="#"]'); if(!a) return
+    e.preventDefault()
+    if(a.dataset.open) showMailing(a.dataset.open)
+    leaveTo(a.getAttribute('href').slice(1) || 'mailings')
+  })
+  // De pagina van een mailing: titel vooraan, code erachter.
+  function showMailing(code){
+    var m = MAILINGS.find(function(x){ return x.code === code }); if(!m) return
+    $('#flowTitle').textContent = m.title; $('#flowCode').textContent = m.code
+  }
+  // Stap 1 met ingevulde gegevens: eerst vragen, want er staat nog niets op Drive. Vanaf stap 2 is alles bewaard.
+  var pending = null
+  function step1Dirty(){ return state.view === 'nieuw' && (!!file || !!$('#f-title').value.trim() || !!$('#f-klant').value.trim() || !!$('#f-date').value) }
+  function leaveTo(v){
+    if(v === state.view) return
+    if(step1Dirty()){ pending = v; $('#leave').showModal(); return }
+    go(v)
+  }
+  $('#leaveStay').addEventListener('click', function(){ $('#leave').close() })
+  $('#leaveGo').addEventListener('click', function(){ $('#leave').close(); resetStep1(); go(pending) })
+  window.addEventListener('beforeunload', function(e){ if(step1Dirty()){ e.preventDefault(); e.returnValue = '' } })
+  function route(){
+    var v = state.view
+    if(['mailings','archief','deposits','instellingen','nieuw','flow'].indexOf(v) < 0) v = 'mailings'
+    state.view = v; closeMenu(); setDrawer(false)
+    $$('[data-view]').forEach(function(s){ s.hidden = s.dataset.view.split(' ').indexOf(v) < 0 })
+    var nav = v === 'nieuw' || v === 'flow' ? 'mailings' : v
+    $$('[data-nav]').forEach(function(a){ if(a.dataset.nav === nav) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current') })
+    if(v === 'mailings' || v === 'archief'){ $('#listTitle').textContent = v === 'archief' ? 'Archief' : 'Mailings'; $('#newBtn').hidden = v === 'archief'; renderRows() }
+    document.title = ({mailings:'Mailings',archief:'Archief',deposits:'Deposits',instellingen:'Instellingen',nieuw:'Nieuwe mailing',flow:'Mailing'})[v] + ' · ' + $('#tenantName').textContent + ' · Mailings voor e-MassPost'
+    var h = $('section[data-view]:not([hidden]) h1'); if(h && state.screen === 'app') h.focus()
+  }
+
+  // Ronde en sequentie: enkel bij groot formaat, standaard aan vanaf 10.000 adressen (tot de gebruiker zelf kiest).
+  // Presortering: verplicht bij klein formaat vanaf 25.000 adressen.
+  var addrCount = 1246, rsTouched = false
+  function applyRules(){
+    var large = $('#f-format').value === 'Groot formaat', rs = $('#f-rs'), psc = $('#f-psc')
+    rs.disabled = !large
+    if(!large) rs.checked = false
+    else if(!rsTouched) rs.checked = !!file && addrCount >= 10000
+    $('#rsHint').textContent = !large ? 'Enkel bij groot formaat.' : (file && addrCount >= 10000 && !rsTouched ? 'Aangezet: je lijst telt 10.000 adressen of meer.' : 'Standaard aan vanaf 10.000 adressen.')
+    var must = !large && !!file && addrCount >= 25000
+    psc.disabled = must
+    if(must) psc.checked = true
+    $('#pscHint').textContent = must ? 'Verplicht bij klein formaat vanaf 25.000 adressen.' : ''
+  }
+  $('#f-format').addEventListener('change', applyRules)
+  $('#f-rs').addEventListener('change', function(){ rsTouched = true; applyRules() })
+  $('#c-tenantstyle').addEventListener('change', function(){ document.body.classList.toggle('tenant-bg', this.value === 'bg') })
+  $('#c-count').addEventListener('change', function(){ addrCount = +this.value; if(file) $('#fileInfo').textContent = nl(addrCount) + ' adressen · blad "Adressen"'; applyRules() })
+
+  // —— Stap 1: gegevens en adreslijst. Verder pas als de verplichte velden in orde zijn en het bestand ingelezen is. ——
+  var file = null
+  function codeOk(){ return /^[A-Za-z0-9-]{1,20}$/.test($('#f-code').value.trim()) }
+  function checkStep1(){
+    var miss = []
+    if(!$('#f-title').value.trim()) miss.push('een titel')
+    if(!codeOk()) miss.push('een geldige code')
+    var d = $('#f-date').value
+    if(!d) miss.push('een afgiftedatum')
+    else if(d < '2026-10-11') miss.push('een afgiftedatum vanaf vandaag')
+    if(!file) miss.push('je adreslijst')
+    $('#missing').textContent = miss.length ? 'Nog nodig: ' + miss.join(', ') + '.' : ''
+    $('#nextBtn').disabled = miss.length > 0
+    $('#codeHint').textContent = codeOk() || !$('#f-code').value ? 'Volgend vrij nummer, ook je referentie bij bpost.' : 'Enkel letters, cijfers en koppeltekens, 1 tot 20 tekens.'
+  }
+  ;['f-title','f-code','f-date'].forEach(function(id){ $('#'+id).addEventListener('input', checkStep1) })
+  function readFile(name){
+    var ok = /\.(xlsx|xls)$/i.test(name)
+    $('#readErr').hidden = ok
+    file = ok ? name : null
+    if(ok){
+      if(!$('#f-title').value.trim()) $('#f-title').value = name.replace(/\.[^.]+$/, '')
+      $('#fileName').textContent = name
+      $('#fileInfo').textContent = nl(addrCount) + ' adressen · blad "Adressen"'
+    }
+    $('#drop').hidden = ok; $('#filecard').hidden = !ok
+    applyRules(); checkStep1()
+  }
+  $('#file').addEventListener('change', function(){ if(this.files[0]) readFile(this.files[0].name); this.value = '' })
+  $('#otherFile').addEventListener('click', function(){ $('#file').click() })
+  var drop = $('#drop')
+  drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('over') })
+  drop.addEventListener('dragleave', function(){ drop.classList.remove('over') })
+  drop.addEventListener('drop', function(e){ e.preventDefault(); drop.classList.remove('over'); var f = e.dataTransfer.files[0]; if(f) readFile(f.name) })
+  function resetStep1(){
+    file = null; rsTouched = false; $('#f-rs').checked = false; $('#f-psc').checked = false
+    ;['f-title','f-klant','f-date'].forEach(function(id){ $('#'+id).value = '' })
+    $('#drop').hidden = false; $('#filecard').hidden = true; $('#readErr').hidden = true; applyRules(); checkStep1()
+  }
+  $('#nextBtn').addEventListener('click', function(){
+    $('#flowCode').textContent = $('#f-code').value; $('#flowTitle').textContent = $('#f-title').value
+    var code = $('#f-code').value; resetStep1(); go('flow'); toast('Mailing ' + code + ' aangemaakt op Drive', null)
+  })
+
+  // —— Zoeken ——
+  $('#q').addEventListener('input', function(){ state.q = this.value; renderRows() })
+  $('#q').addEventListener('keydown', function(e){ if(e.key === 'Escape'){ this.value = ''; state.q = ''; renderRows() } })
+
+  // —— Schetsbediening ——
+  function setScreen(s){
+    state.screen = s
+    $('#home').hidden = s === 'app'; $('#app').hidden = s !== 'app'
+    $('#deniedMsg').hidden = s !== 'denied'
+    if(s === 'app') route()
+  }
+  function setTenant(t){
+    state.tenant = t
+    var cp = t === 'cp', icon = $('#tenantIcon')
+    $('#tenantName').textContent = cp ? 'Contrapunt' : 'Sonic Rocket'; $('.tenant').title = $('#tenantName').textContent
+    $('#whoMail').textContent = cp ? 'mark@contrapunt.be' : 'mark@sonicrocket.be'
+    $$('.tn').forEach(function(e){ e.textContent = cp ? 'Contrapunt' : 'Sonic Rocket' })
+    $('#s-name').value = cp ? 'Contrapunt' : 'Sonic Rocket'; $('#s-dom').value = cp ? 'contrapunt.be' : 'sonicrocket.be'
+    var letter = '<span class="letter" aria-hidden="true">' + (cp ? 'C' : 'S') + '</span>'
+    if(cp){ icon.innerHTML = letter; return }
+    var img = new Image(); img.alt = ''; img.width = 20; img.height = 20
+    img.onerror = function(){ icon.innerHTML = letter }
+    img.src = 'https://www.google.com/s2/favicons?domain=sonicrocket.be&sz=64'
+    icon.innerHTML = ''; icon.appendChild(img)
+  }
+  $('#c-screen').addEventListener('change', function(){ setScreen(this.value) })
+  $('#c-tenant').addEventListener('change', function(){ setTenant(this.value); route() })
+  $('#c-state').addEventListener('change', function(){ state.list = this.value; if(state.view !== 'mailings') go('mailings'); else renderRows() })
+  window.addEventListener('resize', function(){ if(state.view === 'mailings' || state.view === 'archief') renderRows() })
+
+  setTheme(store('theme') === 'dark' ? 'dark' : 'light')
+  setCollapsed(store('sidebar') === 'collapsed')
+  state.view = (location.hash || '#mailings').slice(1)
+  if(SORTS[store('sort')]) state.sort = store('sort')
+  if(store('rows') === 'two') state.rows = 'two'
+  setTenant('cp'); applyRules(); checkStep1(); setScreen('app')
+})()
+</script>
+</body>
+</html>

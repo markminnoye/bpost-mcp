@@ -181,7 +181,7 @@ registry.registerPath({
     'Query is described by AuthorizeQuerySchema. The handler still validates by hand, then redirects (302) or returns an OAuth error JSON (400).',
   request: { query: AuthorizeQuerySchema },
   responses: {
-    302: { description: 'Redirect to the client, to sign-in, or to the dashboard.' },
+    302: { description: 'Redirect to the client, to sign-in, or to the landing page (no bpost login yet).' },
     400: json(OAuthErrorSchema, 'Invalid or missing authorization request.'),
   },
 })

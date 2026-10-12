@@ -101,10 +101,8 @@ export async function GET(request: Request) {
     .limit(1);
 
   if (creds.length === 0) {
-    const dashboardUrl = new URL('/dashboard', publicBase);
-    dashboardUrl.searchParams.set('setup', 'credentials');
-    dashboardUrl.searchParams.set('returnTo', url.toString());
-    return NextResponse.redirect(dashboardUrl.toString(), 302);
+    // No bpost login yet: to the landing page of the web app (Mark, 12/10/2026).
+    return NextResponse.redirect(new URL('/', publicBase).toString(), 302);
   }
 
   // 8. Generate authorization code

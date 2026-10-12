@@ -1,6 +1,6 @@
 /**
  * Generates a large, made-up address list in Contrapunt's export layout, for the scale test of the
- * web POC (/masspost/poc). About 3 % of the rows get a deliberate format problem (typographic
+ * web app (a new mailing). About 3 % of the rows get a deliberate format problem (typographic
  * characters, a slash in the house number, a too long street or name, an empty postcode).
  *
  * Usage:

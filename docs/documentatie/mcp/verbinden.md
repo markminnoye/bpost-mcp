@@ -22,7 +22,7 @@ Je hebt geen wachtwoord of token nodig. Bij de eerste opdracht opent de assisten
    - **URL:** `https://bpost.sonicrocket.app/mcp`
 4. Klik op **Add** en meld je aan wanneer de assistent daarom vraagt.
 
-Een gratis claude.ai-plan laat geen eigen connectors toe. Gebruik dan het dashboard op `https://bpost.sonicrocket.app/dashboard`.
+Een gratis claude.ai-plan laat geen eigen connectors toe. Gebruik dan de webapp op `https://bpost.sonicrocket.app`.
 
 ## Stappen in Claude Code
 
@@ -34,7 +34,7 @@ Bij de eerste bpost-opdracht volgt een aanmelding in de browser.
 
 ## Je bpost-gegevens invullen
 
-Ga naar het dashboard (`/dashboard`). Onder **BPost-gegevens** vul je je bpost-login en klantnummers in. Onder **Barcode-instellingen** kies je wie de barcodes aanmaakt.
+Meld je aan in de webapp en open **Instellingen**. Onder **bpost** vul je je bpost-login en klantnummers in. Wie de barcodes aanmaakt, geef je per opdracht mee aan de assistent.
 
 ## Testen
 

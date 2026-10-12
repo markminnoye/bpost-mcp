@@ -38,7 +38,7 @@ Vraag: "Welke app gebruik je om met de AI te praten?"
 
 Deze app kan geen externe MCP-server aansluiten. Alternatieven:
 
-1. BPost-dashboard (geen installatie): {{BASE_URL}}/dashboard
+1. De webapp (geen installatie): {{BASE_URL}}/
 2. Claude Desktop downloaden: https://claude.ai/desktop
 
 ### STAP 1B — Weet niet welke app
@@ -124,7 +124,7 @@ Bij eerste BPost-opdracht volgt een browser-login.
    - **URL:** `{{BASE_URL}}/mcp`
 6. Klik op **Add**.
 
-**Gratis plan?** Custom connectors zijn niet beschikbaar. Gebruik het dashboard: {{BASE_URL}}/dashboard
+**Gratis plan?** Custom connectors zijn niet beschikbaar. Gebruik de webapp: {{BASE_URL}}/
 
 ---
 
@@ -142,9 +142,9 @@ Werkt het → bevestig dat de installatie geslaagd is.
 | Probleem | Oplossing |
 |---|---|
 | Verbindingsfout | URL controleren: `{{BASE_URL}}/mcp` (geen extra slash, geen spaties). |
-| "Geen toegang" na inloggen | Google-account niet gekoppeld aan BPost → {{BASE_URL}}/dashboard |
+| "Geen toegang" na inloggen | Google-account niet gekoppeld aan BPost → {{BASE_URL}}/ |
 | "Tools laden niet" (Methode B) | Claude Desktop herstart? Wacht 30 seconden en probeer opnieuw |
-| Error 400: redirect_uri_mismatch | Technisch probleem aan serverkant → neem contact op met beheerder of gebruik het dashboard |
+| Error 400: redirect_uri_mismatch | Technisch probleem aan serverkant → neem contact op met beheerder of gebruik de webapp |
 
 Bij twijfel: stel één verduidelijkende vraag, daarna de meest waarschijnlijke instructie.
 

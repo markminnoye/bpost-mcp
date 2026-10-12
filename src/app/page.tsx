@@ -1,52 +1,44 @@
-import { AlphaServiceBanner } from '@/components/customer/AlphaServiceBanner'
+import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { IconMail } from '@tabler/icons-react'
+import { auth, signIn } from '@/lib/auth'
 import { APP_VERSION } from '@/lib/app-version'
-import Image from 'next/image'
+import '@/components/app-shell/tokens.css'
+import styles from '@/components/app-shell/app.module.css'
 
-export default function Home() {
+export const metadata: Metadata = { title: 'Mailings voor e-MassPost' }
+
+/** Home (SR-112 decision 6): only "Aanmelden met Google"; signed in, straight to the mailings. */
+export default async function HomePage() {
+  const session = await auth()
+  if (session?.user) redirect('/mailings')
+
+  async function signInWithGoogle() {
+    'use server'
+    await signIn('google', { redirectTo: '/mailings' })
+  }
+
   return (
-    <div className="bp-home">
-      <div className="bp-home-hero-bg">
-        <Image
-          src="/images/hero-background.png"
-          alt="BPost Background"
-          fill
-          priority
-          style={{ objectFit: 'cover' }}
-        />
-      </div>
-
-      <div className="bp-home-content">
-        <h1 className="bp-home-title">MCP-service voor BPost e-MassPost</h1>
-        <p className="bp-home-lead">
-          Verbind je AI-assistent met bpost om je mailings via e-MassPost te controleren en te verzenden.
-        </p>
-        <div style={{ width: 'min(36rem, 100%)', textAlign: 'left' }}>
-          <AlphaServiceBanner />
+    <div className={`app ${styles.home}`}>
+      <main className={styles.login}>
+        <div className={styles.mark} aria-hidden="true">
+          <IconMail size={26} stroke={1.75} />
         </div>
-        <p className="bp-muted-note" style={{ margin: 0 }}>
-          Versie {APP_VERSION}
-        </p>
-
-        <div className="bp-install-grid bp-home-choice">
-          <a
-            href="https://github.com/markminnoye/bpost-e-masspost-skills"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bp-install-card"
-          >
-            <div className="bp-install-card-title">Skills voor BPost e-MassPost downloaden</div>
-            <p className="bp-install-card-item">
-            Optimaliseer uw workflow met de bpost e-MassPost skill. Deze skill biedt uw AI-assistent de specifieke achtergrondinformatie die nodig is om uw mailingvoorbereiding volledig te ondersteunen.
-            </p>
-          </a>
-          <a href="/dashboard" className="bp-install-card">
-            <div className="bp-install-card-title">Verbinden met de MCP-service</div>
-            <p className="bp-install-card-item">
-            Verbind uw AI-assistent via het MCP-protocol met bpost. Zo kan uw agent niet alleen teksten genereren, maar ook daadwerkelijk mailings versturen en poststromen binnen uw organisatie afhandelen.
-            </p>
-          </a>
-        </div>
-      </div>
+        <h1>Mailings voor e-MassPost</h1>
+        <p>Adreslijsten controleren en mailings voorbereiden voor bpost.</p>
+        <form action={signInWithGoogle}>
+          <button type="submit" className={styles.gbtn}>
+            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+            </svg>
+            Aanmelden met Google
+          </button>
+        </form>
+        <small>Alfaversie {APP_VERSION} · door Sonic Rocket</small>
+      </main>
     </div>
   )
 }

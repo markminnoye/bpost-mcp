@@ -697,7 +697,7 @@ paths:
           in: query
       responses:
         "302":
-          description: Redirect to the client, to sign-in, or to the dashboard.
+          description: Redirect to the client, to sign-in, or to the landing page (no bpost login yet).
         "400":
           description: Invalid or missing authorization request.
           content:

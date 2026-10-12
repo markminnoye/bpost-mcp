@@ -11,8 +11,9 @@
 ## Documentatie: Webapp
 
 * [Inloggen](documentatie/webapp/inloggen.md)
-* [Dashboard](documentatie/webapp/dashboard.md)
-* [Adreslijst nakijken (proefversie)](documentatie/webapp/adreslijst-nakijken.md)
+* [Mailings](documentatie/webapp/mailings.md)
+* [Adreslijst nakijken](documentatie/webapp/adreslijst-nakijken.md)
+* [Instellingen](documentatie/webapp/instellingen.md)
 * [Formaatvalidatie](documentatie/webapp/formaatvalidatie.md)
 
 ## Documentatie: MCP

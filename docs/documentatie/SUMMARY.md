@@ -9,8 +9,9 @@
 ## Webapp
 
 * [Inloggen](webapp/inloggen.md)
-* [Dashboard](webapp/dashboard.md)
-* [Adreslijst nakijken (proefversie)](webapp/adreslijst-nakijken.md)
+* [Mailings](webapp/mailings.md)
+* [Adreslijst nakijken](webapp/adreslijst-nakijken.md)
+* [Instellingen](webapp/instellingen.md)
 * [Formaatvalidatie](webapp/formaatvalidatie.md)
 
 ## MCP

@@ -9,7 +9,7 @@ Twee manieren om de MCP-server en de beveiligde HTTP-routes aan te spreken. Beid
 | Situatie | Methode |
 |---|---|
 | Een AI-client die zelf inlogt | OAuth 2.1 met PKCE |
-| Automatisering of een omgeving zonder browser | App-token uit het dashboard |
+| Automatisering of een omgeving zonder browser | Een bestaand app-token |
 
 ## OAuth (interactief)
 
@@ -32,7 +32,7 @@ Toegangstokens worden ondertekend met de host van het verzoek. Tokens van een vo
 
 ## App-token (headless)
 
-Op `/dashboard` maak je onder de MCP-koppeling een app-token met een label. Gebruik het als Bearer-token. De HTTP-routes `POST /api/batches/upload` en `POST /api/masspost/suggest-mapping` aanvaarden ook een ingelogde sessie.
+Een bestaand app-token gebruik je als Bearer-token. Een nieuw token aanmaken kan voorlopig niet in de webapp. De HTTP-routes `POST /api/batches/upload` en `POST /api/masspost/suggest-mapping` aanvaarden ook een ingelogde sessie.
 
 ## Foutcodes
 
