@@ -12,7 +12,7 @@ Na stap 1 van een [nieuwe mailing](mailings.md) kies je welke kolommen het adres
 
 Stap 1 is het begin van een nieuwe mailing: de gegevens en je adreslijst. Zie [Mailings](mailings.md#een-nieuwe-mailing).
 
-- **Formaten:** .xlsx en .xls (Excel 97-2003). Een .csv-bestand kan nog niet.
+- **Formaten:** Excel (.xlsx, .xlsm en .xls uit Excel 97-2003) en LibreOffice (.ods). Een .csv-bestand kan nog niet.
 - **De eerste rij** bevat de kolomtitels, elke volgende rij is één adres. Lege rijen slaan we over.
 - **Enkel het eerste werkblad** wordt ingelezen.
 - **Hoeveel adressen:** meestal tot 25.000. Tot 150.000 kan, met een waarschuwing. Een .xls-bestand bevat er nooit meer dan 65.535; dat is een grens van het formaat.
@@ -84,7 +84,7 @@ De gevonden formaatfouten staan in groepen: vreemde tekens, een schuine streep i
 
 | Je wil | Met de muis | Met het toetsenbord |
 |---|---|---|
-| Het voorstel overnemen | De knop ↵ naast het voorstel | `Enter` |
+| Het voorstel overnemen | De knop ↵ rechts in de rij, links van uitsluiten | `Enter` |
 | Alle open voorstellen van een groep overnemen | **Alles overnemen** in de kop van de groep | |
 | Zelf aanpassen | Klik in het veld | `E`, daarna `Enter` om te bevestigen of `Esc` om terug te zetten |
 | De oorspronkelijke waarde terugzetten | De knop ↶ rechts in de rij, links van uitsluiten | `⌘Z` (laatste actie ongedaan) |
@@ -97,12 +97,12 @@ De gevonden formaatfouten staan in groepen: vreemde tekens, een schuine streep i
 - **Is een groep helemaal in orde,** dan wordt de pill neutraal met een groen icoon en het aantal rijen, en klapt de groep meteen dicht. Klik op de pill om de rijen terug te zien.
 - **Een uitgesloten rij** blijft bewaard, maar gaat niet mee in de mailing.
 - **Het vinkje** wordt groen zodra een waarde aan de regels voldoet.
-- **Verder naar adrescontrole** wordt rood zodra er geen formaatfouten meer open staan. Zijn er geen formaatfouten, dan ga je meteen door naar stap 4.
+- **Verder naar adrescontrole** wordt actief zodra er geen formaatfouten meer open staan. Zijn er geen formaatfouten, dan ga je meteen door naar stap 4.
 - **Je aanpassingen blijven bewaard,** ook als je teruggaat naar Koppelen of de mailing later opnieuw opent. Ze vervallen pas als je de koppeling wijzigt. Dan kijken we de lijst opnieuw na.
 
 ## Stap 4: adrescontrole
 
-De adrescontrole bij bpost komt in een volgende versie. Wel kan je hier twee bestanden opslaan, elk in een eigen kader naast elkaar. We maken ze in je browser: er wordt niets opgeladen. Je browser bewaart het bestand zoals elk ander bestand, meestal in de map Downloads.
+De adrescontrole bij bpost komt in een volgende versie. Daarom staat **Verder naar indienen** nog uit; terug naar de formaatfouten ga je via de stappen bovenaan. Wel kan je hier twee bestanden opslaan, elk in een eigen kader naast elkaar. We maken ze in je browser: er wordt niets opgeladen. Je browser bewaart het bestand zoals elk ander bestand, meestal in de map Downloads.
 
 **Opslaan voor bpost (AFT, .xls)** geeft een bestand voor de Address File Tool op het e-MassPost-portaal van bpost:
 - **de kolommen van het sjabloon van bpost,** in hun vaste volgorde, als Excel 97-2003 (.xls), want het portaal aanvaardt geen .xlsx;

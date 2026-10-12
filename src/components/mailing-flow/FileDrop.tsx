@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { IconFileSpreadsheet, IconFileUpload } from '@tabler/icons-react'
+import { ADDRESS_FILE_EXTENSIONS, isAddressFileName } from '@/core/masspost/address-file'
 import { formatCount, type LoadedList } from './columns'
 import { Spinner } from './StatusIcons'
 import styles from '@/components/app-shell/app.module.css'
@@ -36,7 +37,7 @@ export function friendlyReadError(err: unknown): string {
   if (err instanceof Error && err.name === 'ExcelParseError' && !message.startsWith('Kon het Excel-bestand')) {
     return message
   }
-  return 'We konden dit bestand niet lezen. Is het een Excel-bestand (.xlsx of .xls) zonder wachtwoord?'
+  return 'We konden dit bestand niet lezen. Is het een Excel- of LibreOffice-bestand zonder wachtwoord?'
 }
 
 /**
@@ -47,8 +48,8 @@ export function friendlyReadError(err: unknown): string {
 export async function readAddressFile(
   file: File,
 ): Promise<{ ok: true; list: LoadedList; bytes: ArrayBuffer } | { ok: false; error: string }> {
-  if (!/\.xlsx?$/i.test(file.name)) {
-    return { ok: false, error: 'Dit is geen Excel-bestand. Kies een bestand op .xlsx of .xls.' }
+  if (!isAddressFileName(file.name)) {
+    return { ok: false, error: 'Dit bestand kunnen we niet lezen. Kies een Excel-bestand (.xlsx, .xlsm of .xls) of een LibreOffice-bestand (.ods).' }
   }
   try {
     const { parseExcelAddresses } = await import('@/core/masspost/excel')
@@ -102,7 +103,7 @@ export function FileDrop({
       ref={input}
       type="file"
       className={styles.srOnly}
-      accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+      accept={ADDRESS_FILE_EXTENSIONS.join(',')}
       aria-label="Excel-bestand kiezen"
       onChange={(e) => {
         const f = e.target.files?.[0]
@@ -155,7 +156,7 @@ export function FileDrop({
           {picker}
           <IconFileUpload size={28} stroke={1.75} aria-hidden="true" />
           <b>Sleep je adreslijst hierheen</b>
-          <span>Excel (.xlsx of .xls)</span>
+          <span>Excel (.xlsx, .xlsm, .xls) of LibreOffice (.ods)</span>
           <span className={styles.btn} aria-hidden="true">
             Kies een bestand
           </span>

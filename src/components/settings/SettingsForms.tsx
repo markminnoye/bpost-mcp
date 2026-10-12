@@ -61,7 +61,7 @@ export function SettingsForms({ settings }: { settings: TenantSettings }) {
   const b = settings.bpost
 
   return (
-    <div className={styles.pageNarrow}>
+    <div className={styles.page}>
       <PageHeader title="Instellingen" />
 
       <Card title="Organisatie" lead="Deze gegevens gelden voor iedereen van je organisatie." action={orgAction}>

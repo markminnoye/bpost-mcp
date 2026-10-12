@@ -4,6 +4,7 @@
 // consumed by an MCP tool later without any change here. Browser code imports the modules it
 // needs directly (excel, mapping, suggest-mapping, format-check, mask): this barrel also pulls in FTP.
 
+export * from './address-file'
 export * from './excel'
 export * from './mapping'
 export * from './box-keywords'

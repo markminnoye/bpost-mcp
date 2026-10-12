@@ -8,7 +8,7 @@
 
 > **parseExcelAddresses**(`input`): `Promise`\<[`ParsedExcel`](../interfaces/ParsedExcel.md)\>
 
-Reads a raw customer address list (.xlsx, or .xls from Excel 97-2003). The first row must
+Reads a raw customer address list (.xlsx, .xlsm, .xls from Excel 97-2003, or .ods). The first row must
 contain column titles; every other row is one address. Blank rows are skipped. A column with
 an empty title is ignored. Other formats (such as CSV) are refused rather than guessed at.
 

@@ -1,6 +1,6 @@
 # SR-112 v1: overdracht aan de volgende agent
 
-*Sonic Rocket · 12 oktober 2026 · status: v1 gebouwd en gecommit op `develop` (niet gepusht), wacht op review van Mark*
+*Sonic Rocket · 12 oktober 2026 · status: v1 gecommit op `develop` als `16f0470` (niet gepusht); eerste reviewronde van Mark verwerkt (zie onderaan), nog niet gecommit*
 
 Dit is de prompt voor een agent die het werk overneemt. Kopieer alles onder de lijn.
 
@@ -30,7 +30,7 @@ Je neemt het werk over aan de webapp van **bpost-mcp** (Next.js 16 App Router, R
 - **Routes** `src/app/(app)/` achter de login: `/mailings`, `/mailings/nieuw`, `/mailings/[code]` (`?stap=gegevens`), `/archief`, `/deposits` (plaatshouder), `/instellingen`. `/` is de landingspagina met enkel "Aanmelden met Google".
 - **Componenten**: `src/components/app-shell/` (zijbalk, `tokens.css` met o.a. `--accent` = kleur van de hoofdknop, `app.module.css` vertaald uit de schets), `src/components/mailings/`, `src/components/mailing-flow/` (de vroegere POC: `MailingFlow`, `ImportStep`, `FileDrop`, `useMailingSaver`, `useLeaveGuard`, `resume.ts`), `src/components/settings/`.
 - **Opslaan voor de drukker** staat ook in het menu **…** van een mailing in het overzicht (Mark, 12/10), pas actief als de formaatvalidatie in orde is. Stap 4 en het menu delen `src/components/mailing-flow/exports.ts`.
-- **Database**: `tenant_preferences` kreeg 5 kolommen (`drizzle/0005_tenant_preferences_defaults.sql`, door Mark uitgevoerd op Neon).
+- **Database**: `tenant_preferences` kreeg 5 kolommen (`drizzle/0005_tenant_preferences_defaults.sql`, door Mark uitgevoerd op Neon, bevestigd 12/10).
 - **Weg**: `/masspost/poc`, `/dashboard` (app-tokens maak je niet meer in de UI; bestaande blijven werken), de oude home, `npm run build:poc`. De MCP-login zonder bpost-gegevens stuurt naar `/`.
 - **Componenttests** draaien met `// @vitest-environment jsdom` en `@testing-library/react`. `timeout` bestaat niet op macOS: gebruik `perl -e 'alarm 120; exec @ARGV' npx vitest run …` als een test kan blijven hangen.
 
@@ -46,8 +46,23 @@ Je neemt het werk over aan de webapp van **bpost-mcp** (Next.js 16 App Router, R
 ## Open punten en volgende stappen
 
 1. **Review van Mark** van v1; daarna SR-112 in Linear op In review en de acceptatiecriteria bijwerken (zie "SR-112 bijwerken" in het SR-112-plan).
-2. **Bestandsformaten** (Q-014 in `docs/projectdossier/open-vragen.md`): voorstel aan Mark was .ods en .xlsm meteen (SheetJS leest ze al), CSV pas na antwoord van Contrapunt, met herkenning van scheidingsteken (`;` of `,`) en tekenset (Windows-1252 of UTF-8). Nog niet beslist.
+2. **Bestandsformaten** (Q-014 in `docs/projectdossier/open-vragen.md`): .ods en .xlsm gebouwd (Mark, 12/10). CSV pas na antwoord van Contrapunt, met herkenning van scheidingsteken (`;` of `,`) en tekenset (Windows-1252 of UTF-8).
 3. **Mijlpaal 2** (apart plan maken met `superpowers:brainstorming` → spec → `writing-plans`): `DriveMailingStore`, Google Identity Services, login per Workspace-domein en `tenant:add`, overzetten van IndexedDB naar Drive. Mark moet in Google Cloud de Drive API en de toestemming `drive` zetten en een gedeelde drive maken in `sonicrocket.be`.
 4. **Uitgestelde kleine punten** uit de review: codevoorstel kan blijven hangen op een code van een onleesbare mailing; in dev wordt bij openen één keer extra bewaard (StrictMode); verkeerde tekst bij een lijst met enkel onleesbare mailings; geen try/catch bij archiveren en ongedaan maken; volle opslag toont de melding over het privévenster; correcties van minder dan 2 s gaan verloren bij herladen; wachtwoordveld blijft verplicht na de eerste bewaring tot herladen; mogelijke doorverwijslus zonder tenant; instellingen twee keer opgehaald per pagina (`cache()`); toegankelijkheid (rol van plaatshouders in menu's, pijltjestoetsen in het menu van een mailing, focus in het paneel); `ENCRYPTION_KEY` niet via `env.ts` en geen `server-only` in `settings.ts`; na een mislukt tweede bestand blijft "Verder" actief voor het vorige; geen `error.tsx` onder `(app)`.
 5. `npm run check:hardcoded` faalt op een commentaarregel die al bestond in `src/lib/oauth/resource-url.ts`.
 6. De submodule `docs/internal/e-masspost` heeft lokale wijzigingen die niet bij dit werk horen; niet mee committen.
+
+## Reviewronde 1 (Mark, 12/10), verwerkt
+
+- Lijst: de hele rij opent de mailing; met Tab krijgt de rij de focus (via de titellink), daarna het menu "…"; ↑ ↓ gaan naar de vorige of volgende rij. Weergaveknoppen omgewisseld (twee regels, dan één).
+- Tooltips: één definitie in `app.module.css` (boven, rechts uitgelijnd, met omloop; in de zijbalk rechts). Voordien golden in de flow twee regels tegelijk en opende elke tooltip rechts, buiten beeld.
+- Stapkoppen: 40 px tussen uitleg en knop (12 px op een smal scherm).
+- Formaatvalidatie: "Voorstel overnemen" staat rechts, op de plaats van ongedaan maken. Op een smal scherm overlappen ongedaan maken en uitsluiten niet meer.
+- Stap 4: een uitgeschakelde "Verder naar indienen" (hovertip "Komt later") in plaats van "Terug naar de formaatfouten".
+- Eén breedte (1120 px) voor alle schermen in de rechterkolom.
+- Stappenbalk: alle labels 13 px (de knoppen kregen 14 px via de reset `font: inherit` in de shell, waardoor de tekst versprong). Let op: die reset weegt zwaarder dan één klasse; een `:where()`-versie zou ook alle knoppen in de flow naar 12 px zetten, dus bewust niet aangepast.
+- Weergaveknoppen: de gekozen weergave is de lichte knop (`--surface-2`), de andere grijs zoals de kop.
+- .xlsm en .ods (library `address-file.ts`).
+- `suppressHydrationWarning` op `<html>` (attributen van browserextensies, bv. Scribe).
+- AI-voorstel bij Koppelen: ticket [SR-124](https://linear.app/sonicrocket/issue/SR-124).
+- Open: wat stap 4 (Adrescontrole) toont zolang er geen antwoord van bpost is. Dit moet nog ontworpen worden.

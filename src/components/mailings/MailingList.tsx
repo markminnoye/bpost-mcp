@@ -259,11 +259,11 @@ export function MailingList({ archived }: { archived: boolean }) {
               </div>
               {!narrow && (
                 <div className={styles.seg} role="group" aria-label="Weergave">
-                  <button type="button" aria-pressed={view === 'one'} aria-label="Eén regel per mailing" onClick={() => setView('one')}>
-                    <IconList size={16} stroke={1.75} aria-hidden="true" />
-                  </button>
                   <button type="button" aria-pressed={view === 'two'} aria-label="Twee regels per mailing" onClick={() => setView('two')}>
                     <IconLayoutList size={16} stroke={1.75} aria-hidden="true" />
+                  </button>
+                  <button type="button" aria-pressed={view === 'one'} aria-label="Eén regel per mailing" onClick={() => setView('one')}>
+                    <IconList size={16} stroke={1.75} aria-hidden="true" />
                   </button>
                 </div>
               )}

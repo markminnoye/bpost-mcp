@@ -195,28 +195,28 @@ export const IssueRow = memo(function IssueRow({ issue, value, excluded, context
         {excluded ? (
           <span className={styles.xtag}>Uitgesloten uit de mailing</span>
         ) : showsProp ? (
-          <>
-            <button
-              type="button"
-              className={styles.ib}
-              tabIndex={-1}
-              data-tip="Voorstel overnemen (Enter)"
-              aria-label={`Voorstel overnemen: ${issue.proposal}`}
-              onMouseDown={noBlur}
-              onClick={() => {
-                accept()
-                rowRef.current?.focus()
-              }}
-            >
-              <IconCornerDownLeft size={15} stroke={1.75} aria-hidden="true" />
-            </button>
-            <span>{issue.proposal}</span>
-          </>
+          <span>{issue.proposal}</span>
         ) : null}
       </div>
 
-      {/* Commands on the right: put the original value back (after a change), then exclude. */}
-      {changed ? (
+      {/* Commands on the right, in one place: take the proposal over, or put the original value back
+          after a change (never both: a proposal only shows on the original value). Then exclude. */}
+      {showsProp ? (
+        <button
+          type="button"
+          className={`${styles.ib} ${styles.xbtn}`}
+          tabIndex={-1}
+          data-tip="Voorstel overnemen (Enter)"
+          aria-label={`Voorstel overnemen: ${issue.proposal}`}
+          onMouseDown={noBlur}
+          onClick={() => {
+            accept()
+            rowRef.current?.focus()
+          }}
+        >
+          <IconCornerDownLeft size={15} stroke={1.75} aria-hidden="true" />
+        </button>
+      ) : changed ? (
         <button
           type="button"
           className={`${styles.ib} ${styles.xbtn}`}
@@ -234,7 +234,7 @@ export const IssueRow = memo(function IssueRow({ issue, value, excluded, context
           <IconArrowBackUp size={15} stroke={1.75} aria-hidden="true" />
         </button>
       ) : (
-        <span />
+        <span className={styles.xbtn} />
       )}
 
       <button

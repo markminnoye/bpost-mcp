@@ -9,10 +9,10 @@ import * as XLSX from 'xlsx'
  *
  * @param rows Cell values per row; `[]` gives a blank row.
  * @param sheetName Worksheet name. Default `Blad1`, as in Contrapunt's export.
- * @param bookType `xlsx` (default) or `xls` (Excel 97-2003).
+ * @param bookType `xlsx` (default), `xlsm`, `xls` (Excel 97-2003) or `ods` (OpenDocument).
  * @returns The workbook bytes.
  */
-export function xlsxBuffer(rows: unknown[][], sheetName = 'Blad1', bookType: 'xlsx' | 'xls' = 'xlsx'): Buffer {
+export function xlsxBuffer(rows: unknown[][], sheetName = 'Blad1', bookType: 'xlsx' | 'xlsm' | 'xls' | 'ods' = 'xlsx'): Buffer {
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(rows, { dense: true }), sheetName)
   return XLSX.write(workbook, { type: 'buffer', bookType, compression: true })

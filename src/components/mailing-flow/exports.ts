@@ -1,16 +1,17 @@
 import type { MailingSummary } from '@/core/masspost/store/mailing'
 import type { MailingStore } from '@/core/masspost/store/mailing-store'
+import { addressFileBaseName } from '@/core/masspost/address-file'
 import { saveFile } from './save-file'
 
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
 /**
- * The name of an export without the Excel extension, e.g. "Nieuwsbrief december".
+ * The name of an export without the extension of the address list, e.g. "Nieuwsbrief december".
  * @param fileName Name of the original file.
  * @returns The base name.
  */
 export function exportBaseName(fileName: string): string {
-  return fileName.replace(/\.xlsx?$/i, '')
+  return addressFileBaseName(fileName)
 }
 
 /**

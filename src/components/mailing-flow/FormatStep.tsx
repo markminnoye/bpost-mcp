@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent } from 'react'
-import { IconArrowLeft, IconChecks, IconChevronRight, IconDeviceFloppy, IconMailOff } from '@tabler/icons-react'
+import { IconChecks, IconChevronRight, IconDeviceFloppy, IconMailOff } from '@tabler/icons-react'
 import { checkFieldValue, type FormatIssue } from '@/core/masspost/format-check'
 import { UNSTRUCTURED_MAX_LENGTH } from '@/core/masspost/mapping'
 import { ADDRESS_FIELDS, FIELD_LABELS, formatCount } from './columns'
@@ -392,14 +392,13 @@ export function FormatStep({
               Je lijst voldoet aan de regels van bpost. De adrescontrole bij bpost komt in een volgende versie.
             </p>
           </div>
-          {issues.length > 0 && (
-            <div className={styles.tg}>
-              <button type="button" className={`${styles.b} ${styles.withIcon}`} onClick={() => onDone(false)}>
-                <IconArrowLeft size={14} stroke={1.75} aria-hidden="true" />
-                Terug naar de formaatfouten
-              </button>
-            </div>
-          )}
+          {/* Like every step: the next button is there, and stays off until the step is done. Back to the
+              format errors goes through the step bar. The tip sits on the wrapper: a disabled button is faded. */}
+          <div className={`${styles.tg} ${styles.tipBelow}`} data-tip="Komt later: de mailing indienen bij bpost">
+            <button type="button" className={`${styles.b} ${styles.primary}`} disabled>
+              Verder naar indienen
+            </button>
+          </div>
         </div>
         <div className={styles.saveCards}>
           <section className={styles.saveCard} aria-labelledby="save-aft">

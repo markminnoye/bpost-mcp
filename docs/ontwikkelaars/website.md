@@ -31,7 +31,7 @@ Alles onder `src/app/(app)/` zit achter de login (`layout.tsx`): zonder sessie o
 
 Gebouwd op de schets `docs/ontwerp/webapp/formaatvalidatie.html` (besluiten 22 tot 42 in `.agent/plans/2026-10-02-masspost-web-flow-design.md`) en `app-shell.html` (SR-112).
 
-- **Inlezen:** `parseExcelAddresses` (SheetJS, ADR 0005) op de main thread, geladen met een dynamische `import()`. Leest .xlsx en .xls. Normale grens 25.000 adressen; tot 150.000 met een waarschuwing (besluit 43). Hervatten leest de Excel opnieuw in uit de store.
+- **Inlezen:** `parseExcelAddresses` (SheetJS, ADR 0005) op de main thread, geladen met een dynamische `import()`. Leest .xlsx, .xlsm, .xls en .ods (`ADDRESS_FILE_EXTENSIONS` in `src/core/masspost/address-file.ts`). Normale grens 25.000 adressen; tot 150.000 met een waarschuwing (besluit 43). Hervatten leest de Excel opnieuw in uit de store.
 - **Regels:** `format-check.ts` (`checkFieldValue`, `proposeFieldValue`, `findFormatIssues`, `missingTargets`). Dezelfde functies controleren live tijdens het aanpassen. De klantenpagina met de regels staat in de groep Documentatie (Webapp, Formaatvalidatie); een test houdt ze gelijk met `CHARACTER_REPLACEMENTS` en `ABBREVIATIONS`.
 - **Clientcode** importeert de modules rechtstreeks (`excel`, `mapping`, `suggest-mapping`, `format-check`, `mask`, `store/…`), nooit `src/core/masspost/index.ts`: die trekt FTP en Node-code mee.
 - **Stijl:** CSS-modules met de tokens uit `tokens.css`, licht en donker. Geen Tailwind of shadcn.

@@ -5,6 +5,7 @@ import {
   type MailingDetails,
   type MissingDetail,
 } from '@/core/masspost/store/mailing'
+import { addressFileBaseName } from '@/core/masspost/address-file'
 import type { TenantDefaults } from '@/lib/tenant/settings-schema'
 
 /** The fields of step 1 while the user fills them in. */
@@ -65,7 +66,7 @@ function applyRules(d: ImportDraft, addresses: number | null): ImportDraft {
  * @returns The new draft.
  */
 export function withFile(d: ImportDraft, fileName: string, addresses: number): ImportDraft {
-  const title = d.title.trim() ? d.title : fileName.replace(/\.xlsx?$/i, '')
+  const title = d.title.trim() ? d.title : addressFileBaseName(fileName)
   return applyRules({ ...d, title }, addresses)
 }
 

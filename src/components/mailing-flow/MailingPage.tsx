@@ -73,7 +73,7 @@ export function MailingPage({
   // The page stays mounted when only `?stap=` changes: until the new load is in, show the spinner.
   if (load.state === 'loading' || (load.state === 'ok' && load.forEdit !== editDetails)) {
     return (
-      <div className={styles.page} style={{ maxWidth: 960 }} aria-busy="true">
+      <div className={styles.page} aria-busy="true">
         <PageHeader title="Mailing openen" />
         <div className={styles.filecard} role="status">
           <Spinner />
@@ -93,7 +93,7 @@ export function MailingPage({
       error: ['Deze mailing openen lukte niet', load.state === 'error' ? load.message : ''],
     }[load.state]
     return (
-      <div className={styles.page} style={{ maxWidth: 960 }}>
+      <div className={styles.page}>
         <PageHeader title={text[0]} />
         <div className={`${styles.box} ${styles.state}`} role="alert">
           <p>{text[1]}</p>
@@ -211,7 +211,7 @@ function OpenMailing({
   )
 
   return (
-    <div className={styles.page} style={{ maxWidth: 960 }}>
+    <div className={styles.page}>
       <MailingFlow
         mailing={mailing}
         list={list}

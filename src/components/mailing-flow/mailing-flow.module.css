@@ -16,10 +16,10 @@
   box-sizing: border-box;
 }
 
+/* The width comes from the page around the flow (app-shell .page), the same for every page. */
 .main {
   flex: 1;
   width: 100%;
-  max-width: 960px;
   margin: 0 auto;
   padding: 20px 16px 48px;
 }
@@ -154,6 +154,12 @@
   flex: none;
 }
 
+/* Every step label the same size, button or not: the shell's reset (font: inherit on a button)
+   weighs more than .step alone and made the clickable steps 14 px, so the labels jumped. */
+.steps .step {
+  font-size: 13px;
+}
+
 /* The current step is bold, which makes its label wider. Every label reserves its bold width with a
    hidden copy, so the four equal columns do not change width when you move between steps. */
 .stepLabel::after {
@@ -191,7 +197,8 @@ button.step:hover {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  /* Room between the explanation and the button next to it (review Mark, 12/10). */
+  gap: 40px;
 }
 
 .t {
@@ -300,32 +307,8 @@ button.step:hover {
   outline-offset: 1px;
 }
 
-/* —— Tooltips (data-tip) —— */
-.root [data-tip] {
-  position: relative;
-}
-
-.root [data-tip]:hover::after,
-.root [data-tip]:focus-visible::after {
-  content: attr(data-tip);
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 6px);
-  z-index: 10;
-  width: max-content;
-  max-width: 260px;
-  background: var(--tip-bg);
-  color: var(--tip-fg);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.4;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border-strong);
-  white-space: normal;
-  text-align: left;
-  pointer-events: none;
-}
+/* —— Tooltips (data-tip) ——
+   The tooltip itself is defined once for the app (app-shell/app.module.css); here only the variants. */
 
 /* At the top of the page there is no room above. */
 .root .tipBelow[data-tip]:hover::after,
@@ -922,7 +905,7 @@ button.step:hover {
 .cols,
 .row {
   display: grid;
-  /* row · value · status · proposal · undo · exclude */
+  /* row · value · status · proposal · take over or undo · exclude */
   grid-template-columns: 130px minmax(0, 1.15fr) 28px minmax(0, 1fr) 28px 28px;
   gap: 10px;
   align-items: start;
@@ -1182,6 +1165,7 @@ button.step:hover {
 @media (max-width: 640px) {
   .hd {
     flex-direction: column;
+    gap: 12px;
   }
 
   .cols {
@@ -1189,7 +1173,7 @@ button.step:hover {
   }
 
   .row {
-    grid-template-columns: minmax(0, 1fr) 28px 32px;
+    grid-template-columns: minmax(0, 1fr) 28px 32px 32px;
   }
 
   .k {
@@ -1206,8 +1190,8 @@ button.step:hover {
     grid-row: 2;
   }
 
+  /* Take over or undo, then exclude: side by side after the status. */
   .xbtn {
-    grid-column: 3;
     grid-row: 2;
   }
 

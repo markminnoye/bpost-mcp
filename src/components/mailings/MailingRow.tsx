@@ -1,4 +1,8 @@
+'use client'
+
+import type { KeyboardEvent, MouseEvent } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { IconBuilding, IconCalendar, IconMail } from '@tabler/icons-react'
 import type { MailingSummary } from '@/core/masspost/store/mailing'
 import { formatCount } from '@/components/mailing-flow/columns'
@@ -29,9 +33,11 @@ export function MailingRow({
   onArchive: () => void
   onRestore: () => void
 }) {
+  const router = useRouter()
+  const href = `/mailings/${encodeURIComponent(m.code)}`
   const code = <span className={styles.code}>{m.code}</span>
   const title = (
-    <Link className={styles.title} href={`/mailings/${encodeURIComponent(m.code)}`} title={m.title}>
+    <Link className={styles.title} href={href} title={m.title} data-row-link="">
       {m.title}
     </Link>
   )
@@ -84,9 +90,17 @@ export function MailingRow({
     />
   )
 
+  // The whole row opens the mailing; the link and the "…" menu keep their own behaviour.
+  function onClick(e: MouseEvent<HTMLDivElement>) {
+    if ((e.target as HTMLElement).closest('a, button, [role="menu"]')) return
+    if (e.metaKey || e.ctrlKey) window.open(href, '_blank', 'noopener')
+    else router.push(href)
+  }
+  const rowProps = { className: styles.row, onClick, onKeyDown: moveBetweenRows }
+
   if (!twoLines) {
     return (
-      <div className={styles.row}>
+      <div {...rowProps}>
         <StatusIcon mailing={m} />
         {code}
         {title}
@@ -99,7 +113,7 @@ export function MailingRow({
     )
   }
   return (
-    <div className={styles.row}>
+    <div {...rowProps}>
       <StatusIcon mailing={m} />
       <div className={styles.line}>
         <div className={styles.line1}>
@@ -121,4 +135,17 @@ export function MailingRow({
       {menu}
     </div>
   )
+}
+
+/** ↑ and ↓ on a row (its link or its closed "…" button) move the focus to the row above or below. */
+function moveBetweenRows(e: KeyboardEvent<HTMLDivElement>) {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+  const target = e.target as HTMLElement
+  if (target.closest('[role="menu"]')) return
+  const links = [...document.querySelectorAll<HTMLElement>('[data-row-link]')]
+  const own = e.currentTarget.querySelector<HTMLElement>('[data-row-link]')
+  const next = links[links.indexOf(own as HTMLElement) + (e.key === 'ArrowDown' ? 1 : -1)]
+  if (!next) return
+  e.preventDefault()
+  next.focus()
 }

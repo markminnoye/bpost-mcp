@@ -18,7 +18,7 @@ export class ExcelParseError extends Error {
   }
 }
 
-/** Office Open XML (.xlsx) is a zip file; Excel 97-2003 (.xls) is a Compound File. */
+/** Office Open XML (.xlsx, .xlsm) and OpenDocument (.ods) are zip files; Excel 97-2003 (.xls) is a Compound File. */
 const SIGNATURES: readonly (readonly number[])[] = [
   [0x50, 0x4b, 0x03, 0x04],
   [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1],
@@ -36,7 +36,7 @@ function cellValue(cell: XLSX.CellObject | undefined): unknown {
 }
 
 /**
- * Reads a raw customer address list (.xlsx, or .xls from Excel 97-2003). The first row must
+ * Reads a raw customer address list (.xlsx, .xlsm, .xls from Excel 97-2003, or .ods). The first row must
  * contain column titles; every other row is one address. Blank rows are skipped. A column with
  * an empty title is ignored. Other formats (such as CSV) are refused rather than guessed at.
  *
@@ -56,7 +56,7 @@ function cellValue(cell: XLSX.CellObject | undefined): unknown {
 export async function parseExcelAddresses(input: Buffer | ArrayBuffer | Uint8Array): Promise<ParsedExcel> {
   const bytes = input instanceof ArrayBuffer ? new Uint8Array(input) : input
   if (!isWorkbook(bytes)) {
-    throw new ExcelParseError('Dit is geen Excel-bestand (.xlsx of .xls).')
+    throw new ExcelParseError('Dit is geen Excel- of OpenDocument-bestand (.xlsx, .xlsm, .xls of .ods).')
   }
 
   let workbook: XLSX.WorkBook

@@ -19,6 +19,22 @@ describe('parseExcelAddresses', () => {
     expect(rows[0]).toEqual({ Naam: 'Jan Janssens', Adres: 'Kerkstraat 10', Postcode: '2000 Antwerpen' })
   })
 
+  it.each(['xlsm', 'ods'] as const)('reads a .%s workbook like an .xlsx', async (bookType) => {
+    const buffer = xlsxBuffer(
+      [
+        ['Naam', 'Adres'],
+        ['Jan Janssens', 'Kerkstraat 10'],
+      ],
+      'Blad1',
+      bookType,
+    )
+
+    const { headers, rows } = await parseExcelAddresses(buffer)
+
+    expect(headers).toEqual(['Naam', 'Adres'])
+    expect(rows).toEqual([{ Naam: 'Jan Janssens', Adres: 'Kerkstraat 10' }])
+  })
+
   it('keeps numbers as numbers and empty cells as empty strings', async () => {
     const buffer = xlsxBuffer([
       ['Naam', 'Nummer', 'Bus', 'Postcode'],

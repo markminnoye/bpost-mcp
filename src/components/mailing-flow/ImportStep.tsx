@@ -190,7 +190,7 @@ export function ImportStep(props: Props) {
 
   return (
     <div className={flow.root} style={{ minHeight: 0, background: 'transparent' }}>
-      <div className={styles.page} style={{ maxWidth: 960 }}>
+      <div className={styles.page}>
         {/* Same layout as the other steps: the mailing on top, then the steps, then this step. */}
         <PageHeader
           title={

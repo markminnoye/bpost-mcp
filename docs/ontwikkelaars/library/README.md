@@ -76,6 +76,7 @@
 ## Variables
 
 - [ABBREVIATIONS](variables/ABBREVIATIONS.md)
+- [ADDRESS\_FILE\_EXTENSIONS](variables/ADDRESS_FILE_EXTENSIONS.md)
 - [BOX\_CANONICAL](variables/BOX_CANONICAL.md)
 - [BOX\_KEYWORDS](variables/BOX_KEYWORDS.md)
 - [CHARACTER\_REPLACEMENTS](variables/CHARACTER_REPLACEMENTS.md)
@@ -96,6 +97,7 @@
 
 ## Functions
 
+- [addressFileBaseName](functions/addressFileBaseName.md)
 - [applyChange](functions/applyChange.md)
 - [buildAftExport](functions/buildAftExport.md)
 - [buildMailingCheckRequest](functions/buildMailingCheckRequest.md)
@@ -114,6 +116,7 @@
 - [getFtpCredentials](functions/getFtpCredentials.md)
 - [getHttpCredentials](functions/getHttpCredentials.md)
 - [hasFatalMailingResponse](functions/hasFatalMailingResponse.md)
+- [isAddressFileName](functions/isAddressFileName.md)
 - [isBelgianCountry](functions/isBelgianCountry.md)
 - [isBoxKeyword](functions/isBoxKeyword.md)
 - [isBpostSafeCodePoint](functions/isBpostSafeCodePoint.md)

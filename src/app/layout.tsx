@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="nl" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="bp-customer-body">{children}</body>
     </html>
   );
