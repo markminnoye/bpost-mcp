@@ -2,7 +2,7 @@
 import 'fake-indexeddb/auto'
 import { Blob as NodeBlob } from 'node:buffer'
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { xlsxBuffer } from '@/core/masspost/fixtures/xlsx'
 import { IndexedDbMailingStore } from '@/core/masspost/store/indexeddb-store'
 import { mailingDatabaseName, MailingStoreProvider } from '@/components/mailings/MailingStoreProvider'
@@ -31,17 +31,30 @@ async function seed(tenantId: string) {
 }
 
 describe('MailingPage', () => {
-  it('goes from "Gegevens aanpassen" back to the flow without crashing (same page, other search params)', async () => {
+  it('opens on step 1 with ?stap=gegevens, and the step bar goes on to Koppelen', async () => {
     await seed('t-switch')
-    const tree = (editDetails: boolean) => (
+    render(
       <MailingStoreProvider user={{ email: 'an@x.be' }} tenantId="t-switch">
-        <MailingPage code="CP-2026-1" editDetails={editDetails} />
-      </MailingStoreProvider>
+        <MailingPage code="CP-2026-1" editDetails />
+      </MailingStoreProvider>,
     )
-    const { rerender } = render(tree(true))
-    await screen.findByRole('heading', { name: 'Gegevens aanpassen' })
-    rerender(tree(false))
-    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Gegevens aanpassen' })).toBeNull())
+    await screen.findByRole('heading', { name: 'Importeren' })
+    fireEvent.click(screen.getByRole('button', { name: /2\. Koppelen/ }))
+    expect(await screen.findByRole('heading', { name: 'Kolommen koppelen' })).toBeTruthy()
+  })
+
+  it('keeps the other steps out of reach while a required field of step 1 is empty', async () => {
+    await seed('t-empty')
+    render(
+      <MailingStoreProvider user={{ email: 'an@x.be' }} tenantId="t-empty">
+        <MailingPage code="CP-2026-1" editDetails />
+      </MailingStoreProvider>,
+    )
+    const title = await screen.findByLabelText(/Titel/)
+    fireEvent.change(title, { target: { value: '' } })
+    expect(await screen.findByText(/Nog nodig: een titel/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /2\. Koppelen/ })).toBeNull()
+    expect((screen.getByRole('button', { name: 'Verder naar koppelen' }) as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('keeps the mailings of one tenant out of another tenant on the same browser', async () => {

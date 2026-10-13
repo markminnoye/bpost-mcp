@@ -10,7 +10,6 @@ import { PageHeader } from '@/components/app-shell/AppShell'
 import { STORE_UNAVAILABLE_MESSAGE, useMailingStore } from '@/components/mailings/MailingStoreProvider'
 import type { LoadedList } from './columns'
 import { friendlyReadError, nextPaint } from './FileDrop'
-import { ImportStep } from './ImportStep'
 import { MailingFlow } from './MailingFlow'
 import { Spinner } from './StatusIcons'
 import { useLeaveGuard } from './useLeaveGuard'
@@ -21,13 +20,13 @@ type Load =
   | { state: 'loading' }
   | { state: 'missing' | 'unreadable' | 'unavailable' }
   | { state: 'error'; message: string }
-  | { state: 'ok'; forEdit: boolean; mailing: Mailing; list?: LoadedList; bytes?: ArrayBuffer }
+  | { state: 'ok'; mailing: Mailing; list: LoadedList; bytes: ArrayBuffer }
 
 const ICON = { size: 18, stroke: 1.75, 'aria-hidden': true } as const
 
 /**
- * One mailing: its flow (resumed at the furthest valid step), or step 1 to change its details.
- * @param props The code from the URL, whether to show step 1, and the flow options.
+ * One mailing: its flow, resumed at the furthest valid step, or on step 1 (its details).
+ * @param props The code from the URL, whether to open on step 1, and the flow options.
  */
 export function MailingPage({
   code,
@@ -50,14 +49,13 @@ export function MailingPage({
       try {
         const mailing = await store.findByCode(code)
         if (!mailing) return alive && setLoad({ state: 'missing' })
-        if (editDetails) return alive && setLoad({ state: 'ok', forEdit: true, mailing })
         const blob = await store.getSourceFile(mailing.id)
         if (!blob) return alive && setLoad({ state: 'error', message: 'De adreslijst van deze mailing is niet meer in je browser.' })
         await nextPaint()
         const bytes = await blob.arrayBuffer()
         const { parseExcelAddresses } = await import('@/core/masspost/excel')
         const parsed = await parseExcelAddresses(bytes)
-        if (alive) setLoad({ state: 'ok', forEdit: false, mailing, list: { fileName: mailing.source.name, ...parsed }, bytes })
+        if (alive) setLoad({ state: 'ok', mailing, list: { fileName: mailing.source.name, ...parsed }, bytes })
       } catch (e) {
         if (!alive) return
         if (e instanceof UnreadableMailingError) setLoad({ state: 'unreadable' })
@@ -68,10 +66,9 @@ export function MailingPage({
     return () => {
       alive = false
     }
-  }, [store, code, editDetails])
+  }, [store, code])
 
-  // The page stays mounted when only `?stap=` changes: until the new load is in, show the spinner.
-  if (load.state === 'loading' || (load.state === 'ok' && load.forEdit !== editDetails)) {
+  if (load.state === 'loading') {
     return (
       <div className={styles.page} aria-busy="true">
         <PageHeader title="Mailing openen" />
@@ -104,20 +101,30 @@ export function MailingPage({
       </div>
     )
   }
-  if (editDetails) return <ImportStep mode="edit" mailing={load.mailing} />
-  return <OpenMailing mailing={load.mailing} list={load.list!} bytes={load.bytes!} docsUrl={docsUrl} aiModel={aiModel} />
+  return (
+    <OpenMailing
+      mailing={load.mailing}
+      list={load.list}
+      bytes={load.bytes}
+      startOnDetails={editDetails}
+      docsUrl={docsUrl}
+      aiModel={aiModel}
+    />
+  )
 }
 
 function OpenMailing({
   mailing,
   list,
   bytes,
+  startOnDetails,
   docsUrl,
   aiModel,
 }: {
   mailing: Mailing
   list: LoadedList
   bytes: ArrayBuffer
+  startOnDetails: boolean
   docsUrl?: string
   aiModel?: string
 }) {
@@ -130,15 +137,30 @@ function OpenMailing({
   const [blocked, setBlocked] = useState<string | null>(null)
   const wrap = useRef<HTMLDivElement>(null)
   const dialog = useRef<HTMLDialogElement>(null)
-  const detailsHref = `/mailings/${encodeURIComponent(mailing.code)}?stap=gegevens`
+  // Step 1 with an empty required field: that change cannot be saved, so leaving asks first.
+  const detailsIncomplete = useRef(false)
+  const unsaved = () => saver.hasUnsaved() || detailsIncomplete.current
+
+  // `?stap=gegevens` only picks the first step; the address stays that of the mailing.
+  useEffect(() => {
+    if (startOnDetails) history.replaceState(history.state, '', location.pathname)
+  }, [startOnDetails])
+
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (detailsIncomplete.current) e.preventDefault()
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [])
 
   /** Leaving the mailing: save what waits first; if that fails, ask (SR-112 §6, "Bewaren mislukt"). */
   async function leave(to: string) {
     await saver.flush()
-    if (saver.hasUnsaved()) setBlocked(to)
+    if (unsaved()) setBlocked(to)
     else router.push(to)
   }
-  useLeaveGuard(saver.hasUnsaved, (to) => void leave(to))
+  useLeaveGuard(unsaved, (to) => void leave(to))
 
   useEffect(() => {
     if (blocked && dialog.current && !dialog.current.open) dialog.current.showModal()
@@ -166,7 +188,7 @@ function OpenMailing({
     router.push('/archief')
   }
 
-  const header = (
+  const header = (openDetails: () => void) => (
     <>
       <PageHeader
         title={
@@ -211,7 +233,7 @@ function OpenMailing({
                   className={styles.menuItem}
                   onClick={() => {
                     setMenuOpen(false)
-                    void leave(detailsHref)
+                    openDetails()
                   }}
                 >
                   <IconPencil {...ICON} />
@@ -244,7 +266,10 @@ function OpenMailing({
         header={header}
         docsUrl={docsUrl}
         aiModel={aiModel}
-        onEditDetails={() => void leave(detailsHref)}
+        startOnDetails={startOnDetails}
+        onDetailsIncomplete={(incomplete) => {
+          detailsIncomplete.current = incomplete
+        }}
       />
       <dialog ref={dialog} className={styles.dialog} aria-labelledby="unsaved-title" onClose={() => setBlocked(null)}>
         <h2 id="unsaved-title">Nog niet bewaard</h2>

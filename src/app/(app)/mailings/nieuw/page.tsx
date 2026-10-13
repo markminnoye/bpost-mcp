@@ -11,5 +11,5 @@ export default async function NewMailingPage() {
   const session = await auth()
   const settings = session?.user?.tenantId ? await getTenantSettings(session.user.tenantId) : null
   if (!settings) redirect('/')
-  return <ImportStep mode="new" defaults={settings.defaults} />
+  return <ImportStep defaults={settings.defaults} />
 }

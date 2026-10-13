@@ -54,7 +54,8 @@ function cellValue(cell: XLSX.CellObject | undefined): unknown {
  * const { headers, rows } = await parseExcelAddresses(fileBuffer)
  */
 export async function parseExcelAddresses(input: Buffer | ArrayBuffer | Uint8Array): Promise<ParsedExcel> {
-  const bytes = input instanceof ArrayBuffer ? new Uint8Array(input) : input
+  // isView, not instanceof ArrayBuffer: a buffer from another realm (iframe, jsdom) is not an instance.
+  const bytes = ArrayBuffer.isView(input) ? input : new Uint8Array(input)
   if (!isWorkbook(bytes)) {
     throw new ExcelParseError('Dit is geen Excel- of OpenDocument-bestand (.xlsx, .xlsm, .xls of .ods).')
   }

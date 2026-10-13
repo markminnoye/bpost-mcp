@@ -5,7 +5,7 @@ import { MailingPage } from '@/components/mailing-flow/MailingPage'
 
 export const metadata: Metadata = { title: 'Mailing · Mailings voor e-MassPost' }
 
-/** One mailing: its flow, or step 1 to change its details (`?stap=gegevens`). */
+/** One mailing: its flow, on the furthest valid step, or on step 1 with `?stap=gegevens`. */
 export default async function MailingRoute({
   params,
   searchParams,

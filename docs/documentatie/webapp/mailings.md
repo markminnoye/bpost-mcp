@@ -48,7 +48,7 @@ De volgende stappen (koppelen, formaatvalidatie en de bestanden voor bpost en de
 
 Klik op een mailing in het overzicht. Je komt terug bij de stap waar je was. Je koppeling, je verbeteringen en de rijen die je uitsloot, worden vanzelf bewaard.
 
-Via het menu **…** naast de titel kies je **Gegevens aanpassen** (de code en de adreslijst blijven dezelfde) of **Archiveren**.
+Via het menu **…** naast de titel kies je **Gegevens aanpassen** of **Archiveren**. **Gegevens aanpassen** brengt je naar stap 1, net als een klik op **1. Importeren**. De code en de adreslijst blijven dezelfde. Wat je aanpast, wordt vanzelf bewaard, net als in de andere stappen.
 
 In het overzicht heeft elke mailing ook een menu **…** met **Openen**, **Opslaan voor de drukker** en **Archiveren**. **Opslaan voor de drukker** geeft hetzelfde bestand als in stap 4 van de mailing: je bestand zoals het was, met de kolommen *Meesturen* en *Volgnummer bpost*. Het kan pas als de formaatvalidatie in orde is; tot dan staat het in het grijs.
 

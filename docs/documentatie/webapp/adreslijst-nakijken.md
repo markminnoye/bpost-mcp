@@ -23,7 +23,7 @@ Links bovenaan staan de stappen. Hun icoon is zwart, en wordt groen zodra de sta
 
 De balk met de stappen en de pills blijft bovenaan staan als je naar beneden scrolt.
 
-Klik op een stap om ernaar te gaan: terug, of weer vooruit naar een stap die je al deed. **1. Importeren** opent de gegevens van de mailing. Een ander bestand kiezen kan enkel in een nieuwe mailing.
+Klik op een stap om ernaar te gaan: terug, of weer vooruit naar een stap die je al deed. **1. Importeren** opent de gegevens van de mailing; van daar ga je ook weer naar elke stap die je al deed. Wat je aanpast, wordt bewaard voor je naar een andere stap gaat. Laat je een verplicht veld leeg, dan blijf je in stap 1 tot het ingevuld is. Een ander bestand kiezen kan enkel in een nieuwe mailing.
 
 Rechts op dezelfde regel staat een rij pills: een icoon met een getal. Ga er met de muis over voor de uitleg. Ze staan in deze volgorde: eerst wat je bestand is, dan wat we nakijken, en rechts het resultaat: de adressen die meegaan en helemaal rechts de rijen die je uitsloot. Een pill die iets nakijkt, is oranje als er iets te doen is. Is alles in orde, dan blijft ze neutraal en wordt enkel het icoon groen. De pill voor het formaat wordt dan helemaal groen, met een vinkje.
 

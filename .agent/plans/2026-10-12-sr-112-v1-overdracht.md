@@ -73,3 +73,7 @@ Alle punten van "Uitgestelde kleine punten" hierboven. Bewust beperkt:
 - `ENCRYPTION_KEY` staat in `env.ts` (optioneel), maar `src/lib/tenant/get-credentials.ts` en `resolve.ts` (MCP, gepauzeerd) lezen nog `process.env`: hun tests zetten de sleutel pas tijdens het draaien.
 - De reset `font: inherit` op knoppen in de shell weegt zwaarder dan één klasse. Een `:where()`-versie zou de knoppen in de flow 12 px maken; niet aangepast zonder akkoord van Mark.
 - `server-only` is een nieuwe dependency (`src/lib/tenant/settings.ts`).
+
+## Stap 1 in de flow (13/10), verwerkt
+
+Mark: na stap 1 kon je niet meer naar stap 2 of 3 zonder op "Bewaren" te drukken. Stap 1 van een bestaande mailing is nu een stap in `MailingFlow` (`DetailsStep`, gedeeld formulier `DetailsForm`). Bewaren gaat via de saver van de flow (2 s, of meteen bij een stapwissel). Met een leeg verplicht veld zijn de andere stappen dicht, en weggaan vraagt eerst. `ImportStep` is enkel nog voor een nieuwe mailing.

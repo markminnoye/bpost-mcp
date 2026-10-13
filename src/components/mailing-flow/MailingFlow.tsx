@@ -22,6 +22,7 @@ import {
 import { requestAiSuggestion, suggestionRequestBody, type AiSuggestionResult } from './ai-suggestion'
 import { nextPaint } from './FileDrop'
 import { FormatStep, type SaveChoices, type SaveTarget } from './FormatStep'
+import { DetailsStep } from './DetailsStep'
 import { MappingStep } from './MappingStep'
 import { MetaPills, listPills, type Pill } from './MetaPills'
 import { formatStateFromMailing, resumeStep } from './resume'
@@ -56,9 +57,10 @@ function startChoice(mailing: Mailing, list: LoadedList) {
 }
 
 /**
- * The flow of a stored mailing after step 1: map columns, format validation, and the start of the
- * address check (exports). Everything runs in the browser; the mailing is saved through `saver`
- * (SR-112 §5): the mapping when it is done, the format check, and corrections 2 s after the last change.
+ * The flow of a stored mailing: its details (step 1), map columns, format validation, and the start
+ * of the address check (exports). Everything runs in the browser; the mailing is saved through `saver`
+ * (SR-112 §5): the mapping when it is done, the format check, and details and corrections 2 s after
+ * the last change (at once on a step change).
  * Only the AI proposal switch sends something: column titles and masked examples (ADR 0006).
  */
 export function MailingFlow({
@@ -69,21 +71,28 @@ export function MailingFlow({
   header,
   docsUrl,
   aiModel,
-  onEditDetails,
+  startOnDetails = false,
+  onDetailsIncomplete,
 }: {
   mailing: Mailing
   list: LoadedList
   fileBytes: ArrayBuffer
   saver: MailingSaver
-  /** Shown above the step bar: the title of the mailing and its menu. */
-  header?: ReactNode
+  /** Shown above the step bar: the title of the mailing and its menu, which can open step 1. */
+  header?: (openDetails: () => void) => ReactNode
   docsUrl?: string
   aiModel?: string
-  /** Step 1 in the step bar: change the details of the mailing. */
-  onEditDetails: () => void
+  /** Open on step 1 (the details) instead of the furthest valid step. */
+  startOnDetails?: boolean
+  /** True while step 1 misses a required field: that change cannot be saved, so leaving asks first. */
+  onDetailsIncomplete?: (incomplete: boolean) => void
 }) {
   const [start] = useState(() => startChoice(mailing, list))
-  const [step, setStep] = useState<StepId>(() => (mailing.mapping ? resumeStep(mailing) : 'mapping'))
+  const [step, setStep] = useState<StepId>(() =>
+    startOnDetails ? 'upload' : mailing.mapping ? resumeStep(mailing) : 'mapping',
+  )
+  // Required fields still empty in step 1; the other steps wait until they are filled in.
+  const [detailsMissing, setDetailsMissing] = useState(0)
   const [roles, setRoles] = useState<Record<string, ColumnRole>>(start.roles)
   const [columnOrder, setColumnOrder] = useState<string[]>(start.order)
   const [issues, setIssues] = useState<FormatIssue[]>([])
@@ -108,25 +117,38 @@ export function MailingFlow({
   const mappingDone = missing === 0
   const checked = checkedFor === choiceKey(columnOrder, roles)
   const stepStatus: Partial<Record<StepId, StepStatus>> = {
-    upload: 'done',
+    upload: detailsMissing > 0 ? 'action' : 'done',
     mapping: mappingDone ? 'done' : 'action',
     format: checked ? (formatTotals.open > 0 ? 'action' : 'done') : 'none',
     check: 'none',
   }
   // How far each step is: the required blocks with a column, and the format errors handled.
   const progress: Partial<Record<StepId, number>> = {
-    upload: 1,
+    upload: (4 - detailsMissing) / 4,
     mapping: (REQUIRED_FIELDS.length - missing) / REQUIRED_FIELDS.length,
     format: checked ? (issues.length ? (issues.length - formatTotals.open) / issues.length : 1) : 0,
     check: 0,
   }
-  // Every step with a valid result stays reachable, also forwards.
+  // Every step with a valid result stays reachable, also forwards; not while step 1 misses something.
+  const detailsOk = detailsMissing === 0
   const reachable: Partial<Record<StepId, boolean>> = {
     upload: true,
-    mapping: true,
-    format: checked,
-    check: checked && formatTotals.open === 0,
+    mapping: detailsOk,
+    format: detailsOk && checked,
+    check: detailsOk && checked && formatTotals.open === 0,
   }
+
+  /** To another step: what waits (e.g. changed details) is saved first. */
+  function go(target: StepId) {
+    void saver.flush()
+    setStep(target)
+  }
+
+  const reportIncomplete = useRef(onDetailsIncomplete)
+  reportIncomplete.current = onDetailsIncomplete
+  useEffect(() => {
+    reportIncomplete.current?.(detailsMissing > 0)
+  }, [detailsMissing])
 
   // The pills sit in the top bar, next to the steps (decision 46); each step adds its own.
   const formatShown = step === 'format' || step === 'check'
@@ -163,7 +185,8 @@ export function MailingFlow({
       setChecking(false)
       if (resume) {
         setFormatTotals({ open: found.length, excludedRows: 0 })
-        setStep(resumeStep(mailing))
+        // Opened on step 1: the user moves on from there; otherwise the furthest valid step.
+        if (!startOnDetails) setStep(resumeStep(mailing))
         return
       }
       setInitialFormat(undefined)
@@ -176,7 +199,7 @@ export function MailingFlow({
       // Without format errors the mailing goes straight on (web-flow design, step 3).
       setStep(found.length === 0 ? 'check' : 'format')
     },
-    [list, mailing, saver],
+    [list, mailing, saver, startOnDetails],
   )
 
   // Opening a mailing: a stored mapping gets its format check again; a known layout skips the
@@ -277,7 +300,7 @@ export function MailingFlow({
   return (
     <div className={styles.root} style={{ minHeight: 0, background: 'transparent' }}>
       <div className={styles.main} style={{ padding: 0 }}>
-        {header}
+        {header?.(() => go('upload'))}
         {saver.state === 'error' && (
           <p className={styles.alert} role="alert">
             {saver.full ? `Nog niet bewaard. ${STORE_FULL_MESSAGE}` : 'Nog niet bewaard.'}{' '}
@@ -300,7 +323,7 @@ export function MailingFlow({
             status={stepStatus}
             progress={progress}
             reachable={reachable}
-            onGo={(target) => (target === 'upload' ? onEditDetails() : setStep(target))}
+            onGo={go}
           />
           {pills.length > 0 && (
             <div className={styles.topRight}>
@@ -309,6 +332,14 @@ export function MailingFlow({
           )}
         </div>
 
+        {step === 'upload' && (
+          <DetailsStep
+            mailing={saver.mailing}
+            onChange={(change) => saver.saveSoon(change, 'details')}
+            onMissing={setDetailsMissing}
+            onNext={() => go('mapping')}
+          />
+        )}
         {step === 'mapping' && (
           <MappingStep
             list={list}
