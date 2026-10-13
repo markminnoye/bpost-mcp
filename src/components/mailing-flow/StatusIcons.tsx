@@ -16,11 +16,22 @@ const SLICES = {
 
 /** Empty circle = uploaded, ¼ = columns mapped, ½ = format validation, ¾ = address check.
  *  Grey until the step has a status; the caller passes the status color. */
-export function HarveyBall({ fill, color, size = 18 }: { fill: 0 | 0.25 | 0.5 | 0.75; color?: string; size?: number }) {
+export function HarveyBall({
+  fill,
+  color,
+  size = 18,
+  dashed = false,
+}: {
+  fill: 0 | 0.25 | 0.5 | 0.75
+  color?: string
+  size?: number
+  /** A dotted outline: started, but nothing saved yet (Mark, 13/10). */
+  dashed?: boolean
+}) {
   const tint = color ?? 'var(--text-muted)'
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
-      <circle cx="10" cy="10" r="8" fill="none" stroke={tint} strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="8" fill="none" stroke={tint} strokeWidth="1.5" strokeDasharray={dashed ? '2.5 2' : undefined} />
       {fill !== 0 && <path d={SLICES[fill]} fill={tint} />}
     </svg>
   )

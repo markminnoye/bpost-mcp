@@ -24,6 +24,7 @@ import { modelLabel, type AiSuggestionResult } from './ai-suggestion'
 import { IconRows3, Spinner } from './StatusIcons'
 import styles from './mailing-flow.module.css'
 import { NextButton } from './NextButton'
+import { StepAction } from './StepAction'
 
 interface Props {
   list: LoadedList
@@ -190,26 +191,23 @@ export function MappingStep({
   )
 
   return (
-    <section aria-labelledby="mapping-title">
+    <section aria-label="Kolommen koppelen">
       <div className={styles.hd}>
         <div>
-          <h1 className={styles.t} id="mapping-title">
-            Kolommen koppelen
-          </h1>
           <p className={styles.m}>
             Kies per kolom waarvoor we ze gebruiken. Kolommen met hetzelfde doel (bv. straat, huisnummer en bus) voegen
             we samen; de volgorde kies je op de eerste envelop.
           </p>
         </div>
-        <div className={styles.tg}>
-          {/* The button stays in place while the list is checked, with the waiting wheel (Mark, 13/10). */}
+        {/* The button stays in place while the list is checked, with the waiting wheel (Mark, 13/10). */}
+        <StepAction step="mapping">
           <NextButton disabled={missing.length > 0} busy={checking} onClick={onNext}>
             {checking ? 'Bezig…' : 'Verder naar formaatvalidatie'}
           </NextButton>
-          <span className={styles.srOnly} role="status">
-            {checking ? 'We kijken je lijst na…' : ''}
-          </span>
-        </div>
+        </StepAction>
+        <span className={styles.srOnly} role="status">
+          {checking ? 'We kijken je lijst na…' : ''}
+        </span>
       </div>
 
       <div className={styles.mapLayout}>

@@ -6,6 +6,7 @@ import type { MailingChange } from '@/core/masspost/store/mailing-store'
 import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
 import { FileDrop } from './FileDrop'
 import { NextButton } from './NextButton'
+import { StepAction } from './StepAction'
 import { toDetails, type ImportDraft } from './import-draft'
 import styles from './mailing-flow.module.css'
 
@@ -75,20 +76,13 @@ export function DetailsStep({
 
   return (
     <>
-      <section aria-labelledby="details-title" style={{ marginBottom: 16 }}>
-        <div className={styles.hd}>
-          <div>
-            <h1 className={styles.t} id="details-title">
-              Importeren
-            </h1>
-            <p className={styles.m}>Pas de gegevens van je mailing aan. De code en de adreslijst blijven dezelfde.</p>
-          </div>
-          <div className={styles.tg}>
-            <NextButton disabled={missing.length > 0} onClick={onNext}>
-              Verder naar koppelen
-            </NextButton>
-          </div>
-        </div>
+      <section aria-label="Importeren" style={{ marginBottom: 16 }}>
+        <p className={styles.m}>Pas de gegevens van je mailing aan. De code en de adreslijst blijven dezelfde.</p>
+        <StepAction step="upload">
+          <NextButton disabled={missing.length > 0} onClick={onNext}>
+            Verder naar koppelen
+          </NextButton>
+        </StepAction>
       </section>
       {/* The same order as for a new mailing once its list is read: the details, then the list. */}
       <DetailsForm

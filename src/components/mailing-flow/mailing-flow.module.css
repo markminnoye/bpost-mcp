@@ -39,8 +39,18 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 12px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+/* The button of the step, right on the line of the step bar (Mark, 13/10). */
+.stepAction {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.stepAction:empty {
+  display: none;
 }
 
 /* The pills sit right on the line of the title (Mark, 13/10). */

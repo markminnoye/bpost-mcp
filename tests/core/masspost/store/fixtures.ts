@@ -9,7 +9,7 @@ export function sampleMailing(over: Partial<Mailing> = {}): Mailing {
     code: 'CP-2026-15',
     title: 'Nieuwsbrief december',
     customer: { name: 'Kunstencentrum Noord', crmId: null },
-    expectedDeliveryDate: '2026-10-24',
+    expectedDeliveryDate: '2026-10-23', // a Friday: a working day
     format: 'Small',
     priority: 'NP',
     genMID: '7',

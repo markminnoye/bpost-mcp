@@ -9,6 +9,7 @@ import { IssueRow, type RowActions } from './IssueRow'
 import { IconRows3 } from './StatusIcons'
 import styles from './mailing-flow.module.css'
 import { NextButton } from './NextButton'
+import { StepAction } from './StepAction'
 
 type GroupId = 'charset' | 'slash' | 'tooLong' | 'input'
 
@@ -382,21 +383,20 @@ export function FormatStep({
 
   if (done) {
     return (
-      <section aria-labelledby="done-title">
+      <section aria-label="Adrescontrole">
         <div className={styles.hd}>
           <div>
-            <h1 className={styles.t} id="done-title">
-              Adrescontrole
-            </h1>
             <p className={styles.m}>
               Je lijst voldoet aan de regels van bpost. De adrescontrole bij bpost komt in een volgende versie.
             </p>
           </div>
           {/* Like every step: the next button is there, and stays off until the step is done. Back to the
               format errors goes through the step bar. The tip sits on the wrapper: a disabled button is faded. */}
-          <div className={`${styles.tg} ${styles.tipBelow}`} data-tip="Komt later: de mailing indienen bij bpost">
-            <NextButton disabled>Verder naar indienen</NextButton>
-          </div>
+          <StepAction step="check">
+            <div className={`${styles.tg} ${styles.tipBelow}`} data-tip="Komt later: de mailing indienen bij bpost">
+              <NextButton disabled>Verder naar indienen</NextButton>
+            </div>
+          </StepAction>
         </div>
         <div className={styles.saveCards}>
           <section className={styles.saveCard} aria-labelledby="save-aft">
@@ -441,12 +441,9 @@ export function FormatStep({
   }
 
   return (
-    <section aria-labelledby="format-title" ref={containerRef}>
+    <section aria-label="Formaatvalidatie" ref={containerRef}>
       <div className={styles.hd}>
         <div>
-          <h1 className={styles.t} id="format-title">
-            Formaatvalidatie
-          </h1>
           <p className={styles.m}>
             Voldoet je lijst aan de regels van bpost? We kijken de tekens, de lengte van elk veld, de verplichte velden
             en de gekoppelde kolommen na.
@@ -463,11 +460,11 @@ export function FormatStep({
             {summary}
           </p>
         </div>
-        <div className={styles.tg}>
+        <StepAction step="format">
           <NextButton disabled={!canContinue} onClick={() => onDone(true)}>
             Verder naar adrescontrole
           </NextButton>
-        </div>
+        </StepAction>
       </div>
 
       {issues.length > 0 && (

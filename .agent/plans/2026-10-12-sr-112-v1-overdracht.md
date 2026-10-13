@@ -101,3 +101,7 @@ Mark: het sleepvak bovenaan, want het bestand vult de titel in; eerst enkel dat 
 Mark: de iconen weg uit de stappenbalk; de status groter en zichtbaarder (voor de titel); bij wachten een wieltje. Afspraak: kort wachten = wieltje in de knop (`NextButton busy`), lang wachten (later, het antwoord van bpost) = het icoon voor de titel toont "wachten". Koppelen: wat ontbreekt staat enkel in het rood op de envelop.
 Kalender: blijft de kalender van de browser (Mark, 13/10); weekends en feestdagen enkel via de melding onder het veld.
 Het icoon voor de titel is de status van de mailing zoals bewaard (zelfde icoon als in het overzicht, verspringt niet met de stap die je bekijkt); Formaatvalidatie zonder open fouten is groen; de pills staan rechts op de lijn van de titel; het menu "…" op de pagina van een mailing is weg (Mark, 13/10).
+
+## Rustiger stappen (13/10), verwerkt
+
+Titel onder de stappenbalk weg, lijntje weg, knop "Verder" rechts op de lijn van de stappen (`StepAction`), stippelcirkel voor een nieuwe mailing die nog niet bewaard is. Open bij Mark: welke vulling het statusicoon krijgt per status (voorstel: Opgeladen ¼, Gekoppeld ½ …, zie gesprek 13/10).

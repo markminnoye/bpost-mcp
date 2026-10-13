@@ -38,9 +38,9 @@ describe('MailingPage', () => {
         <MailingPage code="CP-2026-1" editDetails />
       </MailingStoreProvider>,
     )
-    await screen.findByRole('heading', { name: 'Importeren' })
+    await screen.findByRole('region', { name: 'Importeren' })
     fireEvent.click(screen.getByRole('button', { name: /2\. Koppelen/ }))
-    expect(await screen.findByRole('heading', { name: 'Kolommen koppelen' })).toBeTruthy()
+    expect(await screen.findByRole('region', { name: 'Kolommen koppelen' })).toBeTruthy()
   })
 
   it('keeps the other steps out of reach while a required field of step 1 is empty', async () => {

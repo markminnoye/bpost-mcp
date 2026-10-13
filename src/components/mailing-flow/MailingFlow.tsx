@@ -27,6 +27,7 @@ import { MappingStep } from './MappingStep'
 import { MetaPills, listPills, type Pill } from './MetaPills'
 import { formatStateFromMailing, resumeStep } from './resume'
 import { StepBar, type StepId, type StepStatus } from './StepBar'
+import { StepActionContext } from './StepAction'
 import { StatusIcon } from '@/components/mailings/StatusIcon'
 import { PageHeader } from '@/components/app-shell/AppShell'
 import { STORE_FULL_MESSAGE } from '@/components/mailings/MailingStoreProvider'
@@ -301,102 +302,108 @@ export function MailingFlow({
   // Format step and step 4 share one component. It stays mounted on the other steps (hidden), so
   // going back to Koppelen keeps the corrections.
   const onFormatStep = step === 'format' || step === 'check'
+  // The step bar holds the button of the step on screen (StepAction).
+  const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null)
 
   return (
-    <div className={styles.root} style={{ minHeight: 0, background: 'transparent' }}>
-      <div className={styles.main} style={{ padding: 0 }}>
-        <PageHeader
-          // The status of the mailing as stored, the same icon as in the list: it does not follow the
-          // step you look at (Mark, 13/10).
-          icon={<StatusIcon mailing={summarize(saver.mailing)} size={22} />}
-          title={title}
-          actions={
-            pills.length > 0 ? (
-              <div className={styles.titlePills}>
-                <MetaPills pills={pills} />
-              </div>
-            ) : undefined
-          }
-        />
-        {saver.state === 'error' && (
-          <p className={styles.alert} role="alert">
-            {saver.full ? `Nog niet bewaard. ${STORE_FULL_MESSAGE}` : 'Nog niet bewaard.'}{' '}
-            <button type="button" className={styles.b} onClick={() => void saver.retry()}>
-              Opnieuw proberen
-            </button>
-          </p>
-        )}
-        {saver.state === 'conflict' && (
-          <p className={styles.alert} role="alert">
-            Deze mailing is intussen gewijzigd.{' '}
-            <button type="button" className={styles.b} onClick={() => location.reload()}>
-              Herladen
-            </button>
-          </p>
-        )}
-        <div className={styles.top}>
-          <StepBar
-            current={step}
-            status={stepStatus}
-            progress={progress}
-            reachable={reachable}
-            onGo={go}
-          />
-        </div>
-
-        {step === 'upload' && (
-          <DetailsStep
-            mailing={saver.mailing}
-            onChange={(change) => saver.saveSoon(change, 'details')}
-            onMissing={setDetailsMissing}
-            onNext={() => go('mapping')}
-          />
-        )}
-        {step === 'mapping' && (
-          <MappingStep
-            list={list}
-            docsUrl={docsUrl}
-            roles={roles}
-            columnOrder={columnOrder}
-            checking={checking}
-            onRoleChange={(header, role) => setRoles((r) => ({ ...r, [header]: role }))}
-            onMove={(column, direction) => setColumnOrder((order) => moveInBlock(order, roles, column, direction))}
-            onNext={() => void onMappingNext()}
-            ai={
-              aiModel
-                ? { model: aiModel, on: ai.on, busy: ai.busy, roles: aiRoles, error: ai.error, onToggle: toggleAi }
-                : undefined
+    <StepActionContext.Provider value={{ slot: actionSlot, step }}>
+      <div className={styles.root} style={{ minHeight: 0, background: 'transparent' }}>
+        <div className={styles.main} style={{ padding: 0 }}>
+          <PageHeader
+            // The status of the mailing as stored, the same icon as in the list: it does not follow the
+            // step you look at (Mark, 13/10).
+            icon={<StatusIcon mailing={summarize(saver.mailing)} size={22} />}
+            title={title}
+            actions={
+              pills.length > 0 ? (
+                <div className={styles.titlePills}>
+                  <MetaPills pills={pills} />
+                </div>
+              ) : undefined
             }
           />
-        )}
-        {checkedFor !== null && (
-          <div hidden={!onFormatStep}>
-            <FormatStep
-              key={checkRun}
-              issues={issues}
-              rowCount={list.rows.length}
-              onTotals={onTotals}
-              done={step === 'check'}
-              onDone={(done) => setStep(done ? 'check' : 'format')}
-              onSave={save}
+          {saver.state === 'error' && (
+            <p className={styles.alert} role="alert">
+              {saver.full ? `Nog niet bewaard. ${STORE_FULL_MESSAGE}` : 'Nog niet bewaard.'}{' '}
+              <button type="button" className={styles.b} onClick={() => void saver.retry()}>
+                Opnieuw proberen
+              </button>
+            </p>
+          )}
+          {saver.state === 'conflict' && (
+            <p className={styles.alert} role="alert">
+              Deze mailing is intussen gewijzigd.{' '}
+              <button type="button" className={styles.b} onClick={() => location.reload()}>
+                Herladen
+              </button>
+            </p>
+          )}
+          <div className={styles.top}>
+            <StepBar
+              current={step}
+              status={stepStatus}
+              progress={progress}
+              reachable={reachable}
+              onGo={go}
+            />
+            {/* The button of the step on screen comes here (StepAction), right on the line of the steps. */}
+            <div ref={setActionSlot} className={styles.stepAction} />
+          </div>
+
+          {step === 'upload' && (
+            <DetailsStep
+              mailing={saver.mailing}
+              onChange={(change) => saver.saveSoon(change, 'details')}
+              onMissing={setDetailsMissing}
+              onNext={() => go('mapping')}
+            />
+          )}
+          {step === 'mapping' && (
+            <MappingStep
+              list={list}
               docsUrl={docsUrl}
-              active={step === 'format'}
-              initial={initialFormat}
-              onChange={(s) =>
-                saver.saveSoon(
-                  { corrections: s.values, excludedRows: Object.keys(s.excluded).map(Number) },
-                  'format-edited',
-                )
+              roles={roles}
+              columnOrder={columnOrder}
+              checking={checking}
+              onRoleChange={(header, role) => setRoles((r) => ({ ...r, [header]: role }))}
+              onMove={(column, direction) => setColumnOrder((order) => moveInBlock(order, roles, column, direction))}
+              onNext={() => void onMappingNext()}
+              ai={
+                aiModel
+                  ? { model: aiModel, on: ai.on, busy: ai.busy, roles: aiRoles, error: ai.error, onToggle: toggleAi }
+                  : undefined
               }
             />
-          </div>
-        )}
-        {onFormatStep && checkedFor === null && checking && (
-          <p className={styles.m} role="status">
-            We kijken je lijst opnieuw na…
-          </p>
-        )}
+          )}
+          {checkedFor !== null && (
+            <div hidden={!onFormatStep}>
+              <FormatStep
+                key={checkRun}
+                issues={issues}
+                rowCount={list.rows.length}
+                onTotals={onTotals}
+                done={step === 'check'}
+                onDone={(done) => setStep(done ? 'check' : 'format')}
+                onSave={save}
+                docsUrl={docsUrl}
+                active={step === 'format'}
+                initial={initialFormat}
+                onChange={(s) =>
+                  saver.saveSoon(
+                    { corrections: s.values, excludedRows: Object.keys(s.excluded).map(Number) },
+                    'format-edited',
+                  )
+                }
+              />
+            </div>
+          )}
+          {onFormatStep && checkedFor === null && checking && (
+            <p className={styles.m} role="status">
+              We kijken je lijst opnieuw na…
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+    </StepActionContext.Provider>
   )
 }

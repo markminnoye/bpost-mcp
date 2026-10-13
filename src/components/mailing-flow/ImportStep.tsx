@@ -169,10 +169,10 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
       <div className={styles.page}>
         {/* Same layout as the other steps: the mailing on top, then the steps, then this step. */}
         <PageHeader
-          // Not created yet: the empty grey circle of "Opgeladen", as in the list.
+          // Started, but nothing saved yet: the empty grey circle with a dotted line (Mark, 13/10).
           icon={
-            <span className={`${styles.status} ${styles.tipStart}`} data-tip="Nieuwe mailing, nog niet aangemaakt">
-              <HarveyBall fill={0} size={22} />
+            <span className={`${styles.status} ${styles.tipStart}`} data-tip="Nieuwe mailing, nog niet bewaard">
+              <HarveyBall fill={0} size={22} dashed />
             </span>
           }
           title={
@@ -192,25 +192,19 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
             reachable={{}}
             onGo={() => {}}
           />
-        </div>
-        <section aria-labelledby="import-title" style={{ marginBottom: 16 }}>
-          <div className={flow.hd}>
-            <div>
-              <h1 className={flow.t} id="import-title">
-                Importeren
-              </h1>
-              <p className={flow.m}>
-                {revealed
-                  ? 'Vul de gegevens van je mailing in.'
-                  : 'Kies je adreslijst om te beginnen. Daarna vul je de gegevens van de mailing in.'}
-              </p>
-            </div>
-            <div className={flow.tg}>
-              <NextButton disabled={missing.length > 0} busy={saving} onClick={() => void onNext()}>
-                {saving ? 'Bezig…' : 'Verder naar koppelen'}
-              </NextButton>
-            </div>
+          {/* The button of the step, right on the line of the step bar (Mark, 13/10). */}
+          <div className={flow.stepAction}>
+            <NextButton disabled={missing.length > 0} busy={saving} onClick={() => void onNext()}>
+              {saving ? 'Bezig…' : 'Verder naar koppelen'}
+            </NextButton>
           </div>
+        </div>
+        <section aria-label="Importeren" style={{ marginBottom: 16 }}>
+          <p className={flow.m}>
+            {revealed
+              ? 'Vul de gegevens van je mailing in.'
+              : 'Kies je adreslijst om te beginnen. Daarna vul je de gegevens van de mailing in.'}
+          </p>
         </section>
         {saveError && (
           <div className={styles.banner} role="alert">

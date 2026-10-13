@@ -13,7 +13,7 @@ export function newInput(code = 'CP-2026-1'): NewMailing {
       code,
       title: 'Nieuwsbrief',
       customer: { name: 'Klant', crmId: null },
-      expectedDeliveryDate: '2026-10-24',
+      expectedDeliveryDate: '2026-10-23', // a Friday: a working day
       format: 'Small',
       priority: 'NP',
       genMID: '7',
