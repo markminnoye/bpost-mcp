@@ -43,21 +43,19 @@
   border-bottom: 1px solid var(--border);
 }
 
-.topRight {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-left: auto;
+/* The status of the current step, before the title of the mailing. */
+.titleStatus {
+  display: inline-grid;
+  place-items: center;
 }
 
-.topRight .pills {
+/* The pills sit right on the line of the title (Mark, 13/10). */
+.titlePills .pills {
   margin: 0;
+  justify-content: flex-end;
 }
 
-/* A fixed width, so the steps are equally wide in every step, whatever pills sit next to them;
-   on a narrow screen it shrinks, and the pills move to the next line. */
+/* A fixed width, so the steps are equally wide in every step; on a narrow screen it shrinks. */
 .stepNav {
   flex: 0 1 720px;
   min-width: 0;

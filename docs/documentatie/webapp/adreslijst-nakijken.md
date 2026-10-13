@@ -17,15 +17,15 @@ Stap 1 is het begin van een nieuwe mailing: de gegevens en je adreslijst. Zie [M
 - **Enkel het eerste werkblad** wordt ingelezen.
 - **Hoeveel adressen:** meestal tot 25.000. Tot 150.000 kan, met een waarschuwing. Een .xls-bestand bevat er nooit meer dan 65.535; dat is een grens van het formaat.
 
-## Bovenaan: de stappen en de pills
+## Bovenaan: de status, de pills en de stappen
 
-Voor de titel van de mailing staat haar status, met hetzelfde icoon als in het overzicht; ga er met de muis over voor de uitleg. Daaronder staan de stappen. Onder de stappen loopt één balk, met een stuk per stap. Elk stuk vult zich naarmate de stap klaar is, geel als er in die stap nog iets te doen is en groen als ze in orde is: bij Importeren de gegevens en je adreslijst, bij Koppelen de verplichte vakken met een kolom, bij Formaatvalidatie de formaatfouten die je oploste of uitsloot. Ga met de muis over een stap om het percentage te zien. De stap waar je bent, staat in volle kleur met een dikkere balk; de andere stappen zijn lichter. Pijltjes tussen de stappen tonen de volgorde; de vier stappen zijn even breed.
+Voor de titel van de mailing staat de status van de stap waar je bent: een cirkel die per stap een kwart voller is (leeg bij Importeren, een kwart bij Koppelen, de helft bij Formaatvalidatie, driekwart bij Adrescontrole). Ze is zwart, en groen zodra de stap in orde is. Ga er met de muis over voor de uitleg. Daaronder staan de stappen. Onder de stappen loopt één balk, met een stuk per stap. Elk stuk vult zich naarmate de stap klaar is, geel als er in die stap nog iets te doen is en groen als ze in orde is: bij Importeren de gegevens en je adreslijst, bij Koppelen de verplichte vakken met een kolom, bij Formaatvalidatie de formaatfouten die je oploste of uitsloot. Ga met de muis over een stap om het percentage te zien. De stap waar je bent, staat in volle kleur met een dikkere balk; de andere stappen zijn lichter. Pijltjes tussen de stappen tonen de volgorde; de vier stappen zijn even breed.
 
-De balk met de stappen en de pills blijft bovenaan staan als je naar beneden scrolt. Moet je even wachten, bijvoorbeeld terwijl we je lijst nakijken na Koppelen, dan draait er een wieltje in de knop waarop je klikte.
+De balk met de stappen blijft bovenaan staan als je naar beneden scrolt. Moet je even wachten, bijvoorbeeld terwijl we je lijst nakijken na Koppelen, dan draait er een wieltje in de knop waarop je klikte.
 
 Klik op een stap om ernaar te gaan: terug, of weer vooruit naar een stap die je al deed. **1. Importeren** opent de gegevens van de mailing; van daar ga je ook weer naar elke stap die je al deed. Wat je aanpast, wordt bewaard voor je naar een andere stap gaat. Laat je een verplicht veld leeg, dan blijf je in stap 1 tot het ingevuld is. Een ander bestand kiezen kan enkel in een nieuwe mailing.
 
-Rechts op dezelfde regel staat een rij pills: een icoon met een getal. Ga er met de muis over voor de uitleg. Ze staan in deze volgorde: eerst wat je bestand is, dan wat we nakijken, en rechts het resultaat: de adressen die meegaan en helemaal rechts de rijen die je uitsloot. Een pill die iets nakijkt, is oranje als er iets te doen is. Is alles in orde, dan blijft ze neutraal en wordt enkel het icoon groen. De pill voor het formaat wordt dan helemaal groen, met een vinkje.
+Rechts op de regel van de titel staat een rij pills: een icoon met een getal. Ga er met de muis over voor de uitleg. Ze staan in deze volgorde: eerst wat je bestand is, dan wat we nakijken, en rechts het resultaat: de adressen die meegaan en helemaal rechts de rijen die je uitsloot. Een pill die iets nakijkt, is oranje als er iets te doen is. Is alles in orde, dan blijft ze neutraal en wordt enkel het icoon groen. De pill voor het formaat wordt dan helemaal groen, met een vinkje.
 
 | Pill | Betekenis |
 |---|---|

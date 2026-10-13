@@ -99,4 +99,5 @@ Mark: het sleepvak bovenaan, want het bestand vult de titel in; eerst enkel dat 
 ## Status voor de titel, wieltje in de knop (13/10), verwerkt
 
 Mark: de iconen weg uit de stappenbalk; de status groter en zichtbaarder (voor de titel); bij wachten een wieltje. Afspraak: kort wachten = wieltje in de knop (`NextButton busy`), lang wachten (later, het antwoord van bpost) = het icoon voor de titel toont "wachten". Koppelen: wat ontbreekt staat enkel in het rood op de envelop.
-Open: rode cijfers voor weekends en feestdagen in de kalender van het datumveld. De kalender van de browser laat geen kleuren toe; enkel met een eigen kalender (voorgelegd aan Mark 13/10).
+Kalender: blijft de kalender van de browser (Mark, 13/10); weekends en feestdagen enkel via de melding onder het veld.
+Het icoon voor de titel volgt de stap (Harvey ball per kwart, zwart, groen als de stap in orde is); de pills staan rechts op de lijn van de titel; het menu "…" op de pagina van een mailing is weg (Mark, 13/10).

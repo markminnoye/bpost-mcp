@@ -26,7 +26,8 @@ import { DetailsStep } from './DetailsStep'
 import { MappingStep } from './MappingStep'
 import { MetaPills, listPills, type Pill } from './MetaPills'
 import { formatStateFromMailing, resumeStep } from './resume'
-import { StepBar, type StepId, type StepStatus } from './StepBar'
+import { StepBar, StepStatusIcon, type StepId, type StepStatus } from './StepBar'
+import { PageHeader } from '@/components/app-shell/AppShell'
 import { STORE_FULL_MESSAGE } from '@/components/mailings/MailingStoreProvider'
 import type { MailingSaver } from './useMailingSaver'
 import { exportBaseName, printerFile } from './exports'
@@ -68,7 +69,7 @@ export function MailingFlow({
   list,
   fileBytes,
   saver,
-  header,
+  title,
   docsUrl,
   aiModel,
   startOnDetails = false,
@@ -78,8 +79,8 @@ export function MailingFlow({
   list: LoadedList
   fileBytes: ArrayBuffer
   saver: MailingSaver
-  /** Shown above the step bar: the title of the mailing and its menu, which can open step 1. */
-  header?: (openDetails: () => void) => ReactNode
+  /** The title of the mailing, above the step bar; the status of the step before it, the pills after. */
+  title: ReactNode
   docsUrl?: string
   aiModel?: string
   /** Open on step 1 (the details) instead of the furthest valid step. */
@@ -303,7 +304,17 @@ export function MailingFlow({
   return (
     <div className={styles.root} style={{ minHeight: 0, background: 'transparent' }}>
       <div className={styles.main} style={{ padding: 0 }}>
-        {header?.(() => go('upload'))}
+        <PageHeader
+          icon={<StepStatusIcon step={step} status={stepStatus[step]} progress={progress[step]} />}
+          title={title}
+          actions={
+            pills.length > 0 ? (
+              <div className={styles.titlePills}>
+                <MetaPills pills={pills} />
+              </div>
+            ) : undefined
+          }
+        />
         {saver.state === 'error' && (
           <p className={styles.alert} role="alert">
             {saver.full ? `Nog niet bewaard. ${STORE_FULL_MESSAGE}` : 'Nog niet bewaard.'}{' '}
@@ -328,11 +339,6 @@ export function MailingFlow({
             reachable={reachable}
             onGo={go}
           />
-          {pills.length > 0 && (
-            <div className={styles.topRight}>
-              <MetaPills pills={pills} />
-            </div>
-          )}
         </div>
 
         {step === 'upload' && (

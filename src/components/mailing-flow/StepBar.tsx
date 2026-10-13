@@ -1,6 +1,7 @@
 'use client'
 
 import { IconChevronRight } from '@tabler/icons-react'
+import { HarveyBall } from './StatusIcons'
 import styles from './mailing-flow.module.css'
 
 export type StepId = 'upload' | 'mapping' | 'format' | 'check'
@@ -15,12 +16,30 @@ const BAR_COLOR: Record<StepStatus, string | undefined> = {
   done: 'var(--green)',
 }
 
-const STEPS: readonly { id: StepId; label: string }[] = [
-  { id: 'upload', label: 'Importeren' },
-  { id: 'mapping', label: 'Koppelen' },
-  { id: 'format', label: 'Formaatvalidatie' },
-  { id: 'check', label: 'Adrescontrole' },
+/** The four steps; `fill` is the Harvey ball of the step (decisions 17 and 18). */
+export const STEPS: readonly { id: StepId; label: string; fill: 0 | 0.25 | 0.5 | 0.75 }[] = [
+  { id: 'upload', label: 'Importeren', fill: 0 },
+  { id: 'mapping', label: 'Koppelen', fill: 0.25 },
+  { id: 'format', label: 'Formaatvalidatie', fill: 0.5 },
+  { id: 'check', label: 'Adrescontrole', fill: 0.75 },
 ]
+
+/**
+ * The status before the title of a mailing: the Harvey ball of the current step, filled per quarter
+ * as the steps go, black, and green once the step is ready for the next one (Mark, 12/10 and 13/10).
+ * @param props The current step, its status and how far it is (0 to 1).
+ */
+export function StepStatusIcon({ step, status, progress }: { step: StepId; status?: StepStatus; progress?: number }) {
+  const index = STEPS.findIndex((s) => s.id === step)
+  const { label, fill } = STEPS[index]
+  const tip = `${index + 1}. ${label}: ${status === 'done' ? 'in orde' : `${Math.round((progress ?? 0) * 100)} % klaar`}`
+  return (
+    <span className={`${styles.titleStatus} ${styles.tipStart}`} data-tip={tip}>
+      <HarveyBall fill={fill} color={status === 'done' ? 'var(--green)' : 'var(--text-primary)'} size={22} />
+      <span className={styles.srOnly}>{tip}</span>
+    </span>
+  )
+}
 
 /** The first four steps of a mailing, with the icon each step has in the overview, an arrow between
  *  the steps (variant B) and under each step a segment of one bar (variant C), filled as far as the
