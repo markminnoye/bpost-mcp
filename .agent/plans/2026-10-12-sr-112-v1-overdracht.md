@@ -77,3 +77,9 @@ Alle punten van "Uitgestelde kleine punten" hierboven. Bewust beperkt:
 ## Stap 1 in de flow (13/10), verwerkt
 
 Mark: na stap 1 kon je niet meer naar stap 2 of 3 zonder op "Bewaren" te drukken. Stap 1 van een bestaande mailing is nu een stap in `MailingFlow` (`DetailsStep`, gedeeld formulier `DetailsForm`). Bewaren gaat via de saver van de flow (2 s, of meteen bij een stapwissel). Met een leeg verplicht veld zijn de andere stappen dicht, en weggaan vraagt eerst. `ImportStep` is enkel nog voor een nieuwe mailing.
+
+## Testronde v1 (13/10)
+
+Volgens de checklist van de v1-spec §5, in de preview met `testadressen.xlsx` (789 adressen): aanmaken, herladen en hervatten in elke stap, de waarschuwing bij weggaan, formaatfouten oplossen en uitsluiten met het toetsenbord, de exports voor bpost (AFT, .xls) en de drukker (SR-80 blijft werken), zoeken, sorteren, archiveren en ongedaan maken, het menu "…" met pijltjes, het paneel onder 1024 px, donkere modus en Instellingen (niet bewaard: gedeelde database). Twee fouten gevonden en opgelost:
+- Een wijziging vlak voor het herladen ging verloren: een IndexedDB-schrijfactie tijdens het herladen raakt niet af. Nu ook meteen in `sessionStorage`, en `MailingPage` bewaart die rest bij het openen.
+- Na het sluiten van het paneel ging de focus niet terug naar "Menu openen" (de pagina was nog `inert`).

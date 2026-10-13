@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Mailing } from '@/core/masspost/store/mailing'
-import { RevisionConflictError, StoreFullError, type MailingChange } from '@/core/masspost/store/mailing-store'
+import {
+  RevisionConflictError,
+  StoreFullError,
+  type MailingChange,
+  type MailingStore,
+} from '@/core/masspost/store/mailing-store'
 import { useMailingStore } from '@/components/mailings/MailingStoreProvider'
 
 /** What `useMailingSaver` returns. */
@@ -25,6 +30,53 @@ export interface MailingSaver {
   hasUnsaved: () => boolean
 }
 
+type Unsaved = { change: MailingChange; event: string }
+
+// What is not saved yet also goes to sessionStorage, at once: a write to IndexedDB that starts while
+// the page reloads does not finish, but sessionStorage survives the reload of this tab.
+const unsavedKey = (id: string) => `bpost-e-masspost:unsaved:${id}`
+
+function writeUnsaved(id: string, revision: number, unsaved: Unsaved): void {
+  try {
+    sessionStorage.setItem(unsavedKey(id), JSON.stringify({ revision, ...unsaved }))
+  } catch {
+    // No sessionStorage (private window, full): the question on leaving stays.
+  }
+}
+
+function clearUnsaved(id: string): void {
+  try {
+    sessionStorage.removeItem(unsavedKey(id))
+  } catch {
+    // Nothing to clear.
+  }
+}
+
+/**
+ * Saves what was not saved yet when this tab reloaded, before the mailing opens. Only when nobody
+ * saved the mailing in the meantime (same revision); otherwise the leftover is dropped.
+ * @param store The store.
+ * @param mailing The mailing as loaded.
+ * @param by E-mail of the user.
+ * @returns The mailing with the leftover saved, or as loaded.
+ */
+export async function restoreUnsavedChange(store: MailingStore, mailing: Mailing, by: string): Promise<Mailing> {
+  let entry: ({ revision: number } & Unsaved) | null = null
+  try {
+    entry = JSON.parse(sessionStorage.getItem(unsavedKey(mailing.id)) ?? 'null')
+  } catch {
+    return mailing
+  }
+  if (!entry) return mailing
+  clearUnsaved(mailing.id)
+  if (entry.revision !== mailing.revision) return mailing
+  try {
+    return await store.update(mailing.id, entry.change, mailing.revision, by, entry.event)
+  } catch {
+    return mailing
+  }
+}
+
 /**
  * Saves a mailing through the store, with the revision check (SR-112 §1, "Twee mensen tegelijk").
  * Leaving the page with an unsaved change asks first.
@@ -45,16 +97,26 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
   const pending = useRef<{ change: MailingChange; event: string } | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const queue = useRef<Promise<void>>(Promise.resolve())
+  // Everything since the last moment all was saved, as final values (applying it twice is harmless).
+  const unsaved = useRef<Unsaved | null>(null)
+  const running = useRef(0)
+
+  const remember = useCallback((change: MailingChange, event: string) => {
+    unsaved.current = { change: { ...unsaved.current?.change, ...change }, event }
+    writeUnsaved(current.current.id, current.current.revision, unsaved.current)
+  }, [])
 
   // One save at a time, in order: each one needs the revision of the one before.
   const run = useCallback(
     (change: MailingChange, event: string) => {
+      running.current += 1
       const next = queue.current.then(async () => {
         setState('saving')
         try {
           const saved = await store.update(current.current.id, change, current.current.revision, user.email, event)
           current.current = saved
           setMailing(saved)
+          running.current -= 1
           // A change that failed earlier and still waits is older than this one: drop the fields
           // this save already wrote, so it cannot overwrite them later.
           if (pending.current) {
@@ -63,9 +125,16 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
             ) as MailingChange
             pending.current = Object.keys(rest).length ? { ...pending.current, change: rest } : null
           }
+          if (!pending.current && running.current === 0) {
+            unsaved.current = null
+            clearUnsaved(saved.id)
+          } else if (unsaved.current) {
+            writeUnsaved(saved.id, saved.revision, unsaved.current)
+          }
           setFull(false)
           setState(pending.current ? 'error' : 'saved')
         } catch (e) {
+          running.current -= 1
           pending.current = { change: { ...change, ...pending.current?.change }, event }
           setFull(e instanceof StoreFullError)
           setState(e instanceof RevisionConflictError ? 'conflict' : 'error')
@@ -88,20 +157,22 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
   const save = useCallback(
     async (change: MailingChange, event: string) => {
       clearTimeout(timer.current)
+      remember(change, event)
       const merged = { ...pending.current?.change, ...change }
       pending.current = null
       await run(merged, event)
     },
-    [run],
+    [run, remember],
   )
 
   const saveSoon = useCallback(
     (change: MailingChange, event: string) => {
       pending.current = { change: { ...pending.current?.change, ...change }, event }
+      remember(change, event)
       clearTimeout(timer.current)
       timer.current = setTimeout(() => void flush(), 2000)
     },
-    [flush],
+    [flush, remember],
   )
 
   // Leaving with something unsaved: ask first.
@@ -113,8 +184,9 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [state])
 
-  // Reloading, closing the tab or switching away: save what waits right away, not after 2 s.
-  // The browser usually finishes a write started here; the question on leaving stays as a backstop.
+  // Switching away (another tab or app) or into the back-forward cache: save what waits right away,
+  // not after 2 s. A reload does not let this write finish: sessionStorage covers that case
+  // (`restoreUnsavedChange`), and the question on leaving stays as a backstop.
   useEffect(() => {
     const onHide = () => {
       if (document.visibilityState === 'hidden' && pending.current) void flush()

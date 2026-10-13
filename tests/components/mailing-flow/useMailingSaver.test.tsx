@@ -5,10 +5,13 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { MemoryMailingStore } from '@/core/masspost/store/memory-store'
 import { StoreFullError, type MailingStore } from '@/core/masspost/store/mailing-store'
 import { MailingStoreContext } from '@/components/mailings/MailingStoreProvider'
-import { useMailingSaver } from '@/components/mailing-flow/useMailingSaver'
+import { restoreUnsavedChange, useMailingSaver } from '@/components/mailing-flow/useMailingSaver'
 import { newInput } from '../../core/masspost/store/mailing-store-contract'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  sessionStorage.clear()
+})
 
 /** A store whose first update fails, as when the browser storage is briefly unavailable. */
 class FlakyStore extends MemoryMailingStore {
@@ -93,5 +96,40 @@ describe('useMailingSaver', () => {
     })
     expect(result.current.state).toBe('error')
     expect(result.current.full).toBe(true)
+  })
+
+  it('keeps a waiting change through a reload of the tab, and saves it when the mailing opens again', async () => {
+    /** On a reload the write to IndexedDB never finishes: the next write after `hangNext` hangs. */
+    class ReloadStore extends MemoryMailingStore {
+      hangNext = false
+      override update(...args: Parameters<MailingStore['update']>) {
+        if (!this.hangNext) return super.update(...args)
+        this.hangNext = false
+        return new Promise<never>(() => {})
+      }
+    }
+    const store = new ReloadStore()
+    const mailing = await store.create(newInput(), new Blob([]), 'an@x.be')
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <MailingStoreContext.Provider value={{ store, user: { email: 'an@x.be' } }}>{children}</MailingStoreContext.Provider>
+    )
+    const { result, unmount } = renderHook(() => useMailingSaver(mailing), { wrapper })
+    act(() => result.current.saveSoon({ excludedRows: [9] }, 'format-edited'))
+    store.hangNext = true
+    unmount() // the page goes away before the 2 s are over; its write does not finish
+    const opened = await restoreUnsavedChange(store, (await store.get(mailing.id))!, 'an@x.be')
+    expect(opened.excludedRows).toEqual([9])
+    // Once saved, nothing is left for the next time.
+    const again = await restoreUnsavedChange(store, opened, 'an@x.be')
+    expect(again.revision).toBe(opened.revision)
+  })
+
+  it('drops the leftover when someone saved the mailing in the meantime', async () => {
+    const store = new MemoryMailingStore()
+    const mailing = await store.create(newInput(), new Blob([]), 'an@x.be')
+    sessionStorage.setItem(`bpost-e-masspost:unsaved:${mailing.id}`, JSON.stringify({ revision: 0, change: { excludedRows: [3] }, event: 'x' }))
+    const opened = await restoreUnsavedChange(store, mailing, 'an@x.be')
+    expect(opened.excludedRows).toEqual([])
+    expect(sessionStorage.getItem(`bpost-e-masspost:unsaved:${mailing.id}`)).toBeNull()
   })
 })

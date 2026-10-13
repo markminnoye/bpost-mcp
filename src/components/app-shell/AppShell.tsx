@@ -27,10 +27,15 @@ export function AppShell({ tenantName, user, children }: { tenantName: string; u
   const [panelOpen, setPanelOpen] = useState(false)
   const opener = useRef<HTMLElement | null>(null)
 
-  const closePanel = useCallback(() => {
-    setPanelOpen(false)
-    opener.current?.focus()
-  }, [])
+  const closePanel = useCallback(() => setPanelOpen(false), [])
+
+  // Back to the button that opened the panel, after the render: while the page is still inert,
+  // the browser ignores focus().
+  useEffect(() => {
+    if (panelOpen || !opener.current) return
+    opener.current.focus()
+    opener.current = null
+  }, [panelOpen])
 
   useEffect(() => {
     if (!panelOpen) return

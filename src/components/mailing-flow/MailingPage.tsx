@@ -13,7 +13,7 @@ import { friendlyReadError, nextPaint } from './FileDrop'
 import { MailingFlow } from './MailingFlow'
 import { Spinner } from './StatusIcons'
 import { useLeaveGuard } from './useLeaveGuard'
-import { useMailingSaver } from './useMailingSaver'
+import { restoreUnsavedChange, useMailingSaver } from './useMailingSaver'
 import styles from '@/components/app-shell/app.module.css'
 
 type Load =
@@ -39,7 +39,7 @@ export function MailingPage({
   docsUrl?: string
   aiModel?: string
 }) {
-  const { store } = useMailingStore()
+  const { store, user } = useMailingStore()
   const [load, setLoad] = useState<Load>({ state: 'loading' })
 
   useEffect(() => {
@@ -47,8 +47,10 @@ export function MailingPage({
     setLoad({ state: 'loading' })
     ;(async () => {
       try {
-        const mailing = await store.findByCode(code)
-        if (!mailing) return alive && setLoad({ state: 'missing' })
+        const found = await store.findByCode(code)
+        if (!found) return alive && setLoad({ state: 'missing' })
+        // What this tab had not saved yet before a reload, first.
+        const mailing = await restoreUnsavedChange(store, found, user.email)
         const blob = await store.getSourceFile(mailing.id)
         if (!blob) return alive && setLoad({ state: 'error', message: 'De adreslijst van deze mailing is niet meer in je browser.' })
         await nextPaint()
@@ -66,7 +68,7 @@ export function MailingPage({
     return () => {
       alive = false
     }
-  }, [store, code])
+  }, [store, code, user.email])
 
   if (load.state === 'loading') {
     return (
