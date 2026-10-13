@@ -72,6 +72,12 @@
   max-width: none;
   white-space: nowrap;
 }
+/* At the left edge (e.g. the status icon in the list) the tip opens to the right. */
+.shell .tipStart[data-tip]:hover::after,
+.shell .tipStart[data-tip]:focus-visible::after {
+  left: 0;
+  right: auto;
+}
 .shell .tipAbove[data-tip]:hover::after,
 .shell .tipAbove[data-tip]:focus-visible::after {
   left: 50%;

@@ -40,10 +40,15 @@ describe('instellingen actions', () => {
     expect(written).toHaveBeenCalledWith('tenants', { name: 'Contrapunt' })
   })
 
-  it('explains a wrong prefix in plain words', async () => {
+  it('explains a wrong prefix under its field, and keeps what was typed', async () => {
     authMock.mockResolvedValue({ user: { tenantId: 't1' } })
     const r = await saveDefaults(null, form({ format: 'Small', priority: 'NP', genMID: '7', codePrefix: 'C P' }))
-    expect(r).toEqual({ ok: false, error: 'Het voorvoegsel mag enkel letters en cijfers bevatten, maximaal 8.' })
+    expect(r).toEqual({
+      ok: false,
+      error: 'Nog niet bewaard: kijk de velden na.',
+      fields: { codePrefix: 'Enkel letters en cijfers, maximaal 8.' },
+      values: { format: 'Small', priority: 'NP', genMID: '7', codePrefix: 'C P' },
+    })
     expect(written).not.toHaveBeenCalled()
   })
 

@@ -43,7 +43,7 @@ export function MailingRow({
   )
   const few = m.addresses < MIN_ADDRESSES
   const customer = m.customer ? (
-    <span className={styles.pill} title={`Klant: ${m.customer}`}>
+    <span className={styles.pill} data-tip={`Klant: ${m.customer}`}>
       <IconBuilding {...SMALL} />
       <span>{m.customer}</span>
     </span>
@@ -53,7 +53,7 @@ export function MailingRow({
   const addresses = (
     <span
       className={`${styles.pill} ${few ? styles.pillWarn : ''}`}
-      title={`${formatCount(m.addresses)} adressen${few ? ', minder dan 500 (het minimum voor een mailing)' : ''}`}
+      data-tip={`${formatCount(m.addresses)} adressen${few ? ', minder dan 500 (het minimum voor een mailing)' : ''}`}
     >
       <IconMail {...SMALL} />
       <span>{formatCount(m.addresses)}</span>
@@ -61,21 +61,21 @@ export function MailingRow({
   )
   const arr =
     m.arr === null ? (
-      <span className={`${styles.arr} ${styles.muted}`} title="Nog niet gecontroleerd door bpost">
+      <span className={`${styles.arr} ${styles.muted}`} data-tip="Nog niet gecontroleerd door bpost">
         —<span className={styles.srOnly}>nog geen ARR</span>
       </span>
     ) : (
-      <span className={styles.arr} title="ARR: deel van de adressen dat bpost herkent">
+      <span className={styles.arr} data-tip="ARR: deel van de adressen dat bpost herkent">
         <span className={styles.dot} style={{ background: ARR_COLOR[arrTone(m.arr)] }} aria-hidden="true" />
         {formatPercent(m.arr)}
       </span>
     )
   const date = m.expectedDeliveryDate ? (
-    <span className={styles.date} title={`Geplande afgifte: ${longDate(m.expectedDeliveryDate)}`}>
+    <span className={styles.date} data-tip={`Geplande afgifte: ${longDate(m.expectedDeliveryDate)}`}>
       {shortDate(m.expectedDeliveryDate)}
     </span>
   ) : (
-    <span className={`${styles.date} ${styles.muted}`} title="Nog geen afgiftedatum">
+    <span className={`${styles.date} ${styles.muted}`} data-tip="Nog geen afgiftedatum">
       —
     </span>
   )
@@ -125,7 +125,7 @@ export function MailingRow({
           {addresses}
           {m.arr !== null && arr}
           {m.expectedDeliveryDate && (
-            <span className={styles.meta} title={`Geplande afgifte: ${longDate(m.expectedDeliveryDate)}`}>
+            <span className={styles.meta} data-tip={`Geplande afgifte: ${longDate(m.expectedDeliveryDate)}`}>
               <IconCalendar {...SMALL} />
               {shortDate(m.expectedDeliveryDate)}
             </span>

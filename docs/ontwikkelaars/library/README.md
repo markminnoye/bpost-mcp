@@ -100,6 +100,7 @@
 
 - [addressFileBaseName](functions/addressFileBaseName.md)
 - [applyChange](functions/applyChange.md)
+- [belgianPublicHolidays](functions/belgianPublicHolidays.md)
 - [buildAftExport](functions/buildAftExport.md)
 - [buildMailingCheckRequest](functions/buildMailingCheckRequest.md)
 - [buildMailingDeleteRequest](functions/buildMailingDeleteRequest.md)
@@ -121,6 +122,7 @@
 - [isBelgianCountry](functions/isBelgianCountry.md)
 - [isBoxKeyword](functions/isBoxKeyword.md)
 - [isBpostSafeCodePoint](functions/isBpostSafeCodePoint.md)
+- [isBpostWorkingDay](functions/isBpostWorkingDay.md)
 - [isValidMailingCode](functions/isValidMailingCode.md)
 - [joinColumns](functions/joinColumns.md)
 - [mailingRequestSchemaForVersion](functions/mailingRequestSchemaForVersion.md)

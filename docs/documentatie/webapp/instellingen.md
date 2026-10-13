@@ -4,7 +4,7 @@
 Alfaversie. Dit onderdeel kan nog veranderen.
 {% endhint %}
 
-Je opent **Instellingen** onderaan in de zijbalk, net boven je naam. De instellingen gelden voor iedereen van je organisatie. Elk blok heeft zijn eigen knop **Bewaren**.
+Je opent **Instellingen** onderaan in de zijbalk, net boven je naam. De instellingen gelden voor iedereen van je organisatie. Elk blok heeft zijn eigen knop **Bewaren**. Ga met de muis over een label (of het ⓘ ernaast) voor wat het veld betekent. Klopt er iets niet, dan staat de melding in het rood onder het veld, en blijft wat je intypte staan.
 
 ## Organisatie
 

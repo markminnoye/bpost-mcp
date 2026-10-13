@@ -10,6 +10,8 @@ import {
   roundSequenceAllowed,
   defaultRoundSequence,
   missingDetails,
+  belgianPublicHolidays,
+  isBpostWorkingDay,
   type MailingSummary,
 } from '@/core/masspost/store/mailing'
 import { sampleMailing } from './fixtures'
@@ -98,5 +100,34 @@ describe('rules', () => {
       'date',
     ])
     expect(missingDetails({ title: 'x', code: 'CP-2026-1', expectedDeliveryDate: '2026-10-12', hasFile: true }, '2026-10-12')).toEqual([])
+  })
+})
+
+describe('isBpostWorkingDay', () => {
+  it('takes Monday to Friday, not the weekend', () => {
+    expect(isBpostWorkingDay('2026-10-23')).toBe(true) // Friday
+    expect(isBpostWorkingDay('2026-10-24')).toBe(false) // Saturday
+    expect(isBpostWorkingDay('2026-10-25')).toBe(false) // Sunday
+  })
+
+  it('skips the Belgian public holidays, also the ones that move with Easter', () => {
+    expect(belgianPublicHolidays(2026)).toEqual([
+      '2026-01-01',
+      '2026-04-06', // Easter Monday
+      '2026-05-01',
+      '2026-05-14', // Ascension
+      '2026-05-25', // Whit Monday
+      '2026-07-21',
+      '2026-08-15',
+      '2026-11-01',
+      '2026-11-11',
+      '2026-12-25',
+    ])
+    expect(isBpostWorkingDay('2026-11-11')).toBe(false) // Wednesday, Armistice
+    expect(isBpostWorkingDay('2026-11-12')).toBe(true)
+  })
+
+  it('makes a weekend delivery date missing in step 1', () => {
+    expect(missingDetails({ title: 'x', code: 'CP-2026-1', expectedDeliveryDate: '2026-10-24', hasFile: true }, '2026-10-12')).toEqual(['date'])
   })
 })

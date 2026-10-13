@@ -36,7 +36,7 @@ The fields that can be empty or wrong, and whether a file was read without error
 
 `string`
 
-Today as `YYYY-MM-DD`; the delivery date may not be earlier.
+Today as `YYYY-MM-DD`; the delivery date may not be earlier, and must be a working day.
 
 ## Returns
 

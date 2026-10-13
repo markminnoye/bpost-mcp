@@ -354,7 +354,9 @@ export function MappingStep({
             return (
               <div key={kind.id} className={styles.envCard}>
                 <div className={styles.envHead}>
-                  <span title={kind.tip}>{kind.label}</span>
+                  <span className={styles.tipStart} data-tip={kind.tip}>
+                    {kind.label}
+                  </span>
                   <span className={styles.envNav}>
                     <button
                       type="button"

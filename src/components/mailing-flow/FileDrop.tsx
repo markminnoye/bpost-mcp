@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { IconFileSpreadsheet, IconFileUpload } from '@tabler/icons-react'
+import { IconFileSpreadsheet, IconFileUpload, IconReplace } from '@tabler/icons-react'
 import { ADDRESS_FILE_EXTENSIONS, isAddressFileName } from '@/core/masspost/address-file'
 import { formatCount, type LoadedList } from './columns'
 import { Spinner } from './StatusIcons'
@@ -133,6 +133,7 @@ export function FileDrop({
           {!locked && (
             <>
               <button type="button" className={styles.btn} onClick={() => input.current?.click()}>
+                <IconReplace size={14} stroke={1.75} aria-hidden="true" />
                 Ander bestand kiezen
               </button>
               {picker}

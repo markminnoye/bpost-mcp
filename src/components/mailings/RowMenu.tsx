@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import Link from 'next/link'
-import { IconArchive, IconArrowRight, IconDeviceFloppy, IconDots, IconRestore, IconTruckDelivery, IconX } from '@tabler/icons-react'
+import { IconArchive, IconArrowRight, IconDownload, IconDots, IconRestore, IconTruckDelivery, IconX } from '@tabler/icons-react'
 import { Placeholder } from '@/components/app-shell/Placeholder'
 import styles from '@/components/app-shell/app.module.css'
 
@@ -88,7 +88,7 @@ export function RowMenu({
                 onPrinter()
               }}
             >
-              <IconDeviceFloppy {...ICON} />
+              <IconDownload {...ICON} />
               Opslaan voor de drukker
             </button>
           ) : (
@@ -99,7 +99,7 @@ export function RowMenu({
               className={`${styles.menuItem} ${styles.placeholder}`}
               data-tip="Kan pas als de formaatvalidatie in orde is"
             >
-              <IconDeviceFloppy {...ICON} />
+              <IconDownload {...ICON} />
               Opslaan voor de drukker
             </span>
           )}

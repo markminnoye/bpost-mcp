@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
-import { IconInfoCircle, IconPlugConnected } from '@tabler/icons-react'
-import { presortLocked, roundSequenceAllowed, type MissingDetail } from '@/core/masspost/store/mailing'
+import { IconPlugConnected } from '@tabler/icons-react'
+import { isBpostWorkingDay, presortLocked, roundSequenceAllowed, type MissingDetail } from '@/core/masspost/store/mailing'
 import { StoreUnavailableError } from '@/core/masspost/store/mailing-store'
+import { FieldError, FieldLabel } from '@/components/app-shell/FieldLabel'
+import { FIELD_TIPS } from './field-tips'
 import { Placeholder } from '@/components/app-shell/Placeholder'
 import { useMailingStore } from '@/components/mailings/MailingStoreProvider'
 import { withFormat, type ImportDraft } from './import-draft'
@@ -37,48 +39,6 @@ export function useCustomerSuggestions(onUnavailable?: () => void): string[] {
     }
   }, [store])
   return customers
-}
-
-/**
- * What each field means, from bpost's guide (MailingCreate, Mail-ID Data Exchange Technical Guide)
- * and the manual of the Address File Tool, in plain words for the hover tip next to the label.
- */
-export const FIELD_TIPS = {
-  customer: 'Voor wie je deze mailing verstuurt. Enkel voor jezelf: bpost krijgt dit niet.',
-  title: 'Een naam om de mailing terug te vinden. Enkel voor jezelf: bpost krijgt dit niet.',
-  code: 'Jouw unieke referentie voor deze mailing bij bpost. Maximaal 20 tekens.',
-  date: 'De dag waarop je de brieven bij bpost afgeeft. Dat moet een werkdag zijn.',
-  format:
-    'Het formaat van je brieven. Klein formaat: afgifte met Mail ID, gesorteerd of niet. Groot formaat: afgifte op ronde en sequentie.',
-  priority: 'Prior of non-prior: hoe snel bpost je brieven bezorgt. Geldt voor elke brief van de mailing.',
-  barcode:
-    'Of bpost de Mail ID-barcodes voor je maakt, met 7, 9 of 11 cijfers. Kies Geen als je de barcodes zelf meegeeft.',
-  presort: 'bpost maakt de presorteercodes, voor brieven die je niet zelf sorteerde.',
-  roundSequence:
-    'Enkel bij groot formaat. bpost geeft per brief een sequentie, die je op de envelop drukt om de brieven in de juiste volgorde af te geven.',
-} as const
-
-/** A label with what the field means in a hover tip (also on keyboard focus of the icon). */
-function FieldLabel({ htmlFor, label, required, tip }: { htmlFor?: string; label: string; required?: boolean; tip: string }) {
-  const text = (
-    <>
-      {label}
-      {required && (
-        <>
-          {' '}
-          <span className={styles.req}>*</span>
-        </>
-      )}
-    </>
-  )
-  return (
-    <div className={styles.labelRow} data-tip={tip}>
-      {htmlFor ? <label htmlFor={htmlFor}>{text}</label> : <span className={styles.flabel}>{text}</span>}
-      <span className={styles.info} role="img" tabIndex={0} aria-label={`Uitleg: ${tip}`}>
-        <IconInfoCircle size={14} stroke={1.75} aria-hidden="true" />
-      </span>
-    </div>
-  )
 }
 
 /**
@@ -116,11 +76,16 @@ export function DetailsForm({
   const locked = addresses !== null && presortLocked(draft.format, addresses)
   const rsAllowed = roundSequenceAllowed(draft.format)
   const titleError = missing.includes('title') ? 'Vul een titel in.' : null
-  const dateError = missing.includes('date')
-    ? draft.expectedDeliveryDate
-      ? 'Kies een datum vanaf vandaag.'
-      : 'Kies een afgiftedatum.'
-    : null
+  const date = draft.expectedDeliveryDate
+  const dateError = !missing.includes('date')
+    ? null
+    : !date
+      ? 'Kies een afgiftedatum.'
+      : minDate && date < minDate
+        ? 'Kies een datum vanaf vandaag.'
+        : !isBpostWorkingDay(date)
+          ? 'Kies een werkdag: van maandag tot vrijdag, geen feestdag.'
+          : 'Kies een geldige datum.'
   const codeMessage =
     codeError ?? (missing.includes('code') ? 'Gebruik letters, cijfers en koppeltekens, maximaal 20 tekens.' : null)
 
@@ -163,11 +128,7 @@ export function DetailsForm({
             aria-describedby={titleError ? 'f-title-err' : undefined}
             onChange={(e) => update({ title: e.target.value })}
           />
-          {titleError && (
-            <span id="f-title-err" className={styles.fieldError}>
-              {titleError}
-            </span>
-          )}
+          <FieldError id="f-title-err" message={titleError} />
         </div>
         <div className={styles.field}>
           <FieldLabel htmlFor="f-code" label="Code" required tip={FIELD_TIPS.code} />
@@ -198,11 +159,7 @@ export function DetailsForm({
             aria-describedby={dateError ? 'f-date-err' : undefined}
             onChange={(e) => update({ expectedDeliveryDate: e.target.value })}
           />
-          {dateError && (
-            <span id="f-date-err" className={styles.fieldError}>
-              {dateError}
-            </span>
-          )}
+          <FieldError id="f-date-err" message={dateError} />
         </div>
         <div className={styles.field}>
           <FieldLabel htmlFor="f-format" label="Formaat" required tip={FIELD_TIPS.format} />

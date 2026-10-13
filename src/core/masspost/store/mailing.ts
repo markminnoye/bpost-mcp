@@ -236,13 +236,63 @@ export function defaultRoundSequence(format: Mailing['format'], addresses: numbe
   return roundSequenceAllowed(format) && addresses >= ROUND_SEQUENCE_DEFAULT_FROM
 }
 
+/** Easter Sunday of a year (Gregorian calendar, anonymous algorithm), as UTC midnight. */
+function easter(year: number): Date {
+  const a = year % 19
+  const b = Math.floor(year / 100)
+  const c = year % 100
+  const d = Math.floor(b / 4)
+  const e = b % 4
+  const f = Math.floor((b + 8) / 25)
+  const g = Math.floor((b - f + 1) / 3)
+  const h = (19 * a + b - d - g + 15) % 30
+  const i = Math.floor(c / 4)
+  const k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7
+  const m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const month = Math.floor((h + l - 7 * m + 114) / 31)
+  const day = ((h + l - 7 * m + 114) % 31) + 1
+  return new Date(Date.UTC(year, month - 1, day))
+}
+
+const DAY = 86_400_000
+
+/**
+ * The ten Belgian public holidays of a year, as `YYYY-MM-DD`: New Year, Easter Monday, Labour Day,
+ * Ascension, Whit Monday, National Day, Assumption, All Saints, Armistice and Christmas.
+ * @param year The year.
+ * @returns The dates.
+ */
+export function belgianPublicHolidays(year: number): string[] {
+  const iso = (d: Date) => d.toISOString().slice(0, 10)
+  const e = easter(year).getTime()
+  const fixed = ['01-01', '05-01', '07-21', '08-15', '11-01', '11-11', '12-25'].map((md) => `${year}-${md}`)
+  const moving = [1, 39, 50].map((days) => iso(new Date(e + days * DAY)))
+  return [...fixed, ...moving].sort()
+}
+
+/**
+ * Whether bpost takes a deposit on this day: Monday to Friday, not a Belgian public holiday. bpost
+ * refuses a deposit date that is not a working day (MPW-1043); the guide does not list those days,
+ * so this is our reading of it.
+ * @param date The day as `YYYY-MM-DD`.
+ * @returns True on a working day.
+ * @example isBpostWorkingDay('2026-10-24') // false: a Saturday
+ */
+export function isBpostWorkingDay(date: string): boolean {
+  const d = new Date(`${date}T00:00:00Z`)
+  const weekday = d.getUTCDay()
+  if (weekday === 0 || weekday === 6) return false
+  return !belgianPublicHolidays(d.getUTCFullYear()).includes(date)
+}
+
 /** Something still needed before "Verder naar koppelen". */
 export type MissingDetail = 'title' | 'code' | 'date' | 'file'
 
 /**
  * What is still missing at step 1, in form order. Format and priority always have a value.
  * @param draft The fields that can be empty or wrong, and whether a file was read without error.
- * @param today Today as `YYYY-MM-DD`; the delivery date may not be earlier.
+ * @param today Today as `YYYY-MM-DD`; the delivery date may not be earlier, and must be a working day.
  * @returns The missing items; empty when "Verder" may be enabled.
  */
 export function missingDetails(
@@ -252,7 +302,8 @@ export function missingDetails(
   const missing: MissingDetail[] = []
   if (!draft.title.trim()) missing.push('title')
   if (!isValidMailingCode(draft.code)) missing.push('code')
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.expectedDeliveryDate) || draft.expectedDeliveryDate < today) missing.push('date')
+  const date = draft.expectedDeliveryDate
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < today || !isBpostWorkingDay(date)) missing.push('date')
   if (!draft.hasFile) missing.push('file')
   return missing
 }

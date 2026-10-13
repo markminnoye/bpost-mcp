@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent } from 'react'
-import { IconChecks, IconChevronRight, IconDeviceFloppy, IconMailOff } from '@tabler/icons-react'
+import { IconChecks, IconChevronRight, IconDownload, IconMailOff } from '@tabler/icons-react'
 import { checkFieldValue, type FormatIssue } from '@/core/masspost/format-check'
 import { UNSTRUCTURED_MAX_LENGTH } from '@/core/masspost/mapping'
 import { ADDRESS_FIELDS, FIELD_LABELS, formatCount } from './columns'
@@ -413,7 +413,7 @@ export function FormatStep({
               onClick={() => save('aft')}
               disabled={saving !== null}
             >
-              <IconDeviceFloppy size={14} stroke={1.75} aria-hidden="true" />
+              <IconDownload size={14} stroke={1.75} aria-hidden="true" />
               {saving === 'aft' ? 'Bezig…' : 'Opslaan voor bpost (AFT, .xls)'}
             </button>
           </section>
@@ -431,7 +431,7 @@ export function FormatStep({
               onClick={() => save('printer')}
               disabled={saving !== null}
             >
-              <IconDeviceFloppy size={14} stroke={1.75} aria-hidden="true" />
+              <IconDownload size={14} stroke={1.75} aria-hidden="true" />
               {saving === 'printer' ? 'Bezig…' : 'Opslaan voor de drukker (.xlsx)'}
             </button>
           </section>

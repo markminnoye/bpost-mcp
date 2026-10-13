@@ -9,8 +9,36 @@ import { env } from '@/lib/config/env'
 import { encrypt } from '@/lib/crypto'
 import { bpostCredentialsSchema, defaultsSchema, organisationSchema } from '@/lib/tenant/settings-schema'
 
-/** Outcome of a settings form, shown under its button. */
-export type SettingsResult = { ok: true; message: string } | { ok: false; error: string } | null
+/**
+ * Outcome of a settings form. `error` shows next to the button; `fields` holds a message per field,
+ * shown under that field, and `values` what was typed, so the form keeps it.
+ */
+export type SettingsResult =
+  | { ok: true; message: string }
+  | { ok: false; error: string; fields?: Record<string, string>; values?: Record<string, string> }
+  | null
+
+const CHECK_FIELDS = 'Nog niet bewaard: kijk de velden na.'
+
+/** The typed values, without the password. */
+function typed(formData: FormData): Record<string, string> {
+  return Object.fromEntries(
+    [...formData.entries()].filter(([key, v]) => key !== 'password' && typeof v === 'string') as [string, string][],
+  )
+}
+
+/** One message per field that failed, from a fixed text per field. */
+function fieldMessages(
+  issues: readonly { path: readonly PropertyKey[] }[],
+  messages: Record<string, string>,
+): Record<string, string> {
+  const fields: Record<string, string> = {}
+  for (const issue of issues) {
+    const key = String(issue.path[0])
+    fields[key] = messages[key] ?? 'Kies een geldige waarde.'
+  }
+  return fields
+}
 
 const EXPIRED = { ok: false as const, error: 'Je sessie is verlopen. Meld je opnieuw aan.' }
 const SAVED = { ok: true as const, message: 'Bewaard.' }
@@ -30,7 +58,14 @@ export async function saveOrganisation(_prev: SettingsResult, formData: FormData
   const tenantId = await currentTenantId()
   if (!tenantId) return EXPIRED
   const parsed = organisationSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { ok: false, error: 'Vul een naam in van maximaal 100 tekens.' }
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: CHECK_FIELDS,
+      fields: fieldMessages(parsed.error.issues, { name: 'Vul een naam in van maximaal 100 tekens.' }),
+      values: typed(formData),
+    }
+  }
   await db.update(tenants).set({ name: parsed.data.name }).where(eq(tenants.id, tenantId))
   revalidatePath('/', 'layout')
   return SAVED
@@ -47,10 +82,11 @@ export async function saveDefaults(_prev: SettingsResult, formData: FormData): P
   if (!tenantId) return EXPIRED
   const parsed = defaultsSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
-    const prefix = parsed.error.issues.some((i) => i.path[0] === 'codePrefix')
     return {
       ok: false,
-      error: prefix ? 'Het voorvoegsel mag enkel letters en cijfers bevatten, maximaal 8.' : 'Kies een geldige waarde.',
+      error: CHECK_FIELDS,
+      fields: fieldMessages(parsed.error.issues, { codePrefix: 'Enkel letters en cijfers, maximaal 8.' }),
+      values: typed(formData),
     }
   }
   const d = parsed.data
@@ -79,6 +115,14 @@ export async function saveDefaults(_prev: SettingsResult, formData: FormData): P
   return SAVED
 }
 
+const BPOST_MESSAGES: Record<string, string> = {
+  customerNumber: 'Gebruik 1 tot 8 cijfers.',
+  accountId: 'Gebruik 1 tot 8 cijfers.',
+  barcodeCustomerId: 'Gebruik precies 5 cijfers, of laat het leeg.',
+  username: 'Vul je gebruikersnaam in.',
+  password: 'Vul je bpost-wachtwoord in.',
+}
+
 /**
  * Saves the bpost login. An empty password keeps the stored one; a first save needs one.
  * @param _prev The previous result (useActionState).
@@ -92,7 +136,9 @@ export async function saveBpost(_prev: SettingsResult, formData: FormData): Prom
   if (!parsed.success) {
     return {
       ok: false,
-      error: 'Vul alle velden in. Klantnummer en account-ID hebben 1 tot 8 cijfers, het barcode-klant-ID heeft er 5.',
+      error: CHECK_FIELDS,
+      fields: fieldMessages(parsed.error.issues, BPOST_MESSAGES),
+      values: typed(formData),
     }
   }
   const { password, ...fields } = parsed.data
@@ -112,7 +158,9 @@ export async function saveBpost(_prev: SettingsResult, formData: FormData): Prom
       })
       .where(eq(bpostCredentials.tenantId, tenantId))
   } else {
-    if (!secret) return { ok: false, error: 'Vul je bpost-wachtwoord in.' }
+    if (!secret) {
+      return { ok: false, error: CHECK_FIELDS, fields: { password: BPOST_MESSAGES.password }, values: typed(formData) }
+    }
     await db
       .insert(bpostCredentials)
       .values({ tenantId, ...fields, passwordEncrypted: secret.ciphertext, passwordIv: secret.iv })

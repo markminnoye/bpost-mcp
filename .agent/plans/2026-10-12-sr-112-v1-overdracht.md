@@ -87,3 +87,11 @@ Volgens de checklist van de v1-spec §5, in de preview met `testadressen.xlsx` (
 ## Stap 1: eerst de adreslijst (13/10), verwerkt
 
 Mark: het sleepvak bovenaan, want het bestand vult de titel in; eerst enkel dat vak, in het midden, en na het inlezen de gegevens. Gebouwd in `ImportStep` (`revealed`). Na het inlezen staat het bestand onder de gegevens (Mark, 13/10), ook in `DetailsStep`.
+
+## Velden, Instellingen en tips (13/10), verwerkt
+
+- Hovertip per veld in stap 1 en Instellingen (`FieldLabel`), meldingen onder het veld (`FieldError`), sterretjes in Instellingen; acties geven `fields` en `values` terug.
+- Afgiftedatum: werkdag (ma–vr, geen Belgische feestdag), `isBpostWorkingDay`. **Te bevestigen bij bpost of Contrapunt:** neemt bpost op zaterdag afgiftes aan? De gids noemt enkel MPW-1043 ("non working day").
+- Tips in de lijst in onze stijl (`data-tip`); `title` enkel voor afgekapte tekst.
+- Iconen: download bij opslaan, vervangen bij "Ander bestand kiezen", pijl rechts op "Verder naar …".
+- Open, gevraagd aan Mark: Koppelen-melding bovenaan (kan een vak leeg blijven? ja, zie antwoord 13/10), bezig-staat van "Verder".

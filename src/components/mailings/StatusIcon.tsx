@@ -68,7 +68,7 @@ export function StatusIcon({ mailing }: { mailing: MailingSummary }) {
     }
   })()
   return (
-    <span className={styles.status} title={label}>
+    <span className={`${styles.status} ${styles.tipStart}`} data-tip={label}>
       {icon}
       <span className={styles.srOnly}>{label}</span>
     </span>

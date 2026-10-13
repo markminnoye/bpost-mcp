@@ -34,7 +34,7 @@ Klik op **Nieuwe mailing**.
    - **Klant:** typ een naam, of kies een klant van een vorige mailing.
    - **Titel:** de bestandsnaam, of wat je zelf kiest.
    - **Code:** we stellen het volgende vrije nummer voor, bv. CP-2026-15. Je kan het aanpassen: letters, cijfers en koppeltekens, maximaal 20 tekens. De code is ook de referentie bij bpost.
-   - **Geplande afgiftedatum,** vanaf vandaag.
+   - **Geplande afgiftedatum,** vanaf vandaag en op een werkdag: van maandag tot vrijdag, geen Belgische feestdag. bpost weigert een afgifte op een dag waarop ze niet werkt.
    - **Formaat, prioriteit, barcode en presortering** komen uit [Instellingen](instellingen.md).
    - **Presortering** is verplicht bij klein formaat vanaf 25.000 adressen.
    - **Ronde en sequentie** kan enkel bij groot formaat. Het staat standaard aan vanaf 10.000 adressen.
