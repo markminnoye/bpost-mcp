@@ -1,5 +1,7 @@
 # SR-112 v1: overdracht aan de volgende agent
 
+> Vervangen door [2026-10-13-sr-112-v1-overdracht.md](2026-10-13-sr-112-v1-overdracht.md). Dit bestand blijft als logboek van de reviewrondes.
+
 *Sonic Rocket · 12 oktober 2026 · status: v1 gecommit op `develop` als `16f0470` (niet gepusht); eerste reviewronde van Mark verwerkt (zie onderaan), nog niet gecommit*
 
 Dit is de prompt voor een agent die het werk overneemt. Kopieer alles onder de lijn.
