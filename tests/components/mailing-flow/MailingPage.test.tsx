@@ -52,7 +52,7 @@ describe('MailingPage', () => {
     )
     const title = await screen.findByLabelText(/Titel/)
     fireEvent.change(title, { target: { value: '' } })
-    expect(await screen.findByText(/Nog nodig: een titel/)).toBeTruthy()
+    expect(await screen.findByText('Vul een titel in.')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /2\. Koppelen/ })).toBeNull()
     expect((screen.getByRole('button', { name: 'Verder naar koppelen' }) as HTMLButtonElement).disabled).toBe(true)
   })

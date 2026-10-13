@@ -3,7 +3,6 @@ import {
   presortLocked,
   roundSequenceAllowed,
   type MailingDetails,
-  type MissingDetail,
 } from '@/core/masspost/store/mailing'
 import { addressFileBaseName } from '@/core/masspost/address-file'
 import type { TenantDefaults } from '@/lib/tenant/settings-schema'
@@ -98,20 +97,4 @@ export function toDetails(d: ImportDraft): MailingDetails {
     genPSC: d.genPSC,
     roundAndSequence: d.roundAndSequence,
   }
-}
-
-const WORDS: Record<MissingDetail, string> = {
-  title: 'een titel',
-  code: 'een geldige code',
-  date: 'een afgiftedatum',
-  file: 'je adreslijst',
-}
-
-/**
- * "Nog nodig: …" under the title of step 1.
- * @param missing From `missingDetails`.
- * @returns The sentence, or an empty string.
- */
-export function missingText(missing: readonly MissingDetail[]): string {
-  return missing.length ? `Nog nodig: ${missing.map((m) => WORDS[m]).join(', ')}.` : ''
 }

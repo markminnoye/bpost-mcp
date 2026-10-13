@@ -5,7 +5,8 @@ import { missingDetails, type Mailing } from '@/core/masspost/store/mailing'
 import type { MailingChange } from '@/core/masspost/store/mailing-store'
 import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
 import { FileDrop } from './FileDrop'
-import { missingText, toDetails, type ImportDraft } from './import-draft'
+import { NextButton } from './NextButton'
+import { toDetails, type ImportDraft } from './import-draft'
 import styles from './mailing-flow.module.css'
 
 /**
@@ -81,16 +82,11 @@ export function DetailsStep({
               Importeren
             </h1>
             <p className={styles.m}>Pas de gegevens van je mailing aan. De code en de adreslijst blijven dezelfde.</p>
-            {missing.length > 0 && (
-              <p className={styles.missing} role="status">
-                {missingText(missing)}
-              </p>
-            )}
           </div>
           <div className={styles.tg}>
-            <button type="button" className={`${styles.b} ${styles.primary}`} disabled={missing.length > 0} onClick={onNext}>
+            <NextButton disabled={missing.length > 0} onClick={onNext}>
               Verder naar koppelen
-            </button>
+            </NextButton>
           </div>
         </div>
       </section>
@@ -98,6 +94,7 @@ export function DetailsStep({
       <DetailsForm
         draft={draft}
         setDraft={setDraft}
+        missing={missing}
         addresses={mailing.counts.addresses}
         customers={customers}
         existing

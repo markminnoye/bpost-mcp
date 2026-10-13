@@ -8,6 +8,7 @@ import { ADDRESS_FIELDS, FIELD_LABELS, formatCount } from './columns'
 import { IssueRow, type RowActions } from './IssueRow'
 import { IconRows3 } from './StatusIcons'
 import styles from './mailing-flow.module.css'
+import { NextButton } from './NextButton'
 
 type GroupId = 'charset' | 'slash' | 'tooLong' | 'input'
 
@@ -394,9 +395,7 @@ export function FormatStep({
           {/* Like every step: the next button is there, and stays off until the step is done. Back to the
               format errors goes through the step bar. The tip sits on the wrapper: a disabled button is faded. */}
           <div className={`${styles.tg} ${styles.tipBelow}`} data-tip="Komt later: de mailing indienen bij bpost">
-            <button type="button" className={`${styles.b} ${styles.primary}`} disabled>
-              Verder naar indienen
-            </button>
+            <NextButton disabled>Verder naar indienen</NextButton>
           </div>
         </div>
         <div className={styles.saveCards}>
@@ -465,14 +464,9 @@ export function FormatStep({
           </p>
         </div>
         <div className={styles.tg}>
-          <button
-            type="button"
-            className={`${styles.b} ${styles.primary}`}
-            disabled={!canContinue}
-            onClick={() => onDone(true)}
-          >
+          <NextButton disabled={!canContinue} onClick={() => onDone(true)}>
             Verder naar adrescontrole
-          </button>
+          </NextButton>
         </div>
       </div>
 

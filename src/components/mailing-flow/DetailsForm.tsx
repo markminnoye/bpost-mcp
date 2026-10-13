@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
-import { IconPlugConnected } from '@tabler/icons-react'
-import { presortLocked, roundSequenceAllowed } from '@/core/masspost/store/mailing'
+import { IconInfoCircle, IconPlugConnected } from '@tabler/icons-react'
+import { presortLocked, roundSequenceAllowed, type MissingDetail } from '@/core/masspost/store/mailing'
 import { StoreUnavailableError } from '@/core/masspost/store/mailing-store'
 import { Placeholder } from '@/components/app-shell/Placeholder'
 import { useMailingStore } from '@/components/mailings/MailingStoreProvider'
@@ -40,13 +40,57 @@ export function useCustomerSuggestions(onUnavailable?: () => void): string[] {
 }
 
 /**
+ * What each field means, from bpost's guide (MailingCreate, Mail-ID Data Exchange Technical Guide)
+ * and the manual of the Address File Tool, in plain words for the hover tip next to the label.
+ */
+export const FIELD_TIPS = {
+  customer: 'Voor wie je deze mailing verstuurt. Enkel voor jezelf: bpost krijgt dit niet.',
+  title: 'Een naam om de mailing terug te vinden. Enkel voor jezelf: bpost krijgt dit niet.',
+  code: 'Jouw unieke referentie voor deze mailing bij bpost. Maximaal 20 tekens.',
+  date: 'De dag waarop je de brieven bij bpost afgeeft. Dat moet een werkdag zijn.',
+  format:
+    'Het formaat van je brieven. Klein formaat: afgifte met Mail ID, gesorteerd of niet. Groot formaat: afgifte op ronde en sequentie.',
+  priority: 'Prior of non-prior: hoe snel bpost je brieven bezorgt. Geldt voor elke brief van de mailing.',
+  barcode:
+    'Of bpost de Mail ID-barcodes voor je maakt, met 7, 9 of 11 cijfers. Kies Geen als je de barcodes zelf meegeeft.',
+  presort: 'bpost maakt de presorteercodes, voor brieven die je niet zelf sorteerde.',
+  roundSequence:
+    'Enkel bij groot formaat. bpost geeft per brief een sequentie, die je op de envelop drukt om de brieven in de juiste volgorde af te geven.',
+} as const
+
+/** A label with what the field means in a hover tip (also on keyboard focus of the icon). */
+function FieldLabel({ htmlFor, label, required, tip }: { htmlFor?: string; label: string; required?: boolean; tip: string }) {
+  const text = (
+    <>
+      {label}
+      {required && (
+        <>
+          {' '}
+          <span className={styles.req}>*</span>
+        </>
+      )}
+    </>
+  )
+  return (
+    <div className={styles.labelRow} data-tip={tip}>
+      {htmlFor ? <label htmlFor={htmlFor}>{text}</label> : <span className={styles.flabel}>{text}</span>}
+      <span className={styles.info} role="img" tabIndex={0} aria-label={`Uitleg: ${tip}`}>
+        <IconInfoCircle size={14} stroke={1.75} aria-hidden="true" />
+      </span>
+    </div>
+  )
+}
+
+/**
  * The details of a mailing (step 1), for a new mailing and for changing an existing one. The address
- * list sits above it, in the step itself. In an existing mailing the code stays as it is.
- * @param props The draft and how to change it, the suggestions, and what is fixed.
+ * list sits below it, in the step itself. In an existing mailing the code stays as it is. What is
+ * missing shows under its field, in red, as in the format check.
+ * @param props The draft and how to change it, what is missing, the suggestions, and what is fixed.
  */
 export function DetailsForm({
   draft,
   setDraft,
+  missing,
   addresses,
   customers,
   existing,
@@ -56,6 +100,8 @@ export function DetailsForm({
 }: {
   draft: ImportDraft
   setDraft: Dispatch<SetStateAction<ImportDraft>>
+  /** From `missingDetails`: shown under the fields. */
+  missing: readonly MissingDetail[]
   /** Number of addresses in the list, or null before a list is read. */
   addresses: number | null
   customers: string[]
@@ -69,6 +115,14 @@ export function DetailsForm({
   const update = (change: Partial<ImportDraft>) => setDraft((d) => ({ ...d, ...change }))
   const locked = addresses !== null && presortLocked(draft.format, addresses)
   const rsAllowed = roundSequenceAllowed(draft.format)
+  const titleError = missing.includes('title') ? 'Vul een titel in.' : null
+  const dateError = missing.includes('date')
+    ? draft.expectedDeliveryDate
+      ? 'Kies een datum vanaf vandaag.'
+      : 'Kies een afgiftedatum.'
+    : null
+  const codeMessage =
+    codeError ?? (missing.includes('code') ? 'Gebruik letters, cijfers en koppeltekens, maximaal 20 tekens.' : null)
 
   return (
     <div className={styles.card}>
@@ -79,7 +133,7 @@ export function DetailsForm({
       </p>
       <div className={styles.grid3}>
         <div className={styles.field}>
-          <label htmlFor="f-klant">Klant</label>
+          <FieldLabel htmlFor="f-klant" label="Klant" tip={FIELD_TIPS.customer} />
           <div className={styles.withIcon}>
             <input
               id="f-klant"
@@ -99,53 +153,59 @@ export function DetailsForm({
           </datalist>
         </div>
         <div className={styles.field}>
-          <label htmlFor="f-title">
-            Titel <span className={styles.req}>*</span>
-          </label>
+          <FieldLabel htmlFor="f-title" label="Titel" required tip={FIELD_TIPS.title} />
           <input
             id="f-title"
             placeholder="Leeg? Dan nemen we de bestandsnaam"
             value={draft.title}
             maxLength={200}
+            aria-invalid={!!titleError}
+            aria-describedby={titleError ? 'f-title-err' : undefined}
             onChange={(e) => update({ title: e.target.value })}
           />
+          {titleError && (
+            <span id="f-title-err" className={styles.fieldError}>
+              {titleError}
+            </span>
+          )}
         </div>
         <div className={styles.field}>
-          <label htmlFor="f-code">
-            Code <span className={styles.req}>*</span>
-          </label>
+          <FieldLabel htmlFor="f-code" label="Code" required tip={FIELD_TIPS.code} />
           <input
             id="f-code"
             value={draft.code}
             maxLength={20}
             readOnly={existing}
             aria-describedby="f-code-hint"
-            aria-invalid={!!codeError}
+            aria-invalid={!!codeMessage}
             onChange={(e) => onCodeChange?.(e.target.value)}
           />
-          <span id="f-code-hint" className={codeError ? styles.fieldError : styles.hint} role={codeError ? 'alert' : undefined}>
-            {codeError ??
+          <span id="f-code-hint" className={codeMessage ? styles.fieldError : styles.hint} role={codeError ? 'alert' : undefined}>
+            {codeMessage ??
               (existing
                 ? 'De code blijft dezelfde: ze is ook de referentie bij bpost.'
                 : 'Volgend vrij nummer. Letters, cijfers en koppeltekens.')}
           </span>
         </div>
         <div className={styles.field}>
-          <label htmlFor="f-date">
-            Geplande afgiftedatum <span className={styles.req}>*</span>
-          </label>
+          <FieldLabel htmlFor="f-date" label="Geplande afgiftedatum" required tip={FIELD_TIPS.date} />
           <input
             id="f-date"
             type="date"
             min={minDate}
             value={draft.expectedDeliveryDate}
+            aria-invalid={!!dateError}
+            aria-describedby={dateError ? 'f-date-err' : undefined}
             onChange={(e) => update({ expectedDeliveryDate: e.target.value })}
           />
+          {dateError && (
+            <span id="f-date-err" className={styles.fieldError}>
+              {dateError}
+            </span>
+          )}
         </div>
         <div className={styles.field}>
-          <label htmlFor="f-format">
-            Formaat <span className={styles.req}>*</span>
-          </label>
+          <FieldLabel htmlFor="f-format" label="Formaat" required tip={FIELD_TIPS.format} />
           <select
             id="f-format"
             value={draft.format}
@@ -156,16 +216,14 @@ export function DetailsForm({
           </select>
         </div>
         <div className={styles.field}>
-          <label htmlFor="f-prio">
-            Prioriteit <span className={styles.req}>*</span>
-          </label>
+          <FieldLabel htmlFor="f-prio" label="Prioriteit" required tip={FIELD_TIPS.priority} />
           <select id="f-prio" value={draft.priority} onChange={(e) => update({ priority: e.target.value as ImportDraft['priority'] })}>
             <option value="NP">Non-prior</option>
             <option value="P">Prior</option>
           </select>
         </div>
         <div className={styles.field}>
-          <label htmlFor="f-barcode">Barcode</label>
+          <FieldLabel htmlFor="f-barcode" label="Barcode" tip={FIELD_TIPS.barcode} />
           <select id="f-barcode" value={draft.genMID} onChange={(e) => update({ genMID: e.target.value as ImportDraft['genMID'] })}>
             <option value="N">Geen</option>
             <option value="7">bpost, 7 cijfers</option>
@@ -175,7 +233,7 @@ export function DetailsForm({
           </select>
         </div>
         <div className={styles.field}>
-          <span className={styles.flabel}>Presortering</span>
+          <FieldLabel label="Presortering" tip={FIELD_TIPS.presort} />
           <label className={styles.check}>
             <input
               type="checkbox"
@@ -191,7 +249,7 @@ export function DetailsForm({
           </span>
         </div>
         <div className={styles.field}>
-          <span className={styles.flabel}>Ronde en sequentie</span>
+          <FieldLabel label="Ronde en sequentie" tip={FIELD_TIPS.roundSequence} />
           <label className={styles.check}>
             <input
               type="checkbox"

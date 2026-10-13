@@ -23,6 +23,7 @@ import {
 import { modelLabel, type AiSuggestionResult } from './ai-suggestion'
 import { IconRows3, Spinner } from './StatusIcons'
 import styles from './mailing-flow.module.css'
+import { NextButton } from './NextButton'
 
 interface Props {
   list: LoadedList
@@ -216,14 +217,9 @@ export function MappingStep({
               We kijken je lijst na…
             </span>
           ) : (
-            <button
-              type="button"
-              className={`${styles.b} ${styles.primary}`}
-              disabled={missing.length > 0}
-              onClick={onNext}
-            >
+            <NextButton disabled={missing.length > 0} onClick={onNext}>
               Verder naar formaatvalidatie
-            </button>
+            </NextButton>
           )}
         </div>
       </div>

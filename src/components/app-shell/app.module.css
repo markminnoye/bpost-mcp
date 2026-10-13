@@ -856,6 +856,10 @@
   border-radius: var(--radius);
   background: var(--card);
 }
+/* A field with a problem gets a red border, as in the format check; the message sits under it. */
+.field input[aria-invalid='true'] {
+  border-color: var(--red);
+}
 .field input[readonly] {
   background: var(--surface-1);
   color: var(--text-secondary);
@@ -863,6 +867,41 @@
 .hint {
   font-size: 12px;
   color: var(--text-muted);
+}
+/* A field label with what the field means: the tip shows on hovering the label row, or on keyboard
+   focus of the info icon. It opens from the left edge, so it stays inside the form. */
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+}
+.info {
+  display: inline-flex;
+  color: var(--text-muted);
+  cursor: help;
+  border-radius: 50%;
+}
+.shell .labelRow[data-tip]:hover::after,
+.shell .labelRow[data-tip]:has(:focus-visible)::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  right: auto;
+  bottom: calc(100% + 6px);
+  z-index: 70;
+  width: max-content;
+  max-width: 300px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--tip-bg);
+  color: var(--tip-fg);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: normal;
+  text-align: left;
+  pointer-events: none;
 }
 .fieldError {
   font-size: 12px;

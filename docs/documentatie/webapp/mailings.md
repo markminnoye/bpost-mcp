@@ -38,7 +38,7 @@ Klik op **Nieuwe mailing**.
    - **Formaat, prioriteit, barcode en presortering** komen uit [Instellingen](instellingen.md).
    - **Presortering** is verplicht bij klein formaat vanaf 25.000 adressen.
    - **Ronde en sequentie** kan enkel bij groot formaat. Het staat standaard aan vanaf 10.000 adressen.
-3. Klik op **Verder naar koppelen**. De knop wordt pas actief als alles ingevuld is. Boven de knop staat wat nog ontbreekt.
+3. Klik op **Verder naar koppelen**. De knop wordt pas actief als alles ingevuld is. Wat nog ontbreekt, staat in het rood onder het veld. Ga met de muis over een label (of het ⓘ ernaast) voor wat het veld betekent.
 
 Pas dan maken we de mailing aan. Ga je eerder weg, dan vragen we eerst of je de ingevulde gegevens wil kwijtspelen.
 

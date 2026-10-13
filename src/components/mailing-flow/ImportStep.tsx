@@ -16,7 +16,8 @@ import { STORE_FULL_MESSAGE, STORE_UNAVAILABLE_MESSAGE, useMailingStore } from '
 import type { LoadedList } from './columns'
 import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
 import { FileDrop, readAddressFile } from './FileDrop'
-import { initialDraft, missingText, toDetails, withFile, type ImportDraft } from './import-draft'
+import { initialDraft, toDetails, withFile, type ImportDraft } from './import-draft'
+import { NextButton } from './NextButton'
 import { StepBar } from './StepBar'
 import { useLeaveGuard } from './useLeaveGuard'
 import flow from './mailing-flow.module.css'
@@ -196,21 +197,11 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
                   ? 'Vul de gegevens van je mailing in.'
                   : 'Kies je adreslijst om te beginnen. Daarna vul je de gegevens van de mailing in.'}
               </p>
-              {revealed && missing.length > 0 && (
-                <p className={flow.missing} role="status">
-                  {missingText(missing)}
-                </p>
-              )}
             </div>
             <div className={flow.tg}>
-              <button
-                type="button"
-                className={`${flow.b} ${flow.primary}`}
-                disabled={missing.length > 0 || saving}
-                onClick={() => void onNext()}
-              >
+              <NextButton disabled={missing.length > 0 || saving} onClick={() => void onNext()}>
                 {saving ? 'Aanmaken…' : 'Verder naar koppelen'}
-              </button>
+              </NextButton>
             </div>
           </div>
         </section>
@@ -225,6 +216,7 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
           <DetailsForm
             draft={current}
             setDraft={setDraft}
+            missing={missing}
             addresses={addresses}
             customers={customers}
             existing={false}

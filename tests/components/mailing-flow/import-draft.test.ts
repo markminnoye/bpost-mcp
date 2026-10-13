@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { initialDraft, missingText, toDetails, withFile, withFormat } from '@/components/mailing-flow/import-draft'
+import { initialDraft, toDetails, withFile, withFormat } from '@/components/mailing-flow/import-draft'
 
 const defaults = { format: 'Small', priority: 'NP', genMID: '7', genPSC: 'N', codePrefix: 'CP' } as const
 
@@ -47,9 +47,4 @@ describe('import draft', () => {
     })
   })
 
-  it('says what is still missing in one sentence', () => {
-    expect(missingText(['title', 'date', 'file'])).toBe('Nog nodig: een titel, een afgiftedatum, je adreslijst.')
-    expect(missingText(['code'])).toBe('Nog nodig: een geldige code.')
-    expect(missingText([])).toBe('')
-  })
 })
