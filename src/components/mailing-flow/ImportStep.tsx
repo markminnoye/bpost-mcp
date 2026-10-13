@@ -181,6 +181,12 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
               <span className={styles.code}>{current.code}</span>
             </>
           }
+          // The button of the step, right on the line of the title (Mark, 13/10).
+          actions={
+            <NextButton disabled={missing.length > 0} busy={saving} onClick={() => void onNext()}>
+              {saving ? 'Bezig…' : 'Verder naar koppelen'}
+            </NextButton>
+          }
         />
         <div className={flow.top}>
           <StepBar
@@ -192,12 +198,6 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
             reachable={{}}
             onGo={() => {}}
           />
-          {/* The button of the step, right on the line of the step bar (Mark, 13/10). */}
-          <div className={flow.stepAction}>
-            <NextButton disabled={missing.length > 0} busy={saving} onClick={() => void onNext()}>
-              {saving ? 'Bezig…' : 'Verder naar koppelen'}
-            </NextButton>
-          </div>
         </div>
         <section aria-label="Importeren" style={{ marginBottom: 16 }}>
           <p className={flow.m}>

@@ -38,7 +38,8 @@ const ARR_COLOR = { red: 'var(--red)', orange: 'var(--orange)', green: 'var(--gr
 /**
  * The Harvey ball of a status (docs/ontwerp/webapp/statusiconen.html), with its meaning as hover tip
  * and for screen readers. In the list (20 px) and before the title of a mailing (larger): always the
- * status of the mailing as stored, whatever step you look at.
+ * status of the mailing as stored, whatever step you look at. A new mailing that is not saved yet
+ * shows the empty grey circle with a dotted line (`HarveyBall dashed`, in step 1).
  * @param props The mailing, and the size in pixels.
  */
 export function StatusIcon({ mailing, size = 20 }: { mailing: MailingSummary; size?: number }) {
@@ -50,8 +51,7 @@ export function StatusIcon({ mailing, size = 20 }: { mailing: MailingSummary; si
       case 'mapped':
         return <Ball color="var(--yellow)" slice="q" size={size} />
       case 'format':
-        // In order (no format errors open): green, as the step bar does (Mark, 12/10 and 13/10).
-        return <Ball color={mailing.formatIssuesOpen === 0 ? 'var(--green)' : 'var(--yellow)'} slice="h" size={size} />
+        return <Ball color="var(--yellow)" slice="h" size={size} />
       case 'checked':
         return <Ball color={ARR_COLOR[arrTone(mailing.arr ?? 0)]} slice="t" size={size} />
       case 'submitted':
@@ -62,9 +62,10 @@ export function StatusIcon({ mailing, size = 20 }: { mailing: MailingSummary; si
         return <Full color="var(--done)" size={size} />
       case 'withdrawn':
         return (
+          // A cross, not the dotted line: that one means "not saved yet" (Mark, 13/10).
           <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
-            <circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeDasharray="2.5 2" />
-            <line x1="5" y1="15" x2="15" y2="5" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" />
+            <path d="M6.8 6.8 L13.2 13.2 M13.2 6.8 L6.8 13.2" stroke="var(--text-muted)" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
         )
     }

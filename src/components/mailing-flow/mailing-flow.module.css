@@ -42,9 +42,8 @@
   margin-bottom: 8px;
 }
 
-/* The button of the step, right on the line of the step bar (Mark, 13/10). */
+/* The button of the step, right on the line of the title (Mark, 13/10). */
 .stepAction {
-  margin-left: auto;
   display: flex;
   align-items: center;
 }
@@ -53,8 +52,12 @@
   display: none;
 }
 
-/* The pills sit right on the line of the title (Mark, 13/10). */
-.titlePills .pills {
+/* The pills sit right on the line of the steps (Mark, 13/10). */
+.topPills {
+  margin-left: auto;
+}
+
+.topPills .pills {
   margin: 0;
   justify-content: flex-end;
 }

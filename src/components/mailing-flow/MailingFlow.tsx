@@ -314,13 +314,8 @@ export function MailingFlow({
             // step you look at (Mark, 13/10).
             icon={<StatusIcon mailing={summarize(saver.mailing)} size={22} />}
             title={title}
-            actions={
-              pills.length > 0 ? (
-                <div className={styles.titlePills}>
-                  <MetaPills pills={pills} />
-                </div>
-              ) : undefined
-            }
+            // The button of the step on screen comes here (StepAction), right on the line of the title.
+            actions={<div ref={setActionSlot} className={styles.stepAction} />}
           />
           {saver.state === 'error' && (
             <p className={styles.alert} role="alert">
@@ -346,8 +341,12 @@ export function MailingFlow({
               reachable={reachable}
               onGo={go}
             />
-            {/* The button of the step on screen comes here (StepAction), right on the line of the steps. */}
-            <div ref={setActionSlot} className={styles.stepAction} />
+            {/* The pills, right on the line of the steps (Mark, 13/10). */}
+            {pills.length > 0 && (
+              <div className={styles.topPills}>
+                <MetaPills pills={pills} />
+              </div>
+            )}
           </div>
 
           {step === 'upload' && (

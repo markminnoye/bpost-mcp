@@ -11,10 +11,16 @@ const row = (over: Partial<MailingSummary>): MailingSummary => ({ ...summarize(s
 const colour = (m: MailingSummary) => render(<StatusIcon mailing={m} />).container.querySelector('circle')?.getAttribute('stroke')
 
 describe('StatusIcon', () => {
-  it('shows the format check in yellow while errors are open, and in green once it is in order', () => {
+  it('follows the design of 02/10: the format check stays yellow, also once it is in order', () => {
     expect(colour(row({ status: 'format', formatIssuesOpen: 3 }))).toBe('var(--yellow)')
     cleanup()
-    expect(colour(row({ status: 'format', formatIssuesOpen: 0 }))).toBe('var(--green)')
+    expect(colour(row({ status: 'format', formatIssuesOpen: 0 }))).toBe('var(--yellow)')
+  })
+
+  it('shows a withdrawn mailing with a cross, not with the dotted line of "not saved yet"', () => {
+    const svg = render(<StatusIcon mailing={row({ status: 'withdrawn' })} />).container.querySelector('svg')!
+    expect(svg.querySelector('circle')?.getAttribute('stroke-dasharray')).toBeNull()
+    expect(svg.querySelector('path')?.getAttribute('d')).toContain('M6.8 6.8')
   })
 
   it('never shows black: an uploaded mailing is the grey empty circle', () => {

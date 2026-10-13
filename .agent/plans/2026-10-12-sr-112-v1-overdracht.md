@@ -105,3 +105,7 @@ Het icoon voor de titel is de status van de mailing zoals bewaard (zelfde icoon 
 ## Rustiger stappen (13/10), verwerkt
 
 Titel onder de stappenbalk weg, lijntje weg, knop "Verder" rechts op de lijn van de stappen (`StepAction`), stippelcirkel voor een nieuwe mailing die nog niet bewaard is. Open bij Mark: welke vulling het statusicoon krijgt per status (voorstel: Opgeladen ¼, Gekoppeld ½ …, zie gesprek 13/10).
+
+## Statusicoon: ontwerp van 02/10 (13/10), verwerkt
+
+Mark koos het ontwerp `docs/ontwerp/webapp/statusiconen.html` (02/10), aangevuld met "nog niet bewaard" (grijze stippelcirkel) en een kruisje voor Ingetrokken; het ontwerpbestand is bijgewerkt. Geen groen voor "formaat in orde". "Verder" staat rechts op de lijn van de titel, de pills rechts op de lijn van de stappen.
