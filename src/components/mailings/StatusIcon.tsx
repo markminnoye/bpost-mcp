@@ -37,7 +37,8 @@ const ARR_COLOR = { red: 'var(--red)', orange: 'var(--orange)', green: 'var(--gr
 
 /**
  * The Harvey ball of a status (docs/ontwerp/webapp/statusiconen.html), with its meaning as hover tip
- * and for screen readers. In the list (20 px) and before the title of a mailing (larger).
+ * and for screen readers. In the list (20 px) and before the title of a mailing (larger): always the
+ * status of the mailing as stored, whatever step you look at.
  * @param props The mailing, and the size in pixels.
  */
 export function StatusIcon({ mailing, size = 20 }: { mailing: MailingSummary; size?: number }) {
@@ -49,7 +50,8 @@ export function StatusIcon({ mailing, size = 20 }: { mailing: MailingSummary; si
       case 'mapped':
         return <Ball color="var(--yellow)" slice="q" size={size} />
       case 'format':
-        return <Ball color="var(--yellow)" slice="h" size={size} />
+        // In order (no format errors open): green, as the step bar does (Mark, 12/10 and 13/10).
+        return <Ball color={mailing.formatIssuesOpen === 0 ? 'var(--green)' : 'var(--yellow)'} slice="h" size={size} />
       case 'checked':
         return <Ball color={ARR_COLOR[arrTone(mailing.arr ?? 0)]} slice="t" size={size} />
       case 'submitted':

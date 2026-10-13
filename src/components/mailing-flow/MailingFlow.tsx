@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { REQUIRED_FIELDS, findFormatIssues, missingTargets, type FormatIssue } from '@/core/masspost/format-check'
 import type { AddressField } from '@/core/masspost/mapping'
 import { suggestColumnMapping } from '@/core/masspost/suggest-mapping'
-import type { Mailing } from '@/core/masspost/store/mailing'
+import { summarize, type Mailing } from '@/core/masspost/store/mailing'
 import {
   ADDRESS_FIELDS,
   columnExamples,
@@ -26,7 +26,8 @@ import { DetailsStep } from './DetailsStep'
 import { MappingStep } from './MappingStep'
 import { MetaPills, listPills, type Pill } from './MetaPills'
 import { formatStateFromMailing, resumeStep } from './resume'
-import { StepBar, StepStatusIcon, type StepId, type StepStatus } from './StepBar'
+import { StepBar, type StepId, type StepStatus } from './StepBar'
+import { StatusIcon } from '@/components/mailings/StatusIcon'
 import { PageHeader } from '@/components/app-shell/AppShell'
 import { STORE_FULL_MESSAGE } from '@/components/mailings/MailingStoreProvider'
 import type { MailingSaver } from './useMailingSaver'
@@ -305,7 +306,9 @@ export function MailingFlow({
     <div className={styles.root} style={{ minHeight: 0, background: 'transparent' }}>
       <div className={styles.main} style={{ padding: 0 }}>
         <PageHeader
-          icon={<StepStatusIcon step={step} status={stepStatus[step]} progress={progress[step]} />}
+          // The status of the mailing as stored, the same icon as in the list: it does not follow the
+          // step you look at (Mark, 13/10).
+          icon={<StatusIcon mailing={summarize(saver.mailing)} size={22} />}
           title={title}
           actions={
             pills.length > 0 ? (

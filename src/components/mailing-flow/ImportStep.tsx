@@ -18,7 +18,8 @@ import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
 import { FileDrop, readAddressFile } from './FileDrop'
 import { initialDraft, toDetails, withFile, type ImportDraft } from './import-draft'
 import { NextButton } from './NextButton'
-import { StepBar, StepStatusIcon } from './StepBar'
+import { HarveyBall } from './StatusIcons'
+import { StepBar } from './StepBar'
 import { useLeaveGuard } from './useLeaveGuard'
 import flow from './mailing-flow.module.css'
 import styles from '@/components/app-shell/app.module.css'
@@ -168,7 +169,12 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
       <div className={styles.page}>
         {/* Same layout as the other steps: the mailing on top, then the steps, then this step. */}
         <PageHeader
-          icon={<StepStatusIcon step="upload" status={missing.length === 0 ? 'done' : 'action'} progress={(4 - missing.length) / 4} />}
+          // Not created yet: the empty grey circle of "Opgeladen", as in the list.
+          icon={
+            <span className={`${styles.status} ${styles.tipStart}`} data-tip="Nieuwe mailing, nog niet aangemaakt">
+              <HarveyBall fill={0} size={22} />
+            </span>
+          }
           title={
             <>
               {current.title.trim() ? current.title : <span className={styles.titlePlaceholder}>Nieuwe mailing</span>}{' '}

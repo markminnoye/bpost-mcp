@@ -43,12 +43,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-/* The status of the current step, before the title of the mailing. */
-.titleStatus {
-  display: inline-grid;
-  place-items: center;
-}
-
 /* The pills sit right on the line of the title (Mark, 13/10). */
 .titlePills .pills {
   margin: 0;
