@@ -972,6 +972,11 @@
   color: var(--text-muted);
   margin-top: 4px;
 }
+/* Step 1 of a new mailing: first only the address list, in the middle; once read, it moves below the details. */
+.fileStart {
+  max-width: 560px;
+  margin: 32px auto 0;
+}
 .filecard {
   display: flex;
   align-items: center;

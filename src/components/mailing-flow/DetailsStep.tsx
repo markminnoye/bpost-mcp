@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { missingDetails, type Mailing } from '@/core/masspost/store/mailing'
 import type { MailingChange } from '@/core/masspost/store/mailing-store'
 import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
+import { FileDrop } from './FileDrop'
 import { missingText, toDetails, type ImportDraft } from './import-draft'
 import styles from './mailing-flow.module.css'
 
@@ -93,14 +94,15 @@ export function DetailsStep({
           </div>
         </div>
       </section>
+      {/* The same order as for a new mailing once its list is read: the details, then the list. */}
       <DetailsForm
         draft={draft}
         setDraft={setDraft}
         addresses={mailing.counts.addresses}
         customers={customers}
         existing
-        file={{ name: mailing.source.name, addresses: mailing.counts.addresses }}
       />
+      <FileDrop file={{ name: mailing.source.name, addresses: mailing.counts.addresses }} locked />
     </>
   )
 }

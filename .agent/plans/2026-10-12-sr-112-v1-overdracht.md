@@ -83,3 +83,7 @@ Mark: na stap 1 kon je niet meer naar stap 2 of 3 zonder op "Bewaren" te drukken
 Volgens de checklist van de v1-spec §5, in de preview met `testadressen.xlsx` (789 adressen): aanmaken, herladen en hervatten in elke stap, de waarschuwing bij weggaan, formaatfouten oplossen en uitsluiten met het toetsenbord, de exports voor bpost (AFT, .xls) en de drukker (SR-80 blijft werken), zoeken, sorteren, archiveren en ongedaan maken, het menu "…" met pijltjes, het paneel onder 1024 px, donkere modus en Instellingen (niet bewaard: gedeelde database). Twee fouten gevonden en opgelost:
 - Een wijziging vlak voor het herladen ging verloren: een IndexedDB-schrijfactie tijdens het herladen raakt niet af. Nu ook meteen in `sessionStorage`, en `MailingPage` bewaart die rest bij het openen.
 - Na het sluiten van het paneel ging de focus niet terug naar "Menu openen" (de pagina was nog `inert`).
+
+## Stap 1: eerst de adreslijst (13/10), verwerkt
+
+Mark: het sleepvak bovenaan, want het bestand vult de titel in; eerst enkel dat vak, in het midden, en na het inlezen de gegevens. Gebouwd in `ImportStep` (`revealed`). Na het inlezen staat het bestand onder de gegevens (Mark, 13/10), ook in `DetailsStep`.

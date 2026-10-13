@@ -29,15 +29,15 @@ Het icoon vooraan toont de status. Ga er met de muis over voor de uitleg:
 
 Klik op **Nieuwe mailing**.
 
-1. Vul de gegevens in. Velden met een sterretje zijn verplicht:
+1. Sleep je adreslijst (Excel: .xlsx, .xlsm of .xls; LibreOffice: .ods) in het vak, of klik op **Kies een bestand**. Het bestand blijft in je browser. Eerst staat enkel dit vak op het scherm.
+2. Na het inlezen verschijnen de gegevens van de mailing, met je bestand eronder. De titel is al ingevuld met de bestandsnaam. Velden met een sterretje zijn verplicht:
    - **Klant:** typ een naam, of kies een klant van een vorige mailing.
-   - **Titel.** Laat je ze leeg en kies je een bestand, dan nemen we de bestandsnaam.
+   - **Titel:** de bestandsnaam, of wat je zelf kiest.
    - **Code:** we stellen het volgende vrije nummer voor, bv. CP-2026-15. Je kan het aanpassen: letters, cijfers en koppeltekens, maximaal 20 tekens. De code is ook de referentie bij bpost.
    - **Geplande afgiftedatum,** vanaf vandaag.
    - **Formaat, prioriteit, barcode en presortering** komen uit [Instellingen](instellingen.md).
    - **Presortering** is verplicht bij klein formaat vanaf 25.000 adressen.
    - **Ronde en sequentie** kan enkel bij groot formaat. Het staat standaard aan vanaf 10.000 adressen.
-2. Sleep je adreslijst (Excel: .xlsx, .xlsm of .xls; LibreOffice: .ods) in het vak, of klik op **Kies een bestand**. Het bestand blijft in je browser.
 3. Klik op **Verder naar koppelen**. De knop wordt pas actief als alles ingevuld is. Boven de knop staat wat nog ontbreekt.
 
 Pas dan maken we de mailing aan. Ga je eerder weg, dan vragen we eerst of je de ingevulde gegevens wil kwijtspelen.

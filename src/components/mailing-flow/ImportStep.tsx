@@ -15,7 +15,7 @@ import { PageHeader } from '@/components/app-shell/AppShell'
 import { STORE_FULL_MESSAGE, STORE_UNAVAILABLE_MESSAGE, useMailingStore } from '@/components/mailings/MailingStoreProvider'
 import type { LoadedList } from './columns'
 import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
-import { readAddressFile } from './FileDrop'
+import { FileDrop, readAddressFile } from './FileDrop'
 import { initialDraft, missingText, toDetails, withFile, type ImportDraft } from './import-draft'
 import { StepBar } from './StepBar'
 import { useLeaveGuard } from './useLeaveGuard'
@@ -32,9 +32,10 @@ export function today(): string {
 }
 
 /**
- * Step 1 Importeren of a new mailing (SR-112 §5): the details and the address list. The mailing is
- * only created on "Verder naar koppelen". An existing mailing changes its details in the flow
- * (`DetailsStep`).
+ * Step 1 Importeren of a new mailing (SR-112 §5). First only the address list, in the middle; once it
+ * is read, the details appear with the title from the file name, and the list moves below them
+ * (Mark, 13/10). The mailing is only created on "Verder naar koppelen". An existing mailing changes
+ * its details in the flow (`DetailsStep`).
  * @param props The defaults of the organisation.
  */
 export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
@@ -51,6 +52,8 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [leaveTo, setLeaveTo] = useState<string | null>(null)
+  // The details appear once a list was read, and stay, also when a later choice fails.
+  const [revealed, setRevealed] = useState(false)
   const created = useRef(false)
   const dialog = useRef<HTMLDialogElement>(null)
   const stay = useRef<HTMLButtonElement>(null)
@@ -109,8 +112,19 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
     }
     setLoaded({ list: result.list, bytes: result.bytes, file })
     setDraft((d) => withFile(d, file.name, result.list.rows.length))
+    if (!revealed) setRevealed(true)
     return null
   }
+
+  // When the details appear (only then): the cursor in the first required field that is still empty.
+  const draftRef = useRef(draft)
+  draftRef.current = draft
+  useEffect(() => {
+    if (!revealed) return
+    const d = draftRef.current
+    const first = !d.title.trim() ? 'f-title' : !d.expectedDeliveryDate ? 'f-date' : null
+    if (first) document.getElementById(first)?.focus()
+  }, [revealed])
 
   async function onNext() {
     if (missing.length || saving || !loaded) return
@@ -177,8 +191,12 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
               <h1 className={flow.t} id="import-title">
                 Importeren
               </h1>
-              <p className={flow.m}>Vul de gegevens van je mailing in en kies je adreslijst.</p>
-              {missing.length > 0 && (
+              <p className={flow.m}>
+                {revealed
+                  ? 'Vul de gegevens van je mailing in.'
+                  : 'Kies je adreslijst om te beginnen. Daarna vul je de gegevens van de mailing in.'}
+              </p>
+              {revealed && missing.length > 0 && (
                 <p className={flow.missing} role="status">
                   {missingText(missing)}
                 </p>
@@ -202,22 +220,26 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
           </div>
         )}
 
-        <DetailsForm
-          draft={current}
-          setDraft={setDraft}
-          addresses={addresses}
-          customers={customers}
-          existing={false}
-          codeError={codeError}
-          onCodeChange={(value) => {
-            setCodeTouched(true)
-            setCodeError(null)
-            setDraft((d) => ({ ...d, code: value }))
-          }}
-          minDate={today()}
-          file={fileCard}
-          onFile={onFile}
-        />
+        {/* First only the address list, in the middle; once read, the details and then the list below. */}
+        {revealed && (
+          <DetailsForm
+            draft={current}
+            setDraft={setDraft}
+            addresses={addresses}
+            customers={customers}
+            existing={false}
+            codeError={codeError}
+            onCodeChange={(value) => {
+              setCodeTouched(true)
+              setCodeError(null)
+              setDraft((d) => ({ ...d, code: value }))
+            }}
+            minDate={today()}
+          />
+        )}
+        <div className={revealed ? undefined : styles.fileStart}>
+          <FileDrop file={fileCard} onFile={onFile} />
+        </div>
       </div>
 
       <dialog
