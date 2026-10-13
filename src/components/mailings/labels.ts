@@ -32,13 +32,12 @@ export function filterMailings(items: readonly MailingSummary[], query: string):
 /**
  * The status in words, for the hover tip and screen readers.
  * @param m The row.
- * @returns E.g. "Formaatvalidatie · 26 open".
+ * @returns E.g. "Kolommen gekoppeld".
  */
 export function statusLabel(m: MailingSummary): string {
-  if (m.status !== 'format' || m.formatIssuesOpen === null) return LABELS[m.status]
-  return m.formatIssuesOpen === 0
+  return m.status === 'format' && m.formatIssuesOpen === 0
     ? 'Formaatvalidatie · in orde, klaar voor adrescontrole'
-    : `Formaatvalidatie · ${m.formatIssuesOpen} open`
+    : LABELS[m.status]
 }
 
 /**

@@ -189,12 +189,17 @@ export function MailingFlow({
       await nextPaint()
       const { mapping, contextColumns } = rolesToMapping(order, chosenRoles)
       const found = findFormatIssues(list.rows, mapping, { rowNumbers: list.rowNumbers, contextColumns })
+      const foreign = countForeign(list, mapping)
       setCheckedFor(choiceKey(order, chosenRoles))
       setIssues(found)
       setCheckRun((n) => n + 1)
       setChecking(false)
       if (resume) {
         setFormatTotals({ open: found.length, excludedRows: 0 })
+        // A mailing saved before the list showed addresses abroad gets that count once, on opening.
+        if (mailing.counts.foreign == null) {
+          void saver.save({ counts: { ...mailing.counts, foreign } }, 'foreign-counted')
+        }
         // Opened on step 1: the user moves on from there; otherwise the furthest valid step.
         if (!startOnDetails) setStep(resumeStep(mailing))
         return
@@ -213,7 +218,7 @@ export function MailingFlow({
       void saver.save(
         {
           status: 'format',
-          counts: { addresses: list.rows.length, formatIssuesOpen: found.length },
+          counts: { addresses: list.rows.length, formatIssuesOpen: found.length, foreign },
           corrections: kept.values,
           excludedRows: Object.keys(kept.excluded).map(Number),
         },
@@ -259,13 +264,21 @@ export function MailingFlow({
     const saved = { order: now.columnOrder, roles: now.roles }
     if (choice === now.checkedFor) {
       saver.saveSoon(
-        { mapping: saved, status: 'format', counts: { addresses: list.rows.length, formatIssuesOpen: now.open } },
+        {
+          mapping: saved,
+          status: 'format',
+          counts: { addresses: list.rows.length, formatIssuesOpen: now.open, foreign: countForeign(list, rolesToMapping(now.columnOrder, now.roles).mapping) },
+        },
         'mapped',
       )
     } else {
       // "Gekoppeld" only with every required block filled; otherwise still "kolommen koppelen".
       const complete = missingTargets(rolesToMapping(now.columnOrder, now.roles).mapping).length === 0
-      saver.saveSoon({ mapping: saved, status: complete ? 'mapped' : 'uploaded' }, 'mapped')
+      const foreign = countForeign(list, rolesToMapping(now.columnOrder, now.roles).mapping)
+      saver.saveSoon(
+        { mapping: saved, status: complete ? 'mapped' : 'uploaded', counts: { ...saver.mailing.counts, foreign } },
+        'mapped',
+      )
     }
   }, [choice, list, saver])
 
@@ -285,7 +298,7 @@ export function MailingFlow({
     setFormatTotals(totals)
     if (totals.open !== lastSavedOpen.current) {
       lastSavedOpen.current = totals.open
-      saver.saveSoon({ counts: { addresses: list.rows.length, formatIssuesOpen: totals.open } }, 'format-edited')
+      saver.saveSoon({ counts: { addresses: list.rows.length, formatIssuesOpen: totals.open, foreign: foreignCount } }, 'format-edited')
     }
   }
 

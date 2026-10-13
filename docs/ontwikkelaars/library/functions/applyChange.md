@@ -37,11 +37,17 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 
 #### counts
 
-\{ `addresses`: `number`; `formatIssuesOpen`: `number` \| `null`; \} = `...`
+\{ `addresses`: `number`; `foreign?`: `number` \| `null`; `formatIssuesOpen`: `number` \| `null`; \} = `...`
 
 #### counts.addresses
 
 `number` = `...`
+
+#### counts.foreign?
+
+`number` \| `null` = `...`
+
+Addresses outside Belgium, as the step bar counts them. Absent or null: not counted yet.
 
 #### counts.formatIssuesOpen
 
@@ -159,7 +165,7 @@ Excluded rows, by `seq` (the Excel row number).
 
 ### change
 
-`Partial`\<`Pick`\<\{ `archived`: `boolean`; `arr`: `number` \| `null`; `code`: `string`; `corrections`: `Record`\<`string`, `string`\>; `counts`: \{ `addresses`: `number`; `formatIssuesOpen`: `number` \| `null`; \}; `created`: \{ `at`: `string`; `by`: `string`; \}; `customer`: \{ `crmId`: `string` \| `null`; `name`: `string`; \}; `excludedRows`: `number`[]; `expectedDeliveryDate`: `string`; `format`: `"Large"` \| `"Small"`; `genMID`: `"7"` \| `"9"` \| `"11"` \| `"N"`; `genPSC`: `"N"` \| `"Y"`; `id`: `string`; `log`: `object`[]; `mapping`: \{ `order`: `string`[]; `roles`: `Record`\<`string`, `string`\>; \} \| `null`; `modified`: \{ `at`: `string`; `by`: `string`; \}; `priority`: `"P"` \| `"NP"`; `revision`: `number`; `roundAndSequence`: `boolean`; `schemaVersion`: `1`; `source`: \{ `name`: `string`; `sha256`: `string`; `size`: `number`; \}; `status`: `"format"` \| `"uploaded"` \| `"mapped"` \| `"checked"` \| `"submitted"` \| `"overdue"` \| `"done"` \| `"withdrawn"`; `title`: `string`; \}, `"format"` \| `"priority"` \| `"expectedDeliveryDate"` \| `"genMID"` \| `"genPSC"` \| `"title"` \| `"customer"` \| `"roundAndSequence"` \| `"status"` \| `"mapping"` \| `"corrections"` \| `"excludedRows"` \| `"counts"` \| `"arr"`\>\> & `object`
+`Partial`\<`Pick`\<\{ `archived`: `boolean`; `arr`: `number` \| `null`; `code`: `string`; `corrections`: `Record`\<`string`, `string`\>; `counts`: \{ `addresses`: `number`; `foreign?`: `number` \| `null`; `formatIssuesOpen`: `number` \| `null`; \}; `created`: \{ `at`: `string`; `by`: `string`; \}; `customer`: \{ `crmId`: `string` \| `null`; `name`: `string`; \}; `excludedRows`: `number`[]; `expectedDeliveryDate`: `string`; `format`: `"Large"` \| `"Small"`; `genMID`: `"7"` \| `"9"` \| `"11"` \| `"N"`; `genPSC`: `"N"` \| `"Y"`; `id`: `string`; `log`: `object`[]; `mapping`: \{ `order`: `string`[]; `roles`: `Record`\<`string`, `string`\>; \} \| `null`; `modified`: \{ `at`: `string`; `by`: `string`; \}; `priority`: `"P"` \| `"NP"`; `revision`: `number`; `roundAndSequence`: `boolean`; `schemaVersion`: `1`; `source`: \{ `name`: `string`; `sha256`: `string`; `size`: `number`; \}; `status`: `"format"` \| `"uploaded"` \| `"mapped"` \| `"checked"` \| `"submitted"` \| `"overdue"` \| `"done"` \| `"withdrawn"`; `title`: `string`; \}, `"format"` \| `"priority"` \| `"expectedDeliveryDate"` \| `"genMID"` \| `"genPSC"` \| `"title"` \| `"customer"` \| `"roundAndSequence"` \| `"status"` \| `"mapping"` \| `"corrections"` \| `"excludedRows"` \| `"counts"` \| `"arr"`\>\> & `object`
 
 The fields to change.
 
@@ -210,6 +216,12 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 #### counts.addresses
 
 > **addresses**: `number`
+
+#### counts.foreign?
+
+> `optional` **foreign?**: `number` \| `null`
+
+Addresses outside Belgium, as the step bar counts them. Absent or null: not counted yet.
 
 #### counts.formatIssuesOpen
 

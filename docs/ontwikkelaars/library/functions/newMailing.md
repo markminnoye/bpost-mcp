@@ -66,6 +66,12 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 
 > **addresses**: `number`
 
+#### counts.foreign?
+
+> `optional` **foreign?**: `number` \| `null`
+
+Addresses outside Belgium, as the step bar counts them. Absent or null: not counted yet.
+
 #### counts.formatIssuesOpen
 
 > **formatIssuesOpen**: `number` \| `null`

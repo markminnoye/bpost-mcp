@@ -91,11 +91,14 @@ export function AppShell({ tenantName, user, children }: { tenantName: string; u
  */
 export function PageHeader({
   title,
+  hideTitle,
   icon,
   actions,
   children,
 }: {
   title: ReactNode
+  /** Keep the title for screen readers only; `children` (e.g. a search field) then takes its place. */
+  hideTitle?: boolean
   /** Before the title, e.g. the status of a mailing (outside the heading, so its name stays the title). */
   icon?: ReactNode
   actions?: ReactNode
@@ -114,7 +117,9 @@ export function PageHeader({
             <h1 tabIndex={-1}>{title}</h1>
           </div>
         ) : (
-          <h1 tabIndex={-1}>{title}</h1>
+          <h1 tabIndex={-1} className={hideTitle ? styles.srOnly : undefined}>
+            {title}
+          </h1>
         )}
         {children}
       </div>

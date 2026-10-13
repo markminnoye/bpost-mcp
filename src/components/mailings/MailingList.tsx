@@ -13,7 +13,7 @@ import { MailingRow } from './MailingRow'
 import { STORE_UNAVAILABLE_MESSAGE, useMailingStore } from './MailingStoreProvider'
 import styles from '@/components/app-shell/app.module.css'
 
-const ICON = { size: 18, stroke: 1.75, 'aria-hidden': true } as const
+const ICON = { size: 16, stroke: 1.75, 'aria-hidden': true } as const
 
 const SORTS: { id: MailingSort; label: string; hint?: string }[] = [
   { id: 'status', label: 'Status', hint: 'actie nodig eerst' },
@@ -133,10 +133,15 @@ export function MailingList({ archived }: { archived: boolean }) {
   }
 
   const title = archived ? 'Archief' : 'Mailings'
+  // In the page header this shrinks to the "+" when there is no room; in the empty state it keeps its label.
   const newButton = !archived && (
-    <Link href="/mailings/nieuw" className={`${styles.btn} ${styles.btnPrimary}`}>
+    <Link
+      href="/mailings/nieuw"
+      className={`${styles.btn} ${styles.btnPrimary} ${styles.btnResponsive} ${styles.tipWhenNarrow}`}
+      data-tip="Nieuwe mailing"
+    >
       <IconPlus {...ICON} />
-      Nieuwe mailing
+      <span className={styles.btnLabel}>Nieuwe mailing</span>
     </Link>
   )
 
@@ -162,27 +167,36 @@ export function MailingList({ archived }: { archived: boolean }) {
   const twoLines = narrow || view === 'two'
   const empty = load.state === 'ok' && own.length === 0 && unreadable.length === 0
 
+  const searchBox = !empty && (
+    <div className={styles.search}>
+      <IconSearch size={16} stroke={1.75} aria-hidden="true" />
+      <input
+        ref={search}
+        type="search"
+        aria-label="Zoek op code, titel of klant"
+        placeholder="Zoek op code, titel of klant"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') setQuery('')
+        }}
+      />
+      <kbd aria-hidden="true">/</kbd>
+    </div>
+  )
+
   return (
     <div className={styles.page}>
-      <PageHeader title={title} actions={newButton} />
-      {!archived && <p className={styles.note}>Je mailings staan voorlopig enkel in deze browser.</p>}
-
-      {!empty && (
-        <div className={styles.search}>
-          <IconSearch size={16} stroke={1.75} aria-hidden="true" />
-          <input
-            ref={search}
-            type="search"
-            aria-label="Zoek op code, titel of klant"
-            placeholder="Zoek op code, titel of klant"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') setQuery('')
-            }}
-          />
-          <kbd aria-hidden="true">/</kbd>
-        </div>
+      {archived ? (
+        <>
+          <PageHeader title={title} />
+          {searchBox}
+        </>
+      ) : (
+        // The overview opens with the search field and "+": the title stays for screen readers only.
+        <PageHeader title={title} hideTitle actions={newButton}>
+          {searchBox}
+        </PageHeader>
       )}
 
       <div ref={box} className={`${styles.box} ${twoLines ? styles.two : ''}`} aria-busy={load.state === 'loading'}>
@@ -295,6 +309,7 @@ export function MailingList({ archived }: { archived: boolean }) {
                 onPrinter={() => void savePrinter(m)}
                 onArchive={() => void setArchived(m, true)}
                 onRestore={() => void setArchived(m, false)}
+                onCustomer={setQuery}
               />
             ))}
           </>

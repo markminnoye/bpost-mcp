@@ -3,10 +3,9 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { IconBuilding, IconCalendar, IconMail } from '@tabler/icons-react'
+import { IconBuilding, IconCalendar, IconMail, IconWorld } from '@tabler/icons-react'
 import type { MailingSummary } from '@/core/masspost/store/mailing'
-import { formatCount } from '@/components/mailing-flow/columns'
-import { MIN_ADDRESSES } from '@/components/mailing-flow/FileDrop'
+import { addressesInfo, foreignInfo } from '@/components/mailing-flow/pill-info'
 import { printerReady } from '@/components/mailing-flow/exports'
 import { arrTone, formatPercent, longDate, shortDate } from './labels'
 import { RowMenu } from './RowMenu'
@@ -26,12 +25,15 @@ export function MailingRow({
   onPrinter,
   onArchive,
   onRestore,
+  onCustomer,
 }: {
   mailing: MailingSummary
   twoLines: boolean
   onPrinter: () => void
   onArchive: () => void
   onRestore: () => void
+  /** Click on the customer: the list is searched for that customer. */
+  onCustomer: (customer: string) => void
 }) {
   const router = useRouter()
   const href = `/mailings/${encodeURIComponent(m.code)}`
@@ -41,24 +43,32 @@ export function MailingRow({
       {m.title}
     </Link>
   )
-  const few = m.addresses < MIN_ADDRESSES
   const customer = m.customer ? (
-    <span className={styles.pill} data-tip={`Klant: ${m.customer}`}>
+    <button
+      type="button"
+      className={`${styles.pill} ${styles.pillBtn}`}
+      data-tip={`Zoek op klant: ${m.customer}`}
+      onClick={() => onCustomer(m.customer)}
+    >
       <IconBuilding {...SMALL} />
       <span>{m.customer}</span>
-    </span>
-  ) : (
-    <span className={`${styles.pill} ${styles.empty}`} aria-hidden="true" />
-  )
+    </button>
+  ) : null
+  // The same texts and colours as the pills in the step bar (pill-info.ts).
+  const envelope = addressesInfo({ rowCount: m.addresses, excludedRows: m.excluded })
   const addresses = (
-    <span
-      className={`${styles.pill} ${few ? styles.pillWarn : ''}`}
-      data-tip={`${formatCount(m.addresses)} adressen${few ? ', minder dan 500 (het minimum voor een mailing)' : ''}`}
-    >
+    <span className={`${styles.pill} ${envelope.warn ? styles.pillWarn : styles.pillOkSoft}`} data-tip={envelope.tip}>
       <IconMail {...SMALL} />
-      <span>{formatCount(m.addresses)}</span>
+      <span>{envelope.text}</span>
     </span>
   )
+  const abroad = m.foreign ? foreignInfo(m.foreign) : null
+  const foreign = abroad ? (
+    <span className={`${styles.pill} ${styles.pillWarn}`} data-tip={abroad.tip}>
+      <IconWorld {...SMALL} />
+      <span>{abroad.text}</span>
+    </span>
+  ) : null
   const arr =
     m.arr === null ? (
       <span className={`${styles.arr} ${styles.muted}`} data-tip="Nog niet gecontroleerd door bpost">
@@ -104,10 +114,13 @@ export function MailingRow({
         <StatusIcon mailing={m} />
         {code}
         {title}
-        {customer}
-        {addresses}
-        {arr}
-        {date}
+        <div className={styles.pills}>
+          {customer}
+          {foreign}
+          {addresses}
+          {arr}
+          {date}
+        </div>
         {menu}
       </div>
     )
@@ -121,7 +134,8 @@ export function MailingRow({
           {code}
         </div>
         <div className={styles.line2}>
-          {m.customer && customer}
+          {customer}
+          {foreign}
           {addresses}
           {m.arr !== null && arr}
           {m.expectedDeliveryDate && (

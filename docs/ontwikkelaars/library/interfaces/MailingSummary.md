@@ -40,9 +40,25 @@ One row in the list. Later the same fields go into Drive `appProperties`.
 
 ***
 
+### excluded
+
+> **excluded**: `number`
+
+Rows left out of the mailing (`addresses` counts every row of the file).
+
+***
+
 ### expectedDeliveryDate
 
 > **expectedDeliveryDate**: `string`
+
+***
+
+### foreign
+
+> **foreign**: `number` \| `null`
+
+Addresses outside Belgium; null: not counted yet.
 
 ***
 

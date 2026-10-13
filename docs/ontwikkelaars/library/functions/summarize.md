@@ -8,7 +8,8 @@
 
 > **summarize**(`m`): [`MailingSummary`](../interfaces/MailingSummary.md)
 
-The fields of a mailing the list needs.
+The fields of a mailing the list needs. The status is the current one: as long as format errors
+are open, the mailing stays "mapped" (Mark, 13/10); only a validated format makes it `format`.
 
 ## Parameters
 
@@ -36,11 +37,17 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 
 #### counts
 
-\{ `addresses`: `number`; `formatIssuesOpen`: `number` \| `null`; \} = `...`
+\{ `addresses`: `number`; `foreign?`: `number` \| `null`; `formatIssuesOpen`: `number` \| `null`; \} = `...`
 
 #### counts.addresses
 
 `number` = `...`
+
+#### counts.foreign?
+
+`number` \| `null` = `...`
+
+Addresses outside Belgium, as the step bar counts them. Absent or null: not counted yet.
 
 #### counts.formatIssuesOpen
 

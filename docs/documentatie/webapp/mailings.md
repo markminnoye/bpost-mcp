@@ -8,7 +8,9 @@ Na het aanmelden kom je op **Mailings**: het overzicht van al je mailings.
 
 ## Het overzicht
 
-Elke mailing staat op één regel: de status, de code, de titel, de klant, het aantal adressen, de ARR (het deel van de adressen dat bpost herkent) en de geplande afgiftedatum. Is het venster smal, dan staat een mailing op twee regels.
+Elke mailing staat op één regel: de status, de code, de titel, de klant, het aantal adressen in het buitenland (enkel als er zijn), het aantal adressen dat meegaat, de ARR (het deel van de adressen dat bpost herkent) en de geplande afgiftedatum. Is het venster smal, dan staat een mailing op twee regels.
+
+De pills in het overzicht betekenen hetzelfde als in de stappen. De oranje wereldbol toont de adressen buiten België: kijk het land na. De envelop toont de adressen die naar bpost gaan, dus je hele lijst min de rijen die je uitsloot. Hij is oranje onder 500 adressen en boven 25.000. Een mailing die je bewaarde voor deze pills bestonden, krijgt de wereldbol zodra je ze opent. Klik op de naam van een klant om op die klant te zoeken.
 
 - **Zoeken:** typ in het zoekveld een stuk van de code, de titel of de klant. Met `/` zet je de cursor in het zoekveld, met `Esc` maak je het leeg.
 - **Sorteren:** standaard eerst wat iets van je vraagt, dan wat wacht, dan wat klaar is. Je kan ook sorteren op afgiftedatum, laatst gewijzigd, code of titel.
@@ -22,12 +24,12 @@ Het icoon vooraan toont de status. Ga er met de muis over voor de uitleg:
 | Status | Betekenis |
 |---|---|
 | Opgeladen | Je adreslijst is ingelezen. Koppel nu de kolommen. |
-| Kolommen gekoppeld | We kijken je adressen na. |
-| Formaatvalidatie | Er staan nog formaatfouten open, of je lijst is in orde en klaar voor de adrescontrole. |
+| Kolommen gekoppeld | Je kolommen zijn gekoppeld, maar er staan nog formaatfouten open. Los ze op in stap 3. |
+| Formaatvalidatie | Je lijst voldoet aan de regels van bpost en is klaar voor de adrescontrole. |
 
 ## Een nieuwe mailing
 
-Klik op **Nieuwe mailing**.
+Klik op **+ Nieuwe mailing**, rechts van de zoekbalk bovenaan het overzicht. Op een smal scherm, zoals een telefoon, staat er enkel een **+**.
 
 1. Sleep je adreslijst (Excel: .xlsx, .xlsm of .xls; LibreOffice: .ods) in het vak, of klik op **Kies een bestand**. Het bestand blijft in je browser. Eerst staat enkel dit vak op het scherm.
 2. Na het inlezen verschijnen de gegevens van de mailing, met je bestand eronder. De titel is al ingevuld met de bestandsnaam. Velden met een sterretje zijn verplicht:

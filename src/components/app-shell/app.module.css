@@ -308,6 +308,8 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
+  /* Its own width decides when the buttons in it drop their label (see "Buttons in the page header"). */
+  container-type: inline-size;
 }
 .pageTitle {
   flex: 1;
@@ -478,12 +480,36 @@
   cursor: not-allowed;
 }
 
-/* —— Notes and banners —— */
-.note {
-  margin: -4px 0 16px;
-  font-size: 13px;
-  color: var(--text-muted);
+/* —— Buttons in the page header ——
+   When the header is narrow (a phone, a small window, an open sidebar) a button keeps only its icon.
+   The label stays in the page for screen readers, and a tip repeats it while it is hidden. The same
+   rule is in mailing-flow.module.css for the step buttons (.headBtn): keep the width the same. */
+@container (max-width: 640px) {
+  .btnLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .btnResponsive {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
 }
+/* The tip would repeat the visible label, so it only shows once the label is gone. */
+.shell .tipWhenNarrow[data-tip]:is(:hover, :focus-visible)::after {
+  display: none;
+}
+@container (max-width: 640px) {
+  .shell .tipWhenNarrow[data-tip]:is(:hover, :focus-visible)::after {
+    display: block;
+  }
+}
+
+/* —— Banners —— */
 .banner {
   display: flex;
   align-items: center;
@@ -553,6 +579,10 @@
 .search {
   position: relative;
   margin-bottom: 16px;
+}
+/* In the page header the search field sits on the title's line, next to the buttons. */
+.pageHeader .search {
+  margin-bottom: 0;
 }
 .search svg {
   position: absolute;
@@ -649,7 +679,7 @@
 }
 .row {
   display: grid;
-  grid-template-columns: 20px 96px minmax(0, 1fr) 190px 84px 74px 92px 32px;
+  grid-template-columns: 20px 96px minmax(0, 1fr) auto 32px;
   align-items: center;
   gap: 12px;
   padding: 10px 12px 10px 16px;
@@ -707,13 +737,36 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* One line: pills, ARR and date are one group, close together at the right; the title takes the rest
+   of the line and is cut off when it does not fit. */
+.pills {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.pills .date {
+  margin-left: 4px;
+}
+/* A pill you can click (the customer: searches the list for it). */
+.pillBtn {
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.pillBtn:hover {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
 .pillWarn {
   background: var(--warn-bg);
   color: var(--warn-fg);
   border-color: var(--warn-line);
 }
-.empty {
-  visibility: hidden;
+/* A check that is in order: neutral pill, only the icon green (as in the step bar). */
+.pillOkSoft svg {
+  color: var(--green);
 }
 .arr {
   display: inline-flex;
@@ -1107,12 +1160,6 @@
   color: var(--text-muted);
 }
 
-/* —— Narrow screens —— */
-@media (max-width: 1100px) {
-  .row {
-    grid-template-columns: 20px 96px minmax(0, 1fr) 170px 84px 74px 92px 32px;
-  }
-}
 /* Below 1024 px the sidebar disappears, as on GitHub; an icon next to the page title slides it in. */
 @media (max-width: 1023px) {
   .content {

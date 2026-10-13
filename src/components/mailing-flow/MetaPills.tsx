@@ -12,7 +12,7 @@ import {
 } from '@tabler/icons-react'
 import type { MappingPresetId } from '@/core/masspost/suggest-mapping'
 import { PRESET_LABELS, formatCount } from './columns'
-import { HARD_LIMIT, MIN_ADDRESSES, SOFT_LIMIT } from './FileDrop'
+import { addressesInfo, foreignInfo } from './pill-info'
 import styles from './mailing-flow.module.css'
 
 /** One pill: an icon with a number (or a short label); the explanation is the tooltip (decision 46). */
@@ -67,13 +67,8 @@ export function listPills(input: ListPillsInput): Pill[] {
     })
   }
   if (foreignCount > 0) {
-    pills.push({
-      key: 'foreign',
-      icon: <IconWorld {...ICON} />,
-      text: formatCount(foreignCount),
-      tip: `${formatCount(foreignCount)} ${foreignCount === 1 ? 'adres' : 'adressen'} in het buitenland: kijk het land na`,
-      tone: 'warn',
-    })
+    const { text, tip } = foreignInfo(foreignCount)
+    pills.push({ key: 'foreign', icon: <IconWorld {...ICON} />, text, tip, tone: 'warn' })
   }
   if (format) {
     // The count of open errors; at zero a tick, never the number corrected.
@@ -100,24 +95,8 @@ export function listPills(input: ListPillsInput): Pill[] {
     )
   }
   // One envelope: the addresses that go to bpost. Without exclusions that is every row.
-  const included = rowCount - excludedRows
-  const large = rowCount > SOFT_LIMIT
-  const few = included < MIN_ADDRESSES
-  const what =
-    excludedRows > 0
-      ? `${formatCount(included)} van de ${formatCount(rowCount)} adressen in ${fileName} gaan mee (${formatCount(excludedRows)} uitgesloten)`
-      : `${formatCount(rowCount)} adressen in ${fileName}`
-  pills.push({
-    key: 'rows',
-    icon: <IconMail {...ICON} />,
-    text: formatCount(included),
-    tip: large
-      ? `Grote lijst: ${what}. Meestal tot ${formatCount(SOFT_LIMIT)}; we lezen er maximaal ${formatCount(HARD_LIMIT)} in.`
-      : few
-        ? `${what}: minder dan de ${MIN_ADDRESSES} die bpost per mailing vraagt`
-        : what,
-    tone: large || few ? 'warn' : 'okSoft',
-  })
+  const rows = addressesInfo({ rowCount, excludedRows, fileName })
+  pills.push({ key: 'rows', icon: <IconMail {...ICON} />, text: rows.text, tip: rows.tip, tone: rows.warn ? 'warn' : 'okSoft' })
   // Right of the addresses: the rows left out (Mark, 06/10).
   if (excludedRows > 0) {
     pills.push({

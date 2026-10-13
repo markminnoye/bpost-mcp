@@ -281,6 +281,24 @@ button.step:hover {
   gap: 6px;
 }
 
+/* The button of a step in the page header: as tall as the search field and the menu icon in the same
+   place (36px), and only its icon when the header is narrow. Same width as .btnResponsive in
+   app.module.css. */
+.b.headBtn {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 14px;
+  gap: 8px;
+}
+
+@container (max-width: 640px) {
+  .b.headBtn {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
 .ib {
   width: 28px;
   height: 28px;

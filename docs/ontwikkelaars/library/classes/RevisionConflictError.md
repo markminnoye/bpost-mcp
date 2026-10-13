@@ -42,11 +42,17 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 
 ###### counts
 
-\{ `addresses`: `number`; `formatIssuesOpen`: `number` \| `null`; \} = `...`
+\{ `addresses`: `number`; `foreign?`: `number` \| `null`; `formatIssuesOpen`: `number` \| `null`; \} = `...`
 
 ###### counts.addresses
 
 `number` = `...`
+
+###### counts.foreign?
+
+`number` \| `null` = `...`
+
+Addresses outside Belgium, as the step bar counts them. Absent or null: not counted yet.
 
 ###### counts.formatIssuesOpen
 
@@ -201,6 +207,12 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 ##### counts.addresses
 
 > **addresses**: `number`
+
+##### counts.foreign?
+
+> `optional` **foreign?**: `number` \| `null`
+
+Addresses outside Belgium, as the step bar counts them. Absent or null: not counted yet.
 
 ##### counts.formatIssuesOpen
 

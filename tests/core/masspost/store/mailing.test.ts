@@ -21,6 +21,46 @@ function row(over: Partial<MailingSummary>): MailingSummary {
   return { ...summarize(sampleMailing()), ...over }
 }
 
+describe('summarize', () => {
+  it('keeps a mailing "mapped" while format errors are open, and "format" once validated', () => {
+    const at = (formatIssuesOpen: number | null) =>
+      summarize(sampleMailing({ status: 'format', counts: { addresses: 100, formatIssuesOpen } })).status
+    expect(at(3)).toBe('mapped')
+    expect(at(0)).toBe('format')
+    expect(at(null)).toBe('format')
+  })
+})
+
+describe('summarize, counts of the pills', () => {
+  it('gives the rows left out and the addresses abroad (null while not counted)', () => {
+    const m = sampleMailing({ excludedRows: [3, 9], counts: { addresses: 100, formatIssuesOpen: 0, foreign: 4 } })
+    expect(summarize(m)).toMatchObject({ addresses: 100, excluded: 2, foreign: 4 })
+    expect(summarize(sampleMailing()).foreign).toBeNull()
+  })
+})
+
+describe('sortMailings by status', () => {
+  it('puts a mapped mailing with format errors open with those that need action', () => {
+    const waiting = row({ id: 'a', status: 'mapped', formatIssuesOpen: null, expectedDeliveryDate: '2026-10-01' })
+    const open = row({ id: 'b', status: 'mapped', formatIssuesOpen: 3, expectedDeliveryDate: '2026-11-01' })
+    expect(sortMailings([waiting, open], 'status').map((r) => r.id)).toEqual(['b', 'a'])
+  })
+})
+
+describe('sortMailings by status, within a group', () => {
+  it('keeps the same status together and then goes by date', () => {
+    const r = (id: string, status: MailingSummary['status'], date: string, open: number | null = 0) =>
+      row({ id, status, formatIssuesOpen: open, expectedDeliveryDate: date })
+    const rows = [
+      r('f1', 'format', '2026-10-01'),
+      r('m2', 'mapped', '2026-10-09', 4),
+      r('f2', 'format', '2026-10-03'),
+      r('m1', 'mapped', '2026-10-05', 4),
+    ]
+    expect(sortMailings(rows, 'status').map((x) => x.id)).toEqual(['m1', 'm2', 'f1', 'f2'])
+  })
+})
+
 describe('mailingSchema', () => {
   it('accepts a complete mailing', () => {
     expect(mailingSchema.safeParse(sampleMailing()).success).toBe(true)

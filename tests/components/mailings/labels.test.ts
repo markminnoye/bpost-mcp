@@ -19,9 +19,8 @@ describe('filterMailings', () => {
 })
 
 describe('statusLabel and arrTone', () => {
-  it('names the status, with the open format errors', () => {
+  it('names the status, and a validated format', () => {
     expect(statusLabel(row({ status: 'uploaded' }))).toBe('Opgeladen · kolommen koppelen')
-    expect(statusLabel(row({ status: 'format', formatIssuesOpen: 26 }))).toBe('Formaatvalidatie · 26 open')
     expect(statusLabel(row({ status: 'format', formatIssuesOpen: 0 }))).toBe(
       'Formaatvalidatie · in orde, klaar voor adrescontrole',
     )

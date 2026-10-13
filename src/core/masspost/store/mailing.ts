@@ -24,6 +24,11 @@ export const STATUS_GROUP: Record<MailingStatus, 0 | 1 | 2> = {
   withdrawn: 0,
 }
 
+/** Group of a row: a mailing with format errors open needs action, although its status is "mapped". */
+function statusGroup(m: MailingSummary): 0 | 1 | 2 {
+  return m.status === 'mapped' && (m.formatIssuesOpen ?? 0) > 0 ? 0 : STATUS_GROUP[m.status]
+}
+
 /** Letters, digits and hyphens, at most 20 characters. The code is also the `mailingRef` to bpost. */
 export const MAILING_CODE_PATTERN = /^[A-Za-z0-9-]{1,20}$/
 
@@ -58,6 +63,8 @@ export const mailingSchema = z.object({
   counts: z.object({
     addresses: z.number().int().nonnegative(),
     formatIssuesOpen: z.number().int().nonnegative().nullable(),
+    /** Addresses outside Belgium, as the step bar counts them. Absent or null: not counted yet. */
+    foreign: z.number().int().nonnegative().nullable().optional(),
   }),
   arr: z.number().min(0).max(100).nullable(),
   log: z.array(z.object({ at: z.string().datetime(), by: z.string(), event: z.string() })),
@@ -84,13 +91,18 @@ export interface MailingSummary {
   customer: string
   addresses: number
   formatIssuesOpen: number | null
+  /** Rows left out of the mailing (`addresses` counts every row of the file). */
+  excluded: number
+  /** Addresses outside Belgium; null: not counted yet. */
+  foreign: number | null
   arr: number | null
   expectedDeliveryDate: string
   modifiedAt: string
 }
 
 /**
- * The fields of a mailing the list needs.
+ * The fields of a mailing the list needs. The status is the current one: as long as format errors
+ * are open, the mailing stays "mapped" (Mark, 13/10); only a validated format makes it `format`.
  * @param m The mailing.
  * @returns Its summary.
  */
@@ -99,11 +111,13 @@ export function summarize(m: Mailing): MailingSummary {
     id: m.id,
     code: m.code,
     title: m.title,
-    status: m.status,
+    status: m.status === 'format' && (m.counts.formatIssuesOpen ?? 0) > 0 ? 'mapped' : m.status,
     archived: m.archived,
     customer: m.customer.name,
     addresses: m.counts.addresses,
     formatIssuesOpen: m.counts.formatIssuesOpen,
+    excluded: m.excludedRows.length,
+    foreign: m.counts.foreign ?? null,
     arr: m.arr,
     expectedDeliveryDate: m.expectedDeliveryDate,
     modifiedAt: m.modified.at,
@@ -138,8 +152,9 @@ export function sortMailings(items: readonly MailingSummary[], sort: MailingSort
     case 'status':
       return out.sort(
         (a, b) =>
-          STATUS_GROUP[a.status] - STATUS_GROUP[b.status] ||
-          Number(a.status === 'done') - Number(b.status === 'done') ||
+          statusGroup(a) - statusGroup(b) ||
+          // Within a group the same icons stay together, in the order of the flow; then by date.
+          MAILING_STATUSES.indexOf(a.status) - MAILING_STATUSES.indexOf(b.status) ||
           byDate(a, b),
       )
     case 'date':
