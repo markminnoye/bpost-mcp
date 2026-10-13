@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { IconArchive, IconDots, IconPencil } from '@tabler/icons-react'
-import type { Mailing } from '@/core/masspost/store/mailing'
+import { summarize, type Mailing } from '@/core/masspost/store/mailing'
 import { StoreUnavailableError, UnreadableMailingError } from '@/core/masspost/store/mailing-store'
 import { PageHeader } from '@/components/app-shell/AppShell'
 import { STORE_UNAVAILABLE_MESSAGE, useMailingStore } from '@/components/mailings/MailingStoreProvider'
+import { StatusIcon } from '@/components/mailings/StatusIcon'
 import type { LoadedList } from './columns'
 import { friendlyReadError, nextPaint } from './FileDrop'
 import { MailingFlow } from './MailingFlow'
@@ -193,6 +194,7 @@ function OpenMailing({
   const header = (openDetails: () => void) => (
     <>
       <PageHeader
+        icon={<StatusIcon mailing={summarize(saver.mailing)} size={22} />}
         title={
           <>
             {saver.mailing.title} <span className={styles.code}>{saver.mailing.code}</span>

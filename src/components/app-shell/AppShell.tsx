@@ -89,7 +89,18 @@ export function AppShell({ tenantName, user, children }: { tenantName: string; u
  * right.
  * @param props Title, actions, and content under the title.
  */
-export function PageHeader({ title, actions, children }: { title: ReactNode; actions?: ReactNode; children?: ReactNode }) {
+export function PageHeader({
+  title,
+  icon,
+  actions,
+  children,
+}: {
+  title: ReactNode
+  /** Before the title, e.g. the status of a mailing (outside the heading, so its name stays the title). */
+  icon?: ReactNode
+  actions?: ReactNode
+  children?: ReactNode
+}) {
   const { open } = useContext(PanelContext)
   return (
     <div className={styles.pageHeader}>
@@ -97,7 +108,14 @@ export function PageHeader({ title, actions, children }: { title: ReactNode; act
         <IconLayoutSidebarLeftExpand size={18} stroke={1.75} aria-hidden="true" />
       </button>
       <div className={styles.pageTitle}>
-        <h1 tabIndex={-1}>{title}</h1>
+        {icon ? (
+          <div className={styles.titleRow}>
+            {icon}
+            <h1 tabIndex={-1}>{title}</h1>
+          </div>
+        ) : (
+          <h1 tabIndex={-1}>{title}</h1>
+        )}
         {children}
       </div>
       {actions && <div className={styles.pageActions}>{actions}</div>}

@@ -3,7 +3,7 @@
  * and the manual of the Address File Tool, in plain words for the hover tip next to the label.
  */
 export const FIELD_TIPS = {
-  customer: 'Naam van de klant voor wie je deze mailing verstuurt.',
+  customer: 'Naam van de klant voor wie deze mailing verstuurd wordt.',
   title: 'Een naam om de mailing terug te vinden in je overzicht.',
   code: 'Jouw unieke referentie voor deze mailing bij bpost. Maximaal 20 tekens.',
   date: 'De dag waarop je de brieven bij bpost afgeeft: een werkdag, van maandag tot vrijdag en geen feestdag.',

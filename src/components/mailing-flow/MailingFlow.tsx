@@ -221,10 +221,13 @@ export function MailingFlow({
   }, [check, list, mailing.mapping, saver, start])
 
   async function onMappingNext() {
+    if (checking) return
     if (checked) {
       setStep(issues.length === 0 ? 'check' : 'format')
       return
     }
+    // Busy from the click on, also while the mapping is saved: a second click cannot start it twice.
+    setChecking(true)
     await saver.save({ mapping: { order: columnOrder, roles }, status: 'mapped' }, 'mapped')
     await check(roles, columnOrder, false)
   }

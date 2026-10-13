@@ -319,6 +319,14 @@
   margin: 0;
   font-weight: 600;
 }
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.titleRow > :first-child {
+  flex: none;
+}
 .pageTitle h1:focus {
   outline: none;
 }

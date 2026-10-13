@@ -55,10 +55,6 @@ const AI_ERRORS: Record<NonNullable<NonNullable<Props['ai']>['error']>, string> 
   failed: 'Het AI-voorstel lukte niet. Probeer het straks opnieuw, of koppel de kolommen zelf.',
 }
 
-function joinLabels(labels: string[]): string {
-  return labels.length <= 1 ? labels.join('') : `${labels.slice(0, -1).join(', ')} en ${labels[labels.length - 1]}`
-}
-
 /** Step 2: a role per column with examples, a template envelope with the mapped columns, and one
  *  example envelope per kind of address (decision 46 for the pills). */
 export function MappingStep({
@@ -204,23 +200,15 @@ export function MappingStep({
             Kies per kolom waarvoor we ze gebruiken. Kolommen met hetzelfde doel (bv. straat, huisnummer en bus) voegen
             we samen; de volgorde kies je op de eerste envelop.
           </p>
-          {missing.length > 0 && (
-            <p className={styles.missing} role="status">
-              Kies nog een kolom voor: {joinLabels(missing.map((field) => FIELD_LABELS[field].title))}.
-            </p>
-          )}
         </div>
         <div className={styles.tg}>
-          {checking ? (
-            <span className={styles.busy} role="status">
-              <Spinner />
-              We kijken je lijst na…
-            </span>
-          ) : (
-            <NextButton disabled={missing.length > 0} onClick={onNext}>
-              Verder naar formaatvalidatie
-            </NextButton>
-          )}
+          {/* The button stays in place while the list is checked, with the waiting wheel (Mark, 13/10). */}
+          <NextButton disabled={missing.length > 0} busy={checking} onClick={onNext}>
+            {checking ? 'Bezig…' : 'Verder naar formaatvalidatie'}
+          </NextButton>
+          <span className={styles.srOnly} role="status">
+            {checking ? 'We kijken je lijst na…' : ''}
+          </span>
         </div>
       </div>
 
@@ -303,7 +291,9 @@ export function MappingStep({
           <p className={styles.envTitle}>Zo komt het adres op de envelop, zoals in je lijst</p>
           <div className={styles.envCard}>
             <div className={styles.envHead}>
-              <span title="De gekoppelde kolommen per regel. Wijzig de volgorde met de pijltjes.">Koppeling</span>
+              <span className={styles.tipStart} data-tip="De gekoppelde kolommen per regel. Wijzig de volgorde met de pijltjes.">
+                Koppeling
+              </span>
             </div>
             <div className={styles.envelope}>
             <div className={`${styles.envWindow} ${styles.envTemplate}`}>
@@ -312,6 +302,7 @@ export function MappingStep({
                 return (
                   <div key={field} className={styles.envChips} aria-label={FIELD_LABELS[field].title}>
                     {columns.length === 0 ? (
+                      // What is still missing shows here, in red, where it will be on the envelope.
                       <span className={styles.envEmpty}>({FIELD_LABELS[field].short}: kies een kolom)</span>
                     ) : (
                       columns.map((column, i) => (

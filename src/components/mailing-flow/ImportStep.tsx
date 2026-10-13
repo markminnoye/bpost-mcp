@@ -18,6 +18,7 @@ import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
 import { FileDrop, readAddressFile } from './FileDrop'
 import { initialDraft, toDetails, withFile, type ImportDraft } from './import-draft'
 import { NextButton } from './NextButton'
+import { HarveyBall } from './StatusIcons'
 import { StepBar } from './StepBar'
 import { useLeaveGuard } from './useLeaveGuard'
 import flow from './mailing-flow.module.css'
@@ -168,6 +169,12 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
       <div className={styles.page}>
         {/* Same layout as the other steps: the mailing on top, then the steps, then this step. */}
         <PageHeader
+          // Not created yet: the empty circle of "Opgeladen", in grey.
+          icon={
+            <span className={`${styles.status} ${styles.tipStart}`} data-tip="Nieuwe mailing, nog niet aangemaakt">
+              <HarveyBall fill={0} size={22} />
+            </span>
+          }
           title={
             <>
               {current.title.trim() ? current.title : <span className={styles.titlePlaceholder}>Nieuwe mailing</span>}{' '}
@@ -199,8 +206,8 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
               </p>
             </div>
             <div className={flow.tg}>
-              <NextButton disabled={missing.length > 0 || saving} onClick={() => void onNext()}>
-                {saving ? 'Aanmaken…' : 'Verder naar koppelen'}
+              <NextButton disabled={missing.length > 0} busy={saving} onClick={() => void onNext()}>
+                {saving ? 'Bezig…' : 'Verder naar koppelen'}
               </NextButton>
             </div>
           </div>

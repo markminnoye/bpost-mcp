@@ -95,3 +95,8 @@ Mark: het sleepvak bovenaan, want het bestand vult de titel in; eerst enkel dat 
 - Tips in de lijst in onze stijl (`data-tip`); `title` enkel voor afgekapte tekst.
 - Iconen: download bij opslaan, vervangen bij "Ander bestand kiezen", pijl rechts op "Verder naar …".
 - Open, gevraagd aan Mark: Koppelen-melding bovenaan (kan een vak leeg blijven? ja, zie antwoord 13/10), bezig-staat van "Verder".
+
+## Status voor de titel, wieltje in de knop (13/10), verwerkt
+
+Mark: de iconen weg uit de stappenbalk; de status groter en zichtbaarder (voor de titel); bij wachten een wieltje. Afspraak: kort wachten = wieltje in de knop (`NextButton busy`), lang wachten (later, het antwoord van bpost) = het icoon voor de titel toont "wachten". Koppelen: wat ontbreekt staat enkel in het rood op de envelop.
+Open: rode cijfers voor weekends en feestdagen in de kalender van het datumveld. De kalender van de browser laat geen kleuren toe; enkel met een eigen kalender (voorgelegd aan Mark 13/10).

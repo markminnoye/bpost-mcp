@@ -8,18 +8,18 @@ const SLICE = {
   t: 'M10 10 L10 2 A8 8 0 1 1 2 10 Z',
 } as const
 
-function Ball({ color, slice }: { color: string; slice?: keyof typeof SLICE }) {
+function Ball({ color, slice, size }: { color: string; slice?: keyof typeof SLICE; size: number }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
       <circle cx="10" cy="10" r="8" fill="none" stroke={color} strokeWidth="1.5" />
       {slice && <path d={SLICE[slice]} fill={color} />}
     </svg>
   )
 }
 
-function Full({ color, mark }: { color: string; mark?: '!' }) {
+function Full({ color, mark, size }: { color: string; mark?: '!'; size: number }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
       <circle cx="10" cy="10" r="9" fill={color} />
       {mark === '!' ? (
         <>
@@ -37,30 +37,30 @@ const ARR_COLOR = { red: 'var(--red)', orange: 'var(--orange)', green: 'var(--gr
 
 /**
  * The Harvey ball of a status (docs/ontwerp/webapp/statusiconen.html), with its meaning as hover tip
- * and for screen readers.
- * @param props The row.
+ * and for screen readers. In the list (20 px) and before the title of a mailing (larger).
+ * @param props The mailing, and the size in pixels.
  */
-export function StatusIcon({ mailing }: { mailing: MailingSummary }) {
+export function StatusIcon({ mailing, size = 20 }: { mailing: MailingSummary; size?: number }) {
   const label = statusLabel(mailing) + (mailing.status === 'checked' && mailing.arr !== null ? ` · ARR ${formatPercent(mailing.arr)}` : '')
   const icon = (() => {
     switch (mailing.status) {
       case 'uploaded':
-        return <Ball color="var(--text-muted)" />
+        return <Ball color="var(--text-muted)" size={size} />
       case 'mapped':
-        return <Ball color="var(--yellow)" slice="q" />
+        return <Ball color="var(--yellow)" slice="q" size={size} />
       case 'format':
-        return <Ball color="var(--yellow)" slice="h" />
+        return <Ball color="var(--yellow)" slice="h" size={size} />
       case 'checked':
-        return <Ball color={ARR_COLOR[arrTone(mailing.arr ?? 0)]} slice="t" />
+        return <Ball color={ARR_COLOR[arrTone(mailing.arr ?? 0)]} slice="t" size={size} />
       case 'submitted':
-        return <Full color="var(--green)" />
+        return <Full color="var(--green)" size={size} />
       case 'overdue':
-        return <Full color="var(--orange)" mark="!" />
+        return <Full color="var(--orange)" mark="!" size={size} />
       case 'done':
-        return <Full color="var(--done)" />
+        return <Full color="var(--done)" size={size} />
       case 'withdrawn':
         return (
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+          <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
             <circle cx="10" cy="10" r="8" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeDasharray="2.5 2" />
             <line x1="5" y1="15" x2="15" y2="5" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" />
           </svg>

@@ -1,7 +1,6 @@
 'use client'
 
 import { IconChevronRight } from '@tabler/icons-react'
-import { HarveyBall } from './StatusIcons'
 import styles from './mailing-flow.module.css'
 
 export type StepId = 'upload' | 'mapping' | 'format' | 'check'
@@ -16,11 +15,11 @@ const BAR_COLOR: Record<StepStatus, string | undefined> = {
   done: 'var(--green)',
 }
 
-const STEPS: readonly { id: StepId; label: string; fill: 0 | 0.25 | 0.5 | 0.75 }[] = [
-  { id: 'upload', label: 'Importeren', fill: 0 },
-  { id: 'mapping', label: 'Koppelen', fill: 0.25 },
-  { id: 'format', label: 'Formaatvalidatie', fill: 0.5 },
-  { id: 'check', label: 'Adrescontrole', fill: 0.75 },
+const STEPS: readonly { id: StepId; label: string }[] = [
+  { id: 'upload', label: 'Importeren' },
+  { id: 'mapping', label: 'Koppelen' },
+  { id: 'format', label: 'Formaatvalidatie' },
+  { id: 'check', label: 'Adrescontrole' },
 ]
 
 /** The first four steps of a mailing, with the icon each step has in the overview, an arrow between
@@ -49,13 +48,11 @@ export function StepBar({
       <ol className={styles.steps}>
         {STEPS.map((step, index) => {
           const isCurrent = step.id === current
-          const color = status[step.id] === 'done' ? 'var(--green)' : 'var(--text-primary)'
           const bar = BAR_COLOR[status[step.id] ?? 'none'] ?? (isCurrent ? 'var(--accent)' : 'var(--text-muted)')
           const done = Math.round((progress[step.id] ?? 0) * 100)
           const tip = `${step.label}: ${done} % klaar`
           const content = (
             <>
-              <HarveyBall fill={step.fill} color={color} />
               <span className={styles.stepLabel} data-label={`${index + 1}. ${step.label}`}>
                 {index + 1}. {step.label}
               </span>
