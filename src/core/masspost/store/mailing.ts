@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { ColumnMapping } from '../mapping'
 
 /** Version of `mailing.json`. A mailing with another version is shown as unreadable. */
 export const MAILING_SCHEMA_VERSION = 1
@@ -284,6 +285,31 @@ export function isBpostWorkingDay(date: string): boolean {
   const weekday = d.getUTCDay()
   if (weekday === 0 || weekday === 6) return false
   return !belgianPublicHolidays(d.getUTCFullYear()).includes(date)
+}
+
+/**
+ * The corrections that stay valid after the mapping changed: those of a field (address block) whose
+ * columns stayed the same, in the same order. A correction hangs on `<row>:<field>`; when the columns
+ * of that field change, its original value changes too, so the correction no longer fits (Mark, 13/10;
+ * before, every mapping change dropped all corrections).
+ * @param corrections The corrections, by `<row>:<field>`.
+ * @param before The mapping the corrections were made on.
+ * @param after The new mapping.
+ * @returns The corrections of the fields that did not change.
+ * @example
+ * keepCorrections({ '134:streetHouseBox': 'Kerkstraat 1 bus 1' }, before, { ...before, name: ['Naam'] })
+ * // { '134:streetHouseBox': 'Kerkstraat 1 bus 1' }
+ */
+export function keepCorrections(
+  corrections: Readonly<Record<string, string>>,
+  before: ColumnMapping,
+  after: ColumnMapping,
+): Record<string, string> {
+  const same = (field: keyof ColumnMapping) =>
+    JSON.stringify(before[field] ?? []) === JSON.stringify(after[field] ?? [])
+  return Object.fromEntries(
+    Object.entries(corrections).filter(([key]) => same(key.slice(key.indexOf(':') + 1) as keyof ColumnMapping)),
+  )
 }
 
 /** Something still needed before "Verder naar koppelen". */

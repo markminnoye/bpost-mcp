@@ -132,4 +132,33 @@ describe('useMailingSaver', () => {
     expect(opened.excludedRows).toEqual([])
     expect(sessionStorage.getItem(`bpost-e-masspost:unsaved:${mailing.id}`)).toBeNull()
   })
+
+  it('keeps a change made while a save is on its way: it is newer, not a failed leftover', async () => {
+    /** A store whose update waits until the test lets it go. */
+    class SlowStore extends MemoryMailingStore {
+      release: (() => void) | null = null
+      override async update(...args: Parameters<MailingStore['update']>) {
+        if (!this.release) await new Promise<void>((resolve) => (this.release = resolve))
+        return super.update(...args)
+      }
+    }
+    const store = new SlowStore()
+    const mailing = await store.create(newInput(), new Blob([]), 'an@x.be')
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <MailingStoreContext.Provider value={{ store, user: { email: 'an@x.be' } }}>{children}</MailingStoreContext.Provider>
+    )
+    const { result } = renderHook(() => useMailingSaver(mailing), { wrapper })
+    await act(async () => {
+      const first = result.current.save({ counts: { addresses: 10, formatIssuesOpen: 2 } }, 'format-checked')
+      await new Promise((r) => setTimeout(r, 0))
+      result.current.saveSoon({ counts: { addresses: 10, formatIssuesOpen: 0 } }, 'format-edited') // newer
+      store.release?.()
+      await first
+    })
+    expect(result.current.state).toBe('saved')
+    await act(async () => {
+      await result.current.flush()
+    })
+    expect((await store.get(mailing.id))?.counts.formatIssuesOpen).toBe(0)
+  })
 })

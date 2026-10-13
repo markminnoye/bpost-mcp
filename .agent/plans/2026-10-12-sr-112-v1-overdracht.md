@@ -109,3 +109,7 @@ Titel onder de stappenbalk weg, lijntje weg, knop "Verder" rechts op de lijn van
 ## Statusicoon: ontwerp van 02/10 (13/10), verwerkt
 
 Mark koos het ontwerp `docs/ontwerp/webapp/statusiconen.html` (02/10), aangevuld met "nog niet bewaard" (grijze stippelcirkel) en een kruisje voor Ingetrokken; het ontwerpbestand is bijgewerkt. Geen groen voor "formaat in orde". "Verder" staat rechts op de lijn van de titel, de pills rechts op de lijn van de stappen.
+
+## Koppelen bewaart vanzelf, correcties per vak (13/10), verwerkt
+
+Mark zag bij MM-2026-3 "in orde" terwijl hij de koppeling wijzigde: de bewaarde status bleef die van de vorige formaatvalidatie tot "Verder". Nu bewaart Koppelen vanzelf (status Gekoppeld). **Besluit gewijzigd (Mark, 13/10):** een nieuwe koppeling wist niet meer alle correcties, enkel die van vakken waarvan de kolommen veranderden (`keepCorrections`); uitsluitingen blijven. Gevonden en opgelost in `useMailingSaver`: een nieuwere wijziging tijdens een bewaring werd weggegooid.

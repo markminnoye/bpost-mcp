@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { REQUIRED_FIELDS, findFormatIssues, missingTargets, type FormatIssue } from '@/core/masspost/format-check'
-import type { AddressField } from '@/core/masspost/mapping'
+import type { AddressField, ColumnMapping } from '@/core/masspost/mapping'
 import { suggestColumnMapping } from '@/core/masspost/suggest-mapping'
-import { summarize, type Mailing } from '@/core/masspost/store/mailing'
+import { keepCorrections, summarize, type Mailing } from '@/core/masspost/store/mailing'
 import {
   ADDRESS_FIELDS,
   columnExamples,
@@ -105,8 +105,14 @@ export function MailingFlow({
   const [checkedFor, setCheckedFor] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
   const [formatTotals, setFormatTotals] = useState({ open: 0, excludedRows: 0 })
-  // The stored corrections, for the first check only; a new check after a mapping change starts empty.
+  // The corrections a format check starts with: the stored ones when opening; after a mapping change,
+  // those of the blocks whose columns stayed the same (keepCorrections, Mark 13/10).
   const [initialFormat, setInitialFormat] = useState(() => (mailing.mapping ? formatStateFromMailing(mailing) : undefined))
+  // The mapping of the last format check, and the corrections as last reported by the format step.
+  const checkedMapping = useRef<ColumnMapping | null>(
+    mailing.mapping ? rolesToMapping(start.order, start.roles).mapping : null,
+  )
+  const latestFormat = useRef(formatStateFromMailing(mailing))
   const [ai, setAi] = useState<AiState>({ on: false, busy: false })
   const lastSavedOpen = useRef(mailing.counts.formatIssuesOpen)
   const aiRoles = useMemo(
@@ -174,7 +180,8 @@ export function MailingFlow({
 
   /**
    * Runs the format check. `resume`: the stored mapping and corrections stay (opening a mailing);
-   * otherwise the check is new and the stored corrections are cleared.
+   * otherwise the check is new: corrections stay only for the blocks whose columns did not change,
+   * excluded rows stay.
    */
   const check = useCallback(
     async (chosenRoles: Record<string, ColumnRole>, order: string[], resume: boolean) => {
@@ -192,11 +199,24 @@ export function MailingFlow({
         if (!startOnDetails) setStep(resumeStep(mailing))
         return
       }
-      setInitialFormat(undefined)
+      const before = checkedMapping.current
+      const kept = {
+        values: before ? keepCorrections(latestFormat.current.values, before, mapping) : {},
+        excluded: before ? latestFormat.current.excluded : {},
+      }
+      checkedMapping.current = mapping
+      latestFormat.current = kept
+      setInitialFormat(kept)
       setFormatTotals({ open: found.length, excludedRows: 0 })
+      // The format step reports the real number open (after the kept corrections) right after.
       lastSavedOpen.current = found.length
       void saver.save(
-        { status: 'format', counts: { addresses: list.rows.length, formatIssuesOpen: found.length }, corrections: {}, excludedRows: [] },
+        {
+          status: 'format',
+          counts: { addresses: list.rows.length, formatIssuesOpen: found.length },
+          corrections: kept.values,
+          excludedRows: Object.keys(kept.excluded).map(Number),
+        },
         'format-checked',
       )
       // Without format errors the mailing goes straight on (web-flow design, step 3).
@@ -222,6 +242,32 @@ export function MailingFlow({
       )
     }
   }, [check, list, mailing.mapping, saver, start])
+
+  // Koppelen saves by itself, like the other steps (Mark, 13/10): 2 s after a change, at once on a step
+  // change or when leaving. A changed mapping makes the mailing "Gekoppeld" until the next format
+  // check; back to the checked mapping, the format result counts again. Not on opening: the proposed
+  // mapping of a new mailing only counts once the user changes it or goes on.
+  const choice = choiceKey(columnOrder, roles)
+  const savedChoice = useRef(choice)
+  // Read when the choice changes, not a reason to save by themselves.
+  const mappingNow = useRef({ columnOrder, roles, checkedFor, open: formatTotals.open })
+  mappingNow.current = { columnOrder, roles, checkedFor, open: formatTotals.open }
+  useEffect(() => {
+    if (choice === savedChoice.current) return
+    savedChoice.current = choice
+    const now = mappingNow.current
+    const saved = { order: now.columnOrder, roles: now.roles }
+    if (choice === now.checkedFor) {
+      saver.saveSoon(
+        { mapping: saved, status: 'format', counts: { addresses: list.rows.length, formatIssuesOpen: now.open } },
+        'mapped',
+      )
+    } else {
+      // "Gekoppeld" only with every required block filled; otherwise still "kolommen koppelen".
+      const complete = missingTargets(rolesToMapping(now.columnOrder, now.roles).mapping).length === 0
+      saver.saveSoon({ mapping: saved, status: complete ? 'mapped' : 'uploaded' }, 'mapped')
+    }
+  }, [choice, list, saver])
 
   async function onMappingNext() {
     if (checking) return
@@ -387,12 +433,13 @@ export function MailingFlow({
                 docsUrl={docsUrl}
                 active={step === 'format'}
                 initial={initialFormat}
-                onChange={(s) =>
+                onChange={(s) => {
+                  latestFormat.current = s
                   saver.saveSoon(
                     { corrections: s.values, excludedRows: Object.keys(s.excluded).map(Number) },
                     'format-edited',
                   )
-                }
+                }}
               />
             </div>
           )}

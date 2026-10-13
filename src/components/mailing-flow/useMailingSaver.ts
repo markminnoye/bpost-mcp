@@ -94,7 +94,10 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
     setStateValue(next)
   }, [])
   const current = useRef(initial)
-  const pending = useRef<{ change: MailingChange; event: string } | null>(null)
+  // What waits to be saved. `seq` per field: when it was set, so a save can tell a newer change (keep it)
+  // from an older one that failed (drop the fields the save just wrote).
+  const pending = useRef<{ change: MailingChange; event: string; seq: Record<string, number> } | null>(null)
+  const counter = useRef(0)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const queue = useRef<Promise<void>>(Promise.resolve())
   // Everything since the last moment all was saved, as final values (applying it twice is harmless).
@@ -106,10 +109,21 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
     writeUnsaved(current.current.id, current.current.revision, unsaved.current)
   }, [])
 
+  /** Adds a change to what waits, each field stamped with `seq` (a new one by default). */
+  const addPending = useCallback((change: MailingChange, event: string, seq = ++counter.current) => {
+    const stamps = Object.fromEntries(Object.keys(change).map((key) => [key, seq]))
+    pending.current = {
+      change: { ...pending.current?.change, ...change },
+      event,
+      seq: { ...pending.current?.seq, ...stamps },
+    }
+  }, [])
+
   // One save at a time, in order: each one needs the revision of the one before.
   const run = useCallback(
     (change: MailingChange, event: string) => {
       running.current += 1
+      const runSeq = ++counter.current
       const next = queue.current.then(async () => {
         setState('saving')
         try {
@@ -117,13 +131,20 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
           current.current = saved
           setMailing(saved)
           running.current -= 1
-          // A change that failed earlier and still waits is older than this one: drop the fields
-          // this save already wrote, so it cannot overwrite them later.
+          // What still waits: a field set after this save started is newer, so it stays. A field from
+          // a change that failed before is older: drop it where this save already wrote that field.
+          let failedLeft = false
           if (pending.current) {
-            const rest = Object.fromEntries(
-              Object.entries(pending.current.change).filter(([key]) => !(key in change)),
-            ) as MailingChange
-            pending.current = Object.keys(rest).length ? { ...pending.current, change: rest } : null
+            const p = pending.current
+            const keep = Object.keys(p.change).filter((key) => !(key in change) || p.seq[key] > runSeq)
+            failedLeft = keep.some((key) => p.seq[key] < runSeq)
+            pending.current = keep.length
+              ? {
+                  ...p,
+                  change: Object.fromEntries(keep.map((key) => [key, p.change[key as keyof MailingChange]])) as MailingChange,
+                  seq: Object.fromEntries(keep.map((key) => [key, p.seq[key]])),
+                }
+              : null
           }
           if (!pending.current && running.current === 0) {
             unsaved.current = null
@@ -132,10 +153,13 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
             writeUnsaved(saved.id, saved.revision, unsaved.current)
           }
           setFull(false)
-          setState(pending.current ? 'error' : 'saved')
+          setState(failedLeft ? 'error' : 'saved')
         } catch (e) {
           running.current -= 1
-          pending.current = { change: { ...change, ...pending.current?.change }, event }
+          // The failed change waits again, below anything newer that waits already (newer wins per field).
+          const newer = pending.current
+          const stamps = Object.fromEntries(Object.keys(change).map((key) => [key, runSeq]))
+          pending.current = { change: { ...change, ...newer?.change }, event, seq: { ...stamps, ...newer?.seq } }
           setFull(e instanceof StoreFullError)
           setState(e instanceof RevisionConflictError ? 'conflict' : 'error')
         }
@@ -167,12 +191,12 @@ export function useMailingSaver(initial: Mailing): MailingSaver {
 
   const saveSoon = useCallback(
     (change: MailingChange, event: string) => {
-      pending.current = { change: { ...pending.current?.change, ...change }, event }
+      addPending(change, event)
       remember(change, event)
       clearTimeout(timer.current)
       timer.current = setTimeout(() => void flush(), 2000)
     },
-    [flush, remember],
+    [flush, remember, addPending],
   )
 
   // Leaving with something unsaved: ask first.

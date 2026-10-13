@@ -10,6 +10,7 @@ import {
   roundSequenceAllowed,
   defaultRoundSequence,
   missingDetails,
+  keepCorrections,
   belgianPublicHolidays,
   isBpostWorkingDay,
   type MailingSummary,
@@ -129,5 +130,28 @@ describe('isBpostWorkingDay', () => {
 
   it('makes a weekend delivery date missing in step 1', () => {
     expect(missingDetails({ title: 'x', code: 'CP-2026-1', expectedDeliveryDate: '2026-10-24', hasFile: true }, '2026-10-12')).toEqual(['date'])
+  })
+})
+
+describe('keepCorrections', () => {
+  const before = {
+    name: ['Voornaam', 'Naam'],
+    streetHouseBox: ['Straat', 'Nr'],
+    postcodeCity: ['Postcode', 'Gemeente'],
+  }
+  const corrections = { '134:streetHouseBox': 'Kerkstraat 1 bus 1', '12:name': 'An Peeters' }
+
+  it('keeps the corrections of the blocks whose columns did not change', () => {
+    expect(keepCorrections(corrections, before, { ...before, name: ['Naam', 'Voornaam'] })).toEqual({
+      '134:streetHouseBox': 'Kerkstraat 1 bus 1',
+    })
+  })
+
+  it('drops the corrections of a block that got other columns', () => {
+    expect(keepCorrections(corrections, before, { ...before, streetHouseBox: ['Adres'] })).toEqual({ '12:name': 'An Peeters' })
+  })
+
+  it('treats a missing optional block like an empty one', () => {
+    expect(keepCorrections({ '3:country': 'NL' }, before, { ...before, country: [] })).toEqual({ '3:country': 'NL' })
   })
 })

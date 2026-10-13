@@ -125,6 +125,7 @@
 - [isBpostWorkingDay](functions/isBpostWorkingDay.md)
 - [isValidMailingCode](functions/isValidMailingCode.md)
 - [joinColumns](functions/joinColumns.md)
+- [keepCorrections](functions/keepCorrections.md)
 - [mailingRequestSchemaForVersion](functions/mailingRequestSchemaForVersion.md)
 - [mapRows](functions/mapRows.md)
 - [maskExamples](functions/maskExamples.md)

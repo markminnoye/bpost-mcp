@@ -473,8 +473,8 @@ export function FormatStep({
             Klik op een rij, of Tab tot in de lijst. Kies een rij met ↑ ↓ en druk Enter om het voorstel over te nemen, of
             E om zelf aan te passen. Het vinkje wordt groen zodra de waarde aan de regels van bpost voldoet. Na een
             aanpassing verschijnt rechts in de rij, naast uitsluiten, een knop om de oorspronkelijke waarde terug te
-            zetten. Je aanpassingen
-            blijven bewaard tot je een ander bestand importeert of de koppeling wijzigt.
+            zetten. Je aanpassingen blijven bewaard. Wijzig je de koppeling van een vak (bv. de straat), dan vervallen
+            enkel de aanpassingen in dat vak.
           </p>
 
           <div className={styles.cols} aria-hidden="true">

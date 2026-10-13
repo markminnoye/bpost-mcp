@@ -38,7 +38,7 @@ Rechts op de regel van de stappen staat een rij pills: een icoon met een getal. 
 
 ## Stap 2: kolommen koppelen
 
-Bpost krijgt een adres in vakken: naam, bedrijf of afdeling, straat met nummer en bus, postcode met gemeente, en het land. Hier kies je per kolom van je lijst wat er mee gebeurt.
+Bpost krijgt een adres in vakken: naam, bedrijf of afdeling, straat met nummer en bus, postcode met gemeente, en het land. Hier kies je per kolom van je lijst wat er mee gebeurt. Wat je kiest, wordt vanzelf bewaard, net als in de andere stappen.
 
 **Heeft je bestand de indeling van de AFT van bpost,** dan koppelen we de kolommen zelf en sla je deze stap over. Je kan ze toch bekijken via **2. Koppelen** bovenaan.
 
@@ -98,7 +98,7 @@ De gevonden formaatfouten staan in groepen: vreemde tekens, een schuine streep i
 - **Een uitgesloten rij** blijft bewaard, maar gaat niet mee in de mailing.
 - **Het vinkje** wordt groen zodra een waarde aan de regels voldoet.
 - **Verder naar adrescontrole** wordt actief zodra er geen formaatfouten meer open staan. Zijn er geen formaatfouten, dan ga je meteen door naar stap 4.
-- **Je aanpassingen blijven bewaard,** ook als je teruggaat naar Koppelen of de mailing later opnieuw opent. Ze vervallen pas als je de koppeling wijzigt. Dan kijken we de lijst opnieuw na.
+- **Je aanpassingen blijven bewaard,** ook als je teruggaat naar Koppelen of de mailing later opnieuw opent. Wijzig je de koppeling, dan kijken we de lijst opnieuw na. Enkel de aanpassingen in een vak waarvan de kolommen veranderden (bv. de straat), vervallen; de rijen die je uitsloot, blijven uitgesloten.
 
 ## Stap 4: adrescontrole
 
