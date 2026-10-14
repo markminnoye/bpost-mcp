@@ -32,7 +32,12 @@ export interface ConvertResult {
   xml?: string
 }
 
-function stripEmptyDepositType(data: NonNullable<ValidationResult['data']>) {
+/**
+ * Removes `depositIdentifierType` from actions without a `depositIdentifier`: bpost refuses the
+ * attribute on its own.
+ * @param data A validated MailingRequest; changed in place.
+ */
+export function stripEmptyDepositType(data: NonNullable<ValidationResult['data']>) {
   for (const action of [...(data.MailingCreate ?? []), ...(data.MailingCheck ?? [])]) {
     if (!action.depositIdentifier) {
       delete (action as { depositIdentifierType?: unknown }).depositIdentifierType

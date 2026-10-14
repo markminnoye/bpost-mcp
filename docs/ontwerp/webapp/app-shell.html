@@ -594,8 +594,8 @@ dialog p{margin:0 0 16px;color:var(--text-secondary)}
       title:'<a class="title" href="#flow" data-open="'+m.code+'" title="'+esc(m.title)+'">'+esc(m.title)+'</a>',
       klant: m.klant ? '<span class="pill" title="Klant: '+esc(m.klant)+'"><svg class="i"><use href="#i-building"/></svg><span>'+esc(m.klant)+'</span></span>' : '<span class="pill empty" aria-hidden="true"></span>',
       n: m.n == null ? '<span class="pill empty" aria-hidden="true"></span>' : '<span class="pill'+(m.n < 500 ? ' warn' : '')+'" title="'+nl(m.n)+' adressen'+(m.n < 500 ? ', minder dan 500 (het minimum voor een mailing)' : '')+'"><svg class="i"><use href="#i-mail"/></svg>'+nl(m.n)+'<span class="sr"> adressen</span></span>',
-      arr: m.arr == null ? '<span class="arr muted" title="Nog niet gecontroleerd door bpost">—<span class="sr">nog geen ARR</span></span>' : '<span class="arr" title="ARR: deel van de adressen dat bpost herkent"><span class="dot" style="background:'+arrColor(m.arr)+'"></span>'+pct(m.arr)+'</span>',
-      date: m.date ? '<span class="date" title="Geplande afgifte: '+longDate(m.date)+'">'+shortDate(m.date)+'</span>' : '<span class="date muted" title="Nog geen afgiftedatum">—</span>',
+      arr: m.arr == null ? '<span class="date muted" title="Nog niet gecontroleerd door bpost">—<span class="sr">nog geen ARR</span></span>' : '<span class="pill" title="ARR: deel van de adressen dat bpost herkent"><span class="dot" style="background:'+arrColor(m.arr)+'"></span><span>'+pct(m.arr)+'</span></span>',
+      date: m.date ? '<span class="meta" title="Geplande afgifte: '+longDate(m.date)+'"><svg class="i"><use href="#i-cal"/></svg>'+shortDate(m.date)+'</span>' : '<span class="date muted" title="Nog geen afgiftedatum">—</span>',
       more:'<div class="menu-wrap"><button class="more" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Acties voor '+m.code+'" data-code="'+m.code+'"><svg class="i"><use href="#i-dots"/></svg></button></div>'
     }
   }
@@ -642,7 +642,7 @@ dialog p{margin:0 0 16px;color:var(--text-secondary)}
       if(m.klant) meta.push(p.klant)
       if(m.n != null) meta.push(p.n)
       if(m.arr != null) meta.push(p.arr)
-      if(m.date) meta.push('<span class="meta" title="Geplande afgifte: '+longDate(m.date)+'"><svg class="i"><use href="#i-cal"/></svg>'+shortDate(m.date)+'</span>')
+      if(m.date) meta.push(p.date)
       return '<div class="row">'+p.status+'<div class="line"><div class="line1">'+p.title+p.code+'</div><div class="line2">'+meta.join('')+'</div></div>'+p.more+'</div>'
     }).join('')
   }

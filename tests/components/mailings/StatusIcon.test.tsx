@@ -2,6 +2,7 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { StatusIcon } from '@/components/mailings/StatusIcon'
+import { statusLabel } from '@/components/mailings/labels'
 import { summarize, type MailingSummary } from '@/core/masspost/store/mailing'
 import { sampleMailing } from '../../core/masspost/store/fixtures'
 
@@ -25,5 +26,20 @@ describe('StatusIcon', () => {
 
   it('never shows black: an uploaded mailing is the grey empty circle', () => {
     expect(colour(row({ status: 'uploaded' }))).toBe('var(--text-muted)')
+  })
+
+  it('shows the waiting wheel and "Wachten op e-MassPost" while a file is with e-MassPost', () => {
+    const waiting = row({ status: 'format', formatIssuesOpen: 0, waiting: true })
+    expect(statusLabel(waiting)).toBe('Wachten op e-MassPost')
+    const { container } = render(<StatusIcon mailing={waiting} />)
+    expect(container.querySelectorAll('line').length).toBe(12)
+  })
+
+  it('colours a checked mailing yellow under 96 %, green from 96 % (design 13/10, decision 20)', () => {
+    expect(colour(row({ status: 'checked', arr: 95.9 }))).toBe('var(--yellow)')
+    cleanup()
+    expect(colour(row({ status: 'checked', arr: 97.2 }))).toBe('var(--green)')
+    cleanup()
+    expect(colour(row({ status: 'checked', arr: 99.8 }))).toBe('var(--green)')
   })
 })

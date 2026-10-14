@@ -83,7 +83,7 @@ Nagebootste antwoorden, gekloond uit de echte antwoorden van 01/10 (425 B per ad
 | Create, 300.000 adressen | 122 MB | 7,1 s, 1,12 GB | 0,2 s, 156 MB |
 | Check, 100.000 adressen | 66 MB | **mislukt** | 0,1 s, 141 MB |
 
-**De huidige parser mislukt op echte antwoorden vanaf ongeveer 250 adressen.** Elk adres heeft in het echte antwoord vier `&quot;` in zijn XPath, en `fast-xml-parser` stopt standaard bij 1000 vervangingen ("Entity expansion limit exceeded"). Bewezen op het echte antwoord van 500 adressen van 29/09, dat 2002 vervangingen bevat. De functie wordt vandaag nergens in een echte flow gebruikt (alleen in tests en in de HTTP-client die niet werkt), dus er is nu geen schade. Een parser voor antwoorden per adres moet dit meenemen en streamend werken.
+**De grens van 1000 vervangingen is opgetrokken (SR-130, 13/10/2026).** Elk adres heeft in het echte antwoord vier `&quot;` in zijn XPath, en `fast-xml-parser` stopte standaard bij 1000 vervangingen ("Entity expansion limit exceeded", vanaf ongeveer 250 adressen; het echte antwoord van 500 adressen van 29/09 bevat er 2002). `src/lib/xml.ts` zet `processEntities.maxTotalExpansions` nu op 10.000.000; DOCTYPE-entiteiten blijven begrensd door de andere standaardwaarden. Streamend inlezen voor zeer grote antwoorden blijft een open punt.
 
 ## Als we later naar Docker gaan
 

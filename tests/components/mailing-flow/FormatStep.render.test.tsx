@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { StrictMode, useState } from 'react'
-import { cleanup, render, screen } from '@testing-library/react'
+import { useState } from 'react'
+import { cleanup, render } from '@testing-library/react'
 import { FormatStep } from '@/components/mailing-flow/FormatStep'
 
 afterEach(cleanup)
+
+const EMPTY = { values: {}, excluded: {}, undo: [], nextId: 1 }
 
 /** A parent like MailingFlow: it passes a new onTotals on every render and keeps the totals in state. */
 function Parent({ calls }: { calls: () => void }) {
@@ -17,10 +19,10 @@ function Parent({ calls }: { calls: () => void }) {
         calls()
         setTotals({ ...t })
       }}
-      done={false}
       onDone={() => {}}
-      onSave={async () => {}}
       active
+      corrections={EMPTY}
+      dispatch={() => {}}
     />
   )
 }
@@ -30,37 +32,5 @@ describe('FormatStep totals', () => {
     const calls = vi.fn()
     render(<Parent calls={calls} />)
     expect(calls.mock.calls.length).toBeLessThanOrEqual(2)
-  })
-})
-
-describe('FormatStep, address check (step 4)', () => {
-  it('shows the next button switched off, like every step, instead of a back button', () => {
-    render(
-      <FormatStep issues={[]} rowCount={10} onTotals={() => {}} done onDone={() => {}} onSave={async () => {}} active />,
-    )
-    expect((screen.getByRole('button', { name: 'Verder naar indienen' }) as HTMLButtonElement).disabled).toBe(true)
-    expect(screen.queryByRole('button', { name: /Terug naar de formaatfouten/ })).toBeNull()
-  })
-})
-
-describe('FormatStep, saving on open', () => {
-  it('does not report the starting corrections as a change, also not in StrictMode', () => {
-    const onChange = vi.fn()
-    render(
-      <StrictMode>
-        <FormatStep
-          issues={[]}
-          rowCount={10}
-          onTotals={() => {}}
-          done={false}
-          onDone={() => {}}
-          onSave={async () => {}}
-          active
-          initial={{ values: { '2:name': 'Jan' }, excluded: {} }}
-          onChange={onChange}
-        />
-      </StrictMode>,
-    )
-    expect(onChange).not.toHaveBeenCalled()
   })
 })

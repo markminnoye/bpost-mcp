@@ -70,6 +70,54 @@ describe('MailingRow', () => {
     expect(container.querySelector('[data-tip*="in het buitenland"]')).toBeNull()
   })
 
+  it('shows the ARR in a pill and a calendar icon next to the date on one line', () => {
+    const noop = () => {}
+    const { container } = render(
+      <MailingRow
+        mailing={row({ arr: 97.2, expectedDeliveryDate: '2026-10-04' })}
+        twoLines={false}
+        onPrinter={noop}
+        onArchive={noop}
+        onRestore={noop}
+        onCustomer={noop}
+      />,
+    )
+    const arr = container.querySelector('[data-tip^="ARR:"]')
+    expect(arr?.className).toMatch(/pill/)
+    expect(arr?.textContent).toContain('97,2')
+    const date = container.querySelector('[data-tip^="Geplande afgifte:"]')
+    expect(date?.querySelector('svg')).not.toBeNull()
+    expect(date?.textContent).toContain('4 okt')
+  })
+
+  it('shows a Test pill after a test submission, and none for Production', () => {
+    const noop = () => {}
+    const { rerender } = render(
+      <MailingRow
+        mailing={row({ status: 'submitted', submittedMode: 'T' })}
+        twoLines={false}
+        onPrinter={noop}
+        onArchive={noop}
+        onRestore={noop}
+        onCustomer={noop}
+      />,
+    )
+    expect(screen.getByText('Test')).toBeTruthy()
+    expect(screen.getByText('Test').closest('[data-tip]')?.getAttribute('data-tip')).toMatch(/testmodus/)
+    rerender(
+      <MailingRow
+        mailing={row({ status: 'submitted', submittedMode: 'P' })}
+        twoLines={false}
+        onPrinter={noop}
+        onArchive={noop}
+        onRestore={noop}
+        onCustomer={noop}
+      />,
+    )
+    expect(screen.queryByText('Test')).toBeNull()
+    expect(screen.queryByText('Certificatie')).toBeNull()
+  })
+
   it('moves the focus between rows with ↑ and ↓, from the link and from the "…" button', () => {
     renderRows()
     const first = screen.getByRole('link', { name: 'Eerste' })

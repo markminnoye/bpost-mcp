@@ -25,11 +25,11 @@ describe('statusLabel and arrTone', () => {
       'Formaatvalidatie · in orde, klaar voor adrescontrole',
     )
   })
-  it('colours the ARR as in decision 21', () => {
-    expect(arrTone(95.9)).toBe('red')
-    expect(arrTone(96)).toBe('orange')
-    expect(arrTone(97.99)).toBe('orange')
-    expect(arrTone(98)).toBe('green')
+  it('grades the ARR: under 96 %, from 96 %, and the bonus from 98 % (design 13/10, decision 20)', () => {
+    expect(arrTone(95.9)).toBe('low')
+    expect(arrTone(96)).toBe('ok')
+    expect(arrTone(97.99)).toBe('ok')
+    expect(arrTone(98)).toBe('bonus')
   })
 })
 

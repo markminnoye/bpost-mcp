@@ -86,6 +86,22 @@ Addresses outside Belgium; null: not counted yet.
 
 ***
 
+### submittedMode
+
+> **submittedMode**: `"P"` \| `"T"` \| `"C"` \| `null`
+
+Mode of the accepted submission, for the pill Test or Certificatie; null when not submitted.
+
+***
+
 ### title
 
 > **title**: `string`
+
+***
+
+### waiting
+
+> **waiting**: `boolean`
+
+A file is with bpost and no result came back yet: the icon "wachten".

@@ -14,7 +14,7 @@ Inputs for an OptiAddress MailingCheck. No format and no delivery date.
 
 > `optional` **allowNonTestMode?**: `boolean`
 
-CLI-only escape hatch for the FORCE_TEST_MODE guard. Never set it from a route.
+Escape hatch for the FORCE_TEST_MODE guard: the CLI, and the web app after an explicit choice per mailing (ADR 0010). Never from a route.
 
 ***
 

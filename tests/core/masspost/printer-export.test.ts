@@ -45,4 +45,27 @@ describe('buildPrinterExport', () => {
     expect(rows[0]).toEqual(['Naam', 'Meesturen', `${PRINTER_EXPORT_COLUMNS.include} (2)`, PRINTER_EXPORT_COLUMNS.seq])
     expect(rows[1]).toEqual(['Jan', 'x', 'ja', 2])
   })
+
+  it('adds the Mail ID and the address as announced; marks a test', async () => {
+    const parsed = await parseExcelAddresses(source)
+    const rows = sheetRows(
+      buildPrinterExport({
+        source,
+        parsed,
+        excludedRowNumbers: new Set([4]),
+        announced: new Map([[2, { midNum: '90002109818449', address: 'Kerkstraat 1 bus 2, 9300 Aalst' }]]),
+        testMode: true,
+      }),
+    )
+    expect(rows[0].slice(-2)).toEqual(['Mail ID (TEST, niet drukken)', PRINTER_EXPORT_COLUMNS.announced])
+    expect(rows[1].slice(-2)).toEqual(['90002109818449', 'Kerkstraat 1 bus 2, 9300 Aalst'])
+    expect(rows[3].slice(-2)).toEqual(['', ''])
+  })
+
+  it('has no extra columns without a submission', async () => {
+    const parsed = await parseExcelAddresses(source)
+    const header = sheetRows(buildPrinterExport({ parsed, excludedRowNumbers: new Set() }))[0]
+    expect(header).not.toContain('Mail ID')
+    expect(header).not.toContain(PRINTER_EXPORT_COLUMNS.announced)
+  })
 })

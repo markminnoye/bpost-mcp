@@ -4,7 +4,7 @@
 Alfaversie. Dit onderdeel kan nog veranderen.
 {% endhint %}
 
-Je opent **Instellingen** onderaan in de zijbalk, net boven je naam. De instellingen gelden voor iedereen van je organisatie. Elk blok heeft zijn eigen knop **Bewaren**. Ga met de muis over een label (of het ⓘ ernaast) voor wat het veld betekent. Klopt er iets niet, dan staat de melding in het rood onder het veld, en blijft wat je intypte staan.
+Je opent **Instellingen** onderaan in de zijbalk, net boven je naam. De instellingen gelden voor iedereen van je organisatie. Elk blok heeft zijn eigen knop **Bewaren**. Klik op het ⓘ naast een label voor wat het veld betekent. De aanwijzer wordt een vraagteken als je over dat icoon gaat. Klopt er iets niet, dan staat de melding in het rood onder het veld, en blijft wat je intypte staan.
 
 ## Organisatie
 
@@ -31,7 +31,12 @@ Wat een nieuwe mailing al ingevuld krijgt. Je kan het per mailing aanpassen.
 - **Prioriteit:** non-prior of prior.
 - **Barcode:** geen, of bpost met 7, 9 of 11 cijfers. "Contrapunt, 11 cijfers" komt later.
 - **Presortering:** bpost maakt de presorteercodes.
+- **Modus:** Productie (standaard), Test of Certificatie. Productie is de echte afgifte. Bij Test verwerkt e-MassPost je lijst, maar volgt er geen afgifte. Zet je hier Test, dan start elke nieuwe mailing in Test.
 - **Voorvoegsel voor codes:** de letters vooraan de code van een mailing, bv. CP geeft CP-2026-15. Laat je het leeg, dan nemen we de beginletters van je organisatie.
+
+## Verbinding met e-MassPost
+
+Hoe de bestanden naar e-MassPost vertrekken en hoe het antwoord terugkomt. Nu is dat **Manueel**: je laadt het bestand zelf op via de e-MassPost-website en zet het antwoord terug in de app. Google Drive komt later. Zie [Adrescontrole](adrescontrole.md).
 
 ## Google Drive
 

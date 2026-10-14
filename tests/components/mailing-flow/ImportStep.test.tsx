@@ -16,7 +16,7 @@ vi.mock('@/components/app-shell/actions', () => ({ signOutAction: vi.fn() }))
 
 afterEach(cleanup)
 
-const defaults = { format: 'Small', priority: 'NP', genMID: '7', genPSC: 'N', codePrefix: 'CP' } as const
+const defaults = { format: 'Small', priority: 'NP', genMID: '7', genPSC: 'N', mode: 'P', codePrefix: 'CP' } as const
 
 describe('ImportStep (new mailing)', () => {
   it('first shows only the address list; once read, the details appear with the title from the file name', async () => {
@@ -35,7 +35,7 @@ describe('ImportStep (new mailing)', () => {
     const file = new NodeFile([new Uint8Array(bytes)], 'Nieuwsbrief december.xlsx') as unknown as File
     fireEvent.change(screen.getByLabelText('Excel-bestand kiezen'), { target: { files: [file] } })
 
-    const title = (await screen.findByLabelText(/Titel/)) as HTMLInputElement
+    const title = (await screen.findByRole('textbox', { name: /Titel/ })) as HTMLInputElement
     expect(title.value).toBe('Nieuwsbrief december')
     await waitFor(() => expect(document.activeElement?.id).toBe('f-date'))
   })

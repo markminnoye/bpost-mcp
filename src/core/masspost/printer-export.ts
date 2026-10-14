@@ -11,7 +11,17 @@ export const PRINTER_EXPORT_COLUMNS = {
   include: 'Meesturen',
   /** The `seq` sent to bpost for this row (its row number); empty for a row that is not mailed. */
   seq: 'Volgnummer bpost',
+  /** Mail ID from a submission (`MID-4030`); title may become "Mail ID (TEST, niet drukken)". */
+  mid: 'Mail ID',
+  /** Address as sent to bpost in the last accepted submission. */
+  announced: 'Adres zoals aangekondigd',
 } as const
+
+/** Mail ID and address as announced to bpost, for one row of the printer file. */
+export interface Announced {
+  midNum?: string
+  address: string
+}
 
 /** Input for `buildPrinterExport`. */
 export interface PrinterExportInput {
@@ -21,6 +31,10 @@ export interface PrinterExportInput {
   parsed: ParsedExcel
   /** Row numbers of the rows left out of the mailing. */
   excludedRowNumbers: ReadonlySet<number>
+  /** After a submission: the Mail ID and the address as announced to bpost, per row number. */
+  announced?: ReadonlyMap<number, Announced>
+  /** The submission was Test or Certification: the Mail ID column says "TEST, niet drukken". */
+  testMode?: boolean
 }
 
 function uniqueTitle(title: string, taken: ReadonlySet<string>): string {
@@ -40,12 +54,13 @@ function sheetFromParsed(parsed: ParsedExcel): XLSX.WorkSheet {
 }
 
 /**
- * Builds the export for the printer: the original first sheet with two columns added at the end
- * ("Meesturen" and "Volgnummer bpost"). No row is removed or moved, blank rows included, so the
- * original file, our data, the XML for bpost and bpost's answer stay linked row by row.
- * Other sheets are kept. Cell styling is not (SheetJS Community Edition writes data only).
+ * Builds the export for the printer: the original first sheet with columns added at the end
+ * ("Meesturen", "Volgnummer bpost", and after a submission also Mail ID and address as announced).
+ * No row is removed or moved, blank rows included, so the original file, our data, the XML for
+ * bpost and bpost's answer stay linked row by row. Other sheets are kept. Cell styling is not
+ * (SheetJS Community Edition writes data only).
  *
- * @param input The original workbook (optional), the parsed rows and the excluded row numbers.
+ * @param input The original workbook (optional), the parsed rows, exclusions and optional announcement.
  * @returns The .xlsx bytes.
  * @example
  * const bytes = buildPrinterExport({ source: fileBytes, parsed, excludedRowNumbers: new Set([977]) })
@@ -66,6 +81,9 @@ export function buildPrinterExport(input: PrinterExportInput): Uint8Array {
   const range = XLSX.utils.decode_range(sheet['!ref'] ?? 'A1')
   const includeCol = range.e.c + 1
   const seqCol = range.e.c + 2
+  const withAnnounce = !!input.announced
+  const midCol = withAnnounce ? seqCol + 1 : -1
+  const announcedCol = withAnnounce ? seqCol + 2 : -1
 
   const taken = new Set((data[0] ?? []).map((cell) => String(cell?.v ?? '').trim()))
   const includeTitle = uniqueTitle(PRINTER_EXPORT_COLUMNS.include, taken)
@@ -73,6 +91,16 @@ export function buildPrinterExport(input: PrinterExportInput): Uint8Array {
   data[0] ??= []
   data[0][includeCol] = { t: 's', v: includeTitle }
   data[0][seqCol] = { t: 's', v: seqTitle }
+  if (withAnnounce) {
+    const midLabel = input.testMode ? 'Mail ID (TEST, niet drukken)' : PRINTER_EXPORT_COLUMNS.mid
+    const midTitle = uniqueTitle(midLabel, new Set([...taken, includeTitle, seqTitle]))
+    const announcedTitle = uniqueTitle(
+      PRINTER_EXPORT_COLUMNS.announced,
+      new Set([...taken, includeTitle, seqTitle, midTitle]),
+    )
+    data[0][midCol] = { t: 's', v: midTitle }
+    data[0][announcedCol] = { t: 's', v: announcedTitle }
+  }
 
   for (const rowNumber of parsed.rowNumbers) {
     const r = rowNumber - 1
@@ -80,9 +108,14 @@ export function buildPrinterExport(input: PrinterExportInput): Uint8Array {
     const excluded = excludedRowNumbers.has(rowNumber)
     data[r][includeCol] = { t: 's', v: excluded ? 'nee, uitgesloten' : 'ja' }
     if (!excluded) data[r][seqCol] = { t: 'n', v: rowNumber }
+    if (withAnnounce) {
+      const announced = !excluded ? input.announced!.get(rowNumber) : undefined
+      data[r][midCol] = { t: 's', v: announced?.midNum ?? '' }
+      data[r][announcedCol] = { t: 's', v: announced?.address ?? '' }
+    }
   }
 
-  range.e.c = seqCol
+  range.e.c = withAnnounce ? announcedCol : seqCol
   range.e.r = Math.max(range.e.r, data.length - 1)
   sheet['!ref'] = XLSX.utils.encode_range(range)
   // The writer walks every row of the range: a blank row must be an empty array, not a hole.

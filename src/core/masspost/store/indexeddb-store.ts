@@ -14,7 +14,7 @@ import {
   type NewMailing,
 } from './mailing-store'
 
-const VERSION = 1
+const VERSION = 2
 
 /** The Excel file as stored: bytes plus media type (an ArrayBuffer clones everywhere, a Blob not). */
 interface StoredFile {
@@ -87,6 +87,8 @@ export class IndexedDbMailingStore implements MailingStore {
         const db = request.result
         if (!db.objectStoreNames.contains('mailings')) db.createObjectStore('mailings', { keyPath: 'id' })
         if (!db.objectStoreNames.contains('files')) db.createObjectStore('files')
+        // Version 2 (13/10): files exchanged with bpost, keyed `<id>/<path>`.
+        if (!db.objectStoreNames.contains('mailingFiles')) db.createObjectStore('mailingFiles')
       }
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(new StoreUnavailableError(request.error))
@@ -166,6 +168,34 @@ export class IndexedDbMailingStore implements MailingStore {
     const db = await this.open()
     const stored = (await done(db.transaction('files').objectStore('files').get(id))) as StoredFile | undefined
     return stored ? new Blob([stored.bytes], { type: stored.type }) : null
+  }
+
+  async saveFile(id: string, path: string, file: Blob): Promise<void> {
+    if (!(await this.get(id))) throw new MailingNotFoundError(id)
+    const db = await this.open()
+    const stored: StoredFile = { bytes: await file.arrayBuffer(), type: file.type }
+    const tx = db.transaction('mailingFiles', 'readwrite')
+    const ended = finished(tx)
+    tx.objectStore('mailingFiles').put(stored, `${id}/${path}`)
+    try {
+      await ended
+    } catch (e) {
+      throw writeError(e)
+    }
+  }
+
+  async getFile(id: string, path: string): Promise<Blob | null> {
+    const db = await this.open()
+    const stored = (await done(db.transaction('mailingFiles').objectStore('mailingFiles').get(`${id}/${path}`))) as StoredFile | undefined
+    return stored ? new Blob([stored.bytes], { type: stored.type }) : null
+  }
+
+  async listFiles(id: string, prefix: string): Promise<string[]> {
+    const db = await this.open()
+    const start = `${id}/${prefix}`
+    // All keys, filtered here: the store gets its IndexedDB injected, without a global IDBKeyRange.
+    const keys = await done(db.transaction('mailingFiles').objectStore('mailingFiles').getAllKeys())
+    return keys.map(String).filter((k) => k.startsWith(start)).map((k) => k.slice(id.length + 1)).sort()
   }
 
   private async write(

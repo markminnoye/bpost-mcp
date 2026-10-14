@@ -90,5 +90,19 @@ export function describeMailingStore(name: string, make: () => MailingStore | Pr
       expect(await store.get('nope')).toBeNull()
       await expect(store.update('nope', {}, 1, 'a', 'x')).rejects.toBeInstanceOf(MailingNotFoundError)
     })
+
+    it('keeps files per mailing under a path, lists them by prefix, overwrites', async () => {
+      const m = await store.create(newInput(), file(), 'an@x.be')
+      const other = await store.create(newInput('CP-2026-2'), file(), 'an@x.be')
+      const xml = (text: string) => new Blob([new TextEncoder().encode(text)], { type: 'application/xml' })
+      await store.saveFile(m.id, 'e-masspost/B_2RS.XML', xml('b'))
+      await store.saveFile(m.id, 'e-masspost/A_0RQ.XML', xml('a'))
+      await store.saveFile(other.id, 'e-masspost/C_0RQ.XML', xml('c'))
+      expect(await store.listFiles(m.id, 'e-masspost/')).toEqual(['e-masspost/A_0RQ.XML', 'e-masspost/B_2RS.XML'])
+      await store.saveFile(m.id, 'e-masspost/A_0RQ.XML', xml('a2'))
+      expect(await (await store.getFile(m.id, 'e-masspost/A_0RQ.XML'))!.text()).toBe('a2')
+      expect(await store.getFile(m.id, 'e-masspost/none.XML')).toBeNull()
+      await expect(store.saveFile('nope', 'e-masspost/x', xml('x'))).rejects.toBeInstanceOf(MailingNotFoundError)
+    })
   })
 }

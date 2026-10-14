@@ -17,6 +17,7 @@ export interface ImportDraft {
   priority: 'NP' | 'P'
   genMID: 'N' | '7' | '9' | '11'
   genPSC: 'Y' | 'N'
+  mode: 'T' | 'C' | 'P'
   roundAndSequence: boolean
   /** The user chose round and sequence; the default no longer applies. */
   roundSequenceTouched: boolean
@@ -38,6 +39,7 @@ export function initialDraft(defaults: TenantDefaults, code: string): ImportDraf
     priority: defaults.priority,
     genMID: defaults.genMID,
     genPSC: defaults.genPSC,
+    mode: defaults.mode,
     roundAndSequence: false,
     roundSequenceTouched: false,
   }
@@ -96,5 +98,6 @@ export function toDetails(d: ImportDraft): MailingDetails {
     genMID: d.genMID,
     genPSC: d.genPSC,
     roundAndSequence: d.roundAndSequence,
+    mode: d.mode,
   }
 }

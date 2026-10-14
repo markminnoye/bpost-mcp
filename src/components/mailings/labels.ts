@@ -35,18 +35,21 @@ export function filterMailings(items: readonly MailingSummary[], query: string):
  * @returns E.g. "Kolommen gekoppeld".
  */
 export function statusLabel(m: MailingSummary): string {
+  if (m.waiting) return 'Wachten op e-MassPost'
   return m.status === 'format' && m.formatIssuesOpen === 0
     ? 'Formaatvalidatie · in orde, klaar voor adrescontrole'
     : LABELS[m.status]
 }
 
 /**
- * Colour of the ARR dot (decision 21 of 02/10).
+ * Grade of an ARR (design 13/10, decision 20): under 96 % you cannot submit, from 96 % you can, and
+ * from 98 % comes the extra discount for data quality. Status icon and bars: yellow, green, green;
+ * the ARR pill: an orange dot, a green dot, a gold star.
  * @param arr Percentage.
- * @returns red below 96, orange from 96 to 98, green from 98.
+ * @returns `low` under 96, `ok` from 96, `bonus` from 98.
  */
-export function arrTone(arr: number): 'red' | 'orange' | 'green' {
-  return arr < 96 ? 'red' : arr < 98 ? 'orange' : 'green'
+export function arrTone(arr: number): 'low' | 'ok' | 'bonus' {
+  return arr < 96 ? 'low' : arr < 98 ? 'ok' : 'bonus'
 }
 
 const MONTHS = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']

@@ -37,9 +37,35 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 
 #### counts
 
-\{ `addresses`: `number`; `foreign?`: `number` \| `null`; `formatIssuesOpen`: `number` \| `null`; \} = `...`
+\{ `addresses`: `number`; `check?`: \{ `multiple`: `number`; `noAddress`: `number`; `note`: `number`; `ok`: `number`; `proposal`: `number`; \}; `foreign?`: `number` \| `null`; `formatIssuesOpen`: `number` \| `null`; \} = `...`
 
 #### counts.addresses
+
+`number` = `...`
+
+#### counts.check?
+
+\{ `multiple`: `number`; `noAddress`: `number`; `note`: `number`; `ok`: `number`; `proposal`: `number`; \} = `...`
+
+Addresses per group of the last address check (design 13/10, part 2).
+
+#### counts.check.multiple
+
+`number` = `...`
+
+#### counts.check.noAddress
+
+`number` = `...`
+
+#### counts.check.note
+
+`number` = `...`
+
+#### counts.check.ok
+
+`number` = `...`
+
+#### counts.check.proposal
 
 `number` = `...`
 
@@ -77,6 +103,12 @@ Addresses outside Belgium, as the step bar counts them. Absent or null: not coun
 
 `string` = `...`
 
+#### exchanges?
+
+`object`[] = `...`
+
+Files sent to bpost and their state (design 13/10, part 2).
+
 #### excludedRows
 
 `number`[] = `...`
@@ -110,6 +142,12 @@ Excluded rows, by `seq` (the Excel row number).
 #### mapping
 
 \{ `order`: `string`[]; `roles`: `Record`\<`string`, `string`\>; \} \| `null` = `...`
+
+#### mode?
+
+`"P"` \| `"T"` \| `"C"` = `...`
+
+Mode at e-MassPost: Test, Certification or Production (design 13/10, decision 14). Absent: Production.
 
 #### modified
 
@@ -165,7 +203,7 @@ Excluded rows, by `seq` (the Excel row number).
 
 ### change
 
-`Partial`\<`Pick`\<\{ `archived`: `boolean`; `arr`: `number` \| `null`; `code`: `string`; `corrections`: `Record`\<`string`, `string`\>; `counts`: \{ `addresses`: `number`; `foreign?`: `number` \| `null`; `formatIssuesOpen`: `number` \| `null`; \}; `created`: \{ `at`: `string`; `by`: `string`; \}; `customer`: \{ `crmId`: `string` \| `null`; `name`: `string`; \}; `excludedRows`: `number`[]; `expectedDeliveryDate`: `string`; `format`: `"Large"` \| `"Small"`; `genMID`: `"7"` \| `"9"` \| `"11"` \| `"N"`; `genPSC`: `"N"` \| `"Y"`; `id`: `string`; `log`: `object`[]; `mapping`: \{ `order`: `string`[]; `roles`: `Record`\<`string`, `string`\>; \} \| `null`; `modified`: \{ `at`: `string`; `by`: `string`; \}; `priority`: `"P"` \| `"NP"`; `revision`: `number`; `roundAndSequence`: `boolean`; `schemaVersion`: `1`; `source`: \{ `name`: `string`; `sha256`: `string`; `size`: `number`; \}; `status`: `"format"` \| `"uploaded"` \| `"mapped"` \| `"checked"` \| `"submitted"` \| `"overdue"` \| `"done"` \| `"withdrawn"`; `title`: `string`; \}, `"format"` \| `"priority"` \| `"expectedDeliveryDate"` \| `"genMID"` \| `"genPSC"` \| `"title"` \| `"customer"` \| `"roundAndSequence"` \| `"status"` \| `"mapping"` \| `"corrections"` \| `"excludedRows"` \| `"counts"` \| `"arr"`\>\> & `object`
+`Partial`\<`Pick`\<\{ `archived`: `boolean`; `arr`: `number` \| `null`; `code`: `string`; `corrections`: `Record`\<`string`, `string`\>; `counts`: \{ `addresses`: `number`; `check?`: \{ `multiple`: `number`; `noAddress`: `number`; `note`: `number`; `ok`: `number`; `proposal`: `number`; \}; `foreign?`: `number` \| `null`; `formatIssuesOpen`: `number` \| `null`; \}; `created`: \{ `at`: `string`; `by`: `string`; \}; `customer`: \{ `crmId`: `string` \| `null`; `name`: `string`; \}; `exchanges?`: `object`[]; `excludedRows`: `number`[]; `expectedDeliveryDate`: `string`; `format`: `"Large"` \| `"Small"`; `genMID`: `"7"` \| `"9"` \| `"11"` \| `"N"`; `genPSC`: `"N"` \| `"Y"`; `id`: `string`; `log`: `object`[]; `mapping`: \{ `order`: `string`[]; `roles`: `Record`\<`string`, `string`\>; \} \| `null`; `mode?`: `"P"` \| `"T"` \| `"C"`; `modified`: \{ `at`: `string`; `by`: `string`; \}; `priority`: `"P"` \| `"NP"`; `revision`: `number`; `roundAndSequence`: `boolean`; `schemaVersion`: `1`; `source`: \{ `name`: `string`; `sha256`: `string`; `size`: `number`; \}; `status`: `"format"` \| `"uploaded"` \| `"mapped"` \| `"checked"` \| `"submitted"` \| `"overdue"` \| `"done"` \| `"withdrawn"`; `title`: `string`; \}, `"format"` \| `"priority"` \| `"mode"` \| `"expectedDeliveryDate"` \| `"genMID"` \| `"genPSC"` \| `"title"` \| `"customer"` \| `"roundAndSequence"` \| `"status"` \| `"mapping"` \| `"corrections"` \| `"excludedRows"` \| `"counts"` \| `"arr"` \| `"exchanges"`\>\> & `object`
 
 The fields to change.
 
@@ -217,6 +255,32 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 
 > **addresses**: `number`
 
+#### counts.check?
+
+> `optional` **check?**: `object`
+
+Addresses per group of the last address check (design 13/10, part 2).
+
+#### counts.check.multiple
+
+> **multiple**: `number`
+
+#### counts.check.noAddress
+
+> **noAddress**: `number`
+
+#### counts.check.note
+
+> **note**: `number`
+
+#### counts.check.ok
+
+> **ok**: `number`
+
+#### counts.check.proposal
+
+> **proposal**: `number`
+
 #### counts.foreign?
 
 > `optional` **foreign?**: `number` \| `null`
@@ -251,6 +315,12 @@ Addresses outside Belgium, as the step bar counts them. Absent or null: not coun
 
 > **name**: `string`
 
+### exchanges?
+
+> `optional` **exchanges?**: `object`[]
+
+Files sent to bpost and their state (design 13/10, part 2).
+
 ### excludedRows
 
 > **excludedRows**: `number`[]
@@ -284,6 +354,12 @@ Excluded rows, by `seq` (the Excel row number).
 ### mapping
 
 > **mapping**: \{ `order`: `string`[]; `roles`: `Record`\<`string`, `string`\>; \} \| `null`
+
+### mode?
+
+> `optional` **mode?**: `"P"` \| `"T"` \| `"C"`
+
+Mode at e-MassPost: Test, Certification or Production (design 13/10, decision 14). Absent: Production.
 
 ### modified
 

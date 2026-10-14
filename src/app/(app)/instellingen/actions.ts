@@ -98,6 +98,7 @@ export async function saveDefaults(_prev: SettingsResult, formData: FormData): P
       defaultPriority: d.priority,
       defaultGenMid: d.genMID,
       defaultPresort: d.genPSC,
+      defaultMode: d.mode,
       codePrefix: d.codePrefix || null,
     })
     .onConflictDoUpdate({
@@ -107,6 +108,7 @@ export async function saveDefaults(_prev: SettingsResult, formData: FormData): P
         defaultPriority: sql`excluded.default_priority`,
         defaultGenMid: sql`excluded.default_gen_mid`,
         defaultPresort: sql`excluded.default_presort`,
+        defaultMode: sql`excluded.default_mode`,
         codePrefix: sql`excluded.code_prefix`,
         updatedAt: new Date(),
       },

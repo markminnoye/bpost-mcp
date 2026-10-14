@@ -7,13 +7,13 @@ import { IconBuilding, IconCalendar, IconMail, IconWorld } from '@tabler/icons-r
 import type { MailingSummary } from '@/core/masspost/store/mailing'
 import { addressesInfo, foreignInfo } from '@/components/mailing-flow/pill-info'
 import { printerReady } from '@/components/mailing-flow/exports'
-import { arrTone, formatPercent, longDate, shortDate } from './labels'
+import { ArrMark } from './ArrMark'
+import { formatPercent, longDate, shortDate } from './labels'
 import { RowMenu } from './RowMenu'
 import { StatusIcon } from './StatusIcon'
 import styles from '@/components/app-shell/app.module.css'
 
 const SMALL = { size: 14, stroke: 1.75, 'aria-hidden': true } as const
-const ARR_COLOR = { red: 'var(--red)', orange: 'var(--orange)', green: 'var(--green)' } as const
 
 /**
  * One mailing in the list: on one line, or on two lines in a narrow area (SR-112 decision 10).
@@ -69,19 +69,34 @@ export function MailingRow({
       <span>{abroad.text}</span>
     </span>
   ) : null
+  // Same neutral ARR pill as in the step bar (ArrMark: orange / green / gold star).
   const arr =
     m.arr === null ? (
-      <span className={`${styles.arr} ${styles.muted}`} data-tip="Nog niet gecontroleerd door bpost">
+      <span className={`${styles.date} ${styles.muted}`} data-tip="Nog niet gecontroleerd door e-MassPost">
         —<span className={styles.srOnly}>nog geen ARR</span>
       </span>
     ) : (
-      <span className={styles.arr} data-tip="ARR: deel van de adressen dat bpost herkent">
-        <span className={styles.dot} style={{ background: ARR_COLOR[arrTone(m.arr)] }} aria-hidden="true" />
-        {formatPercent(m.arr)}
+      <span className={styles.pill} data-tip="ARR: deel van de adressen dat e-MassPost herkent tot op het gebouw">
+        <ArrMark arr={m.arr} />
+        <span>{formatPercent(m.arr)}</span>
       </span>
     )
+  const submittedMode =
+    m.submittedMode === 'T' || m.submittedMode === 'C' ? (
+      <span
+        className={`${styles.pill} ${styles.pillWarn}`}
+        data-tip={
+          m.submittedMode === 'T'
+            ? 'Ingediend in testmodus: bpost bezorgt niets'
+            : 'Ingediend in certificatie'
+        }
+      >
+        {m.submittedMode === 'T' ? 'Test' : 'Certificatie'}
+      </span>
+    ) : null
   const date = m.expectedDeliveryDate ? (
-    <span className={styles.date} data-tip={`Geplande afgifte: ${longDate(m.expectedDeliveryDate)}`}>
+    <span className={styles.meta} data-tip={`Geplande afgifte: ${longDate(m.expectedDeliveryDate)}`}>
+      <IconCalendar {...SMALL} />
       {shortDate(m.expectedDeliveryDate)}
     </span>
   ) : (
@@ -119,6 +134,7 @@ export function MailingRow({
           {foreign}
           {addresses}
           {arr}
+          {submittedMode}
           {date}
         </div>
         {menu}
@@ -138,12 +154,8 @@ export function MailingRow({
           {foreign}
           {addresses}
           {m.arr !== null && arr}
-          {m.expectedDeliveryDate && (
-            <span className={styles.meta} data-tip={`Geplande afgifte: ${longDate(m.expectedDeliveryDate)}`}>
-              <IconCalendar {...SMALL} />
-              {shortDate(m.expectedDeliveryDate)}
-            </span>
-          )}
+          {submittedMode}
+          {m.expectedDeliveryDate && date}
         </div>
       </div>
       {menu}

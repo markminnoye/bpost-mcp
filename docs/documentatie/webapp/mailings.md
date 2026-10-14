@@ -37,10 +37,11 @@ Klik op **+ Nieuwe mailing**, rechts van de zoekbalk bovenaan het overzicht. Op 
    - **Titel:** de bestandsnaam, of wat je zelf kiest.
    - **Code:** we stellen het volgende vrije nummer voor, bv. CP-2026-15. Je kan het aanpassen: letters, cijfers en koppeltekens, maximaal 20 tekens. De code is ook de referentie bij bpost.
    - **Geplande afgiftedatum,** vanaf vandaag en op een werkdag: van maandag tot vrijdag, geen Belgische feestdag. bpost weigert een afgifte op een dag waarop ze niet werkt.
-   - **Formaat, prioriteit, barcode en presortering** komen uit [Instellingen](instellingen.md).
+   - **Formaat, prioriteit, barcode, presortering en modus** komen uit [Instellingen](instellingen.md).
+   - **Modus:** Productie (de echte afgifte), Test of Certificatie. Standaard Productie, tenzij je organisatie een andere standaard koos.
    - **Presortering** is verplicht bij klein formaat vanaf 25.000 adressen.
    - **Ronde en sequentie** kan enkel bij groot formaat. Het staat standaard aan vanaf 10.000 adressen.
-3. Klik op **Verder naar koppelen**. De knop wordt pas actief als alles ingevuld is. Wat nog ontbreekt, staat in het rood onder het veld. Ga met de muis over een label (of het ⓘ ernaast) voor wat het veld betekent.
+3. Klik op **Verder naar koppelen**. De knop wordt pas actief als alles ingevuld is. Wat nog ontbreekt, staat in het rood onder het veld. Klik op het ⓘ naast een label voor wat het veld betekent. De aanwijzer wordt een vraagteken als je over dat icoon gaat.
 
 Pas dan maken we de mailing aan. Ga je eerder weg, dan vragen we eerst of je de ingevulde gegevens wil kwijtspelen.
 
@@ -52,7 +53,7 @@ Klik op een mailing in het overzicht. Je komt terug bij de stap waar je was. Je 
 
 De gegevens pas je aan in stap 1: klik op **1. Importeren**. De code en de adreslijst blijven dezelfde. Wat je aanpast, wordt vanzelf bewaard, net als in de andere stappen.
 
-Archiveren doe je in het overzicht: elke mailing heeft daar een menu **…** met **Openen**, **Opslaan voor de drukker** en **Archiveren**. **Opslaan voor de drukker** geeft hetzelfde bestand als in stap 4 van de mailing: je bestand zoals het was, met de kolommen *Meesturen* en *Volgnummer bpost*. Het kan pas als de formaatvalidatie in orde is; tot dan staat het in het grijs.
+Archiveren doe je in het overzicht: elke mailing heeft daar een menu **…** met **Openen**, **Opslaan voor de drukker** en **Archiveren**. **Opslaan voor de drukker** geeft je bestand zoals het was, met de kolommen *Meesturen* en *Volgnummer bpost*. Het kan pas als de formaatvalidatie in orde is; tot dan staat het in het grijs.
 
 Werk je in twee tabbladen aan dezelfde mailing, dan bewaart het tweede tabblad niets meer en vraagt het je de pagina te herladen. Zo overschrijf je je eigen werk niet.
 

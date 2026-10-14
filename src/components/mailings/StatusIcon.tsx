@@ -1,4 +1,5 @@
 import type { MailingSummary } from '@/core/masspost/store/mailing'
+import { Spinner } from '@/components/mailing-flow/StatusIcons'
 import { arrTone, formatPercent, statusLabel } from './labels'
 import styles from '@/components/app-shell/app.module.css'
 
@@ -33,7 +34,7 @@ function Full({ color, mark, size }: { color: string; mark?: '!'; size: number }
   )
 }
 
-const ARR_COLOR = { red: 'var(--red)', orange: 'var(--orange)', green: 'var(--green)' } as const
+const ARR_COLOR = { low: 'var(--yellow)', ok: 'var(--green)', bonus: 'var(--green)' } as const
 
 /**
  * The Harvey ball of a status (docs/ontwerp/webapp/statusiconen.html), with its meaning as hover tip
@@ -45,6 +46,8 @@ const ARR_COLOR = { red: 'var(--red)', orange: 'var(--orange)', green: 'var(--gr
 export function StatusIcon({ mailing, size = 20 }: { mailing: MailingSummary; size?: number }) {
   const label = statusLabel(mailing) + (mailing.status === 'checked' && mailing.arr !== null ? ` · ARR ${formatPercent(mailing.arr)}` : '')
   const icon = (() => {
+    // A file is with e-MassPost: the waiting wheel (statusiconen.html, "Wachten").
+    if (mailing.waiting) return <Spinner size={size} />
     switch (mailing.status) {
       case 'uploaded':
         return <Ball color="var(--text-muted)" size={size} />

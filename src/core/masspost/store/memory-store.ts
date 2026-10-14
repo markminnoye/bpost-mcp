@@ -15,6 +15,7 @@ import {
 export class MemoryMailingStore implements MailingStore {
   private readonly mailings = new Map<string, Mailing>()
   private readonly files = new Map<string, Blob>()
+  private readonly mailingFiles = new Map<string, Blob>()
   private readonly now: () => Date
   private readonly newId: () => string
 
@@ -61,6 +62,20 @@ export class MemoryMailingStore implements MailingStore {
 
   async getSourceFile(id: string): Promise<Blob | null> {
     return this.files.get(id) ?? null
+  }
+
+  async saveFile(id: string, path: string, file: Blob): Promise<void> {
+    if (!this.mailings.has(id)) throw new MailingNotFoundError(id)
+    this.mailingFiles.set(`${id}/${path}`, file)
+  }
+
+  async getFile(id: string, path: string): Promise<Blob | null> {
+    return this.mailingFiles.get(`${id}/${path}`) ?? null
+  }
+
+  async listFiles(id: string, prefix: string): Promise<string[]> {
+    const start = `${id}/${prefix}`
+    return [...this.mailingFiles.keys()].filter((k) => k.startsWith(start)).map((k) => k.slice(id.length + 1)).sort()
   }
 
   private write(

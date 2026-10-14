@@ -14,7 +14,8 @@ Contrapunt is already certified (Mark, 01/10/2026) and bpost accepted a Producti
 (no MID-1020), so this is no longer a certification rule. It stays until Mark decides when the
 app may send in `C` or `P`.
 Exception (01/10/2026, Mark): a caller may set `allowNonTestMode` to build a `C` or `P` file
-for a deliberate protocol test through the portal upload tool. Only `scripts/generate-mailing-xml.ts`
-does that, and it sends nothing. HTTP routes and the web app must never set it.
+for a deliberate protocol test through the portal upload tool (`scripts/generate-mailing-xml.ts`),
+and the web app sets it for one MailingCreate after the user chose C or P for that mailing and
+confirmed (ADR 0010). HTTP routes never set it; a MailingCheck from the web app is always T.
 Remove FORCE_TEST_MODE (and go back to honoring `params.mode`) only after explicit sign-off
 once the `C`/`P` tests (see .agent/plans/2026-10-01-masspost-api-and-web.md, phase 0b) are done.

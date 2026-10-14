@@ -66,6 +66,32 @@ Corrected values, keyed `<seq>:<field>` as in the format step.
 
 > **addresses**: `number`
 
+#### counts.check?
+
+> `optional` **check?**: `object`
+
+Addresses per group of the last address check (design 13/10, part 2).
+
+#### counts.check.multiple
+
+> **multiple**: `number`
+
+#### counts.check.noAddress
+
+> **noAddress**: `number`
+
+#### counts.check.note
+
+> **note**: `number`
+
+#### counts.check.ok
+
+> **ok**: `number`
+
+#### counts.check.proposal
+
+> **proposal**: `number`
+
 #### counts.foreign?
 
 > `optional` **foreign?**: `number` \| `null`
@@ -100,6 +126,12 @@ Addresses outside Belgium, as the step bar counts them. Absent or null: not coun
 
 > **name**: `string`
 
+### exchanges?
+
+> `optional` **exchanges?**: `object`[]
+
+Files sent to bpost and their state (design 13/10, part 2).
+
 ### excludedRows
 
 > **excludedRows**: `number`[]
@@ -133,6 +165,12 @@ Excluded rows, by `seq` (the Excel row number).
 ### mapping
 
 > **mapping**: \{ `order`: `string`[]; `roles`: `Record`\<`string`, `string`\>; \} \| `null`
+
+### mode?
+
+> `optional` **mode?**: `"P"` \| `"T"` \| `"C"`
+
+Mode at e-MassPost: Test, Certification or Production (design 13/10, decision 14). Absent: Production.
 
 ### modified
 

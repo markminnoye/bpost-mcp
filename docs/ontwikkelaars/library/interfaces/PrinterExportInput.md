@@ -10,6 +10,14 @@ Input for `buildPrinterExport`.
 
 ## Properties
 
+### announced?
+
+> `optional` **announced?**: `ReadonlyMap`\<`number`, [`Announced`](Announced.md)\>
+
+After a submission: the Mail ID and the address as announced to bpost, per row number.
+
+***
+
 ### excludedRowNumbers
 
 > **excludedRowNumbers**: `ReadonlySet`\<`number`\>
@@ -31,3 +39,11 @@ The same workbook as read by `parseExcelAddresses`: which rows hold an address.
 > `optional` **source?**: `ArrayBuffer` \| `Uint8Array`\<`ArrayBufferLike`\>
 
 The customer's original workbook. Without it, the sheet is rebuilt from `parsed`.
+
+***
+
+### testMode?
+
+> `optional` **testMode?**: `boolean`
+
+The submission was Test or Certification: the Mail ID column says "TEST, niet drukken".

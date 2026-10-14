@@ -6,6 +6,7 @@ import { saveBpost, saveDefaults, saveOrganisation, type SettingsResult } from '
 import { PageHeader } from '@/components/app-shell/AppShell'
 import { FieldError, FieldLabel } from '@/components/app-shell/FieldLabel'
 import { Placeholder } from '@/components/app-shell/Placeholder'
+import { MAILBOX_KINDS } from '@/core/masspost/mailbox'
 import { FIELD_TIPS } from '@/components/mailing-flow/field-tips'
 import type { TenantSettings } from '@/lib/tenant/settings'
 import styles from '@/components/app-shell/app.module.css'
@@ -233,6 +234,14 @@ export function SettingsForms({ settings }: { settings: TenantSettings }) {
             </select>
           </div>
           <div className={styles.field}>
+            <FieldLabel htmlFor="s-mode" label="Modus" tip={asDefault(FIELD_TIPS.mode)} />
+            <select id="s-mode" name="mode" defaultValue={df.value('mode', d.mode)}>
+              <option value="P">Productie</option>
+              <option value="T">Test</option>
+              <option value="C">Certificatie</option>
+            </select>
+          </div>
+          <div className={styles.field}>
             <FieldLabel label="Presortering" tip={asDefault(FIELD_TIPS.presort)} />
             <label className={styles.check}>
               <input type="checkbox" name="genPSC" value="Y" defaultChecked={d.genPSC === 'Y'} /> bpost maakt de presorteercodes
@@ -260,6 +269,25 @@ export function SettingsForms({ settings }: { settings: TenantSettings }) {
         </div>
         <Foot pending={defaultsPending} result={defaultsResult} />
       </Card>
+
+      <section className={styles.card} aria-labelledby="s-mailbox-title">
+        <h2 id="s-mailbox-title">Verbinding met e-MassPost</h2>
+        <p className={styles.lead}>Hoe de bestanden naar e-MassPost vertrekken en hoe het antwoord terugkomt.</p>
+        {/* One choice for now and nothing is saved (design 13/10, decision 11). */}
+        <div className={styles.grid2} role="radiogroup" aria-labelledby="s-mailbox-title">
+          {MAILBOX_KINDS.map((k) =>
+            k.available ? (
+              <label key={k.kind} className={`${styles.choice} ${styles.tipStart}`} data-tip={k.tip}>
+                <input type="radio" name="mailbox" value={k.kind} checked readOnly /> {k.label}
+              </label>
+            ) : (
+              <Placeholder key={k.kind} tip={k.tip} className={styles.choice}>
+                {k.label}
+              </Placeholder>
+            ),
+          )}
+        </div>
+      </section>
 
       <section className={styles.card} aria-labelledby="s-drive-title">
         <h2 id="s-drive-title">

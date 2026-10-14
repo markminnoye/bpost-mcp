@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { initialDraft, toDetails, withFile, withFormat } from '@/components/mailing-flow/import-draft'
 
-const defaults = { format: 'Small', priority: 'NP', genMID: '7', genPSC: 'N', codePrefix: 'CP' } as const
+const defaults = { format: 'Small', priority: 'NP', genMID: '7', genPSC: 'N', mode: 'T', codePrefix: 'CP' } as const
 
 describe('import draft', () => {
   it('starts from the tenant defaults and the proposed code', () => {
@@ -10,6 +10,7 @@ describe('import draft', () => {
       format: 'Small',
       genMID: '7',
       genPSC: 'N',
+      mode: 'T',
       title: '',
     })
   })
@@ -44,6 +45,7 @@ describe('import draft', () => {
       genMID: '7',
       genPSC: 'N',
       roundAndSequence: false,
+      mode: 'T',
     })
   })
 

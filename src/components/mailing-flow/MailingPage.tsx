@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import type { BpostIds } from '@/core/masspost/request-file'
 import type { Mailing } from '@/core/masspost/store/mailing'
 import { StoreUnavailableError, UnreadableMailingError } from '@/core/masspost/store/mailing-store'
 import { PageHeader } from '@/components/app-shell/AppShell'
@@ -30,11 +31,14 @@ export function MailingPage({
   editDetails,
   docsUrl,
   aiModel,
+  bpost = null,
 }: {
   code: string
   editDetails: boolean
   docsUrl?: string
   aiModel?: string
+  /** The bpost numbers of the tenant (no password), for the XML of step 4. */
+  bpost?: BpostIds | null
 }) {
   const { store, user } = useMailingStore()
   const [load, setLoad] = useState<Load>({ state: 'loading' })
@@ -108,6 +112,7 @@ export function MailingPage({
       startOnDetails={editDetails}
       docsUrl={docsUrl}
       aiModel={aiModel}
+      bpost={bpost}
     />
   )
 }
@@ -119,6 +124,7 @@ function OpenMailing({
   startOnDetails,
   docsUrl,
   aiModel,
+  bpost,
 }: {
   mailing: Mailing
   list: LoadedList
@@ -126,6 +132,7 @@ function OpenMailing({
   startOnDetails: boolean
   docsUrl?: string
   aiModel?: string
+  bpost: BpostIds | null
 }) {
   const saver = useMailingSaver(mailing)
   const router = useRouter()
@@ -175,6 +182,7 @@ function OpenMailing({
         docsUrl={docsUrl}
         aiModel={aiModel}
         startOnDetails={startOnDetails}
+        bpost={bpost}
         onDetailsIncomplete={(incomplete) => {
           detailsIncomplete.current = incomplete
         }}

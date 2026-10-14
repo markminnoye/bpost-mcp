@@ -190,6 +190,14 @@ export function DetailsForm({
           </select>
         </div>
         <div className={styles.field}>
+          <FieldLabel htmlFor="f-mode" label="Modus" required tip={FIELD_TIPS.mode} />
+          <select id="f-mode" value={draft.mode} onChange={(e) => update({ mode: e.target.value as ImportDraft['mode'] })}>
+            <option value="P">Productie</option>
+            <option value="T">Test</option>
+            <option value="C">Certificatie</option>
+          </select>
+        </div>
+        <div className={styles.field}>
           <FieldLabel label="Presortering" tip={FIELD_TIPS.presort} />
           <label className={styles.check}>
             <input

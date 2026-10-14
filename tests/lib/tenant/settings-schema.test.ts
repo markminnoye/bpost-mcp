@@ -10,11 +10,12 @@ describe('organisationSchema', () => {
 
 describe('defaultsSchema', () => {
   it('accepts the form values and an empty prefix', () => {
-    expect(defaultsSchema.parse({ format: 'Large', priority: 'P', genMID: 'N', genPSC: 'Y', codePrefix: '' })).toEqual({
+    expect(defaultsSchema.parse({ format: 'Large', priority: 'P', genMID: 'N', genPSC: 'Y', mode: 'T', codePrefix: '' })).toEqual({
       format: 'Large',
       priority: 'P',
       genMID: 'N',
       genPSC: 'Y',
+      mode: 'T',
       codePrefix: '',
     })
   })
@@ -23,6 +24,10 @@ describe('defaultsSchema', () => {
       genPSC: 'N',
       codePrefix: 'CP',
     })
+  })
+  it('takes Productie as mode when the form sends none, and refuses an unknown mode (design 13/10, decision 14)', () => {
+    expect(defaultsSchema.parse({ format: 'Small', priority: 'NP', genMID: '7', codePrefix: '' }).mode).toBe('P')
+    expect(defaultsSchema.safeParse({ format: 'Small', priority: 'NP', genMID: '7', mode: 'X', codePrefix: '' }).success).toBe(false)
   })
   it('refuses a prefix with spaces or longer than 8, and an unknown barcode', () => {
     expect(defaultsSchema.safeParse({ format: 'Small', priority: 'NP', genMID: '7', codePrefix: 'C P' }).success).toBe(false)

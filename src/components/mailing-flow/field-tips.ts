@@ -12,6 +12,8 @@ export const FIELD_TIPS = {
   priority: 'Prior of non-prior: hoe snel bpost je brieven bezorgt. Geldt voor elke brief van de mailing.',
   barcode:
     'Of bpost de Mail ID-barcodes voor je maakt, met 7, 9 of 11 cijfers. Kies Geen als je de barcodes zelf meegeeft.',
+  mode:
+    'Productie: de echte afgifte bij e-MassPost. Test: e-MassPost verwerkt je lijst, maar er volgt geen afgifte. Certificatie: om je bestanden te laten goedkeuren.',
   presort: 'bpost maakt de presorteercodes, voor brieven die je niet zelf sorteerde.',
   roundSequence:
     'Enkel bij groot formaat. bpost geeft per brief een sequentie, die je op de envelop drukt om de brieven in de juiste volgorde af te geven.',

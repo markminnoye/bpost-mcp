@@ -1,4 +1,4 @@
-import type { Mailing } from '@/core/masspost/store/mailing'
+import { isWaiting, type Mailing } from '@/core/masspost/store/mailing'
 import type { StepId } from './StepBar'
 
 /**
@@ -9,6 +9,8 @@ import type { StepId } from './StepBar'
  */
 export function resumeStep(m: Mailing): StepId {
   if (!m.mapping) return 'mapping'
+  // Sent to e-MassPost or checked: step 4, also when a format error was opened again since.
+  if (m.status === 'checked' || m.status === 'submitted' || isWaiting(m)) return 'check'
   if (m.counts.formatIssuesOpen === 0) return 'check'
   return 'format'
 }

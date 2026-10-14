@@ -102,17 +102,4 @@ De gevonden formaatfouten staan in groepen: vreemde tekens, een schuine streep i
 
 ## Stap 4: adrescontrole
 
-De adrescontrole bij bpost komt in een volgende versie. Daarom staat **Verder naar indienen** nog uit; terug naar de formaatfouten ga je via de stappen bovenaan. Wel kan je hier twee bestanden opslaan, elk in een eigen kader naast elkaar. We maken ze in je browser: er wordt niets opgeladen. Je browser bewaart het bestand zoals elk ander bestand, meestal in de map Downloads.
-
-**Opslaan voor bpost (AFT, .xls)** geeft een bestand voor de Address File Tool op het e-MassPost-portaal van bpost:
-- **de kolommen van het sjabloon van bpost,** in hun vaste volgorde, als Excel 97-2003 (.xls), want het portaal aanvaardt geen .xlsx;
-- **enkel de adressen die meegaan,** met je verbeteringen uit de formaatvalidatie;
-- *SEQ* is het rijnummer in je bestand, en elke rij gaat als niet-prioritaire zending (*PRIORITY* NP).
-
-**Opslaan voor de drukker (.xlsx)** geeft je bestand zoals het was:
-- **elke rij blijft op haar plaats,** ook lege rijen, met je kolommen ongewijzigd;
-- **twee kolommen komen erbij:**
-  - *Meesturen*: "ja", of "nee, uitgesloten" voor een rij die je uitsloot. Die rij mag niet gedrukt worden.
-  - *Volgnummer bpost*: het nummer waarmee bpost het adres kent, het rijnummer in je bestand. Leeg voor een uitgesloten rij.
-
-Zo blijven je bestand, wat naar bpost gaat en wat er van bpost terugkomt rij per rij aan elkaar gekoppeld. Later komen ook de barcode en het adres zoals het bij bpost aangekondigd is in deze export.
+In stap 4 kijkt e-MassPost elk adres na. Hoe dat werkt, lees je in [Adrescontrole](adrescontrole.md).

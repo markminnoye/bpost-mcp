@@ -76,3 +76,12 @@ describe('buildXml — attribute shaping', () => {
     expect(parsed.ItemCount['@_value']).toBe('5')
   })
 })
+
+describe('parseXml on a large bpost response', () => {
+  it('reads more than 1000 standard entities (an XPath with &quot; per address)', () => {
+    const reply = '<Reply><XPath>/MailingRequest/MailingCreate[@seq=&quot;1&quot;]</XPath></Reply>'
+    const doc = parseXml<{ R: { Reply: { XPath: string }[] } }>(`<R>${reply.repeat(600)}</R>`)
+    expect(doc.R.Reply).toHaveLength(600)
+    expect(doc.R.Reply[599].XPath).toBe('/MailingRequest/MailingCreate[@seq="1"]')
+  })
+})

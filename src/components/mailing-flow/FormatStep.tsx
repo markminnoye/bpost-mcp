@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type KeyboardEvent } from 'react'
-import { IconChecks, IconChevronRight, IconDownload, IconMailOff } from '@tabler/icons-react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type KeyboardEvent } from 'react'
+import { IconChecks, IconChevronRight, IconMailOff } from '@tabler/icons-react'
 import { checkFieldValue, type FormatIssue } from '@/core/masspost/format-check'
 import { UNSTRUCTURED_MAX_LENGTH } from '@/core/masspost/mapping'
 import { ADDRESS_FIELDS, FIELD_LABELS, formatCount } from './columns'
+import type { CorrectionAction, Corrections } from './corrections'
 import { IssueRow, type RowActions } from './IssueRow'
 import { IconRows3 } from './StatusIcons'
 import styles from './mailing-flow.module.css'
@@ -27,97 +28,19 @@ const PAGE = 100
 
 const keyOf = (issue: FormatIssue) => `${issue.seq}:${issue.field}`
 
-// —— Corrections: values per field, excluded rows, and an undo stack ——
-
-interface Snapshot {
-  key: string
-  seq: number
-  value: string | undefined
-  excluded: boolean
-}
-
-interface Change {
-  key: string
-  seq: number
-  /** `undefined` restores the original value. Leave the property out to keep the value. */
-  value?: string | undefined
-  excluded?: boolean
-}
-
-interface Corrections {
-  values: Record<string, string>
-  excluded: Record<number, true>
-  undo: { id: number; items: Snapshot[] }[]
-  nextId: number
-}
-
-type Action =
-  | { type: 'apply'; changes: Change[] }
-  | { type: 'toggleExclude'; key: string; seq: number }
-  | { type: 'undo'; id?: number }
-
-function write(values: Record<string, string>, excluded: Record<number, true>, change: Change | Snapshot) {
-  if ('value' in change) {
-    if (change.value === undefined) delete values[change.key]
-    else values[change.key] = change.value
-  }
-  if (change.excluded !== undefined) {
-    if (change.excluded) excluded[change.seq] = true
-    else delete excluded[change.seq]
-  }
-}
-
-function reducer(state: Corrections, action: Action): Corrections {
-  if (action.type === 'toggleExclude') {
-    const { key, seq } = action
-    return reducer(state, { type: 'apply', changes: [{ key, seq, excluded: !state.excluded[seq] }] })
-  }
-  const values = { ...state.values }
-  const excluded = { ...state.excluded }
-  if (action.type === 'apply') {
-    if (action.changes.length === 0) return state
-    const items = action.changes.map((c) => ({
-      key: c.key,
-      seq: c.seq,
-      value: state.values[c.key],
-      excluded: !!state.excluded[c.seq],
-    }))
-    action.changes.forEach((change) => write(values, excluded, change))
-    return { values, excluded, undo: [...state.undo, { id: state.nextId, items }], nextId: state.nextId + 1 }
-  }
-  const entry = action.id === undefined ? state.undo.at(-1) : state.undo.find((e) => e.id === action.id)
-  if (!entry) return state
-  ;[...entry.items].reverse().forEach((snapshot) => write(values, excluded, snapshot))
-  return { ...state, values, excluded, undo: state.undo.filter((e) => e !== entry) }
-}
-
-/** Which file step 4 saves: for bpost's Address File Tool, or for the printer. */
-export type SaveTarget = 'aft' | 'printer'
-
-/** What the user decided in this step, for the files of step 4. */
-export interface SaveChoices {
-  excludedRowNumbers: number[]
-  /** Corrected values by `"<row number>:<block>"`. */
-  corrections: Record<string, string>
-}
-
 interface Props {
   issues: FormatIssue[]
   rowCount: number
   /** Reports the open format errors and the excluded rows, for the pills in the top bar. */
   onTotals: (totals: { open: number; excludedRows: number }) => void
-  /** Step 4 (address check) is shown instead of the list. Controlled by the flow, so the step bar follows. */
-  done: boolean
+  /** Goes on to step 4 (address check). Controlled by the flow, so the step bar follows. */
   onDone: (done: boolean) => void
-  /** Saves a file of step 4, with the exclusions and corrections made here. */
-  onSave: (target: SaveTarget, choices: SaveChoices) => Promise<void>
   docsUrl?: string
   /** False while another step is on screen: the step stays mounted so the corrections survive. */
   active: boolean
-  /** Corrections and exclusions to start from (a resumed mailing). */
-  initial?: { values: Record<string, string>; excluded: Record<number, true> }
-  /** Reports every change to the corrections and exclusions, to save them. Not called for `initial`. */
-  onChange?: (state: { values: Record<string, string>; excluded: Record<number, true> }) => void
+  /** Corrections and exclusions, owned by MailingFlow and shared with step 4. */
+  corrections: Corrections
+  dispatch: Dispatch<CorrectionAction>
 }
 
 /** Step 3: format problems grouped by kind, per row confirm or correct, or accept a whole group (sketch v8). */
@@ -125,39 +48,20 @@ export function FormatStep({
   issues,
   rowCount,
   onTotals,
-  done,
   onDone,
-  onSave,
   docsUrl,
   active,
-  initial,
-  onChange,
+  corrections,
+  dispatch,
 }: Props) {
-  const [state, dispatch] = useReducer(reducer, {
-    values: initial?.values ?? {},
-    excluded: initial?.excluded ?? {},
-    undo: [],
-    nextId: 1,
-  })
+  const state = corrections
   const [stops, setStops] = useState<Partial<Record<GroupId, string>>>({})
   // Open: every row. Closed: the first rows, or none once the group is in order and `shut`.
   const [expanded, setExpanded] = useState<Partial<Record<GroupId, boolean>>>({})
   const [shut, setShut] = useState<Partial<Record<GroupId, boolean>>>({})
   const [pages, setPages] = useState<Partial<Record<GroupId, number>>>({})
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null)
-  const [saving, setSaving] = useState<SaveTarget | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  // Report changes to save them; the first render is the starting point, not a change.
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
-  // Compared with the last reported state, not a "first run" flag: StrictMode runs the effect twice.
-  const reported = useRef({ values: state.values, excluded: state.excluded })
-  useEffect(() => {
-    if (reported.current.values === state.values && reported.current.excluded === state.excluded) return
-    reported.current = { values: state.values, excluded: state.excluded }
-    onChangeRef.current?.({ values: state.values, excluded: state.excluded })
-  }, [state.values, state.excluded])
 
   const groups = useMemo(() => {
     const byId = new Map<GroupId, FormatIssue[]>(GROUPS.map((g) => [g.id, []]))
@@ -269,9 +173,10 @@ export function FormatStep({
       commit: (issue, value) =>
         dispatch({
           type: 'apply',
+          scope: 'format',
           changes: [{ key: keyOf(issue), seq: issue.seq, value: value === issue.original ? undefined : value }],
         }),
-      toggleExclude: (issue) => dispatch({ type: 'toggleExclude', key: keyOf(issue), seq: issue.seq }),
+      toggleExclude: (issue) => dispatch({ type: 'toggleExclude', scope: 'format', key: keyOf(issue), seq: issue.seq }),
       focusRow: (issue) => {
         const el = containerRef.current?.querySelector<HTMLElement>(`[data-key="${keyOf(issue)}"]`)
         if (el && document.activeElement !== el && !el.contains(document.activeElement)) el.focus()
@@ -304,7 +209,7 @@ export function FormatStep({
     if (changes.length === 0) return
     const n = changes.length
     setToast({ id: state.nextId, text: `${formatCount(n)} ${n === 1 ? 'voorstel' : 'voorstellen'} overgenomen` })
-    dispatch({ type: 'apply', changes })
+    dispatch({ type: 'apply', scope: 'format', changes })
   }
 
   /** Excludes every row of the group that still has an open error (one change per row). */
@@ -315,7 +220,7 @@ export function FormatStep({
     if (changes.length === 0) return
     const n = changes.length
     setToast({ id: state.nextId, text: `${formatCount(n)} ${n === 1 ? 'rij' : 'rijen'} uitgesloten` })
-    dispatch({ type: 'apply', changes })
+    dispatch({ type: 'apply', scope: 'format', changes })
   }
 
   useEffect(() => {
@@ -328,10 +233,11 @@ export function FormatStep({
     if (!active) return
     function onKeyDown(e: globalThis.KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !(e.target instanceof HTMLInputElement)) {
-        e.preventDefault()
         const last = state.undo.at(-1)
-        if (last && toast?.id === last.id) setToast(null)
-        dispatch({ type: 'undo' })
+        if (!last || last.scope !== 'format') return
+        e.preventDefault()
+        if (toast?.id === last.id) setToast(null)
+        dispatch({ type: 'undo', scope: 'format' })
       }
     }
     document.addEventListener('keydown', onKeyDown)
@@ -370,75 +276,6 @@ export function FormatStep({
   useEffect(() => {
     onTotalsRef.current({ open: totals.open, excludedRows: totals.excludedRows })
   }, [totals.open, totals.excludedRows])
-
-  async function save(target: SaveTarget) {
-    setSaving(target)
-    try {
-      await onSave(target, { excludedRowNumbers: Object.keys(state.excluded).map(Number), corrections: state.values })
-    } finally {
-      setSaving(null)
-    }
-  }
-
-
-  if (done) {
-    return (
-      <section aria-label="Adrescontrole">
-        <div className={styles.hd}>
-          <div>
-            <p className={styles.m}>
-              Je lijst voldoet aan de regels van bpost. De adrescontrole bij bpost komt in een volgende versie.
-            </p>
-          </div>
-          {/* Like every step: the next button is there, and stays off until the step is done. Back to the
-              format errors goes through the step bar. The tip sits on the wrapper: a disabled button is faded. */}
-          <StepAction step="check">
-            <div className={`${styles.tg} ${styles.tipBelow}`} data-tip="Komt later: de mailing indienen bij bpost">
-              <NextButton disabled>Verder naar indienen</NextButton>
-            </div>
-          </StepAction>
-        </div>
-        <div className={styles.saveCards}>
-          <section className={styles.saveCard} aria-labelledby="save-aft">
-            <h2 className={styles.gn} id="save-aft">
-              Voor bpost
-            </h2>
-            <p className={styles.m}>
-              Een bestand voor de Address File Tool op het e-MassPost-portaal (Excel 97-2003, .xls). Enkel de adressen
-              die meegaan, met je verbeteringen, als niet-prioritaire zending (NP).
-            </p>
-            <button
-              type="button"
-              className={`${styles.b} ${styles.withIcon}`}
-              onClick={() => save('aft')}
-              disabled={saving !== null}
-            >
-              <IconDownload size={14} stroke={1.75} aria-hidden="true" />
-              {saving === 'aft' ? 'Bezig…' : 'Opslaan voor bpost (AFT, .xls)'}
-            </button>
-          </section>
-          <section className={styles.saveCard} aria-labelledby="save-printer">
-            <h2 className={styles.gn} id="save-printer">
-              Voor de drukker
-            </h2>
-            <p className={styles.m}>
-              Je bestand zoals het was, met elke rij op haar plaats en twee kolommen erbij: <em>Meesturen</em> (ja, of
-              nee voor een uitgesloten rij: niet drukken) en <em>Volgnummer bpost</em>.
-            </p>
-            <button
-              type="button"
-              className={`${styles.b} ${styles.withIcon}`}
-              onClick={() => save('printer')}
-              disabled={saving !== null}
-            >
-              <IconDownload size={14} stroke={1.75} aria-hidden="true" />
-              {saving === 'printer' ? 'Bezig…' : 'Opslaan voor de drukker (.xlsx)'}
-            </button>
-          </section>
-        </div>
-      </section>
-    )
-  }
 
   return (
     <section aria-label="Formaatvalidatie" ref={containerRef}>
@@ -631,7 +468,7 @@ export function FormatStep({
           <button
             type="button"
             onClick={() => {
-              dispatch({ type: 'undo', id: toast.id })
+              dispatch({ type: 'undo', id: toast.id, scope: 'format' })
               setToast(null)
             }}
           >

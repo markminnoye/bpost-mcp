@@ -12,6 +12,8 @@ import {
 } from '@tabler/icons-react'
 import type { MappingPresetId } from '@/core/masspost/suggest-mapping'
 import { PRESET_LABELS, formatCount } from './columns'
+import { ArrMark } from '@/components/mailings/ArrMark'
+import { formatPercent } from '@/components/mailings/labels'
 import { addressesInfo, foreignInfo } from './pill-info'
 import styles from './mailing-flow.module.css'
 
@@ -36,6 +38,8 @@ export interface ListPillsInput {
   columns?: { mapped: number; total: number; complete: boolean }
   format?: { open: number }
   excludedRows: number
+  /** The ARR of the last address check (step 4); absent or null: no pill. */
+  arr?: number | null
 }
 
 /**
@@ -49,7 +53,7 @@ export interface ListPillsInput {
  * @returns The pills, left to right.
  */
 export function listPills(input: ListPillsInput): Pill[] {
-  const { fileName, preset, rowCount, foreignCount, columns, format, excludedRows } = input
+  const { fileName, preset, rowCount, foreignCount, columns, format, excludedRows, arr } = input
   const pills: Pill[] = []
   if (preset) {
     pills.push({ key: 'preset', icon: <IconCircleCheck {...ICON} />, text: PRESET_LABELS[preset].label, tip: PRESET_LABELS[preset].tip, tone: 'accent' })
@@ -97,6 +101,21 @@ export function listPills(input: ListPillsInput): Pill[] {
   // One envelope: the addresses that go to bpost. Without exclusions that is every row.
   const rows = addressesInfo({ rowCount, excludedRows, fileName })
   pills.push({ key: 'rows', icon: <IconMail {...ICON} />, text: rows.text, tip: rows.tip, tone: rows.warn ? 'warn' : 'okSoft' })
+  // Step 4: the ARR, neutral with an orange dot, a green dot or the gold star (design 13/10, decision 20).
+  if (arr != null) {
+    const now = `ARR van e-MassPost: ${formatPercent(arr)}.`
+    pills.push({
+      key: 'arr',
+      icon: <ArrMark arr={arr} />,
+      text: formatPercent(arr),
+      tip:
+        arr < 96
+          ? `${now} Indienen kan vanaf 96 %.`
+          : arr < 98
+            ? `${now} Nog ${formatPercent(98 - arr)} tot de extra korting vanaf 98 %.`
+            : `${now} Vanaf 98 % krijg je extra korting voor datakwaliteit.`,
+    })
+  }
   // Right of the addresses: the rows left out (Mark, 06/10).
   if (excludedRows > 0) {
     pills.push({

@@ -19,12 +19,14 @@ export type MailingChange = Partial<
     | 'genMID'
     | 'genPSC'
     | 'roundAndSequence'
+    | 'mode'
     | 'status'
     | 'mapping'
     | 'corrections'
     | 'excludedRows'
     | 'counts'
     | 'arr'
+    | 'exchanges'
   >
 >
 
@@ -55,7 +57,16 @@ export interface MailingStore {
   restore(id: string, by: string): Promise<Mailing>
   /** The Excel file of the mailing, or null. */
   getSourceFile(id: string): Promise<Blob | null>
+  /** Saves a file of the mailing under a path (e.g. `e-masspost/…_0RQ.XML`); overwrites. Throws `MailingNotFoundError`. */
+  saveFile(id: string, path: string, file: Blob): Promise<void>
+  /** A file of the mailing, or null. */
+  getFile(id: string, path: string): Promise<Blob | null>
+  /** Paths of the files of the mailing that start with `prefix`, sorted. */
+  listFiles(id: string, prefix: string): Promise<string[]>
 }
+
+/** Folder of the files exchanged with bpost, per mailing (design 13/10, part 2). Not `bpost/`: confusing. */
+export const MAILING_FILES_DIR = 'e-masspost/'
 
 /** Someone else saved the mailing in the meantime. `current` is the stored version. */
 export class RevisionConflictError extends Error {

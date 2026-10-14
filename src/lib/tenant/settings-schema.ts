@@ -6,6 +6,8 @@ export interface TenantDefaults {
   priority: 'NP' | 'P'
   genMID: 'N' | '7' | '9' | '11'
   genPSC: 'Y' | 'N'
+  /** Mode at e-MassPost for a new mailing; Production unless the account is set to Test (decision 14). */
+  mode: 'T' | 'C' | 'P'
   /** Never empty: falls back to the initials of the tenant name. */
   codePrefix: string
 }
@@ -19,6 +21,7 @@ export const defaultsSchema = z.object({
   priority: z.enum(['NP', 'P']),
   genMID: z.enum(['N', '7', '9', '11']),
   genPSC: z.enum(['Y', 'N']).default('N'),
+  mode: z.enum(['T', 'C', 'P']).default('P'),
   codePrefix: z
     .string()
     .trim()

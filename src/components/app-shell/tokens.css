@@ -31,6 +31,8 @@
   --ok-fg: #166534;
   --ok-line: #86efac;
   --orange: #f97316;
+  /* The star of the extra discount from 98 % ARR (design 13/10, decision 20); apart from --yellow. */
+  --gold: #e8a900;
   --done: #52525b;
   /* Accent: the colour of the primary button, also used for progress (Mark, 12/10). Follows dark mode
      because --btn-bg does. */
@@ -48,6 +50,7 @@
   --ok-bg: #052e16;
   --ok-fg: #86efac;
   --ok-line: #14532d;
+  --gold: #fbbf24;
   --bg: #0a0a0a;
   --card: #101012;
   --btn-bg: #fafafa;

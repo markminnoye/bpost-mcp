@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { missingDetails, type Mailing } from '@/core/masspost/store/mailing'
+import { missingDetails, modeOf, type Mailing } from '@/core/masspost/store/mailing'
 import type { MailingChange } from '@/core/masspost/store/mailing-store'
 import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
 import { FileDrop } from './FileDrop'
@@ -25,6 +25,7 @@ export function draftFromMailing(m: Mailing): ImportDraft {
     priority: m.priority,
     genMID: m.genMID,
     genPSC: m.genPSC,
+    mode: modeOf(m),
     roundAndSequence: m.roundAndSequence,
     roundSequenceTouched: true,
   }

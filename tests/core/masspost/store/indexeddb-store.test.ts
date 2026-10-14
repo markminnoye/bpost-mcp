@@ -15,7 +15,7 @@ describe('IndexedDbMailingStore', () => {
     const good = await store.create(newInput(), file(), 'a@x.be')
     // Write a broken record next to it, as an older app version could have.
     await new Promise<void>((resolve, reject) => {
-      const open = factory.open('bpost-e-masspost', 1)
+      const open = factory.open('bpost-e-masspost', 2)
       open.onsuccess = () => {
         const tx = open.result.transaction('mailings', 'readwrite')
         tx.objectStore('mailings').put({ id: 'broken', schemaVersion: 99 })
@@ -36,7 +36,7 @@ describe('IndexedDbMailingStore', () => {
     const store = new IndexedDbMailingStore({ indexedDB: factory })
     await store.list() // creates the database
     await new Promise<void>((resolve, reject) => {
-      const open = factory.open('bpost-e-masspost', 1)
+      const open = factory.open('bpost-e-masspost', 2)
       open.onsuccess = () => {
         const tx = open.result.transaction('mailings', 'readwrite')
         tx.objectStore('mailings').put({ id: 'broken', schemaVersion: 99, code: newInput().details.code })
@@ -58,6 +58,26 @@ describe('IndexedDbMailingStore', () => {
     const m = await tabA.create(newInput(), file(), 'a@x.be')
     await tabA.update(m.id, { title: 'A' }, 1, 'a@x.be', 'edited')
     await expect(tabB.update(m.id, { title: 'B' }, 1, 'b@x.be', 'edited')).rejects.toBeInstanceOf(RevisionConflictError)
+  })
+
+  it('upgrades a version 1 database: mailings stay, files work', async () => {
+    const factory = new IDBFactory()
+    await new Promise<void>((resolve, reject) => {
+      const open = factory.open('bpost-e-masspost', 1)
+      open.onupgradeneeded = () => {
+        open.result.createObjectStore('mailings', { keyPath: 'id' })
+        open.result.createObjectStore('files')
+      }
+      open.onsuccess = () => {
+        open.result.close()
+        resolve()
+      }
+      open.onerror = () => reject(open.error)
+    })
+    const store = new IndexedDbMailingStore({ indexedDB: factory })
+    const m = await store.create(newInput(), file(), 'a@x.be')
+    await store.saveFile(m.id, 'e-masspost/X_0RQ.XML', new Blob(['x']))
+    expect(await store.listFiles(m.id, 'e-masspost/')).toEqual(['e-masspost/X_0RQ.XML'])
   })
 
   it('throws StoreUnavailableError when IndexedDB is missing', async () => {

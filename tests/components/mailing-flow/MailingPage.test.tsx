@@ -43,6 +43,18 @@ describe('MailingPage', () => {
     expect(await screen.findByRole('region', { name: 'Kolommen koppelen' })).toBeTruthy()
   })
 
+  it('takes the bpost numbers of the tenant and renders the flow as before', async () => {
+    await seed('t-bpost')
+    render(
+      <MailingStoreProvider user={{ email: 'an@x.be' }} tenantId="t-bpost">
+        <MailingPage code="CP-2026-1" editDetails bpost={{ customerId: '251614', accountId: '1234567' }} />
+      </MailingStoreProvider>,
+    )
+    await screen.findByRole('region', { name: 'Importeren' })
+    fireEvent.click(screen.getByRole('button', { name: /2\. Koppelen/ }))
+    expect(await screen.findByRole('region', { name: 'Kolommen koppelen' })).toBeTruthy()
+  })
+
   it('keeps the other steps out of reach while a required field of step 1 is empty', async () => {
     await seed('t-empty')
     render(
@@ -50,7 +62,7 @@ describe('MailingPage', () => {
         <MailingPage code="CP-2026-1" editDetails />
       </MailingStoreProvider>,
     )
-    const title = await screen.findByLabelText(/Titel/)
+    const title = await screen.findByRole('textbox', { name: /Titel/ })
     fireEvent.change(title, { target: { value: '' } })
     expect(await screen.findByText('Vul een titel in.')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /2\. Koppelen/ })).toBeNull()

@@ -15,6 +15,7 @@
 * [Adreslijst nakijken](documentatie/webapp/adreslijst-nakijken.md)
 * [Instellingen](documentatie/webapp/instellingen.md)
 * [Formaatvalidatie](documentatie/webapp/formaatvalidatie.md)
+* [Adrescontrole](documentatie/webapp/adrescontrole.md)
 
 ## Documentatie: MCP
 

@@ -97,7 +97,7 @@ export function RowMenu({
               aria-disabled="true"
               tabIndex={0}
               className={`${styles.menuItem} ${styles.placeholder}`}
-              data-tip="Kan pas als de formaatvalidatie in orde is"
+              data-tip="Kan pas nadat e-MassPost de mailing heeft aanvaard"
             >
               <IconDownload {...ICON} />
               Opslaan voor de drukker

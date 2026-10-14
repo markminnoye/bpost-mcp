@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { REQUIRED_FIELDS, findFormatIssues, missingTargets, type FormatIssue } from '@/core/masspost/format-check'
-import type { AddressField, ColumnMapping } from '@/core/masspost/mapping'
+import { mapRows, type ColumnMapping } from '@/core/masspost/mapping'
+import { estimateArr } from '@/core/masspost/address-check'
+import { latestExchange } from '@/core/masspost/exchange'
+import type { BpostIds } from '@/core/masspost/request-file'
 import { suggestColumnMapping } from '@/core/masspost/suggest-mapping'
 import { keepCorrections, summarize, type Mailing } from '@/core/masspost/store/mailing'
 import {
@@ -21,19 +24,21 @@ import {
 } from './columns'
 import { requestAiSuggestion, suggestionRequestBody, type AiSuggestionResult } from './ai-suggestion'
 import { nextPaint } from './FileDrop'
-import { FormatStep, type SaveChoices, type SaveTarget } from './FormatStep'
+import { useCorrections } from './corrections'
+import { FormatStep } from './FormatStep'
+import { AddressCheckStep } from './AddressCheckStep'
+import { useBpostExchange } from './useBpostExchange'
 import { DetailsStep } from './DetailsStep'
 import { MappingStep } from './MappingStep'
 import { MetaPills, listPills, type Pill } from './MetaPills'
 import { formatStateFromMailing, resumeStep } from './resume'
+import { checkAcknowledged, checkStepBar } from './check-bar'
 import { StepBar, type StepId, type StepStatus } from './StepBar'
 import { StepActionContext } from './StepAction'
 import { StatusIcon } from '@/components/mailings/StatusIcon'
 import { PageHeader } from '@/components/app-shell/AppShell'
 import { STORE_FULL_MESSAGE } from '@/components/mailings/MailingStoreProvider'
 import type { MailingSaver } from './useMailingSaver'
-import { exportBaseName, printerFile } from './exports'
-import { saveFile } from './save-file'
 import styles from './mailing-flow.module.css'
 
 /** Identifies a column choice: the order of the columns and the role of each. */
@@ -60,8 +65,8 @@ function startChoice(mailing: Mailing, list: LoadedList) {
 }
 
 /**
- * The flow of a stored mailing: its details (step 1), map columns, format validation, and the start
- * of the address check (exports). Everything runs in the browser; the mailing is saved through `saver`
+ * The flow of a stored mailing: its details (step 1), map columns, format validation, and the
+ * address check at e-MassPost (step 4). Everything runs in the browser; the mailing is saved through `saver`
  * (SR-112 §5): the mapping when it is done, the format check, and details and corrections 2 s after
  * the last change (at once on a step change).
  * Only the AI proposal switch sends something: column titles and masked examples (ADR 0006).
@@ -69,13 +74,13 @@ function startChoice(mailing: Mailing, list: LoadedList) {
 export function MailingFlow({
   mailing,
   list,
-  fileBytes,
   saver,
   title,
   docsUrl,
   aiModel,
   startOnDetails = false,
   onDetailsIncomplete,
+  bpost,
 }: {
   mailing: Mailing
   list: LoadedList
@@ -89,6 +94,8 @@ export function MailingFlow({
   startOnDetails?: boolean
   /** True while step 1 misses a required field: that change cannot be saved, so leaving asks first. */
   onDetailsIncomplete?: (incomplete: boolean) => void
+  /** The bpost numbers of the tenant for the XML of step 4; null when Instellingen misses them. */
+  bpost: BpostIds | null
 }) {
   const [start] = useState(() => startChoice(mailing, list))
   const [step, setStep] = useState<StepId>(() =>
@@ -113,6 +120,17 @@ export function MailingFlow({
     mailing.mapping ? rolesToMapping(start.order, start.roles).mapping : null,
   )
   const latestFormat = useRef(formatStateFromMailing(mailing))
+  // One list of corrections for steps 3 and 4 (design 13/10): saved 2 s after a change.
+  const [corrections, dispatchCorrections] = useCorrections(initialFormat ?? { values: {}, excluded: {} }, (s) => {
+    latestFormat.current = s
+    saver.saveSoon({ corrections: s.values, excludedRows: Object.keys(s.excluded).map(Number) }, 'format-edited')
+  })
+  // The rows as they go to e-MassPost (step 4): mapped with the current columns, by row number.
+  const mappedRows = useMemo(
+    () => mapRows(list.rows, rolesToMapping(columnOrder, roles).mapping, { rowNumbers: list.rowNumbers }).rows,
+    [list, columnOrder, roles],
+  )
+  const bpostExchange = useBpostExchange({ saver, rows: mappedRows, corrections, bpost })
   const [ai, setAi] = useState<AiState>({ on: false, busy: false })
   const lastSavedOpen = useRef(mailing.counts.formatIssuesOpen)
   const aiRoles = useMemo(
@@ -125,18 +143,40 @@ export function MailingFlow({
   const missing = missingTargets(rolesToMapping(columnOrder, roles).mapping).length
   const mappingDone = missing === 0
   const checked = checkedFor === choiceKey(columnOrder, roles)
+  // Step 4: the ARR of the last processed check, and the estimate after the changes since (as on the ARR
+  // card). The bar runs from 90 % (empty) to 96 % (full); yellow under 96 %, green from 96 % (design
+  // 13/10, decisions 20 and 21). An acknowledgement fills about a third in green before that score.
+  const checkArr =
+    saver.mailing.exchanges?.findLast((e) => e.kind === 'check' && e.state === 'processed')?.arr ?? null
+  const lastCheck = latestExchange(saver.mailing, 'check')
+  const checkEstimate =
+    bpostExchange.check && checkArr !== null
+      ? (estimateArr({
+          arr: checkArr,
+          sentItems: lastCheck?.items ?? 0,
+          rows: bpostExchange.check.view.rows,
+          values: corrections.values,
+          excluded: corrections.excluded,
+          excludedAtSend: lastCheck?.excluded ?? [],
+        }) ?? checkArr)
+      : checkArr
+  const checkBar = checkStepBar({
+    arr: checkEstimate,
+    sent: !!lastCheck,
+    acknowledged: checkAcknowledged(lastCheck?.state, lastCheck?.receivedAt),
+  })
   const stepStatus: Partial<Record<StepId, StepStatus>> = {
     upload: detailsMissing > 0 ? 'action' : 'done',
     mapping: mappingDone ? 'done' : 'action',
     format: checked ? (formatTotals.open > 0 ? 'action' : 'done') : 'none',
-    check: 'none',
+    check: checkBar.status,
   }
   // How far each step is: the required blocks with a column, and the format errors handled.
   const progress: Partial<Record<StepId, number>> = {
     upload: (4 - detailsMissing) / 4,
     mapping: (REQUIRED_FIELDS.length - missing) / REQUIRED_FIELDS.length,
     format: checked ? (issues.length ? (issues.length - formatTotals.open) / issues.length : 1) : 0,
-    check: 0,
+    check: checkBar.progress,
   }
   // Every step with a valid result stays reachable, also forwards; not while step 1 misses something.
   const detailsOk = detailsMissing === 0
@@ -176,6 +216,7 @@ export function MailingFlow({
         : undefined,
     format: formatShown ? { open: formatTotals.open } : undefined,
     excludedRows: formatShown ? formatTotals.excludedRows : 0,
+    arr: step === 'check' ? checkArr : undefined,
   })
 
   /**
@@ -212,6 +253,7 @@ export function MailingFlow({
       checkedMapping.current = mapping
       latestFormat.current = kept
       setInitialFormat(kept)
+      dispatchCorrections({ type: 'reset', values: kept.values, excluded: kept.excluded })
       setFormatTotals({ open: found.length, excludedRows: 0 })
       // The format step reports the real number open (after the kept corrections) right after.
       lastSavedOpen.current = found.length
@@ -227,7 +269,7 @@ export function MailingFlow({
       // Without format errors the mailing goes straight on (web-flow design, step 3).
       setStep(found.length === 0 ? 'check' : 'format')
     },
-    [list, mailing, saver, startOnDetails],
+    [list, mailing, saver, startOnDetails, dispatchCorrections],
   )
 
   // Opening a mailing: a stored mapping gets its format check again; a known layout skips the
@@ -303,33 +345,6 @@ export function MailingFlow({
   }
 
   /** Step 4: saves the file for bpost's Address File Tool or the one for the printer. */
-  async function save(target: SaveTarget, { excludedRowNumbers, corrections }: SaveChoices) {
-    const base = exportBaseName(list.fileName)
-    if (target === 'aft') {
-      const { buildAftExport } = await import('@/core/masspost/aft-export')
-      const byRow = new Map<number, Partial<Record<AddressField, string>>>()
-      for (const [key, value] of Object.entries(corrections)) {
-        const [seq, field] = key.split(':')
-        byRow.set(Number(seq), { ...byRow.get(Number(seq)), [field]: value })
-      }
-      const bytes = buildAftExport({
-        rows: list.rows,
-        rowNumbers: list.rowNumbers,
-        mapping: rolesToMapping(columnOrder, roles).mapping,
-        corrections: byRow,
-        excludedRowNumbers: new Set(excludedRowNumbers),
-      })
-      saveFile(bytes, { name: `${base} - voor bpost (AFT).xls`, mime: 'application/vnd.ms-excel' })
-      return
-    }
-    // The same file as "Opslaan voor de drukker" in the list.
-    const bytes = await printerFile(fileBytes, excludedRowNumbers)
-    saveFile(bytes, {
-      name: `${base} - voor de drukker.xlsx`,
-      mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    })
-  }
-
   /** On: take over the AI proposal (asked once per file). Off: back to the choice from before. */
   async function toggleAi(on: boolean) {
     if (ai.busy) return
@@ -360,7 +375,7 @@ export function MailingFlow({
 
   // Format step and step 4 share one component. It stays mounted on the other steps (hidden), so
   // going back to Koppelen keeps the corrections.
-  const onFormatStep = step === 'format' || step === 'check'
+  const onFormatStep = step === 'format'
   // The step bar holds the button of the step on screen (StepAction).
   const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null)
 
@@ -397,6 +412,13 @@ export function MailingFlow({
               current={step}
               status={stepStatus}
               progress={progress}
+              finished={{
+                upload: stepStatus.upload === 'done',
+                mapping: stepStatus.mapping === 'done',
+                format: stepStatus.format === 'done',
+                // Step 4 is finished once the mailing is submitted; from 96 % it is only ready to submit.
+                check: saver.mailing.status === 'submitted',
+              }}
               reachable={reachable}
               onGo={go}
             />
@@ -408,55 +430,80 @@ export function MailingFlow({
             )}
           </div>
 
-          {step === 'upload' && (
-            <DetailsStep
-              mailing={saver.mailing}
-              onChange={(change) => saver.saveSoon(change, 'details')}
-              onMissing={setDetailsMissing}
-              onNext={() => go('mapping')}
-            />
-          )}
-          {step === 'mapping' && (
-            <MappingStep
-              list={list}
-              docsUrl={docsUrl}
-              roles={roles}
-              columnOrder={columnOrder}
-              checking={checking}
-              onRoleChange={(header, role) => setRoles((r) => ({ ...r, [header]: role }))}
-              onMove={(column, direction) => setColumnOrder((order) => moveInBlock(order, roles, column, direction))}
-              onNext={() => void onMappingNext()}
-              ai={
-                aiModel
-                  ? { model: aiModel, on: ai.on, busy: ai.busy, roles: aiRoles, error: ai.error, onToggle: toggleAi }
-                  : undefined
-              }
-            />
-          )}
-          {checkedFor !== null && (
-            <div hidden={!onFormatStep}>
-              <FormatStep
-                key={checkRun}
-                issues={issues}
-                rowCount={list.rows.length}
-                onTotals={onTotals}
-                done={step === 'check'}
-                onDone={(done) => setStep(done ? 'check' : 'format')}
-                onSave={save}
-                docsUrl={docsUrl}
-                active={step === 'format'}
-                initial={initialFormat}
-                onChange={(s) => {
-                  latestFormat.current = s
-                  saver.saveSoon(
-                    { corrections: s.values, excludedRows: Object.keys(s.excluded).map(Number) },
-                    'format-edited',
-                  )
-                }}
-              />
-            </div>
-          )}
-          {onFormatStep && checkedFor === null && checking && (
+          {(() => {
+            const locked = saver.mailing.status === 'submitted'
+            return (
+              <>
+                {locked && step !== 'check' && (
+                  <p className={styles.m} role="status">
+                    Deze mailing is ingediend. Je kan niets meer wijzigen. Ga naar Adrescontrole voor het bestand voor de
+                    drukker.
+                  </p>
+                )}
+                {step === 'upload' && (
+                  <div inert={locked || undefined}>
+                    <DetailsStep
+                      mailing={saver.mailing}
+                      onChange={(change) => {
+                        if (!locked) saver.saveSoon(change, 'details')
+                      }}
+                      onMissing={setDetailsMissing}
+                      onNext={() => go('mapping')}
+                    />
+                  </div>
+                )}
+                {step === 'mapping' && (
+                  <div inert={locked || undefined}>
+                    <MappingStep
+                      list={list}
+                      docsUrl={docsUrl}
+                      roles={roles}
+                      columnOrder={columnOrder}
+                      checking={checking}
+                      onRoleChange={(header, role) => {
+                        if (!locked) setRoles((r) => ({ ...r, [header]: role }))
+                      }}
+                      onMove={(column, direction) => {
+                        if (!locked) setColumnOrder((order) => moveInBlock(order, roles, column, direction))
+                      }}
+                      onNext={() => void onMappingNext()}
+                      ai={
+                        aiModel
+                          ? { model: aiModel, on: ai.on, busy: ai.busy, roles: aiRoles, error: ai.error, onToggle: toggleAi }
+                          : undefined
+                      }
+                    />
+                  </div>
+                )}
+                {checkedFor !== null && (
+                  <div hidden={!onFormatStep} inert={locked || undefined}>
+                    <FormatStep
+                      key={checkRun}
+                      issues={issues}
+                      rowCount={list.rows.length}
+                      onTotals={onTotals}
+                      onDone={(done) => setStep(done ? 'check' : 'format')}
+                      docsUrl={docsUrl}
+                      active={step === 'format' && !locked}
+                      corrections={corrections}
+                      dispatch={locked ? () => {} : dispatchCorrections}
+                    />
+                  </div>
+                )}
+                {step === 'check' && checkedFor !== null && (
+                  <AddressCheckStep
+                    mailing={saver.mailing}
+                    exchange={bpostExchange}
+                    bpost={bpost}
+                    corrections={corrections}
+                    dispatch={locked ? () => {} : dispatchCorrections}
+                    active={step === 'check' && !locked}
+                  />
+                )}
+              </>
+            )
+          })()}
+          {(step === 'format' || step === 'check') && checkedFor === null && checking && (
             <p className={styles.m} role="status">
               We kijken je lijst opnieuw na…
             </p>

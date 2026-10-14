@@ -6,6 +6,10 @@ const PARSER_OPTIONS = {
   allowBooleanAttributes: true,
   parseAttributeValue: false, // keep attribute strings as-is per BPost spec
   parseTagValue: false,       // keep tag text content as strings (prevents numeric coercion)
+  // A bpost response has an XPath with two &quot; per address, so a few hundred addresses pass the
+  // default of 1000 expansions. Standard entities only shrink the text; DOCTYPE entities stay capped
+  // by the other defaults (maxEntityCount, maxExpandedLength).
+  processEntities: { maxTotalExpansions: 10_000_000 },
 }
 
 const BUILDER_OPTIONS = {

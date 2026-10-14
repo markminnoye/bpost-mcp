@@ -301,3 +301,26 @@ describe('rowsToItems + buildMailingRequest', () => {
     })
   })
 })
+
+describe('mode chosen per mailing (ADR 0010)', () => {
+  const creds = { customerId: '251614', accountId: '1234567', midVersion: '0200' as const }
+  const base = {
+    mailingRef: 'CP-2026-15',
+    expectedDeliveryDate: '2026-10-23',
+    format: 'Small' as const,
+    priority: 'NP' as const,
+    customerFileRef: 'REFERENCE0',
+    genMID: '7' as const,
+    genPSC: 'N' as const,
+  }
+
+  it.each(['T', 'C', 'P'] as const)('writes mode %s when the caller allows it', (mode) => {
+    const request = buildMailingRequest([], { ...base, mode, allowNonTestMode: true }, creds)
+    expect(request.Header.mode).toBe(mode)
+  })
+
+  it('still forces T without allowNonTestMode', () => {
+    const request = buildMailingRequest([], { ...base, mode: 'P' }, creds)
+    expect(request.Header.mode).toBe('T')
+  })
+})

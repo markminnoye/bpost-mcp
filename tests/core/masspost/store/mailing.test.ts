@@ -16,6 +16,7 @@ import {
   type MailingSummary,
 } from '@/core/masspost/store/mailing'
 import { sampleMailing } from './fixtures'
+import { isWaiting, modeOf, type Exchange } from '@/core/masspost/store/mailing'
 
 function row(over: Partial<MailingSummary>): MailingSummary {
   return { ...summarize(sampleMailing()), ...over }
@@ -193,5 +194,54 @@ describe('keepCorrections', () => {
 
   it('treats a missing optional block like an empty one', () => {
     expect(keepCorrections({ '3:country': 'NL' }, before, { ...before, country: [] })).toEqual({ '3:country': 'NL' })
+  })
+})
+
+
+const exchange = (over: Partial<Exchange> = {}): Exchange => ({
+  kind: 'check',
+  fileName: 'MID_0200_251614_REFERENCE0_261013140500_0RQ.XML',
+  mailingRef: 'CP-2026-15-C1',
+  mode: 'T',
+  items: 789,
+  fingerprint: 'cd'.repeat(32),
+  excluded: [],
+  sentAt: '2026-10-13T12:05:00.000Z',
+  sentBy: 'an@contrapunt.be',
+  state: 'sent',
+  ...over,
+})
+
+describe('exchanges (design 13/10, part 2)', () => {
+  it('keeps old mailings readable: exchanges and counts.check are optional', () => {
+    expect(mailingSchema.safeParse(sampleMailing()).success).toBe(true)
+    const m = sampleMailing({ exchanges: [exchange()], counts: { addresses: 789, formatIssuesOpen: 0, check: { noAddress: 1, multiple: 0, proposal: 2, note: 0, ok: 786 } } })
+    expect(mailingSchema.safeParse(m).success).toBe(true)
+  })
+
+  it('is waiting while the last exchange is sent or received', () => {
+    expect(isWaiting(sampleMailing())).toBe(false)
+    expect(isWaiting(sampleMailing({ exchanges: [exchange()] }))).toBe(true)
+    expect(isWaiting(sampleMailing({ exchanges: [exchange({ state: 'received' })] }))).toBe(true)
+    expect(isWaiting(sampleMailing({ exchanges: [exchange({ state: 'processed' })] }))).toBe(false)
+  })
+
+  it('summarizes waiting and the mode of the accepted submission', () => {
+    expect(summarize(sampleMailing({ exchanges: [exchange()] }))).toMatchObject({ waiting: true, submittedMode: null })
+    const submitted = sampleMailing({
+      status: 'submitted',
+      exchanges: [exchange({ state: 'processed' }), exchange({ kind: 'create', mode: 'C', mailingRef: 'CP-2026-15', state: 'processed', statusCode: '100' })],
+    })
+    expect(summarize(submitted)).toMatchObject({ waiting: false, submittedMode: 'C' })
+  })
+})
+
+describe('mode of a mailing (design 13/10, decision 14)', () => {
+  it('is optional in mailing.json and Productie when absent', () => {
+    expect(modeOf(sampleMailing())).toBe('P')
+    const test = sampleMailing({ mode: 'T' })
+    expect(mailingSchema.safeParse(test).success).toBe(true)
+    expect(modeOf(test)).toBe('T')
+    expect(mailingSchema.safeParse({ ...sampleMailing(), mode: 'X' }).success).toBe(false)
   })
 })

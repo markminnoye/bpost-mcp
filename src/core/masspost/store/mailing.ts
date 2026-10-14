@@ -26,6 +26,7 @@ export const STATUS_GROUP: Record<MailingStatus, 0 | 1 | 2> = {
 
 /** Group of a row: a mailing with format errors open needs action, although its status is "mapped". */
 function statusGroup(m: MailingSummary): 0 | 1 | 2 {
+  if (m.waiting) return 1
   return m.status === 'mapped' && (m.formatIssuesOpen ?? 0) > 0 ? 0 : STATUS_GROUP[m.status]
 }
 
@@ -33,6 +34,50 @@ function statusGroup(m: MailingSummary): 0 | 1 | 2 {
 export const MAILING_CODE_PATTERN = /^[A-Za-z0-9-]{1,20}$/
 
 const stamp = z.object({ at: z.string().datetime(), by: z.string().min(1) })
+
+/**
+ * One file sent to bpost and what came back (design 13/10, part 2). The files themselves are in the
+ * store under `e-masspost/`; this is the log and the state.
+ */
+export const exchangeSchema = z.object({
+  kind: z.enum(['check', 'create']),
+  /** Canonical name of the request, `…_0RQ.XML`; responses name it in `RequestProps`/`FileReceived`. */
+  fileName: z.string().min(1),
+  mailingRef: z.string().min(1).max(20),
+  mode: z.enum(['T', 'C', 'P']),
+  /** Addresses in the file. */
+  items: z.number().int().nonnegative(),
+  /** `itemsFingerprint` of what was sent: shows a change after sending. */
+  fingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+  /** Rows excluded when it was sent (for the estimate). */
+  excluded: z.array(z.number().int()),
+  sentAt: z.string().datetime(),
+  sentBy: z.string(),
+  /** sent → received (acknowledgement) → processed, or rejected. */
+  state: z.enum(['sent', 'received', 'processed', 'rejected']),
+  receivedAt: z.string().nullable().optional(),
+  /** Name of the result file (`_2RS`) once processed. */
+  responseFile: z.string().optional(),
+  statusCode: z.string().optional(),
+  arr: z.number().nullable().optional(),
+  /** Codes of bpost when refused, e.g. `MID-2040`. */
+  problem: z.string().optional(),
+})
+
+/** One exchange with bpost. */
+export type Exchange = z.infer<typeof exchangeSchema>
+
+/** Zod schema of the addresses per group of an address check (`counts.check`). */
+export const checkCountsSchema = z.object({
+  noAddress: z.number().int().nonnegative(),
+  multiple: z.number().int().nonnegative(),
+  proposal: z.number().int().nonnegative(),
+  note: z.number().int().nonnegative(),
+  ok: z.number().int().nonnegative(),
+})
+
+/** Addresses per group of the last address check. */
+export type CheckCounts = z.infer<typeof checkCountsSchema>
 
 /** Zod schema of `mailing.json` (SR-112 plan §1). `id` is the store id (later the Drive folder id). */
 export const mailingSchema = z.object({
@@ -48,6 +93,8 @@ export const mailingSchema = z.object({
   genMID: z.enum(['N', '7', '9', '11']),
   genPSC: z.enum(['Y', 'N']),
   roundAndSequence: z.boolean(),
+  /** Mode at e-MassPost: Test, Certification or Production (design 13/10, decision 14). Absent: Production. */
+  mode: z.enum(['T', 'C', 'P']).optional(),
   status: z.enum(MAILING_STATUSES),
   archived: z.boolean(),
   source: z.object({
@@ -65,8 +112,12 @@ export const mailingSchema = z.object({
     formatIssuesOpen: z.number().int().nonnegative().nullable(),
     /** Addresses outside Belgium, as the step bar counts them. Absent or null: not counted yet. */
     foreign: z.number().int().nonnegative().nullable().optional(),
+    /** Addresses per group of the last address check (design 13/10, part 2). */
+    check: checkCountsSchema.optional(),
   }),
   arr: z.number().min(0).max(100).nullable(),
+  /** Files sent to bpost and their state (design 13/10, part 2). */
+  exchanges: z.array(exchangeSchema).optional(),
   log: z.array(z.object({ at: z.string().datetime(), by: z.string(), event: z.string() })),
   created: stamp,
   modified: stamp,
@@ -75,10 +126,20 @@ export const mailingSchema = z.object({
 /** A mailing as stored in `mailing.json`. */
 export type Mailing = z.infer<typeof mailingSchema>
 
+/**
+ * The mode a submission of the mailing goes in: the stored one, or Production for a mailing saved
+ * before the mode existed (design 13/10, decision 14; ADR 0010).
+ * @param m The mailing.
+ * @returns `T`, `C` or `P`.
+ */
+export function modeOf(m: Pick<Mailing, 'mode'>): 'T' | 'C' | 'P' {
+  return m.mode ?? 'P'
+}
+
 /** What the user fills in at step 1. */
 export type MailingDetails = Pick<
   Mailing,
-  'code' | 'title' | 'customer' | 'expectedDeliveryDate' | 'format' | 'priority' | 'genMID' | 'genPSC' | 'roundAndSequence'
+  'code' | 'title' | 'customer' | 'expectedDeliveryDate' | 'format' | 'priority' | 'genMID' | 'genPSC' | 'roundAndSequence' | 'mode'
 >
 
 /** One row in the list. Later the same fields go into Drive `appProperties`. */
@@ -98,6 +159,20 @@ export interface MailingSummary {
   arr: number | null
   expectedDeliveryDate: string
   modifiedAt: string
+  /** A file is with bpost and no result came back yet: the icon "wachten". */
+  waiting: boolean
+  /** Mode of the accepted submission, for the pill Test or Certificatie; null when not submitted. */
+  submittedMode: 'T' | 'C' | 'P' | null
+}
+
+/**
+ * Whether the mailing waits for bpost: its last exchange was sent or acknowledged, not answered.
+ * @param m The mailing.
+ * @returns True while waiting.
+ */
+export function isWaiting(m: Mailing): boolean {
+  const last = m.exchanges?.at(-1)
+  return last?.state === 'sent' || last?.state === 'received'
 }
 
 /**
@@ -121,6 +196,10 @@ export function summarize(m: Mailing): MailingSummary {
     arr: m.arr,
     expectedDeliveryDate: m.expectedDeliveryDate,
     modifiedAt: m.modified.at,
+    waiting: isWaiting(m),
+    submittedMode: m.status === 'submitted'
+      ? (m.exchanges?.findLast((e) => e.kind === 'create' && e.state === 'processed')?.mode ?? null)
+      : null,
   }
 }
 

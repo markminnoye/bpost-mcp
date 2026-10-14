@@ -1,6 +1,6 @@
 'use client'
 
-import { IconChevronRight } from '@tabler/icons-react'
+import { IconChevronRight, IconCircleCheck } from '@tabler/icons-react'
 import styles from './mailing-flow.module.css'
 
 export type StepId = 'upload' | 'mapping' | 'format' | 'check'
@@ -33,6 +33,7 @@ export function StepBar({
   current,
   status,
   progress,
+  finished = {},
   reachable,
   onGo,
 }: {
@@ -40,6 +41,8 @@ export function StepBar({
   status: Partial<Record<StepId, StepStatus>>
   /** How far each step is, from 0 to 1. */
   progress: Partial<Record<StepId, number>>
+  /** Steps that are finished: a green check before the label (Mark, 14/10). */
+  finished?: Partial<Record<StepId, boolean>>
   reachable: Partial<Record<StepId, boolean>>
   onGo: (step: StepId) => void
 }) {
@@ -53,10 +56,13 @@ export function StepBar({
           const tip = `${step.label}: ${done} % klaar`
           const content = (
             <>
+              {finished[step.id] && (
+                <IconCircleCheck className={styles.stepCheck} data-finished="" size={14} stroke={1.75} aria-hidden="true" />
+              )}
               <span className={styles.stepLabel} data-label={`${index + 1}. ${step.label}`}>
                 {index + 1}. {step.label}
               </span>
-              <span className={styles.srOnly}>, {done} % klaar</span>
+              <span className={styles.srOnly}>, {finished[step.id] ? 'afgerond' : `${done} % klaar`}</span>
             </>
           )
           // The bar under the step, and an arrow to the next step (variant B on top of C).
