@@ -39,4 +39,4 @@ Afgeleid uit de opbouw van `CHANGELOG.md` (versiekoppen met datum). Dit is geen 
 
 - Er is geen geautomatiseerde release (geen versietag of GitHub Release uit CI).
 - De MCP-registry-publicatie is een handmatige stub.
-- Git-tags (`v1.0.1` … `v1.1.0`) en `package.json` (`0.4.0`) wijzen naar verschillende versiereeksen. Welke leidend is, moet nog beslist worden.
+- Git-tags (`v1.0.1` … `v1.1.0`) en `package.json` (`0.5.0`) wijzen naar verschillende versiereeksen. Welke leidend is, moet nog beslist worden.

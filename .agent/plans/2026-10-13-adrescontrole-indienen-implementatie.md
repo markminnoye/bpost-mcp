@@ -1,6 +1,6 @@
 # Adrescontrole en indienen via de brievenbus — implementatieplan
 
-## Status: Built, awaiting review (14/10/2026). Deel A (taak 1–13) en deel B (taak 14–16) gebouwd: Indienen bij e-MassPost vanaf 96 %, modus uit stap 1, vergrendeling na indiening, Mail ID in het bestand voor de drukker, pill Test/Certificatie. Niet gecommit. Wacht op Mark: testronde e-MassPost in Test (indienen → antwoord → Ingediend → printerbestand), review, "je mag committen". Logboek: `.superpowers/sdd/2026-10-13-adrescontrole-indienen-implementatie/progress.md`.
+## Status: Done — testronde OK (14/10/2026). Deel A+B gebouwd en gecommit (`c600f16`). Mark heeft de volledige flow in e-MassPost Test afgerond (controleren → antwoord → indienen → Ingediend → printerbestand): prima. Linear SR-130 → In review. Versiebump 0.5.0 lokaal klaar, nog niet gecommit. Logboek: `.superpowers/sdd/2026-10-13-adrescontrole-indienen-implementatie/progress.md`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

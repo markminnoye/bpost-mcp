@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: HTTP service
-  version: 0.4.0
+  version: 0.5.0
   description: HTTP routes of this service. The MCP endpoint is not part of this document; see docs/documentatie/mcp/README.md.
 components:
   schemas:
