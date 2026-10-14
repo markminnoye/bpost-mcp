@@ -1,0 +1,69 @@
+{
+  "ValidateAddressesResponse": {
+    "ValidatedAddressResultList": {
+      "ValidatedAddressResult": [
+        {
+          "@id": "1",
+          "MaileeAndAddressee": {
+            "MaileeOrganizationIdentification": {
+              "UnstructuredMaileeOrganizationIdentification": "GHE Consulting SCS"
+            }
+          },
+          "ValidatedAddressList": {
+            "ValidatedAddress": [
+              {
+                "PostalAddress": {
+                  "StructuredDeliveryPointLocation": {
+                    "StreetName": "EDWARD DEKOSTERSTRAAT",
+                    "StreetNumber": "64",
+                    "BoxNumber": "84"
+                  },
+                  "StructuredPostalCodeMunicipality": {
+                    "PostalCode": "1140",
+                    "MunicipalityName": "EVERE"
+                  },
+                  "CountryName": "BELGIE"
+                },
+                "AddressLanguage": "nl"
+              }
+            ]
+          },
+          "TransactionID": "0897cb6d-d0e4-44b3-ab8a-6d635a090450"
+        },
+        {
+          "@id": "2",
+          "ValidatedAddressList": {
+            "ValidatedAddress": [
+              {
+                "PostalAddress": {
+                  "StructuredDeliveryPointLocation": {
+                    "StreetName": "RUE DE NEUFVILLES"
+                  },
+                  "StructuredPostalCodeMunicipality": {
+                    "PostalCode": "7060",
+                    "MunicipalityName": "SOIGNIES"
+                  },
+                  "CountryName": "BELGIQUE"
+                },
+                "AddressLanguage": "fr"
+              }
+            ]
+          },
+          "Error": [
+            {
+              "ComponentRef": "StreetNumber",
+              "ErrorCode": "missing_field",
+              "ErrorSeverity": "warning"
+            },
+            {
+              "ComponentRef": "",
+              "ErrorCode": "address_not_recognized",
+              "ErrorSeverity": "error"
+            }
+          ],
+          "TransactionID": "dd33c4c2-6ffa-4794-9b72-758f110047df"
+        }
+      ]
+    }
+  }
+}

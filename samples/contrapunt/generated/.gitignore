@@ -1,0 +1,3 @@
+# Lokaal gegenereerde upload-XML (npm run generate:mailing-xml)
+*.XML
+*.xml

@@ -1,0 +1,64 @@
+{
+  "ValidateAddressesRequest": {
+    "AddressToValidateList": {
+      "AddressToValidate": [
+        {
+          "@id": "1",
+          "MaileeAndAddressee": {
+            "MaileeOrganizationIdentification": {
+              "UnstructuredMaileeOrganizationIdentification": "GHE Consulting SCS"
+            }
+          },
+          "PostalAddress": {
+            "DeliveryPointLocation": {
+              "StructuredDeliveryPointLocation": {
+                "StreetName": "Rue Edouard dekoster",
+                "StreetNumber": "64",
+                "BoxNumber": "84"
+              }
+            },
+            "PostalCodeMunicipality": {
+              "StructuredPostalCodeMunicipality": {
+                "PostalCode": "1140",
+                "MunicipalityName": "Bruxelles"
+              }
+            },
+            "CountryName": "Belgique"
+          },
+          "DispatchingCountryISOCode": "BE",
+          "DeliveringCountryISOCode": "BE"
+        },
+        {
+          "@id": "2",
+          "PostalAddress": {
+            "DeliveryPointLocation": {
+              "StructuredDeliveryPointLocation": {
+                "StreetName": "Kernstraat",
+                "StreetNumber": "20"
+              }
+            },
+            "PostalCodeMunicipality": {
+              "StructuredPostalCodeMunicipality": {
+                "PostalCode": "1000",
+                "MunicipalityName": "Brussel"
+              }
+            },
+            "CountryName": "Belgie"
+          },
+          "DispatchingCountryISOCode": "BE",
+          "DeliveringCountryISOCode": "BE"
+        }
+      ]
+    },
+    "ValidateAddressOptions": {
+      "IncludeFormatting": true,
+      "IncludeSuggestions": false,
+      "IncludeSubmittedAddress": false,
+      "IncludeDefaultGeoLocation": true,
+      "IncludeDesiredAddressLanguage": "nl"
+    },
+    "CallerIdentification": {
+      "CallerName": "bpost-mcp"
+    }
+  }
+}
