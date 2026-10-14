@@ -149,6 +149,38 @@ describe('rowsToItems + buildMailingRequest', () => {
     expect(xml).toContain('lang="nl"')
     expect(xml).not.toContain('FileInfo')
     expect(xml).not.toContain('expectedDeliveryDate')
+    expect(xml).not.toContain('Contacts')
+  })
+
+  it('adds Contacts when notifyEmail is set (MailingCheck and MailingCreate)', () => {
+    const { rows } = mapRows([{ Naam: 'Jan', Adres: 'Straat 1', Postcode: '1000 Brussel' }], mapping)
+    const items = rowsToItems(rows, params.priority)
+    const check = buildMailingCheckRequest(
+      items,
+      {
+        mailingRef: 'OPTIMAIL1',
+        priority: 'NP',
+        mode: 'T',
+        customerFileRef: 'REFERENCE0',
+        notifyEmail: 'an@contrapunt.be',
+      },
+      { ...credentials, midVersion: '0200' },
+    )
+    expect(validateMailingRequest(check, '0200').valid).toBe(true)
+    const checkXml = buildXml({ MailingRequest: validateMailingRequest(check, '0200').data })
+    expect(checkXml).toContain('<Contacts>')
+    expect(checkXml).toContain('email="an@contrapunt.be"')
+    expect(checkXml).toContain('lang="nl"')
+
+    const create = buildMailingRequest(
+      items,
+      { ...params, notifyEmail: ' an@contrapunt.be ' },
+      { ...credentials, midVersion: '0200' },
+    )
+    expect(validateMailingRequest(create, '0200').valid).toBe(true)
+    const createXml = buildXml({ MailingRequest: validateMailingRequest(create, '0200').data })
+    expect(createXml).toContain('email="an@contrapunt.be"')
+    expect(createXml).not.toMatch(/email=" an@/)
   })
 
 

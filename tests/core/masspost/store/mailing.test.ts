@@ -16,11 +16,20 @@ import {
   type MailingSummary,
 } from '@/core/masspost/store/mailing'
 import { sampleMailing } from './fixtures'
-import { isWaiting, modeOf, type Exchange } from '@/core/masspost/store/mailing'
+import { isWaiting, modeOf, notifyEmailOf, type Exchange } from '@/core/masspost/store/mailing'
 
 function row(over: Partial<MailingSummary>): MailingSummary {
   return { ...summarize(sampleMailing()), ...over }
 }
+
+describe('notifyEmailOf', () => {
+  it('uses the mailing address when set (also when empty), otherwise the tenant default', () => {
+    expect(notifyEmailOf({}, 'a@x.be')).toBe('a@x.be')
+    expect(notifyEmailOf({ notifyEmail: ' b@y.be ' }, 'a@x.be')).toBe('b@y.be')
+    expect(notifyEmailOf({ notifyEmail: '' }, 'a@x.be')).toBe('')
+    expect(notifyEmailOf({ notifyEmail: undefined }, 'a@x.be')).toBe('a@x.be')
+  })
+})
 
 describe('summarize', () => {
   it('keeps a mailing "mapped" while format errors are open, and "format" once validated', () => {
@@ -35,8 +44,12 @@ describe('summarize', () => {
 describe('summarize, counts of the pills', () => {
   it('gives the rows left out and the addresses abroad (null while not counted)', () => {
     const m = sampleMailing({ excludedRows: [3, 9], counts: { addresses: 100, formatIssuesOpen: 0, foreign: 4 } })
-    expect(summarize(m)).toMatchObject({ addresses: 100, excluded: 2, foreign: 4 })
+    expect(summarize(m)).toMatchObject({ addresses: 100, excluded: 2, foreign: 4, genPSC: 'N', roundAndSequence: false })
     expect(summarize(sampleMailing()).foreign).toBeNull()
+    expect(summarize(sampleMailing({ genPSC: 'Y', roundAndSequence: true }))).toMatchObject({
+      genPSC: 'Y',
+      roundAndSequence: true,
+    })
   })
 })
 

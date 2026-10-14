@@ -32,6 +32,7 @@ export function MailingPage({
   docsUrl,
   aiModel,
   bpost = null,
+  defaultNotifyEmail = '',
 }: {
   code: string
   editDetails: boolean
@@ -39,6 +40,8 @@ export function MailingPage({
   aiModel?: string
   /** The bpost numbers of the tenant (no password), for the XML of step 4. */
   bpost?: BpostIds | null
+  /** Tenant default for the e-MassPost Contacts e-mail. */
+  defaultNotifyEmail?: string
 }) {
   const { store, user } = useMailingStore()
   const [load, setLoad] = useState<Load>({ state: 'loading' })
@@ -113,6 +116,7 @@ export function MailingPage({
       docsUrl={docsUrl}
       aiModel={aiModel}
       bpost={bpost}
+      defaultNotifyEmail={defaultNotifyEmail}
     />
   )
 }
@@ -125,6 +129,7 @@ function OpenMailing({
   docsUrl,
   aiModel,
   bpost,
+  defaultNotifyEmail = '',
 }: {
   mailing: Mailing
   list: LoadedList
@@ -133,6 +138,7 @@ function OpenMailing({
   docsUrl?: string
   aiModel?: string
   bpost: BpostIds | null
+  defaultNotifyEmail?: string
 }) {
   const saver = useMailingSaver(mailing)
   const router = useRouter()
@@ -183,6 +189,7 @@ function OpenMailing({
         aiModel={aiModel}
         startOnDetails={startOnDetails}
         bpost={bpost}
+        defaultNotifyEmail={defaultNotifyEmail}
         onDetailsIncomplete={(incomplete) => {
           detailsIncomplete.current = incomplete
         }}

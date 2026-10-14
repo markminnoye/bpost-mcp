@@ -15,6 +15,18 @@ export function foreignInfo(count: number): { text: string; tip: string } {
 }
 
 /**
+ * Text of the pill for excluded rows: one definition for the step bar and the list.
+ * @param count Rows left out of the mailing (more than 0).
+ * @returns The number as shown, and the explanation.
+ */
+export function excludedInfo(count: number): { text: string; tip: string } {
+  return {
+    text: formatCount(count),
+    tip: `${formatCount(count)} ${count === 1 ? 'rij' : 'rijen'} uitgesloten: gaat niet mee in de mailing`,
+  }
+}
+
+/**
  * Text of the envelope pill: the addresses that go to bpost (every row minus the excluded ones).
  * One definition for the step bar and the list. Orange for a large list or fewer than the minimum.
  * @param input Rows in the file, rows left out, and the file name when it is known.

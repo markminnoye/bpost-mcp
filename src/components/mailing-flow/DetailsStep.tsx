@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { missingDetails, modeOf, type Mailing } from '@/core/masspost/store/mailing'
+import { missingDetails, modeOf, notifyEmailOf, type Mailing } from '@/core/masspost/store/mailing'
 import type { MailingChange } from '@/core/masspost/store/mailing-store'
+import { useMailingStore } from '@/components/mailings/MailingStoreProvider'
 import { DetailsForm, useCustomerSuggestions } from './DetailsForm'
 import { FileDrop } from './FileDrop'
 import { NextButton } from './NextButton'
@@ -13,9 +14,10 @@ import styles from './mailing-flow.module.css'
 /**
  * The draft of an existing mailing.
  * @param m The mailing as stored.
+ * @param fallbackEmail Tenant default or signed-in user, when the mailing has no notify e-mail yet.
  * @returns The fields of step 1.
  */
-export function draftFromMailing(m: Mailing): ImportDraft {
+export function draftFromMailing(m: Mailing, fallbackEmail = ''): ImportDraft {
   return {
     customer: m.customer.name,
     title: m.title,
@@ -26,6 +28,7 @@ export function draftFromMailing(m: Mailing): ImportDraft {
     genMID: m.genMID,
     genPSC: m.genPSC,
     mode: modeOf(m),
+    notifyEmail: notifyEmailOf(m, fallbackEmail),
     roundAndSequence: m.roundAndSequence,
     roundSequenceTouched: true,
   }
@@ -43,15 +46,21 @@ export function DetailsStep({
   onChange,
   onMissing,
   onNext,
+  defaultNotifyEmail = '',
 }: {
   mailing: Mailing
   onChange: (change: MailingChange) => void
   /** Number of missing required fields (0: complete). */
   onMissing: (missing: number) => void
   onNext: () => void
+  /** Tenant default for "E-mail bij klaar"; the signed-in user is a further fallback. */
+  defaultNotifyEmail?: string
 }) {
+  const { user } = useMailingStore()
   // The start values are fixed while the step is open; later saves come from this form.
-  const [draft, setDraft] = useState<ImportDraft>(() => draftFromMailing(mailing))
+  const [draft, setDraft] = useState<ImportDraft>(() =>
+    draftFromMailing(mailing, defaultNotifyEmail.trim() || user.email),
+  )
   const customers = useCustomerSuggestions()
   const missing = missingDetails(
     { title: draft.title, code: draft.code, expectedDeliveryDate: draft.expectedDeliveryDate, hasFile: true },

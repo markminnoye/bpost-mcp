@@ -142,6 +142,8 @@ export interface RequestFileInput {
   now: Date
   /** The details of step 1, for a submission. */
   create?: { expectedDeliveryDate: string; format: 'Small' | 'Large'; genMID: 'N' | '7' | '9' | '11'; genPSC: 'Y' | 'N' }
+  /** Optional: e-mail when e-MassPost has finished (Contacts in the XML). */
+  notifyEmail?: string | null
 }
 
 /** The file to put in the mailbox, and what the mailing remembers of it. */
@@ -203,9 +205,14 @@ export async function buildRequestFile(input: RequestFileInput): Promise<Request
   const customerFileRef = normalizeBpostCustomerFileRef(WEB_CUSTOMER_FILE_REF)
   const credentials = { ...input.ids, midVersion: WEB_MID_VERSION }
   const mode: BpostMode = input.kind === 'check' ? 'T' : input.mode
+  const notifyEmail = input.notifyEmail
   const request =
     input.kind === 'check'
-      ? buildMailingCheckRequest(items, { mailingRef: input.mailingRef, priority: input.priority, mode: 'T', customerFileRef }, credentials)
+      ? buildMailingCheckRequest(
+          items,
+          { mailingRef: input.mailingRef, priority: input.priority, mode: 'T', customerFileRef, notifyEmail },
+          credentials,
+        )
       : buildMailingRequest(
           items,
           {
@@ -214,6 +221,7 @@ export async function buildRequestFile(input: RequestFileInput): Promise<Request
             mode,
             allowNonTestMode: true, // the user chose this mode for this mailing (ADR 0010)
             customerFileRef,
+            notifyEmail,
             ...input.create!,
           },
           credentials,

@@ -198,6 +198,19 @@ export function DetailsForm({
           </select>
         </div>
         <div className={styles.field}>
+          <FieldLabel htmlFor="f-notify" label="E-mail bij klaar" tip={FIELD_TIPS.notifyEmail} />
+          <input
+            id="f-notify"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            maxLength={100}
+            value={draft.notifyEmail}
+            placeholder="naam@bedrijf.be"
+            onChange={(e) => update({ notifyEmail: e.target.value })}
+          />
+        </div>
+        <div className={styles.field}>
           <FieldLabel label="Presortering" tip={FIELD_TIPS.presort} />
           <label className={styles.check}>
             <input

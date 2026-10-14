@@ -20,6 +20,7 @@ export type MailingChange = Partial<
     | 'genPSC'
     | 'roundAndSequence'
     | 'mode'
+    | 'notifyEmail'
     | 'status'
     | 'mapping'
     | 'corrections'

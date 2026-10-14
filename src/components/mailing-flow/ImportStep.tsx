@@ -45,7 +45,7 @@ export function ImportStep({ defaults }: { defaults: TenantDefaults }) {
   const router = useRouter()
   const prefix = defaults.codePrefix
   // The start values are fixed for the life of the screen.
-  const [start] = useState<ImportDraft>(() => initialDraft(defaults, ''))
+  const [start] = useState<ImportDraft>(() => initialDraft(defaults, '', user.email))
   const [draft, setDraft] = useState<ImportDraft>(start)
   const [codeTouched, setCodeTouched] = useState(false)
   const [codes, setCodes] = useState<string[]>([])

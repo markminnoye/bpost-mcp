@@ -242,6 +242,28 @@ export function SettingsForms({ settings }: { settings: TenantSettings }) {
             </select>
           </div>
           <div className={styles.field}>
+            <FieldLabel htmlFor="s-notify" label="E-mail bij klaar" tip={asDefault(FIELD_TIPS.notifyEmail)} />
+            <input
+              id="s-notify"
+              name="notifyEmail"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              maxLength={100}
+              defaultValue={df.value('notifyEmail', d.notifyEmail)}
+              placeholder="naam@bedrijf.be"
+              aria-invalid={!!df.error('notifyEmail')}
+              aria-describedby={df.describedBy('notifyEmail', 's-notify-hint')}
+            />
+            {df.error('notifyEmail') ? (
+              <FieldError id="notifyEmail-err" message={df.error('notifyEmail')} />
+            ) : (
+              <span className={styles.hint} id="s-notify-hint">
+                Leeg laten als je geen mail van e-MassPost wilt.
+              </span>
+            )}
+          </div>
+          <div className={styles.field}>
             <FieldLabel label="Presortering" tip={asDefault(FIELD_TIPS.presort)} />
             <label className={styles.check}>
               <input type="checkbox" name="genPSC" value="Y" defaultChecked={d.genPSC === 'Y'} /> bpost maakt de presorteercodes

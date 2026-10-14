@@ -18,6 +18,8 @@ export interface ImportDraft {
   genMID: 'N' | '7' | '9' | '11'
   genPSC: 'Y' | 'N'
   mode: 'T' | 'C' | 'P'
+  /** E-mail for e-MassPost Contacts when a check or create is done. */
+  notifyEmail: string
   roundAndSequence: boolean
   /** The user chose round and sequence; the default no longer applies. */
   roundSequenceTouched: boolean
@@ -25,11 +27,13 @@ export interface ImportDraft {
 
 /**
  * Step 1 with the tenant defaults and the proposed code.
+ * Prefills "E-mail bij klaar" from Instellingen, otherwise from the signed-in user.
  * @param defaults From Instellingen.
  * @param code The proposed code.
+ * @param userEmail E-mail of the signed-in user (fallback when no tenant default).
  * @returns An empty draft.
  */
-export function initialDraft(defaults: TenantDefaults, code: string): ImportDraft {
+export function initialDraft(defaults: TenantDefaults, code: string, userEmail = ''): ImportDraft {
   return {
     customer: '',
     title: '',
@@ -40,6 +44,7 @@ export function initialDraft(defaults: TenantDefaults, code: string): ImportDraf
     genMID: defaults.genMID,
     genPSC: defaults.genPSC,
     mode: defaults.mode,
+    notifyEmail: defaults.notifyEmail.trim() || userEmail.trim(),
     roundAndSequence: false,
     roundSequenceTouched: false,
   }
@@ -99,5 +104,6 @@ export function toDetails(d: ImportDraft): MailingDetails {
     genPSC: d.genPSC,
     roundAndSequence: d.roundAndSequence,
     mode: d.mode,
+    notifyEmail: d.notifyEmail.trim(),
   }
 }

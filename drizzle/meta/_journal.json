@@ -29,6 +29,13 @@
       "when": 1791936000000,
       "tag": "0006_tenant_preferences_default_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792000000000,
+      "tag": "0007_tenant_preferences_default_notify_email",
+      "breakpoints": true
     }
   ]
 }

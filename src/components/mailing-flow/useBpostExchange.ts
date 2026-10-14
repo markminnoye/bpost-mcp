@@ -18,6 +18,7 @@ import {
   type BpostMode,
 } from '@/core/masspost/request-file'
 import { MAILING_FILES_DIR, StoreFullError } from '@/core/masspost/store/mailing-store'
+import { notifyEmailOf } from '@/core/masspost/store/mailing'
 import { STORE_FULL_MESSAGE, useMailingStore } from '@/components/mailings/MailingStoreProvider'
 import type { Corrections } from './corrections'
 import { saveFile } from './save-file'
@@ -64,8 +65,10 @@ export function useBpostExchange(input: {
   rows: MappedRow[]
   corrections: Corrections
   bpost: BpostIds | null
+  /** Tenant default when the mailing has no notify e-mail yet. */
+  defaultNotifyEmail?: string
 }): BpostExchange {
-  const { saver, rows, corrections, bpost } = input
+  const { saver, rows, corrections, bpost, defaultNotifyEmail = '' } = input
   const { store, user } = useMailingStore()
   const mailing = saver.mailing
   const [busy, setBusy] = useState(false)
@@ -184,6 +187,8 @@ export function useBpostExchange(input: {
           priority: m.priority,
           ids: bpost,
           now: new Date(),
+          // Mailing → tenant default → signed-in user (step 1 prefills the same way).
+          notifyEmail: notifyEmailOf(m, defaultNotifyEmail || user.email) || null,
           create: { expectedDeliveryDate: m.expectedDeliveryDate, format: m.format, genMID: m.genMID, genPSC: m.genPSC },
         })
         await store.saveFile(m.id, MAILING_FILES_DIR + file.fileName, new Blob([file.bytes as BlobPart], { type: XML }))
@@ -201,7 +206,7 @@ export function useBpostExchange(input: {
         setBusy(false)
       }
     },
-    [bpost, busy, corrections.excluded, going, mailbox, saver, store, user.email],
+    [bpost, busy, corrections.excluded, defaultNotifyEmail, going, mailbox, saver, store, user.email],
   )
 
   const resend = useCallback(async () => {

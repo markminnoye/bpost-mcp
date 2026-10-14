@@ -16,7 +16,15 @@ vi.mock('@/components/app-shell/actions', () => ({ signOutAction: vi.fn() }))
 
 afterEach(cleanup)
 
-const defaults = { format: 'Small', priority: 'NP', genMID: '7', genPSC: 'N', mode: 'P', codePrefix: 'CP' } as const
+const defaults = {
+  format: 'Small',
+  priority: 'NP',
+  genMID: '7',
+  genPSC: 'N',
+  mode: 'P',
+  notifyEmail: '',
+  codePrefix: 'CP',
+} as const
 
 describe('ImportStep (new mailing)', () => {
   it('first shows only the address list; once read, the details appear with the title from the file name', async () => {

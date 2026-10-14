@@ -32,6 +32,7 @@ export default async function MailingRoute({
       docsUrl={env.NEXT_PUBLIC_DOCS_URL}
       aiModel={isProviderModel(model) ? model : undefined}
       bpost={bpost}
+      defaultNotifyEmail={settings?.defaults.notifyEmail ?? ''}
     />
   )
 }

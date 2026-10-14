@@ -81,6 +81,7 @@ export function MailingFlow({
   startOnDetails = false,
   onDetailsIncomplete,
   bpost,
+  defaultNotifyEmail = '',
 }: {
   mailing: Mailing
   list: LoadedList
@@ -96,6 +97,8 @@ export function MailingFlow({
   onDetailsIncomplete?: (incomplete: boolean) => void
   /** The bpost numbers of the tenant for the XML of step 4; null when Instellingen misses them. */
   bpost: BpostIds | null
+  /** Tenant default for the e-MassPost Contacts e-mail (Instellingen). */
+  defaultNotifyEmail?: string
 }) {
   const [start] = useState(() => startChoice(mailing, list))
   const [step, setStep] = useState<StepId>(() =>
@@ -130,7 +133,7 @@ export function MailingFlow({
     () => mapRows(list.rows, rolesToMapping(columnOrder, roles).mapping, { rowNumbers: list.rowNumbers }).rows,
     [list, columnOrder, roles],
   )
-  const bpostExchange = useBpostExchange({ saver, rows: mappedRows, corrections, bpost })
+  const bpostExchange = useBpostExchange({ saver, rows: mappedRows, corrections, bpost, defaultNotifyEmail })
   const [ai, setAi] = useState<AiState>({ on: false, busy: false })
   const lastSavedOpen = useRef(mailing.counts.formatIssuesOpen)
   const aiRoles = useMemo(
@@ -444,6 +447,7 @@ export function MailingFlow({
                   <div inert={locked || undefined}>
                     <DetailsStep
                       mailing={saver.mailing}
+                      defaultNotifyEmail={defaultNotifyEmail}
                       onChange={(change) => {
                         if (!locked) saver.saveSoon(change, 'details')
                       }}

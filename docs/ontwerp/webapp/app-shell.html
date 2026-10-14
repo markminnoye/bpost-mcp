@@ -333,6 +333,7 @@ dialog p{margin:0 0 16px;color:var(--text-secondary)}
     <ul>
       <li><a class="nav-item" href="#mailings" data-nav="mailings" title="Mailings"><svg class="i"><use href="#i-mail"/></svg><span class="nav-label">Mailings</span></a></li>
       <li><a class="nav-item" href="#deposits" data-nav="deposits" title="Deposits"><svg class="i"><use href="#i-truck"/></svg><span class="nav-label">Deposits</span><span class="soon">binnenkort</span></a></li>
+      <li><a class="nav-item" href="#planning" data-nav="planning" title="Planning"><svg class="i"><use href="#i-cal"/></svg><span class="nav-label">Planning</span></a></li>
       <li><a class="nav-item" href="#archief" data-nav="archief" title="Archief"><svg class="i"><use href="#i-archive"/></svg><span class="nav-label">Archief</span></a></li>
     </ul>
     <ul class="nav-bottom">
@@ -395,6 +396,15 @@ dialog p{margin:0 0 16px;color:var(--text-secondary)}
         </div>
         <div id="rows"></div>
       </div>
+    </section>
+
+    <section class="page" data-view="planning" hidden>
+      <div class="page-head"><button class="icon-btn side-toggle" type="button" aria-label="Menu openen" aria-controls="side" aria-expanded="false"><svg class="i"><use href="#i-sidebar"/></svg></button><h1 tabindex="-1">Planning</h1></div>
+      <div class="box"><div class="state">
+        <svg class="i"><use href="#i-cal"/></svg>
+        <h2>Dit onderdeel bouwen we nog</h2>
+        <p>Hier zie je straks je mailings op de kalender: welke afgiftedatum wanneer valt, en wat er nog openstaat.</p>
+      </div></div>
     </section>
 
     <section class="page" data-view="deposits" hidden>
@@ -637,6 +647,7 @@ dialog p{margin:0 0 16px;color:var(--text-secondary)}
     var two = box.classList.contains('two')
     rows.innerHTML = list.map(function(m){
       var p = rowParts(m)
+      // Pills L→R = reverse of right-to-left order (Mark 14/10): klant · R&S · PS · … · n · ARR · date
       if(!two) return '<div class="row">'+p.status+p.code+p.title+p.klant+p.n+p.arr+p.date+p.more+'</div>'
       var meta = []
       if(m.klant) meta.push(p.klant)
@@ -773,13 +784,13 @@ dialog p{margin:0 0 16px;color:var(--text-secondary)}
   window.addEventListener('beforeunload', function(e){ if(step1Dirty()){ e.preventDefault(); e.returnValue = '' } })
   function route(){
     var v = state.view
-    if(['mailings','archief','deposits','instellingen','nieuw','flow'].indexOf(v) < 0) v = 'mailings'
+    if(['mailings','planning','archief','deposits','instellingen','nieuw','flow'].indexOf(v) < 0) v = 'mailings'
     state.view = v; closeMenu(); setDrawer(false)
     $$('[data-view]').forEach(function(s){ s.hidden = s.dataset.view.split(' ').indexOf(v) < 0 })
     var nav = v === 'nieuw' || v === 'flow' ? 'mailings' : v
     $$('[data-nav]').forEach(function(a){ if(a.dataset.nav === nav) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current') })
     if(v === 'mailings' || v === 'archief'){ $('#listTitle').textContent = v === 'archief' ? 'Archief' : 'Mailings'; $('#newBtn').hidden = v === 'archief'; renderRows() }
-    document.title = ({mailings:'Mailings',archief:'Archief',deposits:'Deposits',instellingen:'Instellingen',nieuw:'Nieuwe mailing',flow:'Mailing'})[v] + ' · ' + $('#tenantName').textContent + ' · Mailings voor e-MassPost'
+    document.title = ({mailings:'Mailings',planning:'Planning',archief:'Archief',deposits:'Deposits',instellingen:'Instellingen',nieuw:'Nieuwe mailing',flow:'Mailing'})[v] + ' · ' + $('#tenantName').textContent + ' · Mailings voor e-MassPost'
     var h = $('section[data-view]:not([hidden]) h1'); if(h && state.screen === 'app') h.focus()
   }
 

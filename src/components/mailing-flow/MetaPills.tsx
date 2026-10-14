@@ -14,7 +14,7 @@ import type { MappingPresetId } from '@/core/masspost/suggest-mapping'
 import { PRESET_LABELS, formatCount } from './columns'
 import { ArrMark } from '@/components/mailings/ArrMark'
 import { formatPercent } from '@/components/mailings/labels'
-import { addressesInfo, foreignInfo } from './pill-info'
+import { addressesInfo, excludedInfo, foreignInfo } from './pill-info'
 import styles from './mailing-flow.module.css'
 
 /** One pill: an icon with a number (or a short label); the explanation is the tooltip (decision 46). */
@@ -45,7 +45,8 @@ export interface ListPillsInput {
 /**
  * The pills of the top bar, in reading order: what the file is (the recognised layout, the columns
  * mapped to the address), what we check (addresses abroad, the format), and the outcome: the
- * addresses that go to bpost and, at the far right, the rows left out (Mark, 06/10).
+ * addresses that go to bpost, the ARR when known, and at the far right the rows left out (Mark,
+ * 06/10). In the mailing list the rightmost cluster is date · ARR · addresses (Mark, 14/10).
  * A check is orange while there is work; in order it is a neutral pill with a green icon, except the
  * format, which turns green with a tick (Mark, 06/10). The columns count has no colour.
  *
@@ -98,10 +99,10 @@ export function listPills(input: ListPillsInput): Pill[] {
           },
     )
   }
-  // One envelope: the addresses that go to bpost. Without exclusions that is every row.
+  // Envelope: the addresses that go to bpost. Without exclusions that is every row.
   const rows = addressesInfo({ rowCount, excludedRows, fileName })
   pills.push({ key: 'rows', icon: <IconMail {...ICON} />, text: rows.text, tip: rows.tip, tone: rows.warn ? 'warn' : 'okSoft' })
-  // Step 4: the ARR, neutral with an orange dot, a green dot or the gold star (design 13/10, decision 20).
+  // Step 4: ARR right of the envelope (list order Mark 14/10: … addresses, ARR, date).
   if (arr != null) {
     const now = `ARR van e-MassPost: ${formatPercent(arr)}.`
     pills.push({
@@ -116,14 +117,10 @@ export function listPills(input: ListPillsInput): Pill[] {
             : `${now} Vanaf 98 % krijg je extra korting voor datakwaliteit.`,
     })
   }
-  // Right of the addresses: the rows left out (Mark, 06/10).
+  // Right of the addresses / ARR: the rows left out (Mark, 06/10).
   if (excludedRows > 0) {
-    pills.push({
-      key: 'excluded',
-      icon: <IconMailOff {...ICON} />,
-      text: formatCount(excludedRows),
-      tip: `${formatCount(excludedRows)} ${excludedRows === 1 ? 'rij' : 'rijen'} uitgesloten: gaat niet mee in de mailing`,
-    })
+    const leftOut = excludedInfo(excludedRows)
+    pills.push({ key: 'excluded', icon: <IconMailOff {...ICON} />, text: leftOut.text, tip: leftOut.tip })
   }
   return pills
 }

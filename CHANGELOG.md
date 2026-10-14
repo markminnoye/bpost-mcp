@@ -17,9 +17,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Samenvatting
 
+**Nieuw**
+
+- **E-mail bij klaar (e-MassPost Contacts):** in **stap 1** vul je een e-mailadres in; e-MassPost kan dan mailen wanneer de controle of de indiening klaar is. Vooraf: standaard uit Instellingen, anders het adres van de aangemelde gebruiker. In **Instellingen → Standaardwaarden** zet je het organisatiestandaard. Leeg = geen Contacts in de XML. Vraagt de kolom `default_notify_email` in `tenant_preferences` (SQL: `drizzle/0007_tenant_preferences_default_notify_email.sql`).
+
+**Aanpassingen**
+
+- **Pills in het mailingoverzicht (rechts → links, meest voorkomende eerst):** afgiftedatum · ARR · aantal adressen · buitenland · uitgesloten · Test/Certificatie · PS · R&S · klant. Nieuwe pills **PS** (presortering) en **R&S** (ronde en sequentie) als die aan staan; uitgesloten rijen krijgen een eigen pill.
+
 ### Added
 
+- Optional `Contacts` (email + `lang=nl`) on `MailingCheck` / `MailingCreate` via `notifyEmail` (`notifyContacts`, `buildRequestFile`, step 1 field, tenant `defaultNotifyEmail`, fallback signed-in user).
+
 ### Changed
+
+- Mailing list pills, right to left (Mark 14/10): date · ARR · addresses · abroad · excluded · Test/Certificatie · PS · R&S · customer. `MailingSummary` exposes `genPSC` and `roundAndSequence`; excluded rows get their own pill (`excludedInfo`).
 
 ### Fixed
 

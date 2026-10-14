@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   IconArchive,
+  IconCalendar,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconMail,
@@ -20,8 +21,8 @@ import styles from './app.module.css'
 const ICON = { size: 18, stroke: 1.75, 'aria-hidden': true } as const
 
 /**
- * The sidebar: tenant at the top, Mailings · Deposits · Archief, Instellingen at the bottom, then the
- * user and the collapse button (SR-112 §4). Below 1024 px it is a panel (`panelOpen`).
+ * The sidebar: tenant at the top, Mailings · Deposits · Planning · Archief, Instellingen at the bottom,
+ * then the user and the collapse button (SR-112 §4). Below 1024 px it is a panel (`panelOpen`).
  */
 export function Sidebar({
   tenantName,
@@ -83,6 +84,12 @@ export function Sidebar({
               <IconTruck {...ICON} />
               <span className={styles.navLabel}>Deposits</span>
             </Placeholder>
+          </li>
+          <li>
+            <Link href="/planning" className={styles.navItem} aria-current={current('/planning')} data-tip={tip('Planning')} onClick={close}>
+              <IconCalendar {...ICON} />
+              <span className={styles.navLabel}>Planning</span>
+            </Link>
           </li>
           <li>
             <Link href="/archief" className={styles.navItem} aria-current={current('/archief')} data-tip={tip('Archief')} onClick={close}>

@@ -95,6 +95,11 @@ export const mailingSchema = z.object({
   roundAndSequence: z.boolean(),
   /** Mode at e-MassPost: Test, Certification or Production (design 13/10, decision 14). Absent: Production. */
   mode: z.enum(['T', 'C', 'P']).optional(),
+  /**
+   * E-mail for the Contacts block so e-MassPost can mail when a check or create is done.
+   * Absent or empty: no Contacts in the XML. Max 100 characters (bpost).
+   */
+  notifyEmail: z.string().trim().max(100).optional(),
   status: z.enum(MAILING_STATUSES),
   archived: z.boolean(),
   source: z.object({
@@ -139,8 +144,30 @@ export function modeOf(m: Pick<Mailing, 'mode'>): 'T' | 'C' | 'P' {
 /** What the user fills in at step 1. */
 export type MailingDetails = Pick<
   Mailing,
-  'code' | 'title' | 'customer' | 'expectedDeliveryDate' | 'format' | 'priority' | 'genMID' | 'genPSC' | 'roundAndSequence' | 'mode'
+  | 'code'
+  | 'title'
+  | 'customer'
+  | 'expectedDeliveryDate'
+  | 'format'
+  | 'priority'
+  | 'genMID'
+  | 'genPSC'
+  | 'roundAndSequence'
+  | 'mode'
+  | 'notifyEmail'
 >
+
+/**
+ * E-mail used for the Contacts notification: the one on the mailing when that field exists
+ * (also when empty: the user cleared it), otherwise the tenant default.
+ * @param m The mailing (may omit `notifyEmail`).
+ * @param tenantDefault From Instellingen; empty when none is set.
+ * @returns A trimmed address, or empty when neither is set.
+ */
+export function notifyEmailOf(m: Pick<Mailing, 'notifyEmail'>, tenantDefault = ''): string {
+  if (m.notifyEmail !== undefined) return m.notifyEmail.trim()
+  return tenantDefault.trim()
+}
 
 /** One row in the list. Later the same fields go into Drive `appProperties`. */
 export interface MailingSummary {
@@ -163,6 +190,10 @@ export interface MailingSummary {
   waiting: boolean
   /** Mode of the accepted submission, for the pill Test or Certificatie; null when not submitted. */
   submittedMode: 'T' | 'C' | 'P' | null
+  /** Presort on: pill "PS" in the list. */
+  genPSC: 'Y' | 'N'
+  /** Round and sequence on: pill "R&S" in the list. */
+  roundAndSequence: boolean
 }
 
 /**
@@ -200,6 +231,8 @@ export function summarize(m: Mailing): MailingSummary {
     submittedMode: m.status === 'submitted'
       ? (m.exchanges?.findLast((e) => e.kind === 'create' && e.state === 'processed')?.mode ?? null)
       : null,
+    genPSC: m.genPSC,
+    roundAndSequence: m.roundAndSequence,
   }
 }
 

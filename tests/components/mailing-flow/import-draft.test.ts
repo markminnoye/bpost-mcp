@@ -1,18 +1,31 @@
 import { describe, it, expect } from 'vitest'
 import { initialDraft, toDetails, withFile, withFormat } from '@/components/mailing-flow/import-draft'
 
-const defaults = { format: 'Small', priority: 'NP', genMID: '7', genPSC: 'N', mode: 'T', codePrefix: 'CP' } as const
+const defaults = {
+  format: 'Small',
+  priority: 'NP',
+  genMID: '7',
+  genPSC: 'N',
+  mode: 'T',
+  notifyEmail: '',
+  codePrefix: 'CP',
+} as const
 
 describe('import draft', () => {
   it('starts from the tenant defaults and the proposed code', () => {
-    expect(initialDraft(defaults, 'CP-2026-15')).toMatchObject({
+    expect(initialDraft(defaults, 'CP-2026-15', 'an@contrapunt.be')).toMatchObject({
       code: 'CP-2026-15',
       format: 'Small',
       genMID: '7',
       genPSC: 'N',
       mode: 'T',
       title: '',
+      notifyEmail: 'an@contrapunt.be',
     })
+  })
+
+  it('prefers the tenant notify e-mail over the signed-in user', () => {
+    expect(initialDraft({ ...defaults, notifyEmail: 'org@x.be' }, 'X', 'an@y.be').notifyEmail).toBe('org@x.be')
   })
 
   it('takes the file name as title when the title is empty, but not over a typed title', () => {
@@ -46,6 +59,7 @@ describe('import draft', () => {
       genPSC: 'N',
       roundAndSequence: false,
       mode: 'T',
+      notifyEmail: '',
     })
   })
 

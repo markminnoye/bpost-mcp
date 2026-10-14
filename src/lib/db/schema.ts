@@ -38,6 +38,8 @@ export const tenantPreferences = pgTable('tenant_preferences', {
   defaultPresort: text('default_presort').notNull().default('N'),
   /** Mode at e-MassPost of a new mailing: T, C or P (design 13/10, decision 14). */
   defaultMode: text('default_mode').notNull().default('P'),
+  /** Default e-mail for e-MassPost Contacts (notify when check/create is done); null = none. */
+  defaultNotifyEmail: text('default_notify_email'),
   /** Prefix of mailing codes; null means the initials of the tenant name. */
   codePrefix: text('code_prefix'),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

@@ -50,6 +50,7 @@ async function readTenantSettings(tenantId: string): Promise<TenantSettings | nu
       genMID: pick(prefs?.defaultGenMid, ['N', '7', '9', '11'] as const, '7'),
       genPSC: pick(prefs?.defaultPresort, ['Y', 'N'] as const, 'N'),
       mode: pick(prefs?.defaultMode, ['T', 'C', 'P'] as const, 'P'),
+      notifyEmail: prefs?.defaultNotifyEmail?.trim() ?? '',
       codePrefix: stored || defaultCodePrefix(tenant.name),
     },
     bpost: creds

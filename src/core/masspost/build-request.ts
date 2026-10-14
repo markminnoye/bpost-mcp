@@ -18,6 +18,24 @@ import type { MidProtocolVersion } from './credentials'
  */
 export const FORCE_TEST_MODE = true
 
+/**
+ * Optional contact so bpost can e-mail when the check or create is done (MailingRequest Contacts:
+ * “Necessary to receive email answer”). Empty or absent: no Contacts block.
+ */
+export type NotifyEmail = string | null | undefined
+
+/**
+ * Builds the optional Contacts block for MailingCheck / MailingCreate.
+ * @param email Address to notify; blank means omit Contacts.
+ * @param lang Language of the mail from bpost (`nl` for Contrapunt).
+ * @returns The Contacts object, or undefined when there is no address.
+ */
+export function notifyContacts(email: NotifyEmail, lang: 'nl' | 'fr' | 'de' = 'nl') {
+  const value = email?.trim()
+  if (!value) return undefined
+  return { Contacts: { Contact: [{ seq: 1, email: value.slice(0, 100), lang }] } }
+}
+
 /** Inputs for a MailingCreate request. `mode` is ignored while `FORCE_TEST_MODE` is true, unless `allowNonTestMode` is set. */
 export interface BuildRequestParams {
   mailingRef: string
@@ -32,6 +50,8 @@ export interface BuildRequestParams {
   customerFileRef: string
   genMID: 'N' | '7' | '9' | '11'
   genPSC: 'Y' | 'N'
+  /** Optional: e-mail when e-MassPost has finished (Contacts). */
+  notifyEmail?: NotifyEmail
 }
 
 /** Turns mapped rows into `Item`s using the unstructured Comp codes (90/91/92/93), plus the
@@ -84,6 +104,8 @@ export interface BuildCheckParams {
   suggestionsCount?: number
   /** Min Levenshtein score 1–100 for a suggestion to be returned. */
   suggestionsMinScore?: number
+  /** Optional: e-mail when e-MassPost has finished (Contacts). */
+  notifyEmail?: NotifyEmail
 }
 
 function headerAndContext(
@@ -153,6 +175,7 @@ export function buildMailingRequest(
     mailingCreate.FileInfo = { type: 'MID2' as const }
   }
   mailingCreate.Format = { value: params.format }
+  Object.assign(mailingCreate, notifyContacts(params.notifyEmail))
   mailingCreate.Items = { Item: items }
   mailingCreate.ItemCount = { value: items.length }
 
@@ -281,6 +304,7 @@ export function buildMailingCheckRequest(
         copyRequestItem: params.copyRequestItem ?? 'Y',
         suggestionsCount: params.suggestionsCount ?? 5,
         suggestionsMinScore: params.suggestionsMinScore ?? 60,
+        ...notifyContacts(params.notifyEmail),
         Items: { Item: checkItems },
         ItemCount: { value: checkItems.length },
       },

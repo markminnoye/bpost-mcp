@@ -85,7 +85,10 @@ export async function saveDefaults(_prev: SettingsResult, formData: FormData): P
     return {
       ok: false,
       error: CHECK_FIELDS,
-      fields: fieldMessages(parsed.error.issues, { codePrefix: 'Enkel letters en cijfers, maximaal 8.' }),
+      fields: fieldMessages(parsed.error.issues, {
+        codePrefix: 'Enkel letters en cijfers, maximaal 8.',
+        notifyEmail: 'Dit lijkt geen geldig e-mailadres.',
+      }),
       values: typed(formData),
     }
   }
@@ -99,6 +102,7 @@ export async function saveDefaults(_prev: SettingsResult, formData: FormData): P
       defaultGenMid: d.genMID,
       defaultPresort: d.genPSC,
       defaultMode: d.mode,
+      defaultNotifyEmail: d.notifyEmail || null,
       codePrefix: d.codePrefix || null,
     })
     .onConflictDoUpdate({
@@ -109,6 +113,7 @@ export async function saveDefaults(_prev: SettingsResult, formData: FormData): P
         defaultGenMid: sql`excluded.default_gen_mid`,
         defaultPresort: sql`excluded.default_presort`,
         defaultMode: sql`excluded.default_mode`,
+        defaultNotifyEmail: sql`excluded.default_notify_email`,
         codePrefix: sql`excluded.code_prefix`,
         updatedAt: new Date(),
       },

@@ -8,9 +8,21 @@ export interface TenantDefaults {
   genPSC: 'Y' | 'N'
   /** Mode at e-MassPost for a new mailing; Production unless the account is set to Test (decision 14). */
   mode: 'T' | 'C' | 'P'
+  /**
+   * E-mail e-MassPost uses to say when a check or create is done (Contacts). Empty: no mail.
+   * Max 100 characters (bpost).
+   */
+  notifyEmail: string
   /** Never empty: falls back to the initials of the tenant name. */
   codePrefix: string
 }
+
+/** Empty or a short e-mail address (bpost Contacts, max 100). */
+const notifyEmailField = z
+  .string()
+  .trim()
+  .max(100)
+  .refine((s) => s === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), 'Dit lijkt geen geldig e-mailadres.')
 
 /** Form "Organisatie" in Instellingen. */
 export const organisationSchema = z.object({ name: z.string().trim().min(1).max(100) })
@@ -22,6 +34,7 @@ export const defaultsSchema = z.object({
   genMID: z.enum(['N', '7', '9', '11']),
   genPSC: z.enum(['Y', 'N']).default('N'),
   mode: z.enum(['T', 'C', 'P']).default('P'),
+  notifyEmail: notifyEmailField.default(''),
   codePrefix: z
     .string()
     .trim()
