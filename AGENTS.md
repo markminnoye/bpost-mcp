@@ -1,9 +1,9 @@
 ### Project Setup: BPost MCP Service
 
 **Stack:** Vercel (Next.js), TypeScript, Zod.
-**Goal:** MCP wrapper for BPost e-MassPost protocol for Langflow orchestration.
+**Goal:** MCP server for the BPost e-MassPost protocol.
 
-**Build order (locked):** (1) reusable library / API in `src/core/masspost/` first — Excel → mapping → validate → XML → transport; (2) only then a thin interface on top (web now; later possibly MCP again). Do not build UI before the API surface exists. Prefer minimal code for easy maintenance.
+The Contrapunt mailing webapp and the library `src/core/masspost/` live in the private repo `e-masspost-webapp`. Do not add mailing pages, Instellingen, or that library back here. This repo keeps the MCP route, the OAuth server, the Redis batch upload, `/install` and `/reference`. The shared Neon schema stays complete so `db:push` does not drop columns the webapp still uses.
 
 ### Documentation & Skills
 
@@ -23,7 +23,7 @@ Uses [BPost e-MassPost Skills Library](https://github.com/markminnoye/bpost-e-ma
    - `errors/`: MPW/MID error codes
 5. **Raw Source:** `@docs/internal/e-masspost/reference/Mail-ID Data_Exchange_Technical_Guide.pdf` (Verify table data/diagrams; the markdown docs omit some tables, e.g. Table 73 status codes 100/998/999)
 6. **Samples:** `@docs/samples/` (Use for `@tests/`)
-7. **Masspost library / CLI:** `@docs/internal/masspost-library.md` (scripts `generate:mailing-xml`, `test:transport`, module map) + `@docs/internal/masspost-test-env.md` (credentials)
+7. **Masspost library / CLI:** moved to `e-masspost-webapp`. `@docs/internal/masspost-library.md` only points there.
 
 ### Continuous Learning
 
@@ -41,10 +41,9 @@ Genereer TSDoc-commentaar voor alle geëxporteerde functies (en publieke types).
 
 - Nieuwe HTTP-route: eerst het Zod-contract laten goedkeuren, daarna implementeren. Registreer dat schema in `scripts/generate-openapi.ts` en draai `npm run docs:build`.
 - Service-OpenAPI staat in `docs/ontwikkelaars/api/openapi.yaml`. Een schema dat de handler niet parset, mag de request/response alleen beschrijven als inhaken het gedrag zou wijzigen.
-- Publieke code-documentatie volgt de library-entry (hier `src/core/masspost/index.ts`) naar `docs/ontwikkelaars/library/`. De TypeDoc-config noemt alleen die entry.
 - MCP heeft een eigen hoofdstuk in `docs/documentatie/mcp/` en is geen spec. MCP blijft buiten de service-OpenAPI. Officiële URL is `/mcp`; `/api/mcp` is een legacy-alias.
 - Beslissingen die je later niet zomaar terugdraait: korte ADR in `docs/adr/`, gekopieerd van `docs/adr/template.md`.
-- `npm run docs:check` faalt als `docs/ontwikkelaars/library/` of `docs/ontwikkelaars/api/openapi.yaml` achterloopt. Push naar `develop` publiceert de `docs/`-map naar branch `docs` en commit niet terug naar `develop`.
+- `npm run docs:check` faalt als `docs/ontwikkelaars/api/openapi.yaml` achterloopt. Er is geen TypeDoc-library meer in deze repo (ADR 0011). Push naar `develop` publiceert de `docs/`-map naar branch `docs` en commit niet terug naar `develop`.
 - GitBook toont één publieke space (gratis plan) met vijf groepen in de zijbalk (Documentatie, Ontwikkelaars, Naslag bpost, Changelog, Projectdossier), zie `docs/SUMMARY.md`, `docs/gitbook-docs.yaml`, ADR 0004 en `docs/README.md`. Alle technische info staat in `docs/ontwikkelaars/` en kan later in één keer geschrapt worden: verwijs er niet naar vanuit de andere tabs.
 
 #### Documentatiestructuur onderhouden
@@ -53,8 +52,8 @@ Alles wat hieronder staat geldt voor mensen en agenten. De volledige werkwijze s
 
 | Map | Groep in de zijbalk | Hoe onderhouden |
 |---|---|---|
-| `docs/documentatie/` | Documentatie (skill, webapp, MCP; alfa, Nederlands) | Met de hand |
-| `docs/ontwikkelaars/` | Ontwikkelaars (alle technische info, schrapbaar) | Met de hand, behalve `library/` en `api/openapi.yaml` (gegenereerd) |
+| `docs/documentatie/` | Documentatie (skill, MCP; alfa, Nederlands) | Met de hand |
+| `docs/ontwikkelaars/` | Ontwikkelaars (alle technische info, schrapbaar) | Met de hand, behalve `api/openapi.yaml` (gegenereerd) |
 | `docs/internal/e-masspost/docs/` | Naslag bpost | Submodule, zie hieronder |
 | `docs/changelog/` | Changelog | Niet bewerken: kopie van `CHANGELOG.md`, gemaakt door `publish-docs.yml` |
 | `docs/projectdossier/` | Projectdossier (requirements, beslissingen, open vragen, architectuur; concept) | Met de hand |
@@ -68,7 +67,7 @@ Niet gepubliceerd (niet in `docs/SUMMARY.md`): `docs/adr/`, `docs/ontwerp/` (sch
 4. Pagina's buiten `docs/ontwikkelaars/` verwijzen niet naar `docs/ontwikkelaars/`.
 5. Relatieve links binnen de site werken (het is één space), maar gebruik ze spaarzaam tussen groepen.
 
-**Gegenereerd, niet met de hand bewerken:** `docs/ontwikkelaars/library/` (`npm run docs:code`), `docs/ontwikkelaars/api/openapi.yaml` (`npm run docs:api`), `docs/changelog/`. Pas de bron aan (TSDoc, Zod-schema's, `CHANGELOG.md`) en draai `npm run docs:build` en `npm run docs:check`. Branch `docs` wordt bij elke push naar `develop` met force overschreven: nooit rechtstreeks op `docs` werken.
+**Gegenereerd, niet met de hand bewerken:** `docs/ontwikkelaars/api/openapi.yaml` (`npm run docs:api`), `docs/changelog/`. Pas de bron aan (Zod-schema's, `CHANGELOG.md`) en draai `npm run docs:build` en `npm run docs:check`. Branch `docs` wordt bij elke push naar `develop` met force overschreven: nooit rechtstreeks op `docs` werken.
 
 **bpost-protocolnaslag (submodule `docs/internal/e-masspost/`)**
 - De tekst staat in de map `docs/` van de skills-repo en is daar de enige bron; de skill-zip wordt eruit gebouwd. Pas ze niet aan in een kopie, en zeker niet enkel in `bpost-mcp`.
@@ -116,11 +115,10 @@ When an implementation task is complete:
 See `.agent/plans/INDEX.md` for details.
 - **Phase 1 & Phase 2 Sprint 1 & 2:** ✅ Complete.
 - **Phase 2 Sprint 3:** ✅ Complete (declarative, procedural, escalation tools; `check_batch`, `submit_ready_batch`, barcode strategy).
-- **MCP tooling: paused (28/09/2026).** No new MCP feature work. Public endpoint is `/mcp` (`src/app/mcp`); `/api/mcp` is a legacy alias. Do not scope-expand MCP.
-- **New focus:** a reusable library (`src/core/masspost/`) for the bpost e-MassPost integration, with a **web interface** (not MCP) for Contrapunt. See [Bpost e-MassPost library + webapp](.agent/plans/2026-09-28-bpost-library-web-app.md). **API/library first, UI second** — never the reverse. Interfaces stay thin and replaceable.
+- **This repo (17/10/2026):** MCP server, OAuth server, Redis batch upload, `/install` and `/reference`. Public endpoint is `/mcp` (`src/app/mcp`); `/api/mcp` is a legacy alias. Do not scope-expand MCP, and do not rebuild the mailing webapp here.
+- **Webapp:** `e-masspost-webapp` (private). Library, mailing flow and Instellingen live there. See [Bpost e-MassPost library + webapp](.agent/plans/2026-09-28-bpost-library-web-app.md) for the history.
 - **MAIL ID protocol (locked 28/09/2026):** Contrapunt default **version 2.00 (`0200`)** — live portal Status 100. Dual-support `0100`/`0102` via `midVersion`.
-- **Path (locked 29/09/2026):** send `MailingRequest` XML over **FTP**; validate addresses with **OptiAddress** (`MailingCheck`, corrections as message 7001). Do not build the local AFT skill in `.agent/plans/2026-09-26-contrapunt-aft-address-prep.md` (stub). Living plan: `.agent/plans/2026-09-28-bpost-library-web-app.md`.
-- **How to run / extend the library:** `docs/internal/masspost-library.md`.
+- **Path (locked 29/09/2026):** send `MailingRequest` XML over **FTP**; validate addresses with **OptiAddress** (`MailingCheck`, corrections as message 7001). Do not build the local AFT skill in `.agent/plans/2026-09-26-contrapunt-aft-address-prep.md` (stub).
 
 ### Available Agent Skills
 

@@ -62,50 +62,6 @@ const envSchema = z.object({
       'OAUTH_JWT_SECRET is required for OAuth JWT signing. Set it in Vercel (Production) or .env.local. Generate: openssl rand -base64 32',
     ),
 
-  // ── src/core/masspost — single-tenant bpost credentials (Contrapunt) ──────────
-  // All optional here so the app still boots without them; `src/core/masspost/credentials.ts`
-  // fails fast with a readable error only when the masspost library is actually used.
-
-  /** bpost e-MassPost HTTP login (Basic Auth). */
-  BPOST_TEST_USERNAME: z.string().optional(),
-  /** bpost e-MassPost HTTP password (Basic Auth). */
-  BPOST_TEST_PASSWORD: z.string().optional(),
-  /** bpost customer id (PRS / sender / Header.customerId). Prefer this name over BPOST_TEST_CUSTOMER_NUMBER. */
-  BPOST_TEST_CUSTOMER_ID: z.string().optional(),
-  /** @deprecated Use BPOST_TEST_CUSTOMER_ID — still read as fallback in credentials.ts. */
-  BPOST_TEST_CUSTOMER_NUMBER: z.string().optional(),
-  /** bpost PBC account id (Header.accountId) — portal "Account Id", not Barcode Id. */
-  BPOST_TEST_ACCOUNT_ID: z.string().optional(),
-  /** Mail ID "Barcode Id" from portal, zero-padded to 5 digits (e.g. 210 → 00210). Not Header/@accountId. */
-  BPOST_TEST_BARCODE_CUSTOMER_ID: z
-    .string()
-    .regex(/^\d{5}$/, 'BPOST_TEST_BARCODE_CUSTOMER_ID must be exactly 5 digits')
-    .optional(),
-  /** Mail ID file format version (VVVV). Contrapunt locked to 0200 (v2.00) on 28/09/2026 — live Status 100. Must match Context/@version and MID_ VVVV _… filename. See docs/internal/masspost-test-env.md */
-  BPOST_TEST_MID_VERSION: z.enum(['0100', '0102', '0200']).default('0200'),
-  /** Your per-file reference (NNNN… in bpost filename, max 10). Same value as Header/Files/RequestProps/@customerFileRef. See docs/internal/masspost-test-env.md */
-  BPOST_TEST_CUSTOMER_FILE_REF: z.string().min(1).max(10).default('REFERENCE'),
-
-  /** FTP(S) host for file transfer. Defaults to bpost's documented host. */
-  BPOST_FTP_HOST: z.string().default('filetransfer.bpost.be'),
-  /** FTP(S) username, if different from the HTTP login. */
-  BPOST_FTP_USERNAME: z.string().optional(),
-  /** FTP(S) password, if different from the HTTP login. */
-  BPOST_FTP_PASSWORD: z.string().optional(),
-  /** Use FTPS (explicit TLS) instead of plain FTP. bpost recommends this. */
-  BPOST_FTP_SECURE: z
-    .string()
-    .optional()
-    .transform((v) => v !== 'false'),
-
-  /**
-   * Optional Vercel AI Gateway model (`provider/model`) for the AI column-mapping proposal (ADR 0006).
-   * Unset or invalid → that route fails closed (503). The app still boots without it.
-   */
-  MASSPOST_SUGGEST_MAPPING_MODEL: z.string().optional(),
-  /** Optional AI Gateway key. On Vercel, OIDC can authenticate when this is unset. */
-  AI_GATEWAY_API_KEY: z.string().optional(),
-
   /**
    * Base64 key (32 bytes) for the bpost passwords in the database (AES-256-GCM, `src/lib/crypto.ts`).
    * Optional here so the app boots without it; saving bpost settings fails with a clear message.
@@ -123,20 +79,6 @@ const result = envSchema.safeParse({
   READINESS_PROBE_TIMEOUT_MS: process.env.READINESS_PROBE_TIMEOUT_MS,
   AUTH_ACCEPTED_ISSUERS: process.env.AUTH_ACCEPTED_ISSUERS,
   OAUTH_JWT_SECRET: process.env.OAUTH_JWT_SECRET,
-  BPOST_TEST_USERNAME: process.env.BPOST_TEST_USERNAME,
-  BPOST_TEST_PASSWORD: process.env.BPOST_TEST_PASSWORD,
-  BPOST_TEST_CUSTOMER_ID: process.env.BPOST_TEST_CUSTOMER_ID,
-  BPOST_TEST_CUSTOMER_NUMBER: process.env.BPOST_TEST_CUSTOMER_NUMBER,
-  BPOST_TEST_ACCOUNT_ID: process.env.BPOST_TEST_ACCOUNT_ID,
-  BPOST_TEST_BARCODE_CUSTOMER_ID: process.env.BPOST_TEST_BARCODE_CUSTOMER_ID,
-  BPOST_TEST_MID_VERSION: process.env.BPOST_TEST_MID_VERSION,
-  BPOST_TEST_CUSTOMER_FILE_REF: process.env.BPOST_TEST_CUSTOMER_FILE_REF,
-  BPOST_FTP_HOST: process.env.BPOST_FTP_HOST,
-  BPOST_FTP_USERNAME: process.env.BPOST_FTP_USERNAME,
-  BPOST_FTP_PASSWORD: process.env.BPOST_FTP_PASSWORD,
-  BPOST_FTP_SECURE: process.env.BPOST_FTP_SECURE,
-  MASSPOST_SUGGEST_MAPPING_MODEL: process.env.MASSPOST_SUGGEST_MAPPING_MODEL,
-  AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY,
   ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || undefined,
 })
 

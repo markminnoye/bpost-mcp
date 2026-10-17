@@ -101,7 +101,7 @@ export async function GET(request: Request) {
     .limit(1);
 
   if (creds.length === 0) {
-    // No bpost login yet: to the landing page of the web app (Mark, 12/10/2026).
+    // No bpost login yet: the landing page tells them to fill it in the mailings webapp.
     return NextResponse.redirect(new URL('/', publicBase).toString(), 302);
   }
 

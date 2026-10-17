@@ -1,6 +1,6 @@
 # Architectuurmodellen
 
-**Status: analyse, nog geen besluit (5 oktober 2026).** Deze pagina vergelijkt hoe de webapp de gegevens van een mailing kan bijhouden. Het ontwerp van de [website](website.md) gaat voorlopig uit van het Centraal model.
+De mailings-webapp staat in `e-masspost-webapp`. Deze analyse (5 oktober 2026) beschrijft hoe die app de gegevens van een mailing kan bijhouden. Het ontwerp ging voorlopig uit van het Centraal model.
 
 ## De vraag
 
@@ -249,4 +249,4 @@ Het Gesplitst model belooft: de server kent elke mailing en haar status, maar be
 | Gesplitst | 15, 20 en 28 van 02/10; 3, 5 en 6 van 01/10 | 10 van 01/10 (logboek) en 31 van 02/10 (accountinstellingen). 27 van 02/10 gedeeltelijk: een API voor status en logboek, niet voor adressen. |
 | Lokaal | 15, 20, 27, 28 en 31 van 02/10; 3, 5, 6 en 10 van 01/10 | – |
 
-Zie ook [Schaal en limieten](schaal-en-limieten.md) voor de metingen achter de cijfers op deze pagina.
+De metingen achter de cijfers op deze pagina stonden op de pagina Schaal en limieten. Die hoort nu bij de webapp-repository.

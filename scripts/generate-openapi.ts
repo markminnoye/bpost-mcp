@@ -15,7 +15,6 @@ import { stringify } from 'yaml'
 import { z, type ZodType } from 'zod'
 import { UploadBatchCreatedSchema, UploadBatchErrorSchema, UploadBatchRequestSchema } from '../src/app/api/batches/upload/schema'
 import { InstallPromptBodySchema, InstallPromptMissingSchema } from '../src/app/api/install/prompt/schema'
-import { SuggestMappingErrorSchema, SuggestMappingRequestSchema, SuggestMappingResponseSchema } from '../src/app/api/masspost/suggest-mapping/schema'
 import { HealthResponseSchema } from '../src/app/health/schema'
 import { ReadyResponseSchema } from '../src/app/ready/schema'
 import { VersionResponseSchema } from '../src/app/version/schema'
@@ -97,29 +96,6 @@ registry.registerPath({
     403: json(UploadBatchErrorSchema, 'Account has no tenant.'),
     413: json(UploadBatchErrorSchema, 'Too many rows.'),
     500: json(UploadBatchErrorSchema, 'Unexpected failure. `details` may be set.'),
-  },
-})
-
-registry.registerPath({
-  method: 'post',
-  path: '/api/masspost/suggest-mapping',
-  summary: 'Ask an AI model for a column mapping',
-  description:
-    'Requires a bearer token or a signed-in session. Sends column titles, fill counts and masked sample values (`maskValue` in `src/core/masspost/mask.ts`) to the configured model; the server masks the examples again. Returns every column exactly once: in an address block (list order is envelope order), under `context` or under `ignore`. The rule-based suggestion (`suggestColumnMapping`) is a library function and runs in the client. See ADR 0006.',
-  request: {
-    body: {
-      required: true,
-      content: { 'application/json': { schema: SuggestMappingRequestSchema } },
-    },
-  },
-  responses: {
-    200: json(SuggestMappingResponseSchema, 'Proposed mapping.'),
-    400: json(SuggestMappingErrorSchema, 'Invalid JSON or invalid body (e.g. duplicate column titles, more than 5 examples).'),
-    401: json(SuggestMappingErrorSchema, 'Missing or invalid authentication.'),
-    403: json(SuggestMappingErrorSchema, 'Account has no tenant.'),
-    422: json(SuggestMappingErrorSchema, 'The model gave no valid proposal (`ai_invalid_output`).'),
-    502: json(SuggestMappingErrorSchema, 'The model call failed or timed out (`ai_failed`).'),
-    503: json(SuggestMappingErrorSchema, 'No model configured (`ai_not_configured`).'),
   },
 })
 

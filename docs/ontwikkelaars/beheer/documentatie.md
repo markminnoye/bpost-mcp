@@ -8,7 +8,7 @@ De documentatie staat in `docs/` en wordt door GitBook (Git Sync) gelezen. Er is
 
 | Groep(en) in de zijbalk | Map | Inhoud |
 |---|---|---|
-| Documentatie | `docs/documentatie/` | Skill, webapp, MCP (handgeschreven, alfa) |
+| Documentatie | `docs/documentatie/` | Skill en MCP (handgeschreven, alfa). De mailings-webapp staat in `e-masspost-webapp` |
 | Ontwikkelaars | `docs/ontwikkelaars/` | Alle technische info. Staat los van de rest en kan in één keer geschrapt worden |
 | Naslag bpost | `docs/internal/e-masspost/docs/` | Submodule `bpost-e-masspost-skills`, dezelfde inhoud als de skill |
 | Changelog | `docs/changelog/` | Kopie van `CHANGELOG.md`, gemaakt bij het publiceren |
@@ -24,10 +24,9 @@ Niet gepubliceerd: `docs/adr/`, `docs/ontwerp/` (schetsen en mock-ups in HTML), 
 
 | Pad | Bron | Script |
 |---|---|---|
-| `ontwikkelaars/library/` | TSDoc op `src/core/masspost/index.ts` | `npm run docs:code` |
 | `ontwikkelaars/api/openapi.yaml` | Zod-schema's van de HTTP-routes | `npm run docs:api` |
 
-Beide: `npm run docs:build`. `npm run docs:check` faalt als ze achterlopen. Al het andere is met de hand geschreven.
+`npm run docs:build` draait dat script. `npm run docs:check` faalt als de spec achterloopt. Al het andere is met de hand geschreven. De TypeDoc-library hoort bij de webapp-repository (ADR 0011).
 
 ## Publiceren
 
@@ -36,7 +35,7 @@ Een push naar `develop` draait `.github/workflows/publish-docs.yml`. Die bouwt d
 ## Ontwikkelaars later schrappen
 
 1. Verwijder de map `docs/ontwikkelaars/` en de groepen `Ontwikkelaars…` uit `docs/SUMMARY.md`.
-2. Verwijder `docs:code`, `docs:api` en `docs:check` uit `package.json`, samen met `typedoc.json`, `scripts/generate-openapi.ts` en `scripts/check-generated-docs.mjs`, en de `docs:check`-stap in `.github/workflows/mcp-ci.yml`.
+2. Verwijder `docs:api` en `docs:check` uit `package.json`, samen met `scripts/generate-openapi.ts` en `scripts/check-generated-docs.mjs`, en de `docs:check`-stap in `.github/workflows/mcp-ci.yml`.
 3. Pas de documentatiestandaard in `AGENTS.md` en `.cursor/rules/documentation.mdc` aan.
 
 Zie ADR 0004 in `docs/adr/`.

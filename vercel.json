@@ -14,9 +14,6 @@
     },
     "src/app/api/batches/upload/route.ts": {
       "maxDuration": 120
-    },
-    "src/app/api/masspost/**/*.ts": {
-      "maxDuration": 60
     }
   },
   "headers": [

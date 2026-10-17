@@ -23,6 +23,10 @@ export const bpostCredentials = pgTable('bpost_credentials', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
+/**
+ * Shared with the mailings webapp (e-masspost-webapp) on the same database.
+ * This service reads `barcodeStrategy` and `barcodeLength` only. Leave the other columns in place.
+ */
 export const tenantPreferences = pgTable('tenant_preferences', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')

@@ -17,21 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Samenvatting
 
-**Nieuw**
-
-- **E-mail bij klaar (e-MassPost Contacts):** in **stap 1** vul je een e-mailadres in; e-MassPost kan dan mailen wanneer de controle of de indiening klaar is. Vooraf: standaard uit Instellingen, anders het adres van de aangemelde gebruiker. In **Instellingen → Standaardwaarden** zet je het organisatiestandaard. Leeg = geen Contacts in de XML. Vraagt de kolom `default_notify_email` in `tenant_preferences` (SQL: `drizzle/0007_tenant_preferences_default_notify_email.sql`).
-
 **Aanpassingen**
 
-- **Pills in het mailingoverzicht (rechts → links, meest voorkomende eerst):** afgiftedatum · ARR · aantal adressen · buitenland · uitgesloten · Test/Certificatie · PS · R&S · klant. Nieuwe pills **PS** (presortering) en **R&S** (ronde en sequentie) als die aan staan; uitgesloten rijen krijgen een eigen pill.
+- **De mailings-webapp staat niet meer in deze repository.** Overzicht, flow, Instellingen, de library `src/core/masspost` en het AI-kolomvoorstel horen bij de private repo `e-masspost-webapp`. Hier blijven de MCP-server, de OAuth-server, de batch-upload (Redis), `/install` en `/reference`.
+- **Startpagina `/`:** uitleg om te koppelen. Zonder bpost-gegevens (ook na de OAuth-aanmelding) zegt de pagina dat je die in de mailings-toepassing invult.
+- **Documentatie:** de groepen Webapp en Library zijn weg (ADR 0011). `docs:check` kijkt alleen nog naar de OpenAPI-spec.
+- **Omgevingsvariabelen** `BPOST_TEST_*`, `BPOST_FTP_*`, `MASSPOST_SUGGEST_MAPPING_MODEL` en `AI_GATEWAY_API_KEY` worden hier niet meer gelezen. De databasekolommen van de webapp blijven staan, zodat een schema-push ze niet verwijdert.
 
 ### Added
 
-- Optional `Contacts` (email + `lang=nl`) on `MailingCheck` / `MailingCreate` via `notifyEmail` (`notifyContacts`, `buildRequestFile`, step 1 field, tenant `defaultNotifyEmail`, fallback signed-in user).
-
 ### Changed
 
-- Mailing list pills, right to left (Mark 14/10): date · ARR · addresses · abroad · excluded · Test/Certificatie · PS · R&S · customer. `MailingSummary` exposes `genPSC` and `roundAndSequence`; excluded rows get their own pill (`excludedInfo`).
+- Removed the mailing webapp, `src/core/masspost`, the suggest-mapping route and the library CLI from this repo. They live in `e-masspost-webapp`. Home `/` is the connect landing. OpenAPI no longer lists `POST /api/masspost/suggest-mapping`. TypeDoc output is gone (ADR 0011).
 
 ### Fixed
 
