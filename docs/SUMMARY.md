@@ -8,15 +8,6 @@
 
 * [Bpost-skill voor je AI-assistent](documentatie/bpost-skill.md)
 
-## Documentatie: Webapp
-
-* [Inloggen](documentatie/webapp/inloggen.md)
-* [Mailings](documentatie/webapp/mailings.md)
-* [Adreslijst nakijken](documentatie/webapp/adreslijst-nakijken.md)
-* [Instellingen](documentatie/webapp/instellingen.md)
-* [Formaatvalidatie](documentatie/webapp/formaatvalidatie.md)
-* [Adrescontrole](documentatie/webapp/adrescontrole.md)
-
 ## Documentatie: MCP
 
 * [Overzicht](documentatie/mcp/README.md)
@@ -42,14 +33,6 @@
 * [API-overzicht](ontwikkelaars/api/overzicht.md)
 * [HTTP-API](ontwikkelaars/api/http-api.md)
 * [OpenAPI-referentie](ontwikkelaars/api/openapi.yaml)
-
-## Ontwikkelaars: Library
-
-* [Library](ontwikkelaars/library.md)
-* [Kolom-mapping](ontwikkelaars/kolom-mapping.md)
-* [Comp-codes](ontwikkelaars/comp-codes.md)
-* [Schaal en limieten](ontwikkelaars/schaal-en-limieten.md)
-* [Referentie](ontwikkelaars/library/README.md)
 
 ## Ontwikkelaars: Beheer
 

@@ -2,6 +2,10 @@
 
 *Sonic Rocket · 28 september 2026*
 
+## Status: verhuisd (17/10/2026)
+
+De mailings-webapp en `src/core/masspost/` staan in de private repo `e-masspost-webapp`. Deze repository (`bpost-mcp`) houdt de MCP-server, OAuth, de batch-upload, `/install` en `/reference`. Bouw de webapp hier niet terug.
+
 **Vervangt:** [`2026-09-26-contrapunt-aft-address-prep.md`](2026-09-26-contrapunt-aft-address-prep.md)
 (stub sinds 29/09 — de lokale AFT-skill bouwen we niet).
 

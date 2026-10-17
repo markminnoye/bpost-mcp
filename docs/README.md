@@ -10,4 +10,4 @@ Deze map wordt door GitBook (Git Sync, branch `docs`) gelezen als **één publie
 | `changelog/` | Changelog (kopie van `CHANGELOG.md`) |
 | `projectdossier/` | Projectdossier |
 
-Gegenereerd: `ontwikkelaars/library/` (`npm run docs:code`) en `ontwikkelaars/api/openapi.yaml` (`npm run docs:api`). Beide: `npm run docs:build`.
+Gegenereerd: `ontwikkelaars/api/openapi.yaml` (`npm run docs:api`, ook `npm run docs:build`). De library-referentie staat in de webapp-repository (ADR 0011).

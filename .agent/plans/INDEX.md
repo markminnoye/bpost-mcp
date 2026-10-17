@@ -120,7 +120,7 @@ Deze plannen zijn uitgevoerd als onderdeel van de superpowers-iteraties en stond
 | Plan | Status | Notes |
 |---|---|---|
 | [Adressen klaarmaken voor bpost](2026-09-26-contrapunt-aft-address-prep.md) | ⬜ | Stub. Lokale AFT-skill afgevoerd 29/09. |
-| [Bpost e-MassPost library + webapp](2026-09-28-bpost-library-web-app.md) | 🔄 | **Koers 29/09:** XML via **FTP**, validatie via **OptiAddress** (`MailingCheck` / 7001). Library staat; web UI en live FTP nog niet. |
+| [Bpost e-MassPost library + webapp](2026-09-28-bpost-library-web-app.md) | ✅ | **17/10/2026:** webapp en library verhuisd naar `e-masspost-webapp`. Deze repo is weer alleen MCP, OAuth, batch-upload, `/install` en `/reference`. |
 | [SR-79 kolom-mapping suggestie](2026-09-29-sr-79-column-mapping-suggest.md) | ✅ | API: heuristics + optionele AI. Geen UI. Caller bevestigt. |
 | [Masspost web-flow: ontwerp](2026-10-02-masspost-web-flow-design.md) | 🔄 | Brainstorm over de gebruikersflow, toestanden en statussen voor de webinterface (fase 2b). Besluitenlog en open vragen. |
 | [POC formaatvalidatie](2026-10-05-masspost-poc-formaatvalidatie.md) | 🔄 | `/masspost/poc`: Excel inlezen, kolommen koppelen en formaatvalidatie, alles in de browser (exceljs, tot 150.000 adressen om te meten). Nieuwe library-module `format-check.ts`, losstaand bestand via `npm run build:poc`. Wacht op review van Mark. |
