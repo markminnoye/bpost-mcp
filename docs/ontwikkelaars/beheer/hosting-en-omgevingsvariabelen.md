@@ -30,7 +30,7 @@ Niet alle variabelen lopen via `env.ts`. De databasevariabelen, `ENCRYPTION_KEY`
 | `BPOST_DB_DATABASE_URL` of `DATABASE_URL` | Neon Postgres |
 | `ENCRYPTION_KEY` | AES-256-GCM-sleutel (base64, 32 bytes) |
 | `AUTH_SECRET` | Auth.js |
-| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Google-aanmelding voor de webapp |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Google-aanmelding (OAuth-flow en de landingspagina) |
 | `REDIS_URL` | Batchstatus. Vercel Marketplace Redis zet dit automatisch |
 
 ### Optioneel
@@ -40,24 +40,7 @@ Niet alle variabelen lopen via `env.ts`. De databasevariabelen, `ENCRYPTION_KEY`
 | `READINESS_PROBE_TIMEOUT_MS` | Timeout voor `/ready` (standaard 1500) |
 | `AUTH_ACCEPTED_ISSUERS` | Extra OAuth-issuers, komma-gescheiden. Leeg laten = standaardhost; lege string = geen extra hosts |
 | `GITHUB_TOKEN` | Laat `report_issue` automatisch een issue aanmaken |
-| `MASSPOST_SUGGEST_MAPPING_MODEL`, `AI_GATEWAY_API_KEY` | AI-fallback voor [kolom-mapping](../kolom-mapping.md) |
 | `SEED_BPOST_*` | Alleen voor `npm run seed` |
-
-### Masspost-library (één tenant, Contrapunt)
-
-Optioneel bij het opstarten. De library faalt pas met een leesbare fout wanneer ze gebruikt wordt.
-
-| Variabele | Gebruik |
-|---|---|
-| `BPOST_TEST_USERNAME`, `BPOST_TEST_PASSWORD` | Login van het e-MassPost-portaal |
-| `BPOST_TEST_CUSTOMER_ID` | Klantnummer (`BPOST_TEST_CUSTOMER_NUMBER` is verouderd) |
-| `BPOST_TEST_ACCOUNT_ID` | Account-id uit het portaal |
-| `BPOST_TEST_BARCODE_CUSTOMER_ID` | Barcode-id, exact 5 cijfers |
-| `BPOST_TEST_MID_VERSION` | `0100`, `0102` of `0200` (standaard `0200`) |
-| `BPOST_TEST_CUSTOMER_FILE_REF` | Bestandsreferentie, 1 tot 10 tekens (standaard `REFERENCE`) |
-| `BPOST_FTP_HOST` | Standaard `filetransfer.bpost.be` |
-| `BPOST_FTP_USERNAME`, `BPOST_FTP_PASSWORD` | Alleen als ze van de HTTP-login verschillen |
-| `BPOST_FTP_SECURE` | FTPS. Standaard aan; alleen `false` zet het uit |
 
 ## Gezondheidscontrole
 

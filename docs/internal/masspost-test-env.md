@@ -1,7 +1,8 @@
 # Masspost test-credentials (`.env.local`)
 
-Variabelen voor **`src/core/masspost/`** en scripts `npm run test:transport` / `npm run generate:mailing-xml`.  
-Validatie: `src/lib/config/env.ts` · resolutie: `src/core/masspost/credentials.ts`.
+> Deze variabelen worden in **deze** repository niet meer gelezen. De library en de scripts staan in `e-masspost-webapp`. Onderstaande tekst blijft als naslag van de testaccount.
+
+Variabelen voor **`src/core/masspost/`** en scripts `npm run test:transport` / `npm run generate:mailing-xml` (webapp-repository).
 
 **Scripts, flags en library-API:** [masspost-library.md](./masspost-library.md).
 

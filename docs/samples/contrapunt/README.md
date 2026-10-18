@@ -2,7 +2,7 @@
 
 Referentie-export om de masspost-library en `npm run test:transport` te testen (≈789 adressen, worksheet `Blad1`).
 
-**CLI & library:** [masspost-library.md](../../internal/masspost-library.md) · **Env:** [masspost-test-env.md](../../internal/masspost-test-env.md)
+**CLI & library:** verhuisd naar `e-masspost-webapp` ([masspost-library.md](../../internal/masspost-library.md)). **Env:** [masspost-test-env.md](../../internal/masspost-test-env.md)
 
 **Minimum 500 adressen:** bevestigd door Contrapunt (Frank, 28/09/2026) — geldt breed voor mailings (commercieel, geen XSD). Dit bestand voldoet; `--simple` / `--synthetic` zijn enkel voor snelle XML/bestandsnaam-tests, niet als volwaardige portal-upload.
 

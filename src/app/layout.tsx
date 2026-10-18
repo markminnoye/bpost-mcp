@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mailings voor e-MassPost",
-  description: "Mailings voorbereiden en opvolgen voor e-MassPost van bpost (alfa).",
+  title: "Koppelen met bpost",
+  description: "Koppel je assistent aan je bpost-account (alfa).",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },

@@ -32,7 +32,7 @@ Toegangstokens worden ondertekend met de host van het verzoek. Tokens van een vo
 
 ## App-token (headless)
 
-Een bestaand app-token gebruik je als Bearer-token. Een nieuw token aanmaken kan voorlopig niet in de webapp. De HTTP-routes `POST /api/batches/upload` en `POST /api/masspost/suggest-mapping` aanvaarden ook een ingelogde sessie.
+Een bestaand app-token gebruik je als Bearer-token. Een nieuw token aanmaken kan voorlopig niet in de mailings-toepassing. De route `POST /api/batches/upload` aanvaardt ook een ingelogde sessie.
 
 ## Foutcodes
 
