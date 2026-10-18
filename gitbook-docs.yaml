@@ -1,0 +1,12 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: bpost e-Masspost
+  structure:
+    - type: space
+      key: space-docs
+      title: bpost e-Masspost
+      path: docs
+      default: true
+      content:
+        directory: ./
+        language: nl

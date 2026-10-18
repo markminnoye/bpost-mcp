@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schets: formaatvalidatie</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css">
+<style>
+:root{--bg:#FFFFFF;--surface-1:#F4F4F5;--surface-2:#FFFFFF;--border:#E4E4E7;--border-strong:#D4D4D8;--text-primary:#18181B;--text-secondary:#52525B;--text-muted:#71717A;--red:#DC2626;--green:#16A34A;--tip-bg:#18181B;--tip-fg:#FAFAFA;--radius:6px;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A0A0A;--surface-1:#141416;--surface-2:#1C1C1F;--border:#27272A;--border-strong:#3F3F46;--text-primary:#FAFAFA;--text-secondary:#A1A1AA;--text-muted:#71717A;--red:#EF4444;--green:#22C55E;--tip-bg:#27272A;--tip-fg:#FAFAFA;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A0A0A;--surface-1:#141416;--surface-2:#1C1C1F;--border:#27272A;--border-strong:#3F3F46;--text-primary:#FAFAFA;--text-secondary:#A1A1AA;--text-muted:#71717A;--red:#EF4444;--green:#22C55E;--tip-bg:#27272A;--tip-fg:#FAFAFA;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text-primary);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Geist","Inter",sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px 48px}
+.note{font-size:12px;color:var(--text-muted);margin:0 0 20px}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.t{font-size:16px;font-weight:500}
+.m{font-size:13px;color:var(--text-secondary)}
+.help{font-size:12px;color:var(--text-muted);margin:6px 0 14px}
+.b{font:inherit;font-size:12px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-primary);cursor:pointer;white-space:nowrap}
+.b:hover:not([disabled]){border-color:var(--text-muted)}
+.b[disabled]{opacity:.4;cursor:default}
+.b.primary:not([disabled]){background:#E30613;border-color:#E30613;color:#FFFFFF;font-weight:500}
+.b.primary:not([disabled]):hover{background:#C00511;border-color:#C00511}
+.gh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 10px;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;margin-top:16px}
+.gn{font-size:13px;font-weight:500}
+.gn span{color:var(--text-muted);font-weight:400;margin-left:6px}
+.cols,.row{display:grid;grid-template-columns:130px minmax(0,1.15fr) 28px minmax(0,1fr) 32px;gap:10px;align-items:start;padding:8px 10px}
+.cols{font-size:11px;color:var(--text-muted);padding-bottom:0}
+.row{border-bottom:1px solid var(--border)}
+.k{font-size:12px;color:var(--text-muted);padding-top:6px}
+.in{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-2);color:var(--text-primary);width:100%}
+.in[aria-invalid="true"]{border-color:var(--red)}
+.in:focus{outline:2px solid #3B82F6;outline-offset:1px}
+.why{font-size:12px;color:var(--red);margin-top:3px}
+.why:empty{display:none}
+.st{width:28px;height:30px;display:flex;align-items:center;justify-content:center;font-size:19px}
+.st.bad{color:var(--red)}
+.st.ok{color:var(--green)}
+.prop{display:flex;align-items:center;gap:6px;min-height:30px;font-size:13px;color:var(--text-secondary)}
+.prop:empty{min-height:0}
+.ib{width:28px;height:28px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:15px}
+.ib:hover{border-color:var(--text-muted);color:var(--text-primary)}
+.ctx{grid-column:2 / -1;font-size:12px;color:var(--text-muted);display:none}
+.row:focus-within .ctx{display:block}
+.row:focus{outline:none;background:var(--surface-1)}
+.row.editing{background:var(--surface-1)}
+.ib[aria-pressed="true"]{background:var(--surface-1);color:var(--text-primary);border-color:var(--text-muted)}
+.row.excl{opacity:.45}
+.row.excl .in{text-decoration:line-through}
+[data-tip]{position:relative}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{content:attr(data-tip);position:absolute;right:0;bottom:calc(100% + 6px);z-index:10;width:max-content;max-width:260px;background:var(--tip-bg);color:var(--tip-fg);font-size:12px;line-height:1.4;padding:6px 8px;border-radius:6px;border:1px solid var(--border-strong);white-space:normal;text-align:left;pointer-events:none}
+.fw{position:relative}
+.fw.changed .in{padding-right:34px}
+.undo{position:absolute;right:4px;top:4px;width:24px;height:24px;display:none;align-items:center;justify-content:center;border:0;border-radius:4px;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:15px}
+.fw.changed .undo{display:inline-flex}
+.undo:hover{background:var(--surface-1);color:var(--text-primary)}
+.tg{display:flex;gap:8px;align-items:center}
+details summary{list-style:none;cursor:pointer;font-size:12px;color:var(--text-secondary);padding:8px 10px;display:flex;align-items:center;gap:6px}
+details summary::-webkit-details-marker{display:none}
+details[open] summary i{transform:rotate(90deg)}
+.kb{font-size:12px;color:var(--text-muted);padding-top:16px}
+.kb code{font-family:ui-monospace,Menlo,monospace;font-size:11px;padding:1px 5px;border:1px solid var(--border);border-radius:4px}
+.xtag{font-size:12px;color:var(--text-secondary);border:1px solid var(--border-strong);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.row.excl .xtag{opacity:1}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;background:var(--tip-bg);color:var(--tip-fg);border:1px solid var(--border-strong);border-radius:8px;padding:10px 14px;font-size:13px;z-index:20}
+.toast button{font:inherit;font-size:13px;font-weight:500;background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;padding:0}
+[hidden]{display:none!important}
+@media (max-width:640px){.cols{display:none}.cols,.row{grid-template-columns:1fr 28px 32px}.k{grid-column:1 / -1}.prop{grid-column:1 / -1}}
+</style>
+</head>
+<body>
+<main>
+<p class="note">Schets v8 uit de brainstorm van 02/10/2026 (zie <code>2026-10-02-masspost-web-flow-design.md</code>, besluiten 22, 24, 25, 29, 30, 33, 34 en 35). Interactief: pas een waarde aan, neem een voorstel over, zet de oorspronkelijke waarde terug of sluit een rij uit. Licht en donker: volgt je systeem, of wissel met de knop rechtsboven. De regels hier zijn vereenvoudigd (niet leeg, max. 50 tekens, enkel tekens die bpost kent, postcode van 4 cijfers).</p>
+
+<div class="hd">
+  <div><div class="t">Formaatvalidatie</div><div class="m">Voldoet je lijst aan de regels van bpost? We kijken de tekens, de lengte van elk veld, de verplichte velden en de gekoppelde kolommen na.</div><div class="m" id="sum"></div></div>
+  <div class="tg"><button class="ib" id="theme" data-tip="Wissel tussen licht en donker" aria-label="Wissel tussen licht en donker"><i class="ti ti-sun-moon" aria-hidden="true"></i></button><button class="b primary" id="next" disabled>Verder naar adrescontrole</button></div>
+</div>
+<p class="help">Klik op een rij, of Tab tot in de lijst. Kies een rij met ↑ ↓ en druk Enter om het voorstel over te nemen, of E om zelf aan te passen. Het vinkje wordt groen zodra de waarde aan de regels van bpost voldoet. Na een aanpassing verschijnt in het veld een knop om de oorspronkelijke waarde terug te zetten.</p>
+
+<div class="cols"><span>Rij · veld</span><span>Huidige waarde</span><span></span><span>Voorstel</span><span></span></div>
+
+<section data-group>
+  <div class="gh"><div class="gn">Vreemde tekens<span data-gcount></span></div><button class="b" data-accept-all></button></div>
+  <div class="row" data-field="naam" data-orig="Jan ’t Hooft" data-prop="Jan 't Hooft" data-ctx="Straat: Dorpsstraat 4 · Postcode en gemeente: 9340 Lede · Lidnummer: 10233"><div class="k">Rij 14 · naam</div></div>
+  <div class="row" data-field="straat" data-orig="Kerkstraat 12–14" data-prop="Kerkstraat 12-14" data-ctx="Naam: Els Martens · Postcode en gemeente: 9300 Aalst · Lidnummer: 10871"><div class="k">Rij 233 · straat</div></div>
+  <div class="row" data-field="straat" data-orig="Grote Markt 1 • 3de verdieping" data-prop="Grote Markt 1 3de verdieping" data-ctx="Naam: Stadsbestuur Lede · Postcode en gemeente: 9340 Lede"><div class="k">Rij 301 · straat</div></div>
+  <details>
+    <summary><i class="ti ti-chevron-right" aria-hidden="true"></i><span data-more>Toon de 3 andere rijen</span></summary>
+    <div class="row" data-field="naam" data-orig="Ann‑Sofie Claes" data-prop="Ann-Sofie Claes" data-ctx="Straat: Leopoldlaan 9 · Postcode en gemeente: 9300 Aalst"><div class="k">Rij 452 · naam</div></div>
+    <div class="row" data-field="straat" data-orig="Sint–Pietersnieuwstraat 33" data-prop="Sint-Pietersnieuwstraat 33" data-ctx="Naam: Pieter Wouters · Postcode en gemeente: 9000 Gent"><div class="k">Rij 518 · straat</div></div>
+    <div class="row" data-field="naam" data-orig="Lieve D’Hondt" data-prop="Lieve D'Hondt" data-ctx="Straat: Kouterstraat 21 · Postcode en gemeente: 9340 Lede"><div class="k">Rij 640 · naam</div></div>
+  </details>
+</section>
+
+<section data-group>
+  <div class="gh"><div class="gn">Te lang, meer dan 50 tekens<span data-gcount></span></div><button class="b" data-accept-all></button></div>
+  <div class="row" data-field="naam" data-orig="Vereniging voor Natuur- en Vogelbescherming Kortrijk vzw" data-prop="Ver. voor Natuur- en Vogelbescherming Kortrijk vzw" data-ctx="Straat: Doorniksesteenweg 214 · Postcode en gemeente: 8500 Kortrijk"><div class="k">Rij 87 · naam</div></div>
+  <div class="row" data-field="straat" data-orig="Burgemeester Edgard Van Hoorebekestraat 112 bus 0201" data-prop="Burg. Edgard Van Hoorebekestraat 112 bus 0201" data-ctx="Naam: Marc De Vos · Postcode en gemeente: 9040 Gent"><div class="k">Rij 1203 · straat</div></div>
+</section>
+
+<section data-group>
+  <div class="gh"><div class="gn">Jouw input nodig<span data-gcount></span></div><button class="b" data-accept-all hidden></button></div>
+  <div class="row" data-field="postcode" data-orig="" data-ctx="Naam: Familie Peeters-Janssens · Straat: Molenstraat 7 bus 2 · Lidnummer: 10482 · Afdeling: Ferm Lede"><div class="k">Rij 412 · postcode en gemeente</div></div>
+  <div class="row" data-field="naam" data-orig="" data-excluded data-ctx="Straat: Stationsstraat 3 · Postcode en gemeente: 9340 Lede · Lidnummer: 20877"><div class="k">Rij 977 · naam</div></div>
+</section>
+
+<div class="kb"><code>Tab</code> naar de volgende knop of groep rijen · <code>↑</code> <code>↓</code> rij kiezen · <code>→</code> <code>←</code> rijen tonen of verbergen · <code>Enter</code> voorstel overnemen (zonder voorstel: aanpassen) · <code>E</code> aanpassen · tijdens het aanpassen: <code>Enter</code> bevestigen, <code>Esc</code> terugzetten · <code>X</code> uitsluiten of opnieuw opnemen · <code>⌘Z</code> laatste actie ongedaan maken</div>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden><span></span><button type="button">Ongedaan maken</button></div>
+
+<script>
+const MAX = 50;
+function badChar(v){for(const ch of v){const c=ch.codePointAt(0);if(!((c>=32&&c<=126)||(c>=192&&c<=255)))return ch}return null}
+function check(v,field){
+  if(!v.trim())return 'Verplicht veld is leeg.';
+  const ch=badChar(v); if(ch)return 'Het teken "'+ch+'" kent bpost niet.';
+  if(v.length>MAX)return 'Te lang: '+v.length+' van maximaal '+MAX+' tekens.';
+  if(field==='postcode'&&!/^\d{4} \S/.test(v))return 'Begin met een postcode van 4 cijfers, dan de gemeente.';
+  return null;
+}
+const rows=[...document.querySelectorAll('.row')];
+const undoStack=[];
+function snap(list){return list.map(r=>[r,r._inp.value,r.hasAttribute('data-excluded')])}
+function pushUndo(e){if(e.length)undoStack.push(e)}
+function undoEntry(e){const i=undoStack.indexOf(e);if(i<0)return;undoStack.splice(i,1);e.forEach(([r,v,x])=>{r._inp.value=v;r.toggleAttribute('data-excluded',x)});hideToast();update()}
+function undoLast(){if(undoStack.length)undoEntry(undoStack[undoStack.length-1])}
+function navItems(){return [...document.querySelectorAll('.row, details > summary')].filter(el=>el.offsetParent!==null)}
+function setStop(r){r.closest('[data-group]').querySelectorAll('.row').forEach(x=>x.tabIndex=-1);r.tabIndex=0}
+function focusRow(r){if(!r)return;setStop(r);r.focus()}
+function focusItem(el){if(!el)return;if(el.classList.contains('row'))focusRow(el);else el.focus()}
+function move(el,d){const v=navItems();const i=v.indexOf(el);focusItem(v[Math.max(0,Math.min(v.length-1,i+d))])}
+const noBlur=b=>b.addEventListener('mousedown',e=>e.preventDefault());
+
+rows.forEach((row,i)=>{
+  const id='f'+i, orig=row.dataset.orig, prop=row.dataset.prop;
+  row.tabIndex=row.closest('[data-group]').querySelector('.row')===row?0:-1;
+  row.setAttribute('aria-keyshortcuts','ArrowUp ArrowDown Enter E X');
+  const cell=document.createElement('div');
+  cell.innerHTML='<div class="fw"><input class="in" tabindex="-1" id="'+id+'" aria-describedby="'+id+'w"></div><div class="why" id="'+id+'w"></div>';
+  const inp=cell.querySelector('input'), fw=cell.querySelector('.fw');
+  const undo=document.createElement('button'); undo.className='undo'; undo.type='button'; undo.tabIndex=-1; undo.innerHTML='<i class="ti ti-arrow-back-up" aria-hidden="true"></i>'; fw.append(undo);
+  const undoTip='Oorspronkelijke waarde terugzetten: '+(orig||'(leeg)');
+  undo.dataset.tip=undoTip; undo.setAttribute('aria-label',undoTip); noBlur(undo);
+  const st=document.createElement('span'); st.className='st';
+  const pc=document.createElement('div'); pc.className='prop';
+  const ex=document.createElement('button'); ex.className='ib'; ex.tabIndex=-1; noBlur(ex);
+  const ctx=document.createElement('div'); ctx.className='ctx'; ctx.textContent=row.dataset.ctx||'';
+  row.append(cell,st,pc,ex,ctx);
+  inp.value=orig; inp.setAttribute('aria-label',row.querySelector('.k').textContent);
+  row._inp=inp;
+  let before=null;
+  function startEdit(){if(row.hasAttribute('data-excluded'))return;before=inp.value;row.classList.add('editing');inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length)}
+  function stopEditing(){const b=before;before=null;row.classList.remove('editing');return b}
+  function endEdit(keep){if(before===null)return;const b=stopEditing();if(!keep)inp.value=b;else if(inp.value!==b)pushUndo([[row,b,row.hasAttribute('data-excluded')]]);update()}
+  function accept(){if(!row._showsProp)return false;const b=stopEditing();pushUndo([[row,b!==null?b:inp.value,false]]);inp.value=prop;update();return true}
+  function toggleExcl(){endEdit(true);pushUndo(snap([row]));row.toggleAttribute('data-excluded');update()}
+  row._startEdit=startEdit;
+  undo.onclick=()=>{const b=stopEditing();pushUndo([[row,b!==null?b:inp.value,row.hasAttribute('data-excluded')]]);inp.value=orig;update();focusRow(row)};
+  ex.onclick=()=>{toggleExcl();focusRow(row)};
+  inp.addEventListener('focus',()=>{if(before===null){before=inp.value;row.classList.add('editing')}setStop(row)});
+  inp.addEventListener('input',update);
+  inp.addEventListener('blur',()=>endEdit(true));
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();endEdit(true);focusRow(row)}
+    else if(e.key==='Escape'){e.preventDefault();endEdit(false);focusRow(row)}
+    else if(e.key==='Tab'){endEdit(true)}
+  });
+  row.addEventListener('keydown',e=>{
+    if(e.target!==row)return;
+    const k=e.key.toLowerCase(), mod=e.metaKey||e.ctrlKey||e.altKey;
+    if(e.key==='ArrowDown'||(k==='j'&&!mod)){e.preventDefault();move(row,1)}
+    else if(e.key==='ArrowUp'||(k==='k'&&!mod)){e.preventDefault();move(row,-1)}
+    else if(e.key==='Home'){e.preventDefault();focusItem(navItems()[0])}
+    else if(e.key==='End'){e.preventDefault();const v=navItems();focusItem(v[v.length-1])}
+    else if(e.key==='ArrowLeft'){const d=row.closest('details');if(d&&d.open){e.preventDefault();d.open=false;d.querySelector('summary').focus()}}
+    else if(e.key==='Enter'&&row._showsProp){e.preventDefault();if(accept())move(row,1)}
+    else if(e.key==='Enter'||e.key==='F2'||(k==='e'&&!mod)){e.preventDefault();startEdit()}
+    else if(k==='x'&&!mod){e.preventDefault();toggleExcl()}
+  });
+  row.addEventListener('mousedown',e=>{if(e.target===row||e.target.classList.contains('k')||e.target.classList.contains('ctx')||e.target.classList.contains('why')){e.preventDefault();focusRow(row)}});
+  row._render=function(){
+    const excl=row.hasAttribute('data-excluded');
+    const err=excl?null:check(inp.value,row.dataset.field);
+    row.classList.toggle('excl',excl); inp.disabled=excl; inp.placeholder=excl?'(leeg)':'';
+    fw.classList.toggle('changed',!excl&&inp.value!==orig);
+    inp.setAttribute('aria-invalid',err?'true':'false');
+    cell.querySelector('.why').textContent=err||'';
+    row._open=!!err;
+    if(excl){st.className='st';st.innerHTML='';st.removeAttribute('data-tip');}
+    else if(err){st.className='st bad';st.innerHTML='<i class="ti ti-circle-x" aria-hidden="true"></i>';st.dataset.tip=err;}
+    else{st.className='st ok';st.innerHTML='<i class="ti ti-circle-check" aria-hidden="true"></i>';st.dataset.tip=inp.value!==orig?'In orde. Oorspronkelijk: '+(orig||'(leeg)'):'In orde.';}
+    pc.innerHTML='';
+    row._showsProp=!!(err&&prop&&!excl&&inp.value===orig);
+    if(excl){pc.innerHTML='<span class="xtag">Uitgesloten uit de mailing</span>';}
+    else if(row._showsProp){pc.innerHTML='<span></span>';pc.firstChild.textContent=prop;
+      const b=document.createElement('button');b.className='ib';b.tabIndex=-1;b.innerHTML='<i class="ti ti-corner-down-left" aria-hidden="true"></i>';
+      b.dataset.tip='Voorstel overnemen (Enter)';b.setAttribute('aria-label','Voorstel overnemen: '+prop);noBlur(b);
+      b.onclick=()=>{accept();focusRow(row)};pc.prepend(b);}
+    ex.innerHTML='<i class="ti ti-x" aria-hidden="true"></i>'; ex.setAttribute('aria-pressed',excl?'true':'false');
+    const t=excl?'Opnieuw opnemen in de mailing (X)':'Uitsluiten uit de mailing (X). De rij blijft bewaard.';
+    ex.dataset.tip=t; ex.setAttribute('aria-label',t);
+    row.setAttribute('aria-label',row.querySelector('.k').textContent+': '+(inp.value||'(leeg)')+'. '+(excl?'Uitgesloten.':err?'Fout: '+err+(prop?' Voorstel: '+prop+'.':''):'In orde.'));
+  };
+});
+function update(){
+  rows.forEach(r=>r._render());
+  document.querySelectorAll('[data-group]').forEach(g=>{
+    const gr=[...g.querySelectorAll('.row')];
+    const open=gr.filter(r=>r._open).length;
+    const withProp=gr.filter(r=>r._showsProp).length;
+    g.querySelector('[data-gcount]').textContent=open?open+' open':'alles in orde';
+    const btn=g.querySelector('[data-accept-all]');
+    if(!btn.hidden){btn.textContent=withProp?'Overige '+withProp+' voorstellen overnemen':'Alles in orde';btn.disabled=!withProp;
+      btn.onclick=()=>{const e=[];gr.forEach(r=>{if(r._showsProp){e.push([r,r._inp.value,false]);r._inp.value=r.dataset.prop;}});pushUndo(e);update();showToast(e)};}
+  });
+  const open=rows.filter(r=>r._open).length, excl=rows.filter(r=>r.hasAttribute('data-excluded')).length;
+  document.getElementById('sum').textContent=open+' rijen nog fout · '+(rows.length-open-excl)+' in orde · '+excl+' uitgesloten';
+  document.getElementById('next').disabled=open>0;
+}
+const toast=document.getElementById('toast');let toastEntry=null,timer=null;
+function hideToast(){toast.hidden=true;toastEntry=null;clearTimeout(timer)}
+function showToast(e){if(!e.length)return;toastEntry=e;
+  toast.querySelector('span').textContent=e.length+(e.length===1?' voorstel':' voorstellen')+' overgenomen';
+  toast.hidden=false;clearTimeout(timer);timer=setTimeout(hideToast,8000);}
+toast.querySelector('button').onclick=()=>{if(toastEntry)undoEntry(toastEntry)};
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'&&!(e.target instanceof HTMLInputElement)){e.preventDefault();const f=document.activeElement;undoLast();if(f&&f.classList&&f.classList.contains('row'))f.focus()}});
+document.querySelectorAll('details > summary').forEach(sm=>{
+  const d=sm.parentElement, lbl=sm.querySelector('[data-more]'), n=d.querySelectorAll('.row').length;
+  sm.setAttribute('aria-keyshortcuts','ArrowUp ArrowDown ArrowLeft ArrowRight');
+  sm.addEventListener('keydown',e=>{const k=e.key.toLowerCase(),mod=e.metaKey||e.ctrlKey||e.altKey;
+    if(e.key==='ArrowDown'||(k==='j'&&!mod)){e.preventDefault();move(sm,1)}
+    else if(e.key==='ArrowUp'||(k==='k'&&!mod)){e.preventDefault();move(sm,-1)}
+    else if(e.key==='ArrowRight'){e.preventDefault();d.open=true}
+    else if(e.key==='ArrowLeft'){e.preventDefault();d.open=false}});
+  d.addEventListener('toggle',()=>{
+    lbl.textContent=(d.open?'Verberg':'Toon')+' de '+n+' andere rijen';
+    if(!d.open){if(d.contains(document.activeElement)&&document.activeElement!==sm)sm.focus();
+      const sec=d.closest('[data-group]');const stop=sec.querySelector('.row[tabindex="0"]');
+      if(!stop||stop.offsetParent===null){const first=[...sec.querySelectorAll('.row')].find(r=>r.offsetParent!==null);if(first)setStop(first)}}});
+});
+document.getElementById('theme').onclick=()=>{
+  const r=document.documentElement;
+  const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme=dark?'light':'dark';
+};
+update();
+</script>
+</body>
+</html>

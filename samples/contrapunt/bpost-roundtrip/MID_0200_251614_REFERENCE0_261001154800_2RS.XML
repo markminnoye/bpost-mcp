@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<MailingResponse>
+	<Context requestName="MailingResponse" dataset="M037_MID" sender="MID" receiver="251614" version="0200"/>
+	<Header customerId="251614">
+		<Files>
+			<RequestProps fileName="MID_0200_251614_REFERENCE0_261001154715_0RQ.XML" customerFileRef="REFERENCE0"/>
+		</Files>
+	</Header>
+	<MailingDelete seq="1" mailingRef="MANUAL20261001133940">
+		<Status code="100"/>
+	</MailingDelete>
+</MailingResponse>

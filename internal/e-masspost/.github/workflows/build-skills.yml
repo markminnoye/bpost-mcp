@@ -1,0 +1,102 @@
+name: Build AI Agent Skills
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Standard security best practice: only grant necessary permissions
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Release Skill
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Unified Skill ZIP
+        run: |
+          mkdir -p dist
+          # Use a clean staging directory to prevent root-level bloat
+          STAGING_DIR="staging/e-masspost"
+          mkdir -p "$STAGING_DIR"
+          
+          # docs/ is the single source for the protocol content (also published via GitBook).
+          # SKILL.md is the only skill-specific file; docs/README.md becomes index.md in the skill.
+          # The 60MB top-level 'reference' folder stays excluded.
+          cp -r docs/* "$STAGING_DIR/"
+          mv "$STAGING_DIR/README.md" "$STAGING_DIR/index.md"
+          rm -f "$STAGING_DIR/SUMMARY.md"
+          cp skills/e-masspost-protocol/SKILL.md "$STAGING_DIR/"
+          
+          # Inject version into SKILL.md automatically
+          # Uses the tag name (e.g., v1.0.4) to replace the version placeholder
+          sed -i "s/(v[0-9.]*)/(v${GITHUB_REF_NAME})/g" "$STAGING_DIR/SKILL.md"
+          
+          # Bundle the skill for Claude
+          cd staging/e-masspost
+          zip -r "../../dist/e-masspost-claude-${{ github.ref_name }}.zip" . -x "*.git*"
+          
+          # Bundle the skill for Gemini (exact same structure works for Antigravity, but we also create a consolidated markdown file for standard Gemini UI)
+          cp "../../dist/e-masspost-claude-${{ github.ref_name }}.zip" "../../dist/e-masspost-gemini-${{ github.ref_name }}.zip"
+          
+          GEMINI_FILE="../../dist/e-masspost-gemini-${{ github.ref_name }}.txt"
+          echo "# BPost e-MassPost Gemini Context Bundle" > "$GEMINI_FILE"
+          echo "" >> "$GEMINI_FILE"
+          find . -name "*.md" -type f | while read -r file; do
+            echo "================================================================" >> "$GEMINI_FILE"
+            echo "## File: ${file#./}" >> "$GEMINI_FILE"
+            echo "================================================================" >> "$GEMINI_FILE"
+            cat "$file" >> "$GEMINI_FILE"
+            echo -e "\n\n" >> "$GEMINI_FILE"
+          done
+          
+          # Bundle the skill for Mistral (Le Chat)
+          # Le Chat's RAG performs best with pure Markdown files and Markdown headers instead of plain text separators
+          MISTRAL_FILE="../../dist/e-masspost-mistral-${{ github.ref_name }}.md"
+          echo "# BPost e-MassPost Mistral Le Chat Knowledge Base" > "$MISTRAL_FILE"
+          echo "" >> "$MISTRAL_FILE"
+          find . -name "*.md" -type f | while read -r file; do
+            echo "## Source: ${file#./}" >> "$MISTRAL_FILE"
+            cat "$file" >> "$MISTRAL_FILE"
+            echo -e "\n\n---\n\n" >> "$MISTRAL_FILE"
+          done
+          
+          cd ../..
+
+          # Separate ZIP for Address Proofing (different product; keep Mail ID ZIP lean)
+          PROOFING_DIR="staging/bpost-address-proofing"
+          mkdir -p "$PROOFING_DIR"
+          cp -r skills/bpost-address-proofing/* "$PROOFING_DIR/"
+          sed -i "s/(v[0-9.]*)/(v${GITHUB_REF_NAME})/g" "$PROOFING_DIR/SKILL.md"
+          (cd "$PROOFING_DIR" && zip -r "../../dist/bpost-address-proofing-claude-${{ github.ref_name }}.zip" . -x "*.git*")
+          cp "dist/bpost-address-proofing-claude-${{ github.ref_name }}.zip" "dist/bpost-address-proofing-gemini-${{ github.ref_name }}.zip"
+
+      - name: Verify Artifact Integrity
+        run: |
+          echo "### Build Artifact Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          ls -lh dist/ | awk '{print "| " $9 " | " $5 " |"}' >> $GITHUB_STEP_SUMMARY
+          
+          echo "::group::ZIP Content Listing"
+          unzip -l "dist/e-masspost-claude-${{ github.ref_name }}.zip"
+          echo "::endgroup::"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*.txt
+            dist/*.md
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

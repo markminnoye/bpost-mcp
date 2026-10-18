@@ -1,0 +1,18 @@
+{
+  "FormatAddressesResponse": {
+    "FormattedAddressResultList": {
+      "FormattedAddressResult": [
+        {
+          "@id": "1",
+          "Label": {
+            "Line": [
+              "Federal Government",
+              "Rue de la Loi 16 bus 1",
+              "1000 Bruxelles"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

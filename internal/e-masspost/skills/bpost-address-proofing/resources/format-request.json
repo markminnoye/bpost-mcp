@@ -1,0 +1,39 @@
+{
+  "FormatAddressesRequest": {
+    "AddressToFormatList": {
+      "AddressToFormat": [
+        {
+          "@id": "1",
+          "MaileeAndAddressee": {
+            "StructuredMaileeOrganizationIdentification": {
+              "MaileeOrganizationOrganizationalName": "Federal Government"
+            }
+          },
+          "PostalAddress": {
+            "StructuredDeliveryPointLocation": {
+              "StreetName": {
+                "@locale": "fr",
+                "*body": "Rue de la Loi"
+              },
+              "StreetNumber": "16",
+              "BoxNumber": "1"
+            },
+            "StructuredPostalCodeMunicipality": {
+              "PostalCode": "1000",
+              "MunicipalityName": {
+                "@locale": "fr",
+                "*body": "Bruxelles"
+              }
+            }
+          },
+          "AddressLanguage": "fr",
+          "DispatchingCountryISOCode": "BE",
+          "DeliveringCountryISOCode": "BE"
+        }
+      ]
+    },
+    "CallerIdentification": {
+      "CallerName": "bpost-mcp"
+    }
+  }
+}

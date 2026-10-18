@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- edited with XMLSpy v2012 rel. 2 (http://www.altova.com) by Bpost ICT Infras (Bpost ICT Infras) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<!-- 
+	Root element for mailing requests 
+	-->
+	<xs:element name="MailingRequest">
+		<xs:annotation>
+			<xs:documentation>Root tag for mailing request files</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Context" type="ContextType">
+					<xs:annotation>
+						<xs:documentation>Tag provided for technical communication.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="Header" type="HeaderType"/>
+				<xs:choice maxOccurs="unbounded">
+					<xs:element name="MailingCreate">
+						<xs:annotation>
+							<xs:documentation>Create a mailing list</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:extension base="CreateMailingListType"/>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="MailingCheck">
+						<xs:annotation>
+							<xs:documentation>Address quality check</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:extension base="CheckMailingListType">
+									<xs:attribute name="depositIdentifier" use="optional">
+										<xs:simpleType>
+											<xs:restriction base="StringType20">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="depositIdentifierType" type="depositIdentifierTypeType" use="optional" default="depositRef"/>
+									<xs:attribute name="genMID" type="GenMidType" use="optional" default="N">
+										<xs:annotation>
+											<xs:documentation>A 1 character flag. If Y, De Post - La Poste will generate the MIS numbers, else the customer must supply a MID number for each item in the mailing list.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="genPSC" type="BooleanType" use="optional" default="N">
+										<xs:annotation>
+											<xs:documentation>A 1 character flag. If Y, De Post - La Poste will generate the pre-sorting codes, else the customer must supply a pre-sorting code for each item in the mailing list.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="copyRequestItem" type="BooleanType" use="optional" default="N"/>
+									<xs:attribute name="suggestionsCount" use="optional" default="0">
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="suggestionsMinScore" use="optional" default="95">
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="1"/>
+												<xs:maxInclusive value="100"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="pdpInResponse" type="BooleanType" use="optional" default="N"/>
+									<xs:attribute name="allRecordInResponse" type="BooleanType" use="optional" default="N"/>
+								</xs:extension>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="MailingDelete" type="DeleteMailingListType">
+						<xs:annotation>
+							<xs:documentation>Delete a mailing list</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="MailingReuse" type="MailingReuseType">
+						<xs:annotation>
+							<xs:documentation>Reuse a mailing list</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:choice>
+			</xs:sequence>
+		</xs:complexType>
+		<xs:unique name="UniqueActionSeq">
+			<xs:selector xpath="MailingCreate|MailingCheck|MailingDelete"/>
+			<xs:field xpath="@seq"/>
+		</xs:unique>
+	</xs:element>
+	<!--
+	 Request meta data types 
+	-->
+	<xs:complexType name="HeaderType">
+		<xs:sequence>
+			<xs:element name="Files">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="RequestProps" type="RequestPropsType">
+							<xs:annotation>
+								<xs:documentation>Request file properties</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="ResponseProps" type="ResponsePropsType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Response file properties</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="customerId" type="xs:positiveInteger" use="required">
+			<xs:annotation>
+				<xs:documentation>Customer identifier. Must match the CCCCCCCC part in the file name.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="accountId" type="xs:positiveInteger" use="required"/>
+		<xs:attribute name="mode" type="ModeType" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="ContextType">
+		<xs:attribute name="requestName" type="xs:string" use="required" fixed="MailingRequest">
+			<xs:annotation>
+				<xs:documentation>A constant identifying the request.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="dataset" type="xs:string" use="required" fixed="M037_MID">
+			<xs:annotation>
+				<xs:documentation>Required by the File Handling System.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="sender" use="required">
+			<xs:annotation>
+				<xs:documentation>Customer identifier. Must match the CCCCCCCC part in the file name.</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:positiveInteger"/>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="receiver" type="xs:string" use="required" fixed="MID">
+			<xs:annotation>
+				<xs:documentation>Required by the File Handling System.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="version" type="xs:string" use="required" fixed="0200">
+			<xs:annotation>
+				<xs:documentation>The file version. Must match the file version in the file name.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<!--
+	 Mailing list types
+	-->
+	<xs:complexType name="CreateMailingListType">
+		<xs:annotation>
+			<xs:documentation>Type for slave MailingCreate actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="FileInfo">
+				<xs:complexType>
+					<xs:attribute name="type" type="xs:string" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Format">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="MailingListFormatType">
+							<xs:attribute name="responseSortingMode" use="optional">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:enumeration value="PO"/>
+										<xs:enumeration value="CU"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:attribute>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="PresortingCodeFile" type="StringType100" minOccurs="0"/>
+			<xs:element name="PresortingCodeVersion" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="version" type="xs:positiveInteger" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:group ref="MailingListCustomerInfoGroup"/>
+			<xs:group ref="MailingListItemsGroup"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="MailingIdentifierAttributeGroup"/>
+		<xs:attributeGroup ref="DepositIdentifierAttributeOptionalGroup"/>
+		<xs:attributeGroup ref="GenerateValuesAttributeGroup"/>
+		<xs:attribute name="expectedDeliveryDate" type="xs:date" use="required"/>
+	</xs:complexType>
+	<xs:simpleType name="MailingListFormatType">
+		<xs:annotation>
+			<xs:documentation>Type for mailing list types</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Large"/>
+			<xs:enumeration value="Small"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="CheckMailingListType">
+		<xs:annotation>
+			<xs:documentation>Type for MailingCheck actions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:group ref="MailingListCustomerInfoGroup"/>
+			<xs:group ref="MailingListItemsGroup"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="MailingIdentifierAttributeGroup"/>
+	</xs:complexType>
+	<xs:complexType name="DeleteMailingListType">
+		<xs:group ref="MailingListCustomerInfoGroup"/>
+		<xs:attributeGroup ref="MailingIdentifierAttributeGroup"/>
+	</xs:complexType>
+	<xs:complexType name="MailingReuseType">
+		<xs:group ref="MailingListCustomerInfoGroup"/>
+		<xs:attributeGroup ref="MailingIdentifierAttributeGroup"/>
+		<xs:attribute name="sourceMailingRef" use="required">
+			<xs:simpleType>
+				<xs:restriction base="StringType20">
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attributeGroup ref="DepositIdentifierAttributeRequiredGroup"/>
+	</xs:complexType>
+	<xs:group name="MailingListCustomerInfoGroup">
+		<xs:sequence>
+			<xs:element name="Contacts" type="ContactsType" minOccurs="0">
+				<xs:key name="contactSeq">
+					<xs:selector xpath="Contact"/>
+					<xs:field xpath="@seq"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="CustomerRefs" type="CustomerRefsType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:group>
+	<xs:group name="MailingListItemsGroup">
+		<xs:sequence>
+			<xs:element name="Items">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Item" type="ItemType" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+				<xs:key name="uniqueSequence">
+					<xs:selector xpath="Item"/>
+					<xs:field xpath="@seq"/>
+				</xs:key>
+			</xs:element>
+			<xs:element name="ItemCount">
+				<xs:complexType>
+					<xs:annotation>
+						<xs:documentation>Count of Item elements in the action</xs:documentation>
+					</xs:annotation>
+					<xs:attribute name="value" type="xs:positiveInteger" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:group>
+	<xs:complexType name="ItemType">
+		<xs:annotation>
+			<xs:documentation>Mailing list items</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Comps" type="CompsType">
+				<xs:unique name="uniqueComponents">
+					<xs:selector xpath="Comp"/>
+					<xs:field xpath="@code"/>
+				</xs:unique>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the item within the request.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="lang" type="LanguageType" use="optional">
+			<xs:annotation>
+				<xs:documentation>A 2 characters constant indicating the language of the item</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="midNum" type="MidNumberType" use="optional">
+			<xs:annotation>
+				<xs:documentation>The MAIL ID number. Must be filled if genMID=Y.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="psCode" type="StringType20" use="optional">
+			<xs:annotation>
+				<xs:documentation>The pre-sorting code. Must be filled if genPSC=Y</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="priority" type="PriorityType" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="CompsType">
+		<xs:sequence>
+			<xs:element name="Comp" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Address components</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="code" use="required">
+						<xs:annotation>
+							<xs:documentation>Address component code</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="2"/>
+								<xs:minLength value="1"/>
+								<xs:pattern value="[0-9]{1,2}"/>
+								<xs:enumeration value="1"/>
+								<xs:enumeration value="2"/>
+								<xs:enumeration value="3"/>
+								<xs:enumeration value="4"/>
+								<xs:enumeration value="5"/>
+								<xs:enumeration value="6"/>
+								<xs:enumeration value="7"/>
+								<xs:enumeration value="8"/>
+								<xs:enumeration value="9"/>
+								<xs:enumeration value="10"/>
+								<xs:enumeration value="11"/>
+								<xs:enumeration value="12"/>
+								<xs:enumeration value="13"/>
+								<xs:enumeration value="14"/>
+								<xs:enumeration value="15"/>
+								<xs:enumeration value="16"/>
+								<xs:enumeration value="17"/>
+								<xs:enumeration value="18"/>
+								<xs:enumeration value="19"/>
+								<xs:enumeration value="70"/>
+								<xs:enumeration value="71"/>
+								<xs:enumeration value="72"/>
+								<xs:enumeration value="73"/>
+								<xs:enumeration value="74"/>
+								<xs:enumeration value="75"/>
+								<xs:enumeration value="76"/>
+								<xs:enumeration value="77"/>
+								<xs:enumeration value="78"/>
+								<xs:enumeration value="79"/>
+								<xs:enumeration value="90"/>
+								<xs:enumeration value="91"/>
+								<xs:enumeration value="92"/>
+								<xs:enumeration value="93"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="value">
+						<xs:annotation>
+							<xs:documentation>Address component value</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:maxLength value="70"/>
+								<xs:minLength value="0"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- 
+	Request meta data types 
+	-->
+	<xs:complexType name="RequestPropsType">
+		<xs:attribute name="customerFileRef" use="required">
+			<xs:annotation>
+				<xs:documentation>A customer reference related to this file. Needs to match the NNNNNNNNNN field from the file name.</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="StringType10">
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ResponsePropsType">
+		<xs:attribute name="format" type="FormatType" use="optional">
+			<xs:annotation>
+				<xs:documentation>Format type for the response file. If omitted, the response file will use the same file type as the request file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="compressed" type="BooleanType" use="optional">
+			<xs:annotation>
+				<xs:documentation>Field indicating if the response file must be compressed. If omitted, the response file will be compressed only if the request file was compressed.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="encrypted" type="BooleanType" use="optional">
+			<xs:annotation>
+				<xs:documentation>Field indicating if the response file must be encrypted. If omitted, the response file will be encrypted only if the request file was encrypted.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="transmissionMode" type="TransmissionModeType" use="optional">
+			<xs:annotation>
+				<xs:documentation>Transmission mode for the response file. If omitted, the response file will use the same mode as the request file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="CustomerRefsType">
+		<xs:sequence>
+			<xs:element name="CustomerRef" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Customer reference, this will be stored but ignored by De Post - La Poste</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="key" use="required">
+						<xs:annotation>
+							<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="StringType250">
+								<xs:minLength value="1"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="value" use="required">
+						<xs:annotation>
+							<xs:documentation>Ignored by De Post - La Poste</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="StringType250">
+								<xs:minLength value="1"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ContactsType">
+		<xs:annotation>
+			<xs:documentation>Type for contact information</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Contact" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Contact persons who should receive notifications</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="seq" type="SeqType" use="required"/>
+					<xs:attribute name="firstName" type="StringType50" use="optional">
+						<xs:annotation>
+							<xs:documentation>First name of the contact person</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="lastName" type="StringType50" use="optional">
+						<xs:annotation>
+							<xs:documentation>Last name of the contact person</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="email" use="required">
+						<xs:annotation>
+							<xs:documentation>Email address of the contact person</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="StringType100">
+								<xs:minLength value="1"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="lang" type="LanguageType" use="required">
+						<xs:annotation>
+							<xs:documentation>A 2 characters constant indicating the language of the contact person</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="phone" type="StringType50" use="optional">
+						<xs:annotation>
+							<xs:documentation>Phone number of the contact person</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="fax" type="StringType50" use="optional">
+						<xs:annotation>
+							<xs:documentation>Fax number of the contact person</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="mobile" type="StringType50" use="optional">
+						<xs:annotation>
+							<xs:documentation>Mobile phone number of the contact person</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!--
+	Common attributes
+	-->
+	<xs:attributeGroup name="MailingIdentifierAttributeGroup">
+		<xs:attribute name="seq" type="SeqType" use="required">
+			<xs:annotation>
+				<xs:documentation>A sequence number identifying the request within the file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="mailingRef" use="required">
+			<xs:annotation>
+				<xs:documentation>A unique customer reference identifying the mailing list</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="StringType20">
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:attributeGroup>
+	<xs:attributeGroup name="DepositIdentifierAttributeOptionalGroup">
+		<xs:attribute name="depositIdentifier" use="optional">
+			<xs:simpleType>
+				<xs:restriction base="StringType20">
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="depositIdentifierType" type="depositIdentifierTypeType" use="optional" default="depositRef"/>
+	</xs:attributeGroup>
+	<xs:attributeGroup name="DepositIdentifierAttributeRequiredGroup">
+		<xs:attribute name="depositIdentifier" use="required">
+			<xs:simpleType>
+				<xs:restriction base="StringType20">
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="depositIdentifierType" type="depositIdentifierTypeType" use="optional" default="depositRef"/>
+	</xs:attributeGroup>
+	<xs:attributeGroup name="GenerateValuesAttributeGroup">
+		<xs:attribute name="genMID" type="GenMidType" use="optional" default="N">
+			<xs:annotation>
+				<xs:documentation>A 1 character flag. If Y, De Post - La Poste will generate the MIS numbers, else the customer must supply a MID number for each item in the mailing list.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="genPSC" type="BooleanType" use="optional" default="N">
+			<xs:annotation>
+				<xs:documentation>A 1 character flag. If Y, De Post - La Poste will generate the pre-sorting codes, else the customer must supply a pre-sorting code for each item in the mailing list.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:attributeGroup>
+	<!--
+	Simple data types 
+	-->
+	<xs:simpleType name="BooleanType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Y"/>
+			<xs:enumeration value="N"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="LanguageType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="fr"/>
+			<xs:enumeration value="nl"/>
+			<xs:enumeration value="de"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ModeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="T"/>
+			<xs:enumeration value="C"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="FormatType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="XML"/>
+			<xs:enumeration value="TXT"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TransmissionModeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="HTTP"/>
+			<xs:enumeration value="HTTPS"/>
+			<xs:enumeration value="FTP"/>
+			<xs:enumeration value="FTPS"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PriorityType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="NP"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="GenMidType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="7"/>
+			<xs:enumeration value="9"/>
+			<xs:enumeration value="11"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="depositIdentifierTypeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="depositRef"/>
+			<xs:enumeration value="tmpDepositNr"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SeqType">
+		<xs:restriction base="xs:positiveInteger"/>
+	</xs:simpleType>
+	<xs:simpleType name="StringType10">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="10"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType6">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="6"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType18">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="18"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType20">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType50">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="50"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType100">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="100"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringType250">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="250"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="MidNumberType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[0-9]{14,18}"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

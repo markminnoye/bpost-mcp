@@ -1,0 +1,21 @@
+name: Auto-Assign to Project 4
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  add-to-project:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add to Project
+        uses: actions/add-to-project@v1.0.1
+        with:
+          # Targets the user's specific project board
+          project-url: https://github.com/users/markminnoye/projects/4
+          # VERY IMPORTANT: This requires a Personal Access Token (PAT) 
+          # with 'project' read/write scope. It must be added as a Repository Secret named PROJECT_PAT.
+          github-token: ${{ secrets.PROJECT_PAT }}

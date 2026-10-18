@@ -1,0 +1,10 @@
+dist/e-masspost-claude-vTEST-LOCAL.zip
+dist/e-masspost-gemini-vTEST-LOCAL.txt
+dist/e-masspost-gemini-vTEST-LOCAL.zip
+dist/e-masspost-mistral-vTEST-LOCAL.md
+
+# Browser HAR captures may contain tokens/credentials — never commit
+har/
+
+# macOS Finder metadata
+.DS_Store
