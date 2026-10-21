@@ -1,5 +1,7 @@
 # Table of contents
 
+* [README](README.md)
+
 ## Documentatie
 
 * [Welkom](documentatie/README.md)
@@ -32,7 +34,7 @@
 
 * [API-overzicht](ontwikkelaars/api/overzicht.md)
 * [HTTP-API](ontwikkelaars/api/http-api.md)
-* [OpenAPI-referentie](ontwikkelaars/api/openapi.yaml)
+* [OpenAPI-referentie](ontwikkelaars-api/openapi-referentie.md)
 
 ## Ontwikkelaars: Beheer
 
